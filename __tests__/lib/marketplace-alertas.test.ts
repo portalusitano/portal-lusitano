@@ -21,18 +21,22 @@ const VAZIOS: CriteriosAlerta = {
   termo: null,
 };
 
-/** Records the filters applied, so the query builder can be asserted on. */
+/**
+ * Records the filters applied, so the query builder can be asserted on.
+ *
+ * Only the chaining methods are implemented — `aplicarCriterios` never awaits
+ * the builder, so there is no `then` here to get wrong.
+ */
 function espia() {
   const chamadas: string[] = [];
-  const q: CriteriosQuery<unknown> = {
-    eq: (c, v) => (chamadas.push(`eq:${c}=${v}`), q),
-    gte: (c, v) => (chamadas.push(`gte:${c}=${v}`), q),
-    lte: (c, v) => (chamadas.push(`lte:${c}=${v}`), q),
-    contains: (c, v) => (chamadas.push(`contains:${c}=${JSON.stringify(v)}`), q),
-    or: (f) => (chamadas.push(`or:${f}`), q),
-    then: (resolve) => Promise.resolve(resolve?.(undefined)),
+  const q = {
+    eq: (c: string, v: unknown) => (chamadas.push(`eq:${c}=${v}`), q),
+    gte: (c: string, v: unknown) => (chamadas.push(`gte:${c}=${v}`), q),
+    lte: (c: string, v: unknown) => (chamadas.push(`lte:${c}=${v}`), q),
+    contains: (c: string, v: unknown) => (chamadas.push(`contains:${c}=${JSON.stringify(v)}`), q),
+    or: (f: string) => (chamadas.push(`or:${f}`), q),
   };
-  return { q, chamadas };
+  return { q: q as unknown as CriteriosQuery<unknown>, chamadas };
 }
 
 describe("normalizarCriterios", () => {
