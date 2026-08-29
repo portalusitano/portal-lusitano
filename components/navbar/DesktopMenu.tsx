@@ -30,10 +30,9 @@ export const DesktopMenu = memo(function DesktopMenu({ t }: DesktopMenuProps) {
       { name: t.nav.home, href: "/" },
       { name: t.nav.buy_horse || "Comprar", href: "/comprar" },
       { name: t.nav.studs || "Coudelarias", href: "/directorio" },
-      { name: t.nav.events || "Eventos", href: "/eventos" },
       { name: t.nav.about, href: "/sobre" },
     ],
-    [t.nav.home, t.nav.buy_horse, t.nav.studs, t.nav.events, t.nav.about]
+    [t.nav.home, t.nav.buy_horse, t.nav.studs, t.nav.about]
   );
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));

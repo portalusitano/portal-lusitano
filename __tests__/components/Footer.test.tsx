@@ -100,7 +100,6 @@ describe("Footer", () => {
     render(<Footer />);
     const hrefs = screen.getAllByRole("link").map((l) => l.getAttribute("href"));
     expect(hrefs).toContain("/directorio");
-    expect(hrefs).toContain("/eventos");
     expect(hrefs).toContain("/mapa");
   });
 

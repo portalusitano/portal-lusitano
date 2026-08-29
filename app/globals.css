@@ -2,7 +2,8 @@
 @import "./print.css";
 
 /* ===== LENIS SMOOTH SCROLL ===== */
-html.lenis, html.lenis body {
+html.lenis,
+html.lenis body {
   height: auto;
 }
 .lenis.lenis-smooth {
@@ -27,8 +28,16 @@ html.lenis, html.lenis body {
 ::view-transition-new(root) {
   animation-name: fade-in;
 }
-@keyframes fade-out { to { opacity: 0; } }
-@keyframes fade-in  { from { opacity: 0; } }
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
 
 /* ===== FONT FALLBACK METRICS =====
  * Reduces CLS during font swap by matching fallback metrics
@@ -93,7 +102,9 @@ body {
 
 /* Theme transition only runs during explicit theme toggle */
 html.is-theme-transitioning body {
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 /* ... (mantém o que já lá estava) */
@@ -318,7 +329,8 @@ html {
     display: none;
   }
 
-  html, body {
+  html,
+  body {
     scrollbar-width: none;
   }
 }
@@ -755,14 +767,24 @@ body {
 
 /* Expand underline left→right */
 @keyframes expandWidth {
-  from { transform: scaleX(0); transform-origin: left; }
-  to   { transform: scaleX(1); transform-origin: left; }
+  from {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  to {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
 }
 
 /* Infinite ticker marquee */
 @keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 /* Gold shimmer on hover */
@@ -844,7 +866,9 @@ body {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  box-shadow: 0 0 40px rgba(197, 160, 89, 0.25), 0 0 80px rgba(197, 160, 89, 0.1);
+  box-shadow:
+    0 0 40px rgba(197, 160, 89, 0.25),
+    0 0 80px rgba(197, 160, 89, 0.1);
   opacity: 0;
   transition: opacity 0.5s ease;
   pointer-events: none;
@@ -1066,25 +1090,292 @@ body {
 @media (max-width: 640px) {
   .text-8xl,
   .text-9xl {
-    font-size: 2.5rem;   /* 40px — was 6–8rem */
+    font-size: 2.5rem; /* 40px — was 6–8rem */
     line-height: 1.1;
   }
 
   .text-7xl {
-    font-size: 2.25rem;  /* 36px — was 4.5rem */
+    font-size: 2.25rem; /* 36px — was 4.5rem */
     line-height: 1.1;
   }
 
   .text-6xl {
-    font-size: 2rem;     /* 32px — was 3.75rem */
+    font-size: 2rem; /* 32px — was 3.75rem */
     line-height: 1.12;
   }
 
   .text-5xl {
-    font-size: 1.75rem;  /* 28px — was 3rem */
+    font-size: 1.75rem; /* 28px — was 3rem */
     line-height: 1.15;
   }
 
   /* text-4xl (2.25rem / 36px) is kept as-is; 36px is generally fine on mobile. */
 }
 
+/* ===========================================================================
+ * SISTEMA DE INTERFACE — CLASSIFICADOS
+ * ===========================================================================
+ * O site nasceu com uma linguagem editorial de luxo: serif itálico grande,
+ * etiquetas de 9px em maiúsculas com tracking de meio em, muito ar. Isso
+ * funciona numa ficha de cavalo e trabalha contra uma grelha onde se comparam
+ * quarenta anúncios: obriga a percorrer o ecrã para ver metade dos que cabiam,
+ * e as etiquetas são pequenas ao ponto de não se lerem.
+ *
+ * Estas classes são a versão densa: tamanhos legíveis, tracking contido,
+ * espaçamento numa grelha de 4px. O serif fica reservado para onde ainda faz
+ * sentido — o título da ficha e o herói da homepage.
+ *
+ * Regra prática: se está a escrever `text-[9px]` ou `tracking-[0.4em]` numa
+ * página, é sinal de que falta aqui uma classe.
+ * ========================================================================= */
+
+:root {
+  /* Cantos. Um raio pequeno e constante lê-se como sistema; vários raios
+     diferentes lêem-se como descuido. */
+  --raio: 6px;
+  --raio-sm: 4px;
+  --raio-lg: 10px;
+}
+
+/* --- Tipografia ---------------------------------------------------------- */
+
+/* Etiqueta acima de um valor ou de um grupo. Substitui os `text-[9px]
+   uppercase tracking-[0.3em]` espalhados pelo site. */
+.rotulo {
+  font-size: 0.6875rem; /* 11px */
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--foreground-muted);
+}
+
+.rotulo-forte {
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--gold);
+}
+
+/* Título de secção dentro de uma página. */
+.titulo-seccao {
+  font-size: 0.9375rem; /* 15px */
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--foreground);
+}
+
+/* Título de página. */
+.titulo-pagina {
+  font-size: 1.5rem; /* 24px */
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+@media (min-width: 640px) {
+  .titulo-pagina {
+    font-size: 1.75rem; /* 28px */
+  }
+}
+
+/* Texto de apoio: metadados de um anúncio, contagens, datas. */
+.meta {
+  font-size: 0.75rem; /* 12px */
+  line-height: 1.4;
+  color: var(--foreground-muted);
+}
+
+/* Preços. `tabular-nums` alinha as colunas de dígitos entre cartões, que é o
+   que permite comparar preços de relance numa grelha. */
+.preco {
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--gold);
+}
+
+/* --- Superfícies --------------------------------------------------------- */
+
+.cartao {
+  background: var(--background-card);
+  border: 1px solid var(--border);
+  border-radius: var(--raio);
+}
+
+.cartao-interactivo {
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.cartao-interactivo:hover {
+  border-color: var(--border-hover);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cartao-interactivo:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* --- Botões -------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border-radius: var(--raio);
+  border: 1px solid transparent;
+  font-size: 0.8125rem; /* 13px */
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Alvo de toque de 44px em ecrãs sem rato, sem inchar o botão no desktop. */
+@media (pointer: coarse) {
+  .btn {
+    min-height: 44px;
+  }
+}
+
+.btn-primario {
+  background: var(--gold);
+  color: #000;
+}
+
+.btn-primario:hover:not(:disabled) {
+  background: var(--gold-hover);
+}
+
+.btn-secundario {
+  background: var(--background-elevated);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.btn-secundario:hover:not(:disabled) {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.btn-subtil {
+  background: transparent;
+  color: var(--foreground-secondary);
+}
+
+.btn-subtil:hover:not(:disabled) {
+  color: var(--foreground);
+  background: var(--surface-hover);
+}
+
+.btn-sm {
+  padding: 0.375rem 0.625rem;
+  font-size: 0.75rem;
+}
+
+/* --- Campos de formulário ------------------------------------------------ */
+
+.campo {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  background: var(--background-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--raio);
+  color: var(--foreground);
+  font-size: 0.875rem; /* 14px — abaixo disto o iOS faz zoom ao focar */
+  line-height: 1.4;
+  transition: border-color 0.15s ease;
+}
+
+.campo::placeholder {
+  color: var(--foreground-muted);
+}
+
+.campo:hover {
+  border-color: var(--border-hover);
+}
+
+.campo:focus {
+  border-color: var(--gold);
+}
+
+/* --- Fichas e distintivos ------------------------------------------------ */
+
+/* Pastilha de filtro, clicável. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--background-secondary);
+  color: var(--foreground-secondary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.chip:hover {
+  border-color: var(--border-hover);
+  color: var(--foreground);
+}
+
+.chip-activo {
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+  color: var(--gold);
+}
+
+/* Distintivo informativo, não clicável. */
+.selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--raio-sm);
+  font-size: 0.625rem; /* 10px — só para uma ou duas palavras sobre a foto */
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
+.selo-destaque {
+  background: var(--gold);
+  color: #000;
+}
+
+.selo-novo {
+  background: #10b981;
+  color: #fff;
+}
+
+.selo-neutro {
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  backdrop-filter: blur(4px);
+}

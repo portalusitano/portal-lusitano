@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { ShoppingCart, Euro, Crown, MapPin, Calendar, Home, HelpCircle } from "lucide-react";
+import { ShoppingCart, Euro, Crown, MapPin, Home, HelpCircle } from "lucide-react";
 
 export interface NavDropdownItem {
   href: string;
@@ -67,12 +67,6 @@ export function getDbItems(nav: NavTranslations): NavDropdownItem[] {
       label: nav.map || "Mapa",
       desc: nav.map_desc || "Coudelarias por região",
     },
-    {
-      href: "/eventos",
-      icon: Calendar,
-      label: nav.events || "Eventos",
-      desc: nav.events_desc || "Feiras, concursos e leilões",
-    },
   ];
 }
 
@@ -87,7 +81,6 @@ export function getMobileDbItems(nav: NavTranslations): MobileNavItem[] {
     },
     { href: "/directorio", icon: Crown, label: nav.studs || "Coudelarias" },
     { href: "/mapa", icon: MapPin, label: nav.map || "Mapa" },
-    { href: "/eventos", icon: Calendar, label: nav.events || "Eventos" },
   ];
 }
 

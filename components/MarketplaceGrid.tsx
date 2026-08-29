@@ -137,19 +137,12 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
   /** Turns the current search into a saved alert, pre-filled. */
   const hrefAlerta = `/minha-conta/alertas?${escreverFiltros({ ...filtros, pagina: 1 })}`;
 
-  const chip = (activo: boolean) =>
-    `px-3.5 py-2 text-[10px] uppercase tracking-widest border transition-colors ${
-      activo
-        ? "border-[var(--gold)] text-[var(--gold)] bg-[var(--gold)]/10"
-        : "border-[var(--border)] text-[var(--foreground-secondary)] hover:border-[var(--gold)]/50 hover:text-[var(--gold)]"
-    }`;
+  const chip = (activo: boolean) => `chip${activo ? " chip-activo" : ""}`;
 
   const painelFiltros = (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
-        <p className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] mb-3">
-          Sexo
-        </p>
+        <p className="rotulo mb-2">Sexo</p>
         <div className="flex flex-wrap gap-2">
           {SEXOS.map((s) => (
             <button
@@ -164,9 +157,7 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
       </div>
 
       <div>
-        <p className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] mb-3">
-          Preço
-        </p>
+        <p className="rotulo mb-2">Preço</p>
         <div className="flex flex-wrap gap-2">
           {FAIXAS_PRECO.map((f) => {
             const activo = filtros.precoMin === f.min && filtros.precoMax === f.max;
@@ -190,9 +181,7 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
       </div>
 
       <div>
-        <p className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] mb-3">
-          Idade
-        </p>
+        <p className="rotulo mb-2">Idade</p>
         <div className="flex flex-wrap gap-2">
           {FAIXAS_IDADE.map((f) => {
             const activo = filtros.idadeMin === f.min && filtros.idadeMax === f.max;
@@ -217,9 +206,7 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
 
       {disciplinasDisponiveis.length > 0 && (
         <div>
-          <p className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] mb-3">
-            Disciplina
-          </p>
+          <p className="rotulo mb-2">Disciplina</p>
           <div className="flex flex-wrap gap-2">
             {disciplinasDisponiveis.map((d) => (
               <button
@@ -236,9 +223,7 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
 
       {regioesDisponiveis.length > 0 && (
         <div>
-          <p className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] mb-3">
-            Localização
-          </p>
+          <p className="rotulo mb-2">Localização</p>
           <div className="flex flex-wrap gap-2">
             {regioesDisponiveis.slice(0, 16).map((r) => (
               <button
@@ -261,7 +246,7 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
       <div className="relative mb-4">
         <Search
           size={16}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] pointer-events-none"
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] pointer-events-none"
           aria-hidden
         />
         <input
@@ -270,7 +255,7 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
           onChange={(e) => setRascunhoPesquisa(e.target.value)}
           placeholder="Nome, linhagem, localização, disciplina…"
           aria-label="Pesquisar cavalos"
-          className="w-full pl-11 pr-10 py-3 bg-[var(--background-secondary)] border border-[var(--border)] text-[var(--foreground)] text-sm placeholder:text-[var(--foreground-muted)] focus:outline-none focus:border-[var(--gold)] transition-colors"
+          className="campo pl-10 pr-10"
         />
         {rascunhoPesquisa && (
           <button
@@ -285,7 +270,7 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
 
       {/* ── Barra de resultados ── */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-        <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--foreground-muted)]">
+        <p className="meta">
           {pagina.total === 1 ? "1 cavalo" : `${pagina.total} cavalos`}
           {pagina.totalPaginas > 1 && ` · página ${pagina.pagina} de ${pagina.totalPaginas}`}
         </p>
@@ -293,12 +278,12 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setFiltrosAbertos((v) => !v)}
-            className="sm:hidden inline-flex items-center gap-2 px-3.5 py-2 border border-[var(--border)] text-[10px] uppercase tracking-widest text-[var(--foreground-secondary)]"
+            className="btn btn-secundario btn-sm sm:hidden"
           >
             <SlidersHorizontal size={12} />
             Filtros
             {activos > 0 && (
-              <span className="w-4 h-4 rounded-full bg-[var(--gold)] text-black text-[9px] flex items-center justify-center font-bold">
+              <span className="w-4 h-4 rounded-full bg-[var(--gold)] text-black text-[10px] flex items-center justify-center font-bold">
                 {activos}
               </span>
             )}
@@ -311,7 +296,7 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
             id="ordenar"
             value={filtros.ordenar}
             onChange={(e) => navegar({ ordenar: e.target.value as Ordenacao })}
-            className="appearance-none bg-[var(--background-secondary)] border border-[var(--border)] text-[var(--foreground)] text-xs px-3 py-2 pr-7 cursor-pointer focus:outline-none focus:border-[var(--gold)]"
+            className="campo w-auto py-1.5 pr-7 text-xs cursor-pointer appearance-none"
           >
             {ORDENACOES.map((o) => (
               <option key={o.id} value={o.id}>
@@ -323,17 +308,12 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
       </div>
 
       {/* ── Filtros (sempre visíveis em ecrã grande) ── */}
-      <div
-        className={`${filtrosAbertos ? "block" : "hidden"} sm:block border border-[var(--border)] p-5 mb-6`}
-      >
+      <div className={`${filtrosAbertos ? "block" : "hidden"} sm:block cartao p-4 mb-5`}>
         {painelFiltros}
 
         {temFiltros && (
-          <div className="flex flex-wrap gap-2 mt-6 pt-5 border-t border-[var(--border)]">
-            <button
-              onClick={limpar}
-              className="inline-flex items-center gap-2 px-4 py-2 border border-[var(--border)] text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
-            >
+          <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-[var(--border)]">
+            <button onClick={limpar} className="btn btn-secundario btn-sm">
               <X size={11} />
               Limpar filtros
             </button>
@@ -341,7 +321,7 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
                 vale a pena guardar como alerta. */}
             <LocalizedLink
               href={hrefAlerta}
-              className="inline-flex items-center gap-2 px-4 py-2 border border-[var(--gold)]/40 text-[10px] uppercase tracking-widest text-[var(--gold)] hover:bg-[var(--gold)]/10 transition-colors"
+              className="btn btn-sm border-[var(--gold)]/40 text-[var(--gold)] hover:bg-[var(--gold)]/10"
             >
               <BellRing size={11} />
               Guardar esta pesquisa
@@ -352,7 +332,7 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
 
       {/* ── Resultados ── */}
       {pagina.total === 0 ? (
-        <div className="border border-[var(--border)] p-12 text-center">
+        <div className="cartao p-10 text-center">
           <Search size={20} className="mx-auto text-[var(--gold)]/25 mb-4" />
           <p className="text-sm text-[var(--foreground)]">Nenhum cavalo corresponde à pesquisa.</p>
           <p className="text-xs text-[var(--foreground-muted)] mt-2 max-w-sm mx-auto">
@@ -360,15 +340,12 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
             assim.
           </p>
           <div className="flex flex-wrap justify-center gap-2 mt-7">
-            <button
-              onClick={limpar}
-              className="px-5 py-2.5 border border-[var(--border)] text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
-            >
+            <button onClick={limpar} className="btn btn-secundario">
               Limpar filtros
             </button>
             <LocalizedLink
               href={hrefAlerta}
-              className="inline-flex items-center gap-2 px-5 py-2.5 border border-[var(--gold)]/40 text-[10px] uppercase tracking-widest text-[var(--gold)] hover:bg-[var(--gold)]/10 transition-colors"
+              className="btn border-[var(--gold)]/40 text-[var(--gold)] hover:bg-[var(--gold)]/10"
             >
               <BellRing size={11} />
               Criar alerta
@@ -377,39 +354,39 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-px bg-[var(--gold)]/8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {pagina.itens.map((horse, i) => (
               <HorseCard
                 key={horse.id}
                 horse={horse}
                 href={`/comprar/${horse.id}`}
-                priority={i < 4}
+                priority={i < 5}
               />
             ))}
           </div>
 
           {pagina.totalPaginas > 1 && (
             <nav
-              className="flex items-center justify-center gap-2 mt-10"
+              className="flex items-center justify-center gap-2 mt-8"
               aria-label="Paginação de resultados"
             >
               <button
                 onClick={() => navegar({ pagina: pagina.pagina - 1 })}
                 disabled={pagina.pagina <= 1}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 border border-[var(--border)] text-[10px] uppercase tracking-widest text-[var(--foreground-secondary)] hover:border-[var(--gold)]/50 hover:text-[var(--gold)] transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                className="btn btn-secundario"
               >
                 <ChevronLeft size={12} />
                 Anterior
               </button>
 
-              <span className="px-4 text-[10px] uppercase tracking-[0.2em] text-[var(--foreground-muted)]">
+              <span className="meta px-4">
                 {pagina.pagina} / {pagina.totalPaginas}
               </span>
 
               <button
                 onClick={() => navegar({ pagina: pagina.pagina + 1 })}
                 disabled={pagina.pagina >= pagina.totalPaginas}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 border border-[var(--border)] text-[10px] uppercase tracking-widest text-[var(--foreground-secondary)] hover:border-[var(--gold)]/50 hover:text-[var(--gold)] transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                className="btn btn-secundario"
               >
                 Seguinte
                 <ChevronRight size={12} />

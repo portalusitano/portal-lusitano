@@ -34,10 +34,9 @@ export default memo(function Footer() {
   const col3 = useMemo(
     () => [
       { name: t.footer.studs, href: "/directorio" },
-      { name: t.footer.events, href: "/eventos" },
       { name: t.nav.map || "Mapa", href: "/mapa" },
     ],
-    [t.footer.studs, t.footer.events, t.nav.map]
+    [t.footer.studs, t.nav.map]
   );
 
   // Portal

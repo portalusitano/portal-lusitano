@@ -4,17 +4,7 @@ import { useState, memo } from "react";
 import { usePathname } from "next/navigation";
 import LocalizedLink from "@/components/LocalizedLink";
 import { useLanguage } from "@/context/LanguageContext";
-import {
-  Home,
-  ShoppingCart,
-  MoreHorizontal,
-  X,
-  Calendar,
-  MapPin,
-  User,
-  Euro,
-  Crown,
-} from "lucide-react";
+import { Home, ShoppingCart, MoreHorizontal, X, MapPin, User, Euro, Crown } from "lucide-react";
 
 export default memo(function BottomNav() {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
@@ -202,7 +192,6 @@ export default memo(function BottomNav() {
                   label:
                     language === "pt" ? "Coudelarias" : language === "es" ? "Cuadras" : "Studs",
                 },
-                { href: "/eventos", icon: Calendar, label: t.nav.events },
                 { href: "/mapa", icon: MapPin, label: t.nav.map },
               ].map((item) => (
                 <LocalizedLink
