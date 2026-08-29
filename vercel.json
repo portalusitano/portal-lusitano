@@ -59,6 +59,10 @@
     {
       "path": "/api/cron/alertas",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/expiracao",
+      "schedule": "0 9 * * *"
     }
   ]
 }
