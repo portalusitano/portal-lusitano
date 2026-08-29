@@ -521,6 +521,15 @@ export default function AdminDashboard() {
               </Link>
 
               <Link
+                href="/admin/denuncias"
+                className="bg-gradient-to-br from-red-500/10 to-red-600/10 border border-red-500/20 hover:border-red-500/40 rounded-lg p-4 text-center transition-all hover:scale-105"
+              >
+                <p className="text-3xl mb-2">⚠️</p>
+                <p className="font-semibold text-white">Denúncias</p>
+                <p className="text-sm text-gray-400">Anúncios reportados</p>
+              </Link>
+
+              <Link
                 href="/admin/instagram"
                 className="bg-gradient-to-br from-purple-500/10 to-purple-600/10 border border-purple-500/20 hover:border-purple-500/40 rounded-lg p-4 text-center transition-all hover:scale-105"
               >

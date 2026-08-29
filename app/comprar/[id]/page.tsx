@@ -5,6 +5,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase-admin";
 import ContactarVendedor from "@/components/comprar/ContactarVendedor";
+import RegistarVisualizacao from "@/components/comprar/RegistarVisualizacao";
+import DenunciarAnuncio from "@/components/comprar/DenunciarAnuncio";
 import Pedigree from "@/components/Pedigree";
 import { HorseSchema, BreadcrumbSchema } from "@/components/JsonLd";
 import {
@@ -445,6 +447,10 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
               </section>
             )}
 
+            {/* Conta a visualização — o vendedor paga o anúncio e este é o
+                único indicador de retorno que recebe. */}
+            <RegistarVisualizacao cavaloId={cavalo.id} />
+
             {/* CONTACT / CTA */}
             <section
               aria-labelledby="contact-heading"
@@ -521,6 +527,8 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                 <p className="text-center text-[9px] text-[var(--foreground-muted)] uppercase tracking-widest pt-1">
                   Resposta em menos de 24 horas · Transacção segura
                 </p>
+
+                <DenunciarAnuncio cavaloId={cavalo.id} />
               </div>
             </section>
 
