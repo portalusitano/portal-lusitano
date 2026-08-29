@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 
-const CustomCursor = dynamic(() => import("@/components/CustomCursor"), { ssr: false });
 const SmoothScroll = dynamic(() => import("@/components/SmoothScroll"), { ssr: false });
 const RouteProgressBar = dynamic(() => import("@/components/RouteProgressBar"), { ssr: false });
 const BottomNav = dynamic(() => import("@/components/BottomNav"), { ssr: false });
@@ -11,7 +10,6 @@ export default function ClientShell() {
   return (
     <>
       <RouteProgressBar />
-      <CustomCursor />
       <SmoothScroll />
       <BottomNav />
     </>
