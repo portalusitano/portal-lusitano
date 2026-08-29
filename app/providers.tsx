@@ -3,6 +3,7 @@
 import { LanguageProvider } from "@/context/LanguageContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { HorseFavoritesProvider } from "@/context/HorseFavoritesContext";
+import { MensagensProvider } from "@/context/MensagensContext";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { type ReactNode, type FC, lazy, Suspense } from "react";
@@ -26,14 +27,16 @@ function composeProviders(...providers: FC<{ children: ReactNode }>[]) {
 }
 
 // Providers ordered by dependency:
-// ErrorBoundary > Theme > Auth > Toast > HorseFavorites
+// ErrorBoundary > Theme > Auth > Toast > HorseFavorites > Mensagens
+// Mensagens depende de Auth: a contagem é do utilizador com sessão iniciada.
 // LanguageProvider extracted from compose because it needs initialLanguage prop
 const ComposedProviders = composeProviders(
   ErrorBoundaryWrapper,
   ThemeProvider,
   AuthProvider,
   ToastProvider,
-  HorseFavoritesProvider
+  HorseFavoritesProvider,
+  MensagensProvider
 );
 
 export function Providers({

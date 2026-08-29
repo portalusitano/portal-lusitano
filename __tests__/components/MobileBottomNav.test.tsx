@@ -7,6 +7,7 @@ import MobileBottomNav from "@/components/MobileBottomNav";
 // ---------------------------------------------------------------------------
 const mockPathname = vi.fn<() => string>(() => "/");
 const mockFavoritesCount = vi.fn<() => number>(() => 0);
+const mockPorLer = vi.fn<() => number>(() => 0);
 
 vi.mock("next/navigation", () => ({
   usePathname: () => mockPathname(),
@@ -38,6 +39,10 @@ vi.mock("@/context/HorseFavoritesContext", () => ({
     isFavorite: vi.fn(),
     toggleFavorite: vi.fn(),
   }),
+}));
+
+vi.mock("@/context/MensagensContext", () => ({
+  useMensagensPorLer: () => ({ porLer: mockPorLer(), recarregar: vi.fn() }),
 }));
 
 vi.mock("@/context/LanguageContext", () => ({
@@ -76,6 +81,7 @@ vi.mock("lucide-react", () => ({
 beforeEach(() => {
   mockPathname.mockReturnValue("/");
   mockFavoritesCount.mockReturnValue(0);
+  mockPorLer.mockReturnValue(0);
 });
 
 // ---------------------------------------------------------------------------
@@ -142,5 +148,32 @@ describe("MobileBottomNav", () => {
     render(<MobileBottomNav />);
     expect(screen.queryByText("Ferramentas")).not.toBeInTheDocument();
     expect(screen.queryByText("Loja")).not.toBeInTheDocument();
+  });
+
+  it("não mostra distintivo quando não há mensagens por ler", () => {
+    mockPorLer.mockReturnValue(0);
+    render(<MobileBottomNav />);
+    expect(screen.getByText("Mensagens").closest("a")).toHaveAttribute("aria-label", "Mensagens");
+  });
+
+  it("mostra o número de mensagens por ler", () => {
+    mockPorLer.mockReturnValue(3);
+    render(<MobileBottomNav />);
+    expect(screen.getByText("3")).toBeInTheDocument();
+    expect(screen.getByText("Mensagens").closest("a")).toHaveAttribute(
+      "aria-label",
+      "Mensagens (3 por ler)"
+    );
+  });
+
+  it("encurta contagens grandes para caberem no ícone", () => {
+    mockPorLer.mockReturnValue(42);
+    render(<MobileBottomNav />);
+    expect(screen.getByText("9+")).toBeInTheDocument();
+    // O número exacto continua a ser dito a quem usa leitor de ecrã.
+    expect(screen.getByText("Mensagens").closest("a")).toHaveAttribute(
+      "aria-label",
+      "Mensagens (42 por ler)"
+    );
   });
 });

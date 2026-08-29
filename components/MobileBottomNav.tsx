@@ -5,16 +5,25 @@ import LocalizedLink from "@/components/LocalizedLink";
 import { usePathname } from "next/navigation";
 import { Home, ShoppingCart, User, Plus, MessagesSquare } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useMensagensPorLer } from "@/context/MensagensContext";
 export default memo(function MobileBottomNav() {
   const pathname = usePathname();
   const { t, language } = useLanguage();
+  const { porLer } = useMensagensPorLer();
   // Don't show on certain pages
   const hiddenPaths = ["/studio", "/admin"];
   if (hiddenPaths.some((path) => pathname.startsWith(path))) {
     return null;
   }
 
-  const navItems = [
+  const navItems: {
+    href: string;
+    icon: typeof Home;
+    label: string;
+    isActive: boolean;
+    /** Número por cima do ícone; 0 esconde-o. */
+    distintivo?: number;
+  }[] = [
     {
       href: "/",
       icon: Home,
@@ -37,6 +46,8 @@ export default memo(function MobileBottomNav() {
     {
       href: "/minha-conta/mensagens",
       icon: MessagesSquare,
+      // Sem este número, quem recebe uma mensagem não tem como saber.
+      distintivo: porLer,
       label: language === "pt" ? "Mensagens" : language === "es" ? "Mensajes" : "Messages",
       isActive: pathname.startsWith("/minha-conta/mensagens"),
     },
@@ -63,7 +74,9 @@ export default memo(function MobileBottomNav() {
             <LocalizedLink
               key={item.href}
               href={item.href}
-              aria-label={item.label}
+              aria-label={
+                item.distintivo ? `${item.label} (${item.distintivo} por ler)` : item.label
+              }
               className={`flex flex-col items-center justify-center gap-1 min-w-[64px] min-h-[56px] rounded-xl transition-all active:scale-90 touch-manipulation focus-visible:ring-2 focus-visible:ring-[var(--gold)] ${
                 item.isActive
                   ? "text-[var(--gold)]"
@@ -72,6 +85,14 @@ export default memo(function MobileBottomNav() {
             >
               <div className="relative">
                 <item.icon size={24} strokeWidth={item.isActive ? 2 : 1.5} />
+                {item.distintivo ? (
+                  <span
+                    aria-hidden="true"
+                    className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 bg-[var(--gold)] text-black rounded-full flex items-center justify-center text-[10px] font-bold"
+                  >
+                    {item.distintivo > 9 ? "9+" : item.distintivo}
+                  </span>
+                ) : null}
               </div>
               <span
                 className={`text-[10px] font-medium ${item.isActive ? "text-[var(--gold)]" : ""}`}

@@ -1,8 +1,9 @@
 import { memo } from "react";
 import LocalizedLink from "@/components/LocalizedLink";
-import { Search, Heart, User, Plus, Menu, X, Sun, Moon } from "lucide-react";
+import { Search, Heart, User, Plus, Menu, X, Sun, Moon, MessagesSquare } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useHorseFavorites } from "@/context/HorseFavoritesContext";
+import { useMensagensPorLer } from "@/context/MensagensContext";
 
 interface NavIconsProps {
   language: string;
@@ -27,6 +28,7 @@ export const NavIcons = memo(function NavIcons({
 }: NavIconsProps) {
   const { theme, toggleTheme } = useTheme();
   const { favoritesCount } = useHorseFavorites();
+  const { porLer } = useMensagensPorLer();
 
   return (
     <div className="flex items-center gap-2 md:gap-4">
@@ -93,6 +95,29 @@ export const NavIcons = memo(function NavIcons({
           </span>
         )}
       </LocalizedLink>
+
+      {/* Mensagens — só aparece quando há alguma coisa por ler, para não
+          ocupar a barra a quem nunca falou com ninguém. */}
+      {porLer > 0 && (
+        <LocalizedLink
+          href="/minha-conta/mensagens"
+          className="hidden sm:flex text-[var(--foreground-secondary)] hover:text-[var(--gold)] transition-colors p-2 min-w-[44px] min-h-[44px] items-center justify-center relative active:scale-95 touch-manipulation"
+          aria-label={tr3(
+            language,
+            `Mensagens (${porLer} por ler)`,
+            `Messages (${porLer} unread)`,
+            `Mensajes (${porLer} sin leer)`
+          )}
+        >
+          <MessagesSquare size={20} strokeWidth={1.5} />
+          <span
+            aria-hidden="true"
+            className="absolute top-0.5 right-0.5 min-w-[20px] h-5 px-1 bg-[var(--gold)] rounded-full flex items-center justify-center text-[10px] text-black font-bold"
+          >
+            {porLer > 9 ? "9+" : porLer}
+          </span>
+        </LocalizedLink>
+      )}
 
       {/* Conta */}
       <LocalizedLink

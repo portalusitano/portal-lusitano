@@ -5,6 +5,7 @@ import Image from "next/image";
 import LocalizedLink from "@/components/LocalizedLink";
 import { AlertTriangle, ArrowLeft, ImageIcon, Loader2, MessagesSquare, Send } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
+import { useMensagensPorLer } from "@/context/MensagensContext";
 import { MAX_MENSAGEM, type ChatConversa, type ChatMensagem } from "@/lib/marketplace-chat";
 
 interface ConversaAberta {
@@ -30,6 +31,7 @@ function formatarData(iso: string): string {
 
 export default function MensagensContent() {
   const { showToast } = useToast();
+  const { recarregar: recarregarPorLer } = useMensagensPorLer();
   const [conversas, setConversas] = useState<ChatConversa[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -81,6 +83,9 @@ export default function MensagensContent() {
       setMensagens(data.mensagens || []);
       // Opening the thread marked them read server-side; clear the badge here too.
       setConversas((prev) => prev.map((c) => (c.id === conversaId ? { ...c, porLer: 0 } : c)));
+      // E o distintivo da navegação, que de outra forma só acertaria no
+      // próximo minuto e daria a ideia de haver mensagens que já foram lidas.
+      recarregarPorLer();
     } catch (e) {
       showToast("error", e instanceof Error ? e.message : "Erro ao abrir conversa");
     } finally {
