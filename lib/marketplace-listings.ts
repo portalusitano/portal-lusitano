@@ -8,6 +8,7 @@
  */
 
 import { getListingTier } from "@/lib/listing-tiers";
+import { fotosDaLinha } from "@/lib/marketplace-fotos";
 
 /** Every status a listing row can hold in the database. */
 export const LISTING_STATUS = {
@@ -79,6 +80,8 @@ export interface SellerListing {
   precoNegociavel: boolean;
   precoSobConsulta: boolean;
   fotoPrincipal: string | null;
+  /** Todas as fotografias, com a principal à cabeça. */
+  fotos: string[];
   totalFotos: number;
   localizacao: string | null;
   regiao: string | null;
@@ -135,24 +138,6 @@ function bool(row: RawListingRow, key: string): boolean {
 }
 
 /** Counts photos across the two column shapes the table has accumulated. */
-function countPhotos(row: RawListingRow): number {
-  const photos = new Set<string>();
-  const principal = str(row, "foto_principal", "image_url");
-  if (principal) photos.add(principal);
-
-  for (const key of ["fotos", "image_urls"]) {
-    const value = row[key];
-    const list = Array.isArray(value) ? value : typeof value === "string" ? value.split(",") : [];
-    for (const entry of list) {
-      if (typeof entry !== "string") continue;
-      const trimmed = entry.trim();
-      if (trimmed) photos.add(trimmed);
-    }
-  }
-
-  return photos.size;
-}
-
 /**
  * Whole days from now until `iso`, rounded up so that a listing expiring in a
  * few hours still reads as "1 dia" rather than "0 dias".
@@ -246,6 +231,7 @@ export function normalizeListing(row: RawListingRow, now: Date = new Date()): Se
   const expiresAt = str(row, "listing_expires_at");
   const expirado = isExpired(expiresAt, now);
   const tier = str(row, "listing_tier") || "standard";
+  const fotos = fotosDaLinha(row);
 
   return {
     id: String(row.id),
@@ -256,8 +242,9 @@ export function normalizeListing(row: RawListingRow, now: Date = new Date()): Se
     preco: num(row, "preco"),
     precoNegociavel: bool(row, "preco_negociavel"),
     precoSobConsulta: bool(row, "preco_sob_consulta"),
-    fotoPrincipal: str(row, "foto_principal", "image_url"),
-    totalFotos: countPhotos(row),
+    fotoPrincipal: fotos[0] ?? null,
+    fotos,
+    totalFotos: fotos.length,
     localizacao: str(row, "localizacao"),
     regiao: str(row, "regiao"),
     descricao: str(row, "descricao"),

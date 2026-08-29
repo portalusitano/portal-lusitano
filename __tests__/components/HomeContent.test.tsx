@@ -36,6 +36,7 @@ function anuncio(over: Partial<SellerListing> = {}): SellerListing {
     precoNegociavel: false,
     precoSobConsulta: false,
     fotoPrincipal: null,
+    fotos: [],
     totalFotos: 0,
     localizacao: "Golegã",
     regiao: "Santarém",

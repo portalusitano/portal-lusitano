@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 import { LISTING_STATUS, type SellerListing } from "@/lib/marketplace-listings";
+import GestorFotos from "@/components/minha-conta/GestorFotos";
 
 /** A listing plus the engagement counter the API adds on top. */
 type Anuncio = SellerListing & { favoritos: number };
@@ -426,6 +427,22 @@ export default function MeusAnunciosContent() {
                           Preço negociável
                         </span>
                       </label>
+
+                      <GestorFotos
+                        anuncioId={anuncio.id}
+                        fotos={anuncio.fotos}
+                        onGuardado={(actualizado) =>
+                          setAnuncios((prev) =>
+                            prev.map((a) =>
+                              a.id === actualizado.id
+                                ? // `favoritos` vem da contagem inicial, não desta
+                                  // resposta; perdê-la punha o número a zero.
+                                  { ...actualizado, favoritos: a.favoritos }
+                                : a
+                            )
+                          )
+                        }
+                      />
 
                       <div className="flex flex-wrap gap-2 pt-2">
                         <button
