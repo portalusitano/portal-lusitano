@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import LocalizedLink from "@/components/LocalizedLink";
 import { AlertTriangle, ArrowLeft, BellRing, Loader2, Plus, Trash2, X } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
@@ -51,12 +52,34 @@ const FORM_VAZIO: Formulario = {
 
 export default function AlertasContent() {
   const { showToast } = useToast();
+  const searchParams = useSearchParams();
   const [alertas, setAlertas] = useState<Alerta[]>([]);
   const [maximo, setMaximo] = useState(10);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
-  const [aCriar, setACriar] = useState(false);
-  const [form, setForm] = useState<Formulario>(FORM_VAZIO);
+  // Chegar aqui a partir de "Guardar esta pesquisa" traz os critérios no URL:
+  // reescrevê-los à mão seria pedir à pessoa o trabalho que ela acabou de fazer.
+  const filtrosDoUrl = useMemo(() => {
+    const ler = (k: string) => searchParams.get(k) || "";
+    return {
+      ...FORM_VAZIO,
+      sexo: ler("sexo"),
+      regiao: ler("regiao"),
+      precoMin: ler("precoMin"),
+      precoMax: ler("precoMax"),
+      idadeMin: ler("idadeMin"),
+      idadeMax: ler("idadeMax"),
+      termo: ler("search"),
+    };
+  }, [searchParams]);
+
+  const veioDeUmaPesquisa = useMemo(
+    () => Object.entries(filtrosDoUrl).some(([k, v]) => k !== "frequencia" && v !== ""),
+    [filtrosDoUrl]
+  );
+
+  const [aCriar, setACriar] = useState(veioDeUmaPesquisa);
+  const [form, setForm] = useState<Formulario>(filtrosDoUrl);
   const [aGuardar, setAGuardar] = useState(false);
   const [ocupado, setOcupado] = useState<string | null>(null);
 

@@ -169,7 +169,7 @@ function ComprarContentInner({
 
         {/* Client component handles filters + sorting + grid */}
         {cavalos.length > 0 ? (
-          <MarketplaceGrid horses={cavalos} isDev={isDev} t={filterTranslations} />
+          <MarketplaceGrid horses={cavalos} />
         ) : (
           <div className="text-center py-20 sm:py-32 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
             <div className="w-16 h-16 border border-[var(--gold)]/20 rounded-full flex items-center justify-center mx-auto mb-6">

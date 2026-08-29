@@ -1,10 +1,25 @@
 "use client";
 
-import { useState, useMemo, useDeferredValue } from "react";
-import { X, SlidersHorizontal, Search } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { BellRing, ChevronLeft, ChevronRight, Search, SlidersHorizontal, X } from "lucide-react";
+import LocalizedLink from "@/components/LocalizedLink";
 import HorseCard from "@/components/HorseCard";
+import {
+  ORDENACOES,
+  aplicarFiltros,
+  contarFiltrosAtivos,
+  disciplinasDe,
+  escreverFiltros,
+  lerFiltros,
+  ordenar,
+  paginar,
+  temFiltrosAtivos,
+  type FiltrosMarketplace,
+  type Ordenacao,
+} from "@/lib/marketplace-filtros";
 
-// Shape of a horse row from cavalos_venda table
+/** Shape of a horse row from the cavalos_venda table. */
 export interface MarketplaceHorse {
   id: string;
   nome_cavalo: string;
@@ -21,197 +36,245 @@ export interface MarketplaceHorse {
   created_at?: string;
 }
 
-type SortOption = "recent" | "price_asc" | "price_desc";
-type PriceRange = "all" | "under10" | "10to25" | "25to50" | "over50";
-type SexFilter = "all" | "macho" | "femea" | "castrado";
-type AgeRange = "all" | "potro" | "jovem" | "adulto" | "senior";
-
-interface Translations {
-  filter_sex: string;
-  filter_price: string;
-  filter_discipline: string;
-  filter_sort: string;
-  filter_all: string;
-  filter_male: string;
-  filter_female: string;
-  filter_castrated: string;
-  filter_price_under10: string;
-  filter_price_10to25: string;
-  filter_price_25to50: string;
-  filter_price_over50: string;
-  sort_recent: string;
-  sort_price_asc: string;
-  sort_price_desc: string;
-  results_count: string;
-  results_count_plural: string;
-  clear_filters: string;
-  no_results: string;
-  no_results_hint: string;
-  horses_available: string;
-  horse_available: string;
-}
-
 interface MarketplaceGridProps {
   horses: MarketplaceHorse[];
-  isDev: boolean;
-  t: Translations;
 }
 
-function getDisciplines(horse: MarketplaceHorse): string[] {
-  if (!horse.disciplinas) return [];
-  if (Array.isArray(horse.disciplinas)) return horse.disciplinas;
-  // handle comma-separated string fallback
-  if (typeof horse.disciplinas === "string") {
-    return horse.disciplinas
-      .split(",")
-      .map((d) => d.trim())
-      .filter(Boolean);
+/** Price bands offered as one-click shortcuts, expressed as the min/max the URL carries. */
+const FAIXAS_PRECO: { label: string; min: number | null; max: number | null }[] = [
+  { label: "Até 10 000 €", min: null, max: 10000 },
+  { label: "10 000 – 25 000 €", min: 10000, max: 25000 },
+  { label: "25 000 – 50 000 €", min: 25000, max: 50000 },
+  { label: "Mais de 50 000 €", min: 50000, max: null },
+];
+
+const FAIXAS_IDADE: { label: string; min: number | null; max: number | null }[] = [
+  { label: "Poldros (até 3)", min: null, max: 3 },
+  { label: "Jovens (4–7)", min: 4, max: 7 },
+  { label: "Adultos (8–14)", min: 8, max: 14 },
+  { label: "Seniores (15+)", min: 15, max: null },
+];
+
+const SEXOS = [
+  { id: "macho", label: "Macho" },
+  { id: "femea", label: "Fêmea" },
+  { id: "castrado", label: "Castrado" },
+];
+
+export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // The URL is the source of truth, so a filtered search can be shared, saved
+  // and walked back through with the browser's own back button.
+  const filtros = useMemo(() => lerFiltros(searchParams), [searchParams]);
+
+  // The text box is the one control that cannot read straight from the URL:
+  // writing a history entry per keystroke would wreck the back button.
+  const [rascunhoPesquisa, setRascunhoPesquisa] = useState(filtros.search);
+  const [filtrosAbertos, setFiltrosAbertos] = useState(false);
+
+  // Realinha a caixa quando o URL muda por fora (voltar atrás, clicar num
+  // atalho da homepage). Ajustar estado durante o render é o padrão que o React
+  // documenta para isto; fazê-lo num efeito provoca renders em cascata.
+  const [pesquisaNoUrl, setPesquisaNoUrl] = useState(filtros.search);
+  if (filtros.search !== pesquisaNoUrl) {
+    setPesquisaNoUrl(filtros.search);
+    setRascunhoPesquisa(filtros.search);
   }
-  return [];
-}
 
-function priceInRange(preco: number, range: PriceRange): boolean {
-  if (range === "all") return true;
-  if (range === "under10") return preco < 10000;
-  if (range === "10to25") return preco >= 10000 && preco < 25000;
-  if (range === "25to50") return preco >= 25000 && preco < 50000;
-  if (range === "over50") return preco >= 50000;
-  return true;
-}
+  const navegar = useCallback(
+    (novos: Partial<FiltrosMarketplace>) => {
+      // Any change to what is being searched resets to page 1: staying on page 4
+      // of a result set that no longer has four pages shows an empty screen.
+      const mudouPesquisa = Object.keys(novos).some((k) => k !== "pagina");
+      const proximos: FiltrosMarketplace = {
+        ...filtros,
+        ...novos,
+        pagina: novos.pagina ?? (mudouPesquisa ? 1 : filtros.pagina),
+      };
+      const query = escreverFiltros(proximos);
+      router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    },
+    [filtros, pathname, router]
+  );
 
-function ageInRange(idade: number | undefined, range: AgeRange): boolean {
-  if (range === "all") return true;
-  const age = idade ?? 0;
-  if (range === "potro") return age <= 3;
-  if (range === "jovem") return age >= 4 && age <= 7;
-  if (range === "adulto") return age >= 8 && age <= 14;
-  if (range === "senior") return age >= 15;
-  return true;
-}
+  // Debounced so typing does not fill the history with one entry per letter.
+  useEffect(() => {
+    if (rascunhoPesquisa === filtros.search) return;
+    const timer = setTimeout(() => navegar({ search: rascunhoPesquisa }), 350);
+    return () => clearTimeout(timer);
+  }, [rascunhoPesquisa, filtros.search, navegar]);
 
-export default function MarketplaceGrid({ horses, isDev, t }: MarketplaceGridProps) {
-  const [sexFilter, setSexFilter] = useState<SexFilter>("all");
-  const [priceRange, setPriceRange] = useState<PriceRange>("all");
-  const [disciplineFilter, setDisciplineFilter] = useState<string>("all");
-  const [ageRange, setAgeRange] = useState<AgeRange>("all");
-  const [regionFilter, setRegionFilter] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortOption, setSortOption] = useState<SortOption>("recent");
-  const [filtersOpen, setFiltersOpen] = useState(false);
-
-  // Derive unique disciplines from all horses
-  const allDisciplines = useMemo(() => {
+  const disciplinasDisponiveis = useMemo(() => {
     const set = new Set<string>();
-    horses.forEach((h) => getDisciplines(h).forEach((d) => set.add(d)));
+    horses.forEach((h) => disciplinasDe(h).forEach((d) => set.add(d)));
     return Array.from(set).sort();
   }, [horses]);
 
-  // Derive unique regions from all horses (first word of localizacao)
-  const allRegions = useMemo(() => {
+  const regioesDisponiveis = useMemo(() => {
     const set = new Set<string>();
     horses.forEach((h) => {
-      if (h.localizacao) {
-        // Use district-level (e.g. "Lisboa", "Santarém") — take last meaningful part
-        const loc = h.localizacao.trim();
-        if (loc) set.add(loc);
-      }
+      const loc = h.localizacao?.trim();
+      if (loc) set.add(loc);
     });
     return Array.from(set).sort();
   }, [horses]);
 
-  const hasActiveFilters =
-    sexFilter !== "all" || priceRange !== "all" || disciplineFilter !== "all" ||
-    ageRange !== "all" || regionFilter !== "all" || searchQuery.trim() !== "";
+  const resultados = useMemo(
+    () => ordenar(aplicarFiltros(horses, filtros), filtros.ordenar),
+    [horses, filtros]
+  );
 
-  const filteredAndSortedRaw = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim();
+  const pagina = useMemo(() => paginar(resultados, filtros.pagina), [resultados, filtros.pagina]);
 
-    let result = horses.filter((h) => {
-      // Text search
-      if (q) {
-        const searchable = [h.nome_cavalo, h.localizacao, h.nivel, ...(getDisciplines(h))].join(" ").toLowerCase();
-        if (!searchable.includes(q)) return false;
-      }
+  const activos = contarFiltrosAtivos(filtros);
+  const temFiltros = temFiltrosAtivos(filtros);
 
-      // Sex filter
-      if (sexFilter !== "all") {
-        const horseSex = (h.sexo || "").toLowerCase().trim();
-        if (horseSex !== sexFilter) return false;
-      }
+  const limpar = () => router.push(pathname, { scroll: false });
 
-      // Price range filter
-      if (!priceInRange(h.preco || 0, priceRange)) return false;
+  /** Turns the current search into a saved alert, pre-filled. */
+  const hrefAlerta = `/minha-conta/alertas?${escreverFiltros({ ...filtros, pagina: 1 })}`;
 
-      // Discipline filter
-      if (disciplineFilter !== "all") {
-        const disciplines = getDisciplines(h);
-        if (!disciplines.includes(disciplineFilter)) return false;
-      }
+  const chip = (activo: boolean) =>
+    `px-3.5 py-2 text-[10px] uppercase tracking-widest border transition-colors ${
+      activo
+        ? "border-[var(--gold)] text-[var(--gold)] bg-[var(--gold)]/10"
+        : "border-[var(--border)] text-[var(--foreground-secondary)] hover:border-[var(--gold)]/50 hover:text-[var(--gold)]"
+    }`;
 
-      // Age range filter
-      if (!ageInRange(h.idade, ageRange)) return false;
+  const painelFiltros = (
+    <div className="space-y-6">
+      <div>
+        <p className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] mb-3">
+          Sexo
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {SEXOS.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => navegar({ sexo: filtros.sexo === s.id ? "" : s.id })}
+              className={chip(filtros.sexo === s.id)}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
-      // Region filter
-      if (regionFilter !== "all") {
-        if (h.localizacao !== regionFilter) return false;
-      }
+      <div>
+        <p className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] mb-3">
+          Preço
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {FAIXAS_PRECO.map((f) => {
+            const activo = filtros.precoMin === f.min && filtros.precoMax === f.max;
+            return (
+              <button
+                key={f.label}
+                onClick={() =>
+                  navegar(
+                    activo
+                      ? { precoMin: null, precoMax: null }
+                      : { precoMin: f.min, precoMax: f.max }
+                  )
+                }
+                className={chip(activo)}
+              >
+                {f.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-      return true;
-    });
+      <div>
+        <p className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] mb-3">
+          Idade
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {FAIXAS_IDADE.map((f) => {
+            const activo = filtros.idadeMin === f.min && filtros.idadeMax === f.max;
+            return (
+              <button
+                key={f.label}
+                onClick={() =>
+                  navegar(
+                    activo
+                      ? { idadeMin: null, idadeMax: null }
+                      : { idadeMin: f.min, idadeMax: f.max }
+                  )
+                }
+                className={chip(activo)}
+              >
+                {f.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-    // Destaques sempre primeiro
-    result = [...result].sort((a, b) => {
-      if (a.destaque && !b.destaque) return -1;
-      if (!a.destaque && b.destaque) return 1;
+      {disciplinasDisponiveis.length > 0 && (
+        <div>
+          <p className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] mb-3">
+            Disciplina
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {disciplinasDisponiveis.map((d) => (
+              <button
+                key={d}
+                onClick={() => navegar({ disciplina: filtros.disciplina === d ? "" : d })}
+                className={chip(filtros.disciplina === d)}
+              >
+                {d}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
-      if (sortOption === "recent") {
-        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
-        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
-        return dateB - dateA;
-      }
-      if (sortOption === "price_asc") return (a.preco || 0) - (b.preco || 0);
-      if (sortOption === "price_desc") return (b.preco || 0) - (a.preco || 0);
-      return 0;
-    });
-
-    return result;
-  }, [horses, sexFilter, priceRange, disciplineFilter, ageRange, regionFilter, searchQuery, sortOption]);
-
-  // Defer grid re-render so filter dropdowns stay responsive
-  const filteredAndSorted = useDeferredValue(filteredAndSortedRaw);
-
-  const clearFilters = () => {
-    setSexFilter("all");
-    setPriceRange("all");
-    setDisciplineFilter("all");
-    setAgeRange("all");
-    setRegionFilter("all");
-    setSearchQuery("");
-  };
-
-  const resultCount = filteredAndSorted.length;
-  const countLabel =
-    resultCount === 1 ? `1 ${t.results_count}` : `${resultCount} ${t.results_count_plural}`;
-
-  const selectBase =
-    "appearance-none bg-[var(--background-secondary)] border border-[var(--border)] text-[var(--foreground)] text-xs tracking-wide rounded-none px-3 py-2 pr-7 cursor-pointer focus:outline-none focus:border-[var(--gold)] transition-colors hover:border-[var(--gold)]/50 min-w-0";
+      {regioesDisponiveis.length > 0 && (
+        <div>
+          <p className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] mb-3">
+            Localização
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {regioesDisponiveis.slice(0, 16).map((r) => (
+              <button
+                key={r}
+                onClick={() => navegar({ regiao: filtros.regiao === r ? "" : r })}
+                className={chip(filtros.regiao === r)}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div>
-      {/* ── Search Bar ── */}
-      <div className="relative mb-5">
-        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] pointer-events-none" aria-hidden />
+      {/* ── Pesquisa ── */}
+      <div className="relative mb-4">
+        <Search
+          size={16}
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] pointer-events-none"
+          aria-hidden
+        />
         <input
           type="search"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Pesquisar por nome, localização, disciplina..."
-          className="w-full pl-11 pr-4 py-3 bg-[var(--background-secondary)] border border-[var(--border)] text-[var(--foreground)] text-sm placeholder:text-[var(--foreground-muted)] focus:outline-none focus:border-[var(--gold)] transition-colors"
+          value={rascunhoPesquisa}
+          onChange={(e) => setRascunhoPesquisa(e.target.value)}
+          placeholder="Nome, linhagem, localização, disciplina…"
           aria-label="Pesquisar cavalos"
+          className="w-full pl-11 pr-10 py-3 bg-[var(--background-secondary)] border border-[var(--border)] text-[var(--foreground)] text-sm placeholder:text-[var(--foreground-muted)] focus:outline-none focus:border-[var(--gold)] transition-colors"
         />
-        {searchQuery && (
+        {rascunhoPesquisa && (
           <button
-            onClick={() => setSearchQuery("")}
+            onClick={() => setRascunhoPesquisa("")}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
             aria-label="Limpar pesquisa"
           >
@@ -220,427 +283,140 @@ export default function MarketplaceGrid({ horses, isDev, t }: MarketplaceGridPro
         )}
       </div>
 
-      {/* ── Mobile Filter Bottom Sheet ── */}
-      {filtersOpen && (
-        <>
-          <div
-            className="sm:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
-            onClick={() => setFiltersOpen(false)}
-            aria-hidden="true"
-          />
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Filtros"
-            className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--background)] border-t border-[var(--border)] rounded-t-2xl"
-            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-          >
-            {/* Handle */}
-            <div className="flex items-center justify-center pt-3 pb-1">
-              <div className="w-10 h-1 bg-[var(--border)] rounded-full" />
-            </div>
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border)]/50">
-              <span className="text-sm font-medium uppercase tracking-widest text-[var(--foreground-secondary)]">
-                Filtros
-              </span>
-              <button
-                onClick={() => setFiltersOpen(false)}
-                className="p-2 text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
-                aria-label="Fechar filtros"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            {/* Filter options */}
-            <div className="px-5 py-5 space-y-5">
-              {/* Sex */}
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--gold)] mb-2 font-medium">
-                  {t.filter_sex}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { value: "all", label: t.filter_all },
-                    { value: "macho", label: t.filter_male },
-                    { value: "femea", label: t.filter_female },
-                    { value: "castrado", label: t.filter_castrated },
-                  ].map((opt) => (
-                    <button
-                      key={opt.value}
-                      onClick={() => setSexFilter(opt.value as SexFilter)}
-                      className={`px-4 py-2 text-sm rounded-xl border transition-all touch-manipulation ${sexFilter === opt.value ? "bg-[var(--gold)] border-[var(--gold)] text-black font-medium" : "border-[var(--border)] text-[var(--foreground-secondary)] bg-[var(--surface)]"}`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {/* Price */}
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--gold)] mb-2 font-medium">
-                  {t.filter_price}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { value: "all", label: t.filter_all },
-                    { value: "under10", label: t.filter_price_under10 },
-                    { value: "10to25", label: t.filter_price_10to25 },
-                    { value: "25to50", label: t.filter_price_25to50 },
-                    { value: "over50", label: t.filter_price_over50 },
-                  ].map((opt) => (
-                    <button
-                      key={opt.value}
-                      onClick={() => setPriceRange(opt.value as PriceRange)}
-                      className={`px-4 py-2 text-sm rounded-xl border transition-all touch-manipulation ${priceRange === opt.value ? "bg-[var(--gold)] border-[var(--gold)] text-black font-medium" : "border-[var(--border)] text-[var(--foreground-secondary)] bg-[var(--surface)]"}`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {/* Discipline */}
-              {allDisciplines.length > 0 && (
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--gold)] mb-2 font-medium">
-                    {t.filter_discipline}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {[{ value: "all", label: t.filter_all }, ...allDisciplines.map((d) => ({ value: d, label: d }))].map((opt) => (
-                      <button
-                        key={opt.value}
-                        onClick={() => setDisciplineFilter(opt.value)}
-                        className={`px-4 py-2 text-sm rounded-xl border transition-all touch-manipulation ${disciplineFilter === opt.value ? "bg-[var(--gold)] border-[var(--gold)] text-black font-medium" : "border-[var(--border)] text-[var(--foreground-secondary)] bg-[var(--surface)]"}`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {/* Age range */}
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--gold)] mb-2 font-medium">
-                  Idade
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    { value: "all", label: "Todas" },
-                    { value: "potro", label: "Potro (0-3)" },
-                    { value: "jovem", label: "Jovem (4-7)" },
-                    { value: "adulto", label: "Adulto (8-14)" },
-                    { value: "senior", label: "Sénior (15+)" },
-                  ].map((opt) => (
-                    <button
-                      key={opt.value}
-                      onClick={() => setAgeRange(opt.value as AgeRange)}
-                      className={`px-4 py-2 text-sm rounded-xl border transition-all touch-manipulation ${ageRange === opt.value ? "bg-[var(--gold)] border-[var(--gold)] text-black font-medium" : "border-[var(--border)] text-[var(--foreground-secondary)] bg-[var(--surface)]"}`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+      {/* ── Barra de resultados ── */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--foreground-muted)]">
+          {pagina.total === 1 ? "1 cavalo" : `${pagina.total} cavalos`}
+          {pagina.totalPaginas > 1 && ` · página ${pagina.pagina} de ${pagina.totalPaginas}`}
+        </p>
 
-              {/* Region */}
-              {allRegions.length > 1 && (
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--gold)] mb-2 font-medium">
-                    Localização
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {[{ value: "all", label: "Todas" }, ...allRegions.map((r) => ({ value: r, label: r }))].map((opt) => (
-                      <button
-                        key={opt.value}
-                        onClick={() => setRegionFilter(opt.value)}
-                        className={`px-4 py-2 text-sm rounded-xl border transition-all touch-manipulation ${regionFilter === opt.value ? "bg-[var(--gold)] border-[var(--gold)] text-black font-medium" : "border-[var(--border)] text-[var(--foreground-secondary)] bg-[var(--surface)]"}`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Apply + Clear */}
-              <div className="flex gap-3 pt-2">
-                {hasActiveFilters && (
-                  <button
-                    onClick={() => { clearFilters(); setFiltersOpen(false); }}
-                    className="flex-1 py-3 border border-[var(--border)] text-sm text-[var(--foreground-secondary)] rounded-xl touch-manipulation"
-                  >
-                    {t.clear_filters}
-                  </button>
-                )}
-                <button
-                  onClick={() => setFiltersOpen(false)}
-                  className="flex-1 py-3 bg-[var(--gold)] text-black text-sm font-bold rounded-xl touch-manipulation"
-                >
-                  Ver {countLabel}
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Filter Bar */}
-      <div className="mb-6 sm:mb-8">
-        {/* Mobile: trigger button row */}
-        <div className="flex items-center justify-between gap-3 mb-3 sm:hidden">
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => setFiltersOpen(true)}
-            className={`flex items-center gap-2 text-sm rounded-xl px-4 py-2.5 border transition-colors touch-manipulation ${hasActiveFilters ? "border-[var(--gold)] text-[var(--gold)] bg-[var(--gold)]/10" : "border-[var(--border)] text-[var(--foreground-secondary)] bg-[var(--surface)]"}`}
-            aria-haspopup="dialog"
+            onClick={() => setFiltrosAbertos((v) => !v)}
+            className="sm:hidden inline-flex items-center gap-2 px-3.5 py-2 border border-[var(--border)] text-[10px] uppercase tracking-widest text-[var(--foreground-secondary)]"
           >
-            <SlidersHorizontal size={15} />
+            <SlidersHorizontal size={12} />
             Filtros
-            {hasActiveFilters && (
-              <span className="w-5 h-5 bg-[var(--gold)] text-black text-[10px] font-bold rounded-full flex items-center justify-center">
-                {[sexFilter !== "all", priceRange !== "all", disciplineFilter !== "all"].filter(Boolean).length}
+            {activos > 0 && (
+              <span className="w-4 h-4 rounded-full bg-[var(--gold)] text-black text-[9px] flex items-center justify-center font-bold">
+                {activos}
               </span>
             )}
           </button>
-          <span className="text-[11px] text-[var(--foreground-muted)] uppercase tracking-widest">
-            {countLabel}
-          </span>
+
+          <label className="sr-only" htmlFor="ordenar">
+            Ordenar
+          </label>
+          <select
+            id="ordenar"
+            value={filtros.ordenar}
+            onChange={(e) => navegar({ ordenar: e.target.value as Ordenacao })}
+            className="appearance-none bg-[var(--background-secondary)] border border-[var(--border)] text-[var(--foreground)] text-xs px-3 py-2 pr-7 cursor-pointer focus:outline-none focus:border-[var(--gold)]"
+          >
+            {ORDENACOES.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.label}
+              </option>
+            ))}
+          </select>
         </div>
-
-        {/* Desktop filter row */}
-        <div
-          id="filter-panel"
-          className="hidden sm:flex flex-row sm:items-center gap-3 sm:gap-4 flex-wrap"
-        >
-          {/* Sex filter */}
-          <div className="relative flex items-center">
-            <label className="sr-only">{t.filter_sex}</label>
-            <span className="text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] mr-2 whitespace-nowrap hidden sm:inline">
-              {t.filter_sex}
-            </span>
-            <div className="relative">
-              <select
-                value={sexFilter}
-                onChange={(e) => setSexFilter(e.target.value as SexFilter)}
-                className={selectBase}
-                aria-label={t.filter_sex}
-              >
-                <option value="all">
-                  {t.filter_sex}: {t.filter_all}
-                </option>
-                <option value="macho">{t.filter_male}</option>
-                <option value="femea">{t.filter_female}</option>
-                <option value="castrado">{t.filter_castrated}</option>
-              </select>
-              <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]">
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
-                  <path
-                    d="M1 1l4 4 4-4"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          {/* Price range filter */}
-          <div className="relative flex items-center">
-            <label className="sr-only">{t.filter_price}</label>
-            <span className="text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] mr-2 whitespace-nowrap hidden sm:inline">
-              {t.filter_price}
-            </span>
-            <div className="relative">
-              <select
-                value={priceRange}
-                onChange={(e) => setPriceRange(e.target.value as PriceRange)}
-                className={selectBase}
-                aria-label={t.filter_price}
-              >
-                <option value="all">
-                  {t.filter_price}: {t.filter_all}
-                </option>
-                <option value="under10">{t.filter_price_under10}</option>
-                <option value="10to25">{t.filter_price_10to25}</option>
-                <option value="25to50">{t.filter_price_25to50}</option>
-                <option value="over50">{t.filter_price_over50}</option>
-              </select>
-              <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]">
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
-                  <path
-                    d="M1 1l4 4 4-4"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          {/* Discipline filter — only render if disciplines exist */}
-          {allDisciplines.length > 0 && (
-            <div className="relative flex items-center">
-              <label className="sr-only">{t.filter_discipline}</label>
-              <span className="text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] mr-2 whitespace-nowrap hidden sm:inline">
-                {t.filter_discipline}
-              </span>
-              <div className="relative">
-                <select
-                  value={disciplineFilter}
-                  onChange={(e) => setDisciplineFilter(e.target.value)}
-                  className={selectBase}
-                  aria-label={t.filter_discipline}
-                >
-                  <option value="all">
-                    {t.filter_discipline}: {t.filter_all}
-                  </option>
-                  {allDisciplines.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]">
-                  <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
-                    <path
-                      d="M1 1l4 4 4-4"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Age range filter */}
-          <div className="relative flex items-center">
-            <div className="relative">
-              <select
-                value={ageRange}
-                onChange={(e) => setAgeRange(e.target.value as AgeRange)}
-                className={selectBase}
-                aria-label="Filtrar por idade"
-              >
-                <option value="all">Idade: Todas</option>
-                <option value="potro">Potro (0-3 anos)</option>
-                <option value="jovem">Jovem (4-7 anos)</option>
-                <option value="adulto">Adulto (8-14 anos)</option>
-                <option value="senior">Sénior (15+ anos)</option>
-              </select>
-              <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]">
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true"><path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              </div>
-            </div>
-          </div>
-
-          {/* Region filter */}
-          {allRegions.length > 1 && (
-            <div className="relative flex items-center">
-              <div className="relative">
-                <select
-                  value={regionFilter}
-                  onChange={(e) => setRegionFilter(e.target.value)}
-                  className={selectBase}
-                  aria-label="Filtrar por localização"
-                >
-                  <option value="all">Localização: Todas</option>
-                  {allRegions.map((r) => (
-                    <option key={r} value={r}>{r}</option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]">
-                  <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true"><path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Spacer pushes sort to the right on desktop */}
-          <div className="flex-1 hidden sm:block" />
-
-          {/* Sort + result count row */}
-          <div className="flex items-center gap-3 sm:gap-4">
-            {/* Result count — desktop only */}
-            <span className="text-[10px] text-[var(--foreground-muted)] uppercase tracking-widest hidden sm:block">
-              {countLabel}
-            </span>
-
-            {/* Divider */}
-            {hasActiveFilters && (
-              <button
-                onClick={clearFilters}
-                className="text-[10px] uppercase tracking-widest text-[var(--gold)] hover:text-[var(--gold-hover)] items-center gap-1 transition-colors hidden sm:flex"
-              >
-                <X size={11} />
-                {t.clear_filters}
-              </button>
-            )}
-
-            {/* Sort select */}
-            <div className="relative">
-              <select
-                value={sortOption}
-                onChange={(e) => setSortOption(e.target.value as SortOption)}
-                className={selectBase}
-                aria-label={t.filter_sort}
-              >
-                <option value="recent">{t.sort_recent}</option>
-                <option value="price_asc">{t.sort_price_asc}</option>
-                <option value="price_desc">{t.sort_price_desc}</option>
-              </select>
-              <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]">
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
-                  <path
-                    d="M1 1l4 4 4-4"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Gold separator line */}
-        <div className="mt-4 h-[1px] bg-[var(--border)]" />
       </div>
 
-      {/* Grid or empty state */}
-      {filteredAndSorted.length > 0 ? (
-        <div className="grid stagger-grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-8">
-          {filteredAndSorted.map((horse, index) => (
-            <HorseCard
-              key={horse.id}
-              horse={horse}
-              href={`/comprar/${horse.id}${isDev ? "?dev=true" : ""}`}
-              priority={index < 4}
-            />
-          ))}
+      {/* ── Filtros (sempre visíveis em ecrã grande) ── */}
+      <div
+        className={`${filtrosAbertos ? "block" : "hidden"} sm:block border border-[var(--border)] p-5 mb-6`}
+      >
+        {painelFiltros}
+
+        {temFiltros && (
+          <div className="flex flex-wrap gap-2 mt-6 pt-5 border-t border-[var(--border)]">
+            <button
+              onClick={limpar}
+              className="inline-flex items-center gap-2 px-4 py-2 border border-[var(--border)] text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
+            >
+              <X size={11} />
+              Limpar filtros
+            </button>
+            {/* Uma pesquisa que não devolve nada hoje é exactamente aquela que
+                vale a pena guardar como alerta. */}
+            <LocalizedLink
+              href={hrefAlerta}
+              className="inline-flex items-center gap-2 px-4 py-2 border border-[var(--gold)]/40 text-[10px] uppercase tracking-widest text-[var(--gold)] hover:bg-[var(--gold)]/10 transition-colors"
+            >
+              <BellRing size={11} />
+              Guardar esta pesquisa
+            </LocalizedLink>
+          </div>
+        )}
+      </div>
+
+      {/* ── Resultados ── */}
+      {pagina.total === 0 ? (
+        <div className="border border-[var(--border)] p-12 text-center">
+          <Search size={20} className="mx-auto text-[var(--gold)]/25 mb-4" />
+          <p className="text-sm text-[var(--foreground)]">Nenhum cavalo corresponde à pesquisa.</p>
+          <p className="text-xs text-[var(--foreground-muted)] mt-2 max-w-sm mx-auto">
+            Alargue os filtros, ou guarde esta pesquisa e avisamos assim que aparecer um cavalo
+            assim.
+          </p>
+          <div className="flex flex-wrap justify-center gap-2 mt-7">
+            <button
+              onClick={limpar}
+              className="px-5 py-2.5 border border-[var(--border)] text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
+            >
+              Limpar filtros
+            </button>
+            <LocalizedLink
+              href={hrefAlerta}
+              className="inline-flex items-center gap-2 px-5 py-2.5 border border-[var(--gold)]/40 text-[10px] uppercase tracking-widest text-[var(--gold)] hover:bg-[var(--gold)]/10 transition-colors"
+            >
+              <BellRing size={11} />
+              Criar alerta
+            </LocalizedLink>
+          </div>
         </div>
       ) : (
-        /* Empty state when filters yield no results */
-        <div className="text-center py-20 sm:py-28 px-4">
-          <div className="w-12 h-[1px] bg-[var(--gold)] mx-auto opacity-40 mb-8" />
-          <p className="text-[var(--foreground)] font-serif italic text-lg sm:text-xl mb-3">
-            {t.no_results}
-          </p>
-          <p className="text-[var(--foreground-muted)] text-sm mb-8">{t.no_results_hint}</p>
-          <button
-            onClick={clearFilters}
-            className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[var(--gold)] border border-[var(--gold)]/30 px-6 py-3 hover:bg-[var(--gold)] hover:text-black transition-all duration-300"
-          >
-            <X size={12} />
-            {t.clear_filters}
-          </button>
-        </div>
+        <>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-px bg-[var(--gold)]/8">
+            {pagina.itens.map((horse, i) => (
+              <HorseCard
+                key={horse.id}
+                horse={horse}
+                href={`/comprar/${horse.id}`}
+                priority={i < 4}
+              />
+            ))}
+          </div>
+
+          {pagina.totalPaginas > 1 && (
+            <nav
+              className="flex items-center justify-center gap-2 mt-10"
+              aria-label="Paginação de resultados"
+            >
+              <button
+                onClick={() => navegar({ pagina: pagina.pagina - 1 })}
+                disabled={pagina.pagina <= 1}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 border border-[var(--border)] text-[10px] uppercase tracking-widest text-[var(--foreground-secondary)] hover:border-[var(--gold)]/50 hover:text-[var(--gold)] transition-colors disabled:opacity-30 disabled:pointer-events-none"
+              >
+                <ChevronLeft size={12} />
+                Anterior
+              </button>
+
+              <span className="px-4 text-[10px] uppercase tracking-[0.2em] text-[var(--foreground-muted)]">
+                {pagina.pagina} / {pagina.totalPaginas}
+              </span>
+
+              <button
+                onClick={() => navegar({ pagina: pagina.pagina + 1 })}
+                disabled={pagina.pagina >= pagina.totalPaginas}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 border border-[var(--border)] text-[10px] uppercase tracking-widest text-[var(--foreground-secondary)] hover:border-[var(--gold)]/50 hover:text-[var(--gold)] transition-colors disabled:opacity-30 disabled:pointer-events-none"
+              >
+                Seguinte
+                <ChevronRight size={12} />
+              </button>
+            </nav>
+          )}
+        </>
       )}
     </div>
   );
