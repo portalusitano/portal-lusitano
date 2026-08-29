@@ -27,13 +27,11 @@ export default function AccoesAnuncio({ cavalo, url }: AccoesAnuncioProps) {
         type="button"
         onClick={() => (guardado ? removeFromFavorites(cavalo.id) : addToFavorites(cavalo))}
         aria-pressed={guardado}
-        className={`inline-flex items-center gap-2 px-4 py-2.5 border rounded-lg text-[11px] uppercase tracking-widest font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] ${
-          guardado
-            ? "border-red-500/40 bg-red-500/10 text-red-400"
-            : "border-[var(--border)] bg-[var(--background-secondary)] text-[var(--foreground-secondary)] hover:border-[var(--gold)]/40 hover:text-[var(--gold)]"
+        className={`btn ${
+          guardado ? "border-red-500/40 bg-red-500/10 text-red-400" : "btn-secundario"
         }`}
       >
-        <Heart size={14} aria-hidden="true" fill={guardado ? "currentColor" : "none"} />
+        <Heart size={15} aria-hidden="true" fill={guardado ? "currentColor" : "none"} />
         {guardado ? "Guardado" : "Guardar"}
       </button>
 

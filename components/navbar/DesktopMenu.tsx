@@ -64,17 +64,6 @@ export const DesktopMenu = memo(function DesktopMenu({ t }: DesktopMenuProps) {
 
       {/* Lusitano Dropdown */}
       <LusitanoDropdown />
-
-      {/* Instagram Promo Link */}
-      {/* Publicar anúncio — o único CTA cheio da barra: é a acção que
-          sustenta o marketplace. */}
-      <LocalizedLink
-        href="/vender-cavalo"
-        className="relative flex items-center gap-2 bg-gradient-to-r from-[var(--gold)] to-[var(--gold-hover)] text-black px-5 py-2.5 text-[10px] uppercase tracking-[0.15em] font-bold hover:from-white hover:to-white transition-[background,box-shadow] duration-300 shadow-[0_0_20px_rgba(197,160,89,0.15)] hover:shadow-[0_0_25px_rgba(197,160,89,0.3)]"
-      >
-        <Plus size={14} />
-        {t.nav.sell_horse || "Vender cavalo"}
-      </LocalizedLink>
     </div>
   );
 });

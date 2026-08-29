@@ -308,7 +308,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
 
         {/* RIGHT PANEL — scrollable dossier */}
         <div className="lg:w-1/2 lg:ml-[50%] bg-[var(--background)] relative z-10">
-          <div className="px-4 sm:px-8 py-12 sm:py-16 lg:p-20 xl:p-24 pb-28 lg:pb-20 max-w-2xl mx-auto space-y-12 sm:space-y-16">
+          <div className="px-4 sm:px-8 py-10 lg:px-14 lg:py-14 pb-28 lg:pb-16 max-w-2xl mx-auto space-y-10">
             {/* HEADER */}
             <header className="space-y-4 border-b border-[var(--background-secondary)] pb-8">
               {encerrado && (
@@ -344,7 +344,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
               {/* Breadcrumb chips */}
               <nav
                 aria-label="Localização no site"
-                className="flex flex-wrap items-center gap-2 text-[9px] uppercase tracking-widest text-[var(--foreground-muted)]"
+                className="meta flex flex-wrap items-center gap-2"
               >
                 <Link href="/comprar" className="hover:text-[var(--gold)] transition-colors">
                   Comprar
@@ -355,21 +355,15 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
 
               {/* Linhagem + ID chips */}
               <div className="flex flex-wrap items-center gap-3">
-                {cavalo.linhagem && (
-                  <span className="px-3 py-1 border border-[var(--gold)] text-[var(--gold)] text-[9px] uppercase tracking-widest font-bold">
-                    {cavalo.linhagem}
-                  </span>
-                )}
-                <span className="text-[var(--foreground-muted)] text-[9px] uppercase tracking-widest font-mono">
-                  REG: {cavalo.id.slice(0, 8).toUpperCase()}
-                </span>
+                {cavalo.linhagem && <span className="chip chip-activo">{cavalo.linhagem}</span>}
+                <span className="meta font-mono">REG: {cavalo.id.slice(0, 8).toUpperCase()}</span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-serif italic text-[var(--foreground)] leading-tight">
+              <h1 className="text-3xl sm:text-4xl font-serif italic text-[var(--foreground)] leading-tight">
                 {cavalo.nome_cavalo}
               </h1>
 
-              <p className="text-2xl sm:text-3xl text-[var(--gold)] font-serif">
+              <p className="preco text-2xl sm:text-3xl">
                 {Number(cavalo.preco).toLocaleString("pt-PT")} €
               </p>
 
@@ -391,27 +385,20 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
               {/* Quick meta pills */}
               <div className="flex flex-wrap gap-2 pt-1">
                 {cavalo.idade && (
-                  <span className="inline-flex items-center gap-1 text-[10px] text-[var(--foreground-secondary)] border border-[var(--border)] px-2.5 py-1">
+                  <span className="chip">
                     <Calendar size={11} aria-hidden="true" />
                     {cavalo.idade} anos
                   </span>
                 )}
                 {cavalo.localizacao && (
-                  <span className="inline-flex items-center gap-1 text-[10px] text-[var(--foreground-secondary)] border border-[var(--border)] px-2.5 py-1">
+                  <span className="chip">
                     <MapPin size={11} aria-hidden="true" />
                     {cavalo.localizacao}
                   </span>
                 )}
-                {cavalo.sexo && (
-                  <span className="text-[10px] text-[var(--foreground-secondary)] border border-[var(--border)] px-2.5 py-1 uppercase tracking-wide">
-                    {cavalo.sexo}
-                  </span>
-                )}
+                {cavalo.sexo && <span className="chip">{cavalo.sexo}</span>}
                 {disciplines.map((d) => (
-                  <span
-                    key={d}
-                    className="text-[10px] text-[var(--gold)] border border-[var(--gold)]/30 px-2.5 py-1 uppercase tracking-wide"
-                  >
+                  <span key={d} className="chip chip-activo">
                     {d}
                   </span>
                 ))}
@@ -420,69 +407,54 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
 
             {/* BIOMETRIC SPECS */}
             <section aria-labelledby="specs-heading">
-              <h2
-                id="specs-heading"
-                className="text-[var(--gold)] uppercase tracking-[0.5em] text-[10px] font-bold mb-8"
-              >
+              <h2 id="specs-heading" className="titulo-seccao mb-5">
                 Especificações
               </h2>
-              <dl className="grid grid-cols-2 gap-x-6 gap-y-8">
+              <dl className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-5">
                 {cavalo.idade && (
                   <div>
-                    <dt className="text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] mb-1">
-                      Idade
-                    </dt>
-                    <dd className="text-xl sm:text-2xl text-[var(--foreground)] font-serif">
+                    <dt className="rotulo mb-1">Idade</dt>
+                    <dd className="text-base font-medium text-[var(--foreground)]">
                       {cavalo.idade} Anos
                     </dd>
                   </div>
                 )}
                 {cavalo.localizacao && (
                   <div>
-                    <dt className="text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] mb-1">
-                      Localização
-                    </dt>
-                    <dd className="text-xl sm:text-2xl text-[var(--foreground)] font-serif">
+                    <dt className="rotulo mb-1">Localização</dt>
+                    <dd className="text-base font-medium text-[var(--foreground)]">
                       {cavalo.localizacao}
                     </dd>
                   </div>
                 )}
                 {cavalo.altura && (
                   <div>
-                    <dt className="text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] mb-1">
-                      Altura ao Garrote
-                    </dt>
-                    <dd className="text-xl sm:text-2xl text-[var(--foreground)] font-serif">
+                    <dt className="rotulo mb-1">Altura ao Garrote</dt>
+                    <dd className="text-base font-medium text-[var(--foreground)]">
                       {cavalo.altura} cm
                     </dd>
                   </div>
                 )}
                 {cavalo.pelagem && (
                   <div>
-                    <dt className="text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] mb-1">
-                      Pelagem
-                    </dt>
-                    <dd className="text-xl sm:text-2xl text-[var(--foreground)] font-serif">
+                    <dt className="rotulo mb-1">Pelagem</dt>
+                    <dd className="text-base font-medium text-[var(--foreground)]">
                       {cavalo.pelagem}
                     </dd>
                   </div>
                 )}
                 {cavalo.nivel && (
                   <div>
-                    <dt className="text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] mb-1">
-                      Nível de Treino
-                    </dt>
-                    <dd className="text-xl sm:text-2xl text-[var(--foreground)] font-serif">
+                    <dt className="rotulo mb-1">Nível de Treino</dt>
+                    <dd className="text-base font-medium text-[var(--foreground)]">
                       {cavalo.nivel}
                     </dd>
                   </div>
                 )}
                 {cavalo.pontuacao_apsl && (
                   <div>
-                    <dt className="text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] mb-1">
-                      Pontuação APSL
-                    </dt>
-                    <dd className="text-xl sm:text-2xl text-[var(--foreground)] font-serif">
+                    <dt className="rotulo mb-1">Pontuação APSL</dt>
+                    <dd className="text-base font-medium text-[var(--foreground)]">
                       {cavalo.pontuacao_apsl} pts
                     </dd>
                   </div>
@@ -492,10 +464,8 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
               {/* Description */}
               {cavalo.descricao && (
                 <div className="mt-10 pt-8 border-t border-[var(--background-secondary)]">
-                  <h3 className="text-[10px] uppercase tracking-widest text-[var(--gold)] font-bold mb-4">
-                    Parecer Técnico
-                  </h3>
-                  <p className="font-light leading-relaxed text-base sm:text-lg italic text-[var(--foreground-secondary)]">
+                  <h3 className="rotulo-forte mb-2">Parecer Técnico</h3>
+                  <p className="leading-relaxed text-sm sm:text-base text-[var(--foreground-secondary)]">
                     &ldquo;{cavalo.descricao}&rdquo;
                   </p>
                 </div>
@@ -508,16 +478,11 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                 aria-labelledby="pedigree-heading"
                 className="border-t border-[var(--background-secondary)] pt-10"
               >
-                <h2
-                  id="pedigree-heading"
-                  className="text-[var(--gold)] uppercase tracking-[0.5em] text-[10px] font-bold mb-10"
-                >
+                <h2 id="pedigree-heading" className="titulo-seccao mb-5">
                   Certificado de Sangue
                 </h2>
                 <Pedigree cavalo={cavalo} />
-                <p className="text-center text-[9px] text-[var(--foreground-muted)] mt-6 uppercase tracking-widest">
-                  Dados verificados via Stud-Book Digital
-                </p>
+                <p className="meta text-center mt-4">Dados verificados via Stud-Book Digital</p>
               </section>
             )}
 
@@ -540,10 +505,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
               aria-labelledby="contact-heading"
               className="border-t border-[var(--background-secondary)] pt-10"
             >
-              <h2
-                id="contact-heading"
-                className="text-[var(--gold)] uppercase tracking-[0.5em] text-[10px] font-bold mb-6"
-              >
+              <h2 id="contact-heading" className="titulo-seccao mb-4">
                 {encerrado ? "Vendedor" : "Contactar Vendedor"}
               </h2>
 
@@ -611,7 +573,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                     href={whatsappLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex w-full items-center justify-center gap-3 py-4 text-[12px] uppercase font-bold tracking-[0.2em] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                    className="btn w-full text-white"
                     style={{ background: "#25D366", color: "#fff" }}
                   >
                     <MessageCircle size={16} aria-hidden="true" />
@@ -623,7 +585,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                 {!encerrado && cavalo.contacto_telefone && (
                   <a
                     href={`tel:${cavalo.contacto_telefone.replace(/\s/g, "")}`}
-                    className="flex w-full items-center justify-center gap-3 py-4 text-[12px] uppercase font-bold tracking-[0.2em] bg-[var(--background-secondary)] border border-[var(--border)] text-[var(--foreground)] hover:border-[var(--gold)]/50 transition-all duration-300"
+                    className="btn btn-secundario w-full"
                   >
                     <Phone size={16} aria-hidden="true" />
                     {cavalo.contacto_telefone}
@@ -634,7 +596,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                 {!encerrado && (
                   <a
                     href={`mailto:${cavalo.contacto_email || "geral@portal-lusitano.pt"}?subject=Interesse: ${encodeURIComponent(cavalo.nome_cavalo)} (REG: ${cavalo.id.slice(0, 8).toUpperCase()})`}
-                    className="flex w-full items-center justify-center gap-3 bg-[var(--gold)] text-black py-4 text-[12px] uppercase font-bold tracking-[0.2em] hover:bg-[var(--gold-hover)] transition-all duration-300 shadow-[0_0_30px_rgba(197,160,89,0.2)]"
+                    className="btn btn-primario w-full"
                   >
                     <Mail size={16} aria-hidden="true" />
                     Enviar Mensagem
@@ -642,7 +604,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                 )}
 
                 {!encerrado && (
-                  <p className="text-center text-[9px] text-[var(--foreground-muted)] uppercase tracking-widest pt-1">
+                  <p className="meta text-center pt-1">
                     Resposta em menos de 24 horas · Transacção segura
                   </p>
                 )}
@@ -654,9 +616,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
             {/* SIMILAR HORSES */}
             {similarHorses.length > 0 && (
               <section className="border-t border-[var(--background-secondary)] pt-10">
-                <h2 className="text-[var(--gold)] uppercase tracking-[0.5em] text-[10px] font-bold mb-6">
-                  Anúncios Similares
-                </h2>
+                <h2 className="titulo-seccao mb-4">Anúncios Similares</h2>
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   {similarHorses.map((h) => (
                     <HorseCard
@@ -679,10 +639,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                   ))}
                 </div>
                 <div className="mt-6 text-center">
-                  <Link
-                    href="/comprar"
-                    className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] text-[var(--gold)] border border-[var(--gold)]/30 px-5 py-3 hover:bg-[var(--gold)]/5 transition-all"
-                  >
+                  <Link href="/comprar" className="btn btn-secundario">
                     Ver todos os anúncios
                   </Link>
                 </div>
@@ -699,10 +656,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
             {/* Back to marketplace */}
             {similarHorses.length === 0 && (
               <div className="border-t border-[var(--background-secondary)] pt-8">
-                <Link
-                  href="/comprar"
-                  className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] hover:text-[var(--gold)] transition-colors"
-                >
+                <Link href="/comprar" className="btn btn-subtil">
                   <ArrowLeft size={12} aria-hidden="true" />
                   Ver todos os anúncios
                 </Link>

@@ -132,10 +132,10 @@ export const NavIcons = memo(function NavIcons({
           único destaque com fundo cheio na barra. */}
       <LocalizedLink
         href="/vender-cavalo"
-        className="hidden sm:flex items-center gap-2 bg-[var(--gold)] text-black px-4 py-2 text-[10px] uppercase tracking-widest font-medium hover:bg-[var(--gold-hover)] transition-colors active:scale-95 touch-manipulation"
+        className="btn btn-primario btn-sm hidden sm:inline-flex active:scale-95 touch-manipulation"
       >
         <Plus size={14} strokeWidth={2} />
-        {tr3(language, "Vender", "Sell", "Vender")}
+        {tr3(language, "Publicar anúncio", "Post listing", "Publicar anuncio")}
       </LocalizedLink>
 
       {/* Menu Mobile — hidden when BottomNav is active (< lg) */}

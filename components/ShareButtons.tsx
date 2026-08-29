@@ -219,12 +219,12 @@ export default function ShareButtons({
     <div className="relative">
       <button
         onClick={() => setDialogOpen(!dialogOpen)}
-        className="inline-flex items-center gap-2 px-4 py-2.5 bg-[var(--background-elevated)] border border-[var(--border)] rounded-lg text-sm text-[var(--foreground-secondary)] hover:text-[var(--foreground)] hover:border-[var(--gold)]/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+        className="btn btn-secundario"
         aria-expanded={dialogOpen}
         aria-haspopup="dialog"
         aria-label="Abrir opcoes de partilha"
       >
-        <Share2 className="w-4 h-4" aria-hidden="true" />
+        <Share2 size={15} aria-hidden="true" />
         <span>Partilhar</span>
       </button>
 
