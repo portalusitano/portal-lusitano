@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
 import LocalizedLink from "@/components/LocalizedLink";
 import { Scale } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
@@ -32,33 +31,6 @@ function ComprarContentInner({
   hasError?: boolean;
 }) {
   const { t, language } = useLanguage();
-  const searchParams = useSearchParams();
-  const isDev = searchParams.get("dev") === "true";
-
-  const filterTranslations = {
-    filter_sex: t.comprar_page.filter_sex,
-    filter_price: t.comprar_page.filter_price,
-    filter_discipline: t.comprar_page.filter_discipline,
-    filter_sort: t.comprar_page.filter_sort,
-    filter_all: t.comprar_page.filter_all,
-    filter_male: t.comprar_page.filter_male,
-    filter_female: t.comprar_page.filter_female,
-    filter_castrated: t.comprar_page.filter_castrated,
-    filter_price_under10: t.comprar_page.filter_price_under10,
-    filter_price_10to25: t.comprar_page.filter_price_10to25,
-    filter_price_25to50: t.comprar_page.filter_price_25to50,
-    filter_price_over50: t.comprar_page.filter_price_over50,
-    sort_recent: t.comprar_page.sort_recent,
-    sort_price_asc: t.comprar_page.sort_price_asc,
-    sort_price_desc: t.comprar_page.sort_price_desc,
-    results_count: t.comprar_page.results_count,
-    results_count_plural: t.comprar_page.results_count_plural,
-    clear_filters: t.comprar_page.clear_filters,
-    no_results: t.comprar_page.no_results,
-    no_results_hint: t.comprar_page.no_results_hint,
-    horses_available: t.comprar_page.horses_available,
-    horse_available: t.comprar_page.horse_available,
-  };
 
   const totalCount = cavalos.length;
 
@@ -167,46 +139,11 @@ function ComprarContentInner({
           </div>
         )}
 
-        {/* Client component handles filters + sorting + grid */}
-        {cavalos.length > 0 ? (
-          <MarketplaceGrid horses={cavalos} />
-        ) : (
-          <div className="text-center py-20 sm:py-32 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
-            <div className="w-16 h-16 border border-[var(--gold)]/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                className="text-[var(--foreground-muted)]"
-              >
-                <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-serif text-[var(--foreground)] mb-3">
-              {t.comprar_page.no_specimens}
-            </h2>
-            <p className="text-sm text-[var(--foreground-muted)] mb-8 max-w-md mx-auto leading-relaxed">
-              {language === "en"
-                ? "The finest Lusitanos are about to arrive. Explore our journal while you wait."
-                : language === "es"
-                  ? "Los mejores Lusitanos están a punto de llegar. Explora nuestro diario mientras tanto."
-                  : "Os melhores Lusitanos estão prestes a chegar. Explore o nosso jornal enquanto espera."}
-            </p>
-            <LocalizedLink
-              href="/directorio"
-              className="inline-flex items-center gap-2 border border-[var(--gold)]/30 text-[var(--gold)] px-6 py-3 text-xs uppercase tracking-[0.2em] hover:bg-[var(--gold)]/5 transition-all duration-300"
-            >
-              {language === "en"
-                ? "Explore the Journal"
-                : language === "es"
-                  ? "Explorar la Revista"
-                  : "Explorar o Jornal"}
-            </LocalizedLink>
-          </div>
-        )}
+        {/* A grelha é sempre montada quando não há erro: com o catálogo vazio,
+            montá-la condicionalmente deixava o comprador sem caixa de pesquisa
+            nem filtros, e o estado vazio explicativo da própria grelha — o que
+            oferece guardar a pesquisa como alerta — nunca chegava a aparecer. */}
+        {!hasError && <MarketplaceGrid horses={cavalos} />}
       </div>
     </section>
   );
