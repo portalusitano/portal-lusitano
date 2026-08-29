@@ -14,6 +14,8 @@ interface ShareButtonsProps {
   utmCampaign?: string;
   /** Whether to show as a compact row (default) or inside a dialog triggered by a button */
   variant?: "inline" | "dialog";
+  /** Titulo do painel de partilha na variante "dialog" */
+  dialogTitle?: string;
 }
 
 /**
@@ -39,6 +41,7 @@ export default function ShareButtons({
   utmMedium = "social",
   utmCampaign = "partilha",
   variant = "inline",
+  dialogTitle = "Partilhar",
 }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -229,12 +232,12 @@ export default function ShareButtons({
         <div
           ref={dialogRef}
           role="dialog"
-          aria-label="Partilhar resultado"
+          aria-label={dialogTitle}
           className="absolute right-0 top-full mt-2 z-50 w-[320px] bg-[var(--background-secondary)] border border-[var(--border)] rounded-xl p-5 shadow-2xl shadow-black/40 animate-in fade-in slide-in-from-top-2 duration-200"
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-[var(--foreground)]">Partilhar resultado</h3>
+            <h3 className="text-sm font-semibold text-[var(--foreground)]">{dialogTitle}</h3>
             <button
               onClick={() => setDialogOpen(false)}
               className="p-1 rounded text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"

@@ -1,12 +1,14 @@
 import { cache } from "react";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase-admin";
 import ContactarVendedor from "@/components/comprar/ContactarVendedor";
 import RegistarVisualizacao from "@/components/comprar/RegistarVisualizacao";
 import DenunciarAnuncio from "@/components/comprar/DenunciarAnuncio";
+import AccoesAnuncio from "@/components/comprar/AccoesAnuncio";
+import HistoricoVisita from "@/components/comprar/HistoricoVisita";
+import VistosRecentemente from "@/components/VistosRecentemente";
 import Pedigree from "@/components/Pedigree";
 import { HorseSchema, BreadcrumbSchema } from "@/components/JsonLd";
 import {
@@ -17,8 +19,6 @@ import {
   Mail,
   ChevronRight,
   MessageCircle,
-  Share2,
-  Heart,
 } from "lucide-react";
 import HorseCard from "@/components/HorseCard";
 import PhotoGallery from "@/components/PhotoGallery";
@@ -314,6 +314,21 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                 {Number(cavalo.preco).toLocaleString("pt-PT")} €
               </p>
 
+              {/* Guardar + partilhar — como em qualquer classificados, é daqui
+                  que o anúncio circula para fora do site. */}
+              <AccoesAnuncio
+                cavalo={{
+                  id: cavalo.id,
+                  slug: cavalo.id,
+                  name: cavalo.nome_cavalo,
+                  age: cavalo.idade ?? undefined,
+                  price: cavalo.preco ?? undefined,
+                  image: cavalo.image_url ?? undefined,
+                  location: cavalo.localizacao ?? undefined,
+                }}
+                url={`${siteUrl}/comprar/${id}`}
+              />
+
               {/* Quick meta pills */}
               <div className="flex flex-wrap gap-2 pt-1">
                 {cavalo.idade && (
@@ -451,6 +466,16 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                 único indicador de retorno que recebe. */}
             <RegistarVisualizacao cavaloId={cavalo.id} />
 
+            {/* Histórico local, para o comprador conseguir voltar a este
+                anúncio depois de percorrer outros. */}
+            <HistoricoVisita
+              id={cavalo.id}
+              nome={cavalo.nome_cavalo}
+              preco={cavalo.preco}
+              imagem={cavalo.image_url}
+              localizacao={cavalo.localizacao}
+            />
+
             {/* CONTACT / CTA */}
             <section
               aria-labelledby="contact-heading"
@@ -548,7 +573,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                   Anúncios Similares
                 </h2>
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                  {similarHorses.map((h, i) => (
+                  {similarHorses.map((h) => (
                     <HorseCard
                       key={h.id}
                       horse={{
@@ -578,6 +603,13 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                 </div>
               </section>
             )}
+
+            <VistosRecentemente
+              excluirId={cavalo.id}
+              limite={4}
+              gridClassName="grid-cols-2"
+              className="border-t border-[var(--background-secondary)] pt-10"
+            />
 
             {/* Back to marketplace */}
             {similarHorses.length === 0 && (

@@ -5,6 +5,7 @@ import LocalizedLink from "@/components/LocalizedLink";
 import { Scale } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import MarketplaceGrid from "@/components/MarketplaceGrid";
+import VistosRecentemente from "@/components/VistosRecentemente";
 
 interface CavaloVenda {
   id: string;
@@ -144,6 +145,8 @@ function ComprarContentInner({
             nem filtros, e o estado vazio explicativo da própria grelha — o que
             oferece guardar a pesquisa como alerta — nunca chegava a aparecer. */}
         {!hasError && <MarketplaceGrid horses={cavalos} />}
+
+        <VistosRecentemente className="mt-16 pt-10 border-t border-[var(--border)]" />
       </div>
     </section>
   );
