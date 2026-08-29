@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthenticatedUser } from "@/lib/seller-auth";
 import { validarMensagem, nomeOutraParte, type ChatMensagem } from "@/lib/marketplace-chat";
+import { devoNotificar, notificarNovaMensagem } from "@/lib/chat-notificacoes";
 import { logger } from "@/lib/logger";
 import type { User } from "@supabase/supabase-js";
 
@@ -161,6 +162,31 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         arquivada_vendedor: false,
       })
       .eq("id", id);
+
+    if (await devoNotificar(id, user.id, mensagem.id)) {
+      const destinatarioId =
+        conversa.comprador_id === user.id ? conversa.vendedor_id : conversa.comprador_id;
+
+      const { data: cavalo } = await supabaseAdmin
+        .from("cavalos_venda")
+        .select("nome, nome_cavalo, vendedor_nome")
+        .eq("id", conversa.cavalo_id)
+        .maybeSingle();
+
+      const souComprador = conversa.comprador_id === user.id;
+
+      await notificarNovaMensagem({
+        conversaId: id,
+        destinatarioId,
+        // The counterpart already knows the other side by the name shown in the
+        // thread; reuse it rather than exposing an account email.
+        remetenteNome: souComprador
+          ? conversa.comprador_nome || "Comprador interessado"
+          : cavalo?.vendedor_nome || "Vendedor",
+        cavaloNome: cavalo?.nome || cavalo?.nome_cavalo || "o anúncio",
+        corpo: validada.corpo,
+      });
+    }
 
     return NextResponse.json(
       {

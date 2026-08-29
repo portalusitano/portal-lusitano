@@ -476,9 +476,18 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                       <p className="text-sm font-medium text-[var(--foreground)]">
                         {cavalo.contacto_nome}
                       </p>
-                      <p className="text-[10px] text-[var(--foreground-muted)] uppercase tracking-wide">
-                        Vendedor verificado
-                      </p>
+                      {cavalo.user_id ? (
+                        <a
+                          href={`/vendedor/${cavalo.user_id}`}
+                          className="text-[10px] text-[var(--gold)]/70 hover:text-[var(--gold)] uppercase tracking-wide transition-colors"
+                        >
+                          Ver outros anúncios deste vendedor →
+                        </a>
+                      ) : (
+                        <p className="text-[10px] text-[var(--foreground-muted)] uppercase tracking-wide">
+                          Vendedor verificado
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}

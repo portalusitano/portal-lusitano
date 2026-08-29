@@ -8,6 +8,7 @@ import {
   type ChatConversa,
 } from "@/lib/marketplace-chat";
 import { LISTING_STATUS } from "@/lib/marketplace-listings";
+import { devoNotificar, notificarNovaMensagem } from "@/lib/chat-notificacoes";
 import { logger } from "@/lib/logger";
 
 /** Display name for the authenticated user, used when opening a conversation. */
@@ -218,13 +219,25 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const { error: mensagemError } = await supabaseAdmin.from("marketplace_mensagens").insert({
-      conversa_id: conversaId,
-      remetente_id: user.id,
-      corpo: validada.corpo,
-    });
+    if (!conversaId) {
+      // Unreachable in practice: every branch above either sets it or returns.
+      // Kept so the compiler — and a future edit to those branches — cannot let
+      // a message be written against no conversation.
+      logger.error("[conversas/POST] No conversation id after resolution");
+      return NextResponse.json({ error: "Erro ao abrir conversa" }, { status: 500 });
+    }
 
-    if (mensagemError) {
+    const { data: mensagem, error: mensagemError } = await supabaseAdmin
+      .from("marketplace_mensagens")
+      .insert({
+        conversa_id: conversaId,
+        remetente_id: user.id,
+        corpo: validada.corpo,
+      })
+      .select("id")
+      .single();
+
+    if (mensagemError || !mensagem) {
       logger.error("[conversas/POST] Failed to insert message:", mensagemError);
       return NextResponse.json({ error: "Erro ao enviar mensagem" }, { status: 500 });
     }
@@ -233,6 +246,18 @@ export async function POST(req: NextRequest) {
       .from("marketplace_conversas")
       .update({ ultima_mensagem_at: new Date().toISOString() })
       .eq("id", conversaId);
+
+    // Awaited rather than fired and forgotten: an unawaited promise can be
+    // killed when the serverless invocation ends. A failure inside never throws.
+    if (await devoNotificar(conversaId, user.id, mensagem.id)) {
+      await notificarNovaMensagem({
+        conversaId,
+        destinatarioId: cavalo.user_id,
+        remetenteNome: nomeDoUtilizador(user),
+        cavaloNome: cavalo.nome || "o seu anúncio",
+        corpo: validada.corpo,
+      });
+    }
 
     return NextResponse.json({ conversaId }, { status: 201 });
   } catch (error) {
