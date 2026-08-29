@@ -3,38 +3,62 @@
     {
       "source": "/api/cavalos",
       "headers": [
-        { "key": "Cache-Control", "value": "public, s-maxage=120, stale-while-revalidate=300" }
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=120, stale-while-revalidate=300"
+        }
       ]
     },
     {
       "source": "/api/coudelarias",
       "headers": [
-        { "key": "Cache-Control", "value": "public, s-maxage=120, stale-while-revalidate=300" }
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=120, stale-while-revalidate=300"
+        }
       ]
     },
     {
       "source": "/api/profissionais",
       "headers": [
-        { "key": "Cache-Control", "value": "public, s-maxage=60, stale-while-revalidate=300" }
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=60, stale-while-revalidate=300"
+        }
       ]
     },
     {
       "source": "/api/profissionais/eventos",
       "headers": [
-        { "key": "Cache-Control", "value": "public, s-maxage=60, stale-while-revalidate=300" }
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=60, stale-while-revalidate=300"
+        }
       ]
     },
     {
       "source": "/api/profissionais/artigos",
       "headers": [
-        { "key": "Cache-Control", "value": "public, s-maxage=60, stale-while-revalidate=300" }
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=60, stale-while-revalidate=300"
+        }
       ]
     },
     {
       "source": "/api/search",
       "headers": [
-        { "key": "Cache-Control", "value": "public, s-maxage=30, stale-while-revalidate=120" }
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=30, stale-while-revalidate=120"
+        }
       ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/alertas",
+      "schedule": "0 8 * * *"
     }
   ]
 }
