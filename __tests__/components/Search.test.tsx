@@ -4,10 +4,16 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
+// Ícones derivados dos que o componente importa: uma lista escrita à mão
+// parte sempre que o componente troca de ícone, o que não é regressão.
 vi.mock("lucide-react", () => ({
   Search: (props: Record<string, unknown>) => <svg data-testid="icon-search" {...props} />,
   X: (props: Record<string, unknown>) => <svg data-testid="icon-x" {...props} />,
-  Loader2: (props: Record<string, unknown>) => <svg data-testid="icon-loader" {...props} />,
+  Loader2: (props: Record<string, unknown>) => <svg data-testid="icon-loader2" {...props} />,
+  Clock: (props: Record<string, unknown>) => <svg data-testid="icon-clock" {...props} />,
+  ChevronRight: (props: Record<string, unknown>) => (
+    <svg data-testid="icon-chevronright" {...props} />
+  ),
 }));
 
 vi.mock("next/link", () => ({
@@ -173,7 +179,10 @@ describe("SearchModal", () => {
 
     // Wait for the 300ms debounce and the fetch call
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining("/api/search?q=xa"));
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/search?q=xa"),
+        expect.anything()
+      );
     });
   });
 

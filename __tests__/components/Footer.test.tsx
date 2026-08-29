@@ -62,52 +62,58 @@ vi.mock("@/context/LanguageContext", () => ({
   }),
 }));
 
+// Ícones derivados dos que o componente importa: uma lista escrita à mão
+// parte sempre que o componente troca de ícone, o que não é regressão.
 vi.mock("lucide-react", () => ({
-  Instagram: (props: Record<string, unknown>) => <svg data-testid="icon-instagram" {...props} />,
-  Mail: (props: Record<string, unknown>) => <svg data-testid="icon-mail" {...props} />,
-  Music2: (props: Record<string, unknown>) => <svg data-testid="icon-tiktok" {...props} />,
-  MapPin: (props: Record<string, unknown>) => <svg data-testid="icon-mappin" {...props} />,
-  ArrowUpRight: (props: Record<string, unknown>) => <svg data-testid="icon-arrow" {...props} />,
-  Gift: (props: Record<string, unknown>) => <svg data-testid="icon-gift" {...props} />,
+  ArrowUpRight: (props: Record<string, unknown>) => (
+    <svg data-testid="icon-arrowupright" {...props} />
+  ),
+  Plus: (props: Record<string, unknown>) => <svg data-testid="icon-plus" {...props} />,
+  ArrowRight: (props: Record<string, unknown>) => <svg data-testid="icon-arrowright" {...props} />,
 }));
 
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 describe("Footer", () => {
-  it("renders the logo text", () => {
+  it("mostra a marca", () => {
     render(<Footer />);
     expect(screen.getByText("PORTAL")).toBeInTheDocument();
-    expect(screen.getByText("LUSITANO")).toBeInTheDocument();
   });
 
-  it("renders navigation links", () => {
+  it("liga às duas acções do marketplace", () => {
     render(<Footer />);
-    const links = screen.getAllByRole("link");
-    const hrefs = links.map((l) => l.getAttribute("href"));
-    expect(hrefs).toContain("/");
-    expect(hrefs).toContain("/loja");
-    expect(hrefs).toContain("/jornal");
+    const hrefs = screen.getAllByRole("link").map((l) => l.getAttribute("href"));
+    expect(hrefs).toContain("/comprar");
+    expect(hrefs).toContain("/vender-cavalo");
   });
 
-  it("renders Lusitano section links", () => {
+  it("liga às páginas da conta que o vendedor usa", () => {
     render(<Footer />);
-    expect(screen.getByText("Comprar Cavalo")).toBeInTheDocument();
-    expect(screen.getByText("Coudelarias")).toBeInTheDocument();
-    expect(screen.getByText("Eventos")).toBeInTheDocument();
-    expect(screen.getByText("Linhagens")).toBeInTheDocument();
-    expect(screen.getByText("Lusitanos Notáveis")).toBeInTheDocument();
+    const hrefs = screen.getAllByRole("link").map((l) => l.getAttribute("href"));
+    expect(hrefs).toContain("/minha-conta/anuncios");
+    expect(hrefs).toContain("/minha-conta/mensagens");
+    expect(hrefs).toContain("/minha-conta/alertas");
   });
 
-  it("renders tool section links", () => {
+  it("liga ao ecossistema equestre que o portal mantém", () => {
     render(<Footer />);
-    expect(screen.getByText("Calculadora de Valor")).toBeInTheDocument();
-    expect(screen.getByText("Comparador")).toBeInTheDocument();
-    expect(screen.getByText("Compatibilidade")).toBeInTheDocument();
-    expect(screen.getByText("Análise de Perfil")).toBeInTheDocument();
+    const hrefs = screen.getAllByRole("link").map((l) => l.getAttribute("href"));
+    expect(hrefs).toContain("/directorio");
+    expect(hrefs).toContain("/eventos");
+    expect(hrefs).toContain("/mapa");
   });
 
-  it("renders social media links", () => {
+  it("não liga a secções que já não existem no site", () => {
+    // Um link morto no rodapé aparece em todas as páginas.
+    render(<Footer />);
+    const hrefs = screen.getAllByRole("link").map((l) => l.getAttribute("href") ?? "");
+    for (const morta of ["/loja", "/jornal", "/ferramentas", "/linhagens", "/profissionais"]) {
+      expect(hrefs).not.toContain(morta);
+    }
+  });
+
+  it("mostra as ligações externas obrigatórias", () => {
     render(<Footer />);
     const allLinks = screen.getAllByRole("link");
     const hasExternalLink = allLinks.some((link) => {
@@ -117,7 +123,7 @@ describe("Footer", () => {
     expect(hasExternalLink).toBe(true);
   });
 
-  it("renders copyright text", () => {
+  it("mostra o aviso de direitos reservados", () => {
     render(<Footer />);
     expect(screen.getByText(/Todos os direitos reservados/i)).toBeInTheDocument();
   });

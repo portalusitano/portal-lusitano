@@ -105,10 +105,9 @@ export function SearchModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
 
-      if (e.key === "Escape") {
-        onClose();
-        return;
-      }
+      // O Escape é tratado pelo useFocusTrap acima. Tratá-lo aqui também fazia
+      // com que fechar o modal chamasse onClose duas vezes.
+      if (e.key === "Escape") return;
 
       if (e.key === "ArrowDown") {
         e.preventDefault();

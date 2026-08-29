@@ -56,12 +56,18 @@ vi.mock("@/context/LanguageContext", () => ({
   }),
 }));
 
+// Ícones derivados dos que o componente importa: uma lista escrita à mão
+// parte sempre que o componente troca de ícone, o que não é regressão.
 vi.mock("lucide-react", () => ({
   Home: (props: Record<string, unknown>) => <svg data-testid="icon-home" {...props} />,
-  Wrench: (props: Record<string, unknown>) => <svg data-testid="icon-wrench" {...props} />,
-  ShoppingCart: (props: Record<string, unknown>) => <svg data-testid="icon-cart" {...props} />,
-  Heart: (props: Record<string, unknown>) => <svg data-testid="icon-heart" {...props} />,
+  ShoppingCart: (props: Record<string, unknown>) => (
+    <svg data-testid="icon-shoppingcart" {...props} />
+  ),
   User: (props: Record<string, unknown>) => <svg data-testid="icon-user" {...props} />,
+  Plus: (props: Record<string, unknown>) => <svg data-testid="icon-plus" {...props} />,
+  MessagesSquare: (props: Record<string, unknown>) => (
+    <svg data-testid="icon-messagessquare" {...props} />
+  ),
 }));
 
 // ---------------------------------------------------------------------------
@@ -76,47 +82,43 @@ beforeEach(() => {
 // Tests
 // ---------------------------------------------------------------------------
 describe("MobileBottomNav", () => {
-  it("renders all navigation items", () => {
+  it("mostra os cinco destinos do marketplace", () => {
+    mockPathname.mockReturnValue("/");
     render(<MobileBottomNav />);
-
     expect(screen.getByText("Início")).toBeInTheDocument();
-    expect(screen.getByText("Ferramentas")).toBeInTheDocument();
     expect(screen.getByText("Cavalos")).toBeInTheDocument();
-    expect(screen.getByText("Favoritos")).toBeInTheDocument();
+    expect(screen.getByText("Vender")).toBeInTheDocument();
+    expect(screen.getByText("Mensagens")).toBeInTheDocument();
     expect(screen.getByText("Conta")).toBeInTheDocument();
   });
 
-  it("highlights the active nav item based on pathname", () => {
+  it("assinala o destino activo a partir do caminho", () => {
     mockPathname.mockReturnValue("/comprar");
     render(<MobileBottomNav />);
-
-    const cavalosLink = screen.getByText("Cavalos").closest("a");
-    expect(cavalosLink).toBeTruthy();
-    expect(cavalosLink?.className).toContain("text-[var(--gold)]");
+    const link = screen.getByText("Cavalos").closest("a");
+    expect(link?.className).toContain("gold");
   });
 
-  it("shows favorites badge when favoritesCount > 0", () => {
-    mockFavoritesCount.mockReturnValue(3);
+  it("assinala Vender também nas subpáginas de publicação", () => {
+    mockPathname.mockReturnValue("/vender-cavalo/sucesso");
     render(<MobileBottomNav />);
-
-    expect(screen.getByText("3")).toBeInTheDocument();
+    const link = screen.getByText("Vender").closest("a");
+    expect(link?.className).toContain("gold");
   });
 
-  it("does not show favorites badge when count is 0", () => {
-    mockFavoritesCount.mockReturnValue(0);
+  it("leva a publicar anúncio, a acção que sustenta o marketplace", () => {
+    mockPathname.mockReturnValue("/");
     render(<MobileBottomNav />);
-
-    expect(screen.getByText("Favoritos")).toBeInTheDocument();
-    expect(screen.queryByText("0")).not.toBeInTheDocument();
+    expect(screen.getByText("Vender").closest("a")).toHaveAttribute("href", "/vender-cavalo");
   });
 
-  it("highlights ferramentas nav item on tool pages", () => {
-    mockPathname.mockReturnValue("/calculadora-valor");
+  it("leva à caixa de mensagens", () => {
+    mockPathname.mockReturnValue("/");
     render(<MobileBottomNav />);
-
-    const ferramentasLink = screen.getByText("Ferramentas").closest("a");
-    expect(ferramentasLink).toBeTruthy();
-    expect(ferramentasLink?.className).toContain("text-[var(--gold)]");
+    expect(screen.getByText("Mensagens").closest("a")).toHaveAttribute(
+      "href",
+      "/minha-conta/mensagens"
+    );
   });
 
   it("hides on /admin path", () => {
@@ -135,10 +137,10 @@ describe("MobileBottomNav", () => {
     expect(nav).toBeNull();
   });
 
-  it("links to /ferramentas from ferramentas nav item", () => {
+  it("não mostra destinos de secções removidas do site", () => {
+    mockPathname.mockReturnValue("/");
     render(<MobileBottomNav />);
-
-    const ferramentasLink = screen.getByText("Ferramentas").closest("a");
-    expect(ferramentasLink).toHaveAttribute("href", "/ferramentas");
+    expect(screen.queryByText("Ferramentas")).not.toBeInTheDocument();
+    expect(screen.queryByText("Loja")).not.toBeInTheDocument();
   });
 });
