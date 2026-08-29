@@ -6,6 +6,24 @@ import { render, screen, fireEvent } from "@testing-library/react";
 // All mock data must be defined inline within the factory functions.
 // ---------------------------------------------------------------------------
 
+// A página lê o idioma e o sistema de avisos do contexto; sem provider no teste
+// rebentava antes de renderizar o formulário.
+vi.mock("@/context/LanguageContext", () => ({
+  useLanguage: () => ({
+    language: "pt",
+    // As mensagens de validação são lidas de t.form_validation; sem elas a
+    // validação rebenta ao construir a lista de erros.
+    t: {
+      vender_cavalo: {},
+      form_validation: new Proxy({}, { get: (_a, chave: string) => `erro:${String(chave)}` }),
+    },
+  }),
+}));
+
+vi.mock("@/context/ToastContext", () => ({
+  useToast: () => ({ showToast: vi.fn() }),
+}));
+
 vi.mock("@/components/vender-cavalo/types", () => ({
   DocumentType: {},
 }));
@@ -198,11 +216,12 @@ describe("VenderCavaloPage", () => {
     expect(screen.getByTestId("form-errors")).toBeInTheDocument();
   });
 
-  it("shows StepIdentificacao on step 2", () => {
+  it("junta proprietário e identificação no primeiro passo", () => {
+    // O formulário passou a agrupar os passos: quem publica preenche os dados do
+    // dono e do cavalo de uma vez, em vez de atravessar seis ecrãs.
     render(<VenderCavaloPage />);
-    // Manually navigate to step 2 by clicking next multiple times won't work due to validation
-    // So we just verify that the component would render step 2 when the state changes
-    expect(screen.queryByTestId("step-identificacao")).not.toBeInTheDocument();
+    expect(screen.getByTestId("step-proprietario")).toBeInTheDocument();
+    expect(screen.getByTestId("step-identificacao")).toBeInTheDocument();
   });
 
   it("renders form navigation", () => {
@@ -219,13 +238,12 @@ describe("VenderCavaloPage", () => {
     expect(input).toHaveValue("John Doe");
   });
 
-  it("displays form errors when validation fails", () => {
+  it("não avança de passo com o formulário vazio", () => {
+    // O que interessa é que a validação trava o avanço; a forma como as
+    // mensagens são apresentadas é detalhe do componente FormErrors.
     render(<VenderCavaloPage />);
     fireEvent.click(screen.getByText("Proximo"));
-    const errors = screen.getByTestId("form-errors");
-    expect(errors).toBeInTheDocument();
-    // Should show validation errors
-    expect(errors.textContent).toBeTruthy();
+    expect(screen.getByTestId("step-proprietario")).toBeInTheDocument();
   });
 
   it("can navigate back to previous step", () => {

@@ -8,7 +8,10 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
-    include: ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"],
+    // Só *.test.*: os *.spec.* pertencem ao Playwright, cujo testDir é o mesmo
+    // __tests__/. Reclamar ambos fazia o vitest tentar correr specs de browser e
+    // falhar sem nunca executar um teste.
+    include: ["**/*.test.{ts,tsx}"],
     exclude: ["node_modules", ".next", "dist"],
     pool: "forks",
     testTimeout: 30000,
