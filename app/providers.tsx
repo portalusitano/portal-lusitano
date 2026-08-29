@@ -1,9 +1,7 @@
 "use client";
 
-import { CartProvider } from "@/context/CartContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { ToastProvider } from "@/context/ToastContext";
-import { WishlistProvider } from "@/context/WishlistContext";
 import { HorseFavoritesProvider } from "@/context/HorseFavoritesContext";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { ThemeProvider } from "@/context/ThemeContext";
@@ -28,15 +26,13 @@ function composeProviders(...providers: FC<{ children: ReactNode }>[]) {
 }
 
 // Providers ordered by dependency:
-// ErrorBoundary > Theme > Auth > Toast > Cart > Wishlist > HorseFavorites
+// ErrorBoundary > Theme > Auth > Toast > HorseFavorites
 // LanguageProvider extracted from compose because it needs initialLanguage prop
 const ComposedProviders = composeProviders(
   ErrorBoundaryWrapper,
   ThemeProvider,
   AuthProvider,
   ToastProvider,
-  CartProvider,
-  WishlistProvider,
   HorseFavoritesProvider
 );
 

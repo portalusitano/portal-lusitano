@@ -10,17 +10,11 @@ const PushNotificationPrompt = dynamic(() => import("@/components/PushNotificati
   ssr: false,
 });
 const WhatsAppButton = dynamic(() => import("@/components/WhatsAppButton"), { ssr: false });
-const CartDrawer = dynamic(() => import("@/components/CartDrawer"), { ssr: false });
 const AnalyticsScripts = dynamic(() => import("@/components/AnalyticsScripts"), { ssr: false });
 const Analytics = dynamic(() => import("@/components/Analytics"), { ssr: false });
 const ServiceWorkerRegistration = dynamic(() => import("@/components/ServiceWorkerRegistration"), {
   ssr: false,
 });
-const AdSenseScript = dynamic(
-  () => import("@/components/AdSenseScript").then((m) => ({ default: m.AdSenseScript })),
-  { ssr: false }
-);
-
 function DeferredNewsletterPopup() {
   const [ready, setReady] = useState(false);
   useEffect(() => {
@@ -44,11 +38,9 @@ export default function ClientOverlays() {
       <DeferredNewsletterPopup />
       <PushNotificationPrompt />
       <WhatsAppButton />
-      <CartDrawer />
       <ServiceWorkerRegistration />
       <Analytics />
       <AnalyticsScripts />
-      <AdSenseScript />
     </>
   );
 }

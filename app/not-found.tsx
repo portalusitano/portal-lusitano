@@ -60,7 +60,7 @@ export default function NotFound() {
           </LocalizedLink>
 
           <LocalizedLink
-            href="/loja"
+            href="/comprar"
             className="flex items-center gap-3 border border-[var(--border-hover)] text-[var(--foreground)] px-8 py-4 text-xs uppercase tracking-[0.2em] hover:border-[var(--gold)] hover:text-[var(--gold)] transition-colors"
           >
             <Search size={16} />

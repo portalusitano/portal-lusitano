@@ -4,7 +4,7 @@ import LocalizedLink from "@/components/LocalizedLink";
 import { ChevronDown } from "lucide-react";
 import { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { useLanguage } from "@/context/LanguageContext";
-import { getDbItems, getCommunityItems } from "./navData";
+import { getDbItems } from "./navData";
 
 export function LusitanoDropdown() {
   const { t } = useLanguage();
@@ -12,7 +12,6 @@ export function LusitanoDropdown() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const dbItems = useMemo(() => getDbItems(t.nav), [t]);
-  const communityItems = useMemo(() => getCommunityItems(t.nav), [t]);
 
   // Close on Escape
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -81,33 +80,6 @@ export function LusitanoDropdown() {
                     size={16}
                     className={item.iconClass || "text-[var(--gold)] shrink-0"}
                   />
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium text-[var(--foreground)]">{item.label}</div>
-                    <div className="text-[10px] text-[var(--foreground-muted)] leading-tight">
-                      {item.desc}
-                    </div>
-                  </div>
-                </LocalizedLink>
-              ))}
-            </div>
-
-            {/* Separador */}
-            <div className="border-t border-[var(--border)] my-4 mx-3 opacity-50" />
-
-            {/* Secção: Comunidade */}
-            <span className="text-[9px] uppercase tracking-[0.25em] text-[var(--gold)] font-semibold block mb-3 px-3">
-              {t.nav.community}
-            </span>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
-              {communityItems.map((item) => (
-                <LocalizedLink
-                  key={item.href}
-                  href={item.href}
-                  className="dd-item"
-                  role="menuitem"
-                  onClick={() => setOpen(false)}
-                >
-                  <item.icon size={16} className="text-[var(--gold)] shrink-0" />
                   <div className="min-w-0">
                     <div className="text-sm font-medium text-[var(--foreground)]">{item.label}</div>
                     <div className="text-[10px] text-[var(--foreground-muted)] leading-tight">

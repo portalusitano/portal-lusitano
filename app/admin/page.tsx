@@ -528,24 +528,6 @@ export default function AdminDashboard() {
                 <p className="font-semibold text-white">Denúncias</p>
                 <p className="text-sm text-gray-400">Anúncios reportados</p>
               </Link>
-
-              <Link
-                href="/admin/instagram"
-                className="bg-gradient-to-br from-purple-500/10 to-purple-600/10 border border-purple-500/20 hover:border-purple-500/40 rounded-lg p-4 text-center transition-all hover:scale-105"
-              >
-                <p className="text-3xl mb-2">📸</p>
-                <p className="font-semibold text-white">Instagram</p>
-                <p className="text-sm text-gray-400">Uploads</p>
-              </Link>
-
-              <Link
-                href="/linhagens"
-                className="bg-gradient-to-br from-indigo-500/10 to-indigo-600/10 border border-indigo-500/20 hover:border-indigo-500/40 rounded-lg p-4 text-center transition-all hover:scale-105"
-              >
-                <p className="text-3xl mb-2">🧬</p>
-                <p className="font-semibold text-white">Linhagens</p>
-                <p className="text-sm text-gray-400">Genealogia</p>
-              </Link>
             </div>
           </>
         )}

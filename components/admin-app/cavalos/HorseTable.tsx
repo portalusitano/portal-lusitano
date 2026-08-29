@@ -116,7 +116,7 @@ export default function HorseTable({
               <td className="px-6 py-4 text-right">
                 <div className="flex justify-end gap-2">
                   <Link
-                    href={`/marketplace/${cavalo.slug}`}
+                    href={`/comprar/${cavalo.id}`}
                     className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
                     target="_blank"
                   >

@@ -353,7 +353,7 @@ export default function CavalosContent() {
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
                         <Link
-                          href={`/marketplace/${cavalo.slug}`}
+                          href={`/comprar/${cavalo.id}`}
                           className="p-2 text-gray-400 hover:text-white hover:bg-[#1A1A1A] rounded"
                           target="_blank"
                         >

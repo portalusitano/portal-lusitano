@@ -178,7 +178,7 @@ function PerfilContent() {
                 </div>
                 {!isPro && (
                   <a
-                    href="/precos"
+                    href="/vender-cavalo"
                     className="px-4 py-2 bg-gradient-to-r from-[#C5A059] to-[#B8956F] text-black text-sm font-semibold rounded-lg hover:from-[#D4AF6A] hover:to-[#C5A059] transition-all"
                   >
                     {t.profile.upgrade_pro}

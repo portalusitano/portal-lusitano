@@ -1,13 +1,8 @@
 import { useMemo, memo } from "react";
 import LocalizedLink from "@/components/LocalizedLink";
-import { User, Gift, ShoppingBag, ArrowRight } from "lucide-react";
+import { User, Plus, ArrowRight } from "lucide-react";
 import { usePathname } from "next/navigation";
-import {
-  getMobileDbItems,
-  getMobileToolsItems,
-  getMobileCommunityItems,
-  MOBILE_MAIN_NAV_ITEMS,
-} from "./navData";
+import { getMobileDbItems, MOBILE_MAIN_NAV_ITEMS } from "./navData";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -68,19 +63,20 @@ export const MobileMenu = memo(function MobileMenu({
   const pathname = usePathname();
 
   const mobileDbItems = useMemo(() => getMobileDbItems(t.nav), [t]);
-  const mobileToolsItems = useMemo(() => getMobileToolsItems(t.nav), [t]);
-  const mobileCommunityItems = useMemo(() => getMobileCommunityItems(t.nav), [t]);
 
   // Memoized to avoid rebuilding a new array reference on every render.
   // Icons are stable module-level references so they are safe to include.
+  // Derivado da lista, não indexado por posição: indexar por posição fixa
+  // rebentava assim que a lista encolheu (MOBILE_MAIN_NAV_ITEMS[3] passou a
+  // undefined e o prerender falhava a ler .icon).
   const mainNavItems = useMemo(
-    () => [
-      { name: t.nav.home, href: "/", icon: MOBILE_MAIN_NAV_ITEMS[0].icon },
-      { name: t.nav.shop, href: "/loja", icon: MOBILE_MAIN_NAV_ITEMS[1].icon },
-      { name: t.nav.journal, href: "/jornal", icon: MOBILE_MAIN_NAV_ITEMS[2].icon },
-      { name: t.nav.about, href: "/sobre", icon: MOBILE_MAIN_NAV_ITEMS[3].icon },
-    ],
-    [t.nav.home, t.nav.shop, t.nav.journal, t.nav.about]
+    () =>
+      MOBILE_MAIN_NAV_ITEMS.map((item) => ({
+        name: item.nameKey === "home" ? t.nav.home : t.nav.about,
+        href: item.href,
+        icon: item.icon,
+      })),
+    [t.nav.home, t.nav.about]
   );
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
@@ -141,60 +137,30 @@ export const MobileMenu = memo(function MobileMenu({
           </div>
         </div>
 
-        {/* Ferramentas Mobile */}
-        <div className="border-t border-[var(--border)] pt-4 mt-4">
-          <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--gold)] mb-3 block px-3 font-medium">
-            {t.nav.tools}
-          </span>
-          <div className="grid grid-cols-2 gap-2">
-            {mobileToolsItems.map((item) => (
-              <LocalizedLink
-                key={item.href}
-                href={item.href}
-                className="flex items-center gap-3 py-3 px-3 text-sm text-[var(--foreground-secondary)] hover:text-[var(--gold)] hover:bg-[var(--surface-hover)] transition-colors rounded-lg active:scale-[0.98] touch-manipulation"
-              >
-                <item.icon size={18} className="text-[var(--gold)]/70" />
-                <span className="truncate">{item.label}</span>
-              </LocalizedLink>
-            ))}
-          </div>
-        </div>
-
-        {/* Comunidade Mobile */}
-        <div className="border-t border-[var(--border)] pt-4 mt-4">
-          <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--gold)] mb-3 block px-3 font-medium">
-            {t.nav.community}
-          </span>
-          <div className="grid grid-cols-2 gap-2">
-            {mobileCommunityItems.map((item) => (
-              <LocalizedLink
-                key={item.href}
-                href={item.href}
-                className="flex items-center gap-3 py-3 px-3 text-sm text-[var(--foreground-secondary)] hover:text-[var(--gold)] hover:bg-[var(--surface-hover)] transition-colors rounded-lg active:scale-[0.98] touch-manipulation"
-              >
-                <item.icon size={18} className="text-[var(--gold)]/70" />
-                <span className="truncate">{item.label}</span>
-              </LocalizedLink>
-            ))}
-          </div>
-        </div>
-
-        {/* Loja / Boné em destaque */}
+        {/* Publicar anúncio — a acção que sustenta o marketplace */}
         <div className="border-t border-[var(--border)] pt-4 mt-4">
           <LocalizedLink
-            href="/loja"
+            href="/vender-cavalo"
             onClick={onClose}
             className="flex items-center gap-4 p-4 bg-gradient-to-r from-[var(--gold)]/15 via-[var(--gold)]/8 to-transparent border border-[var(--gold)]/30 rounded-xl active:scale-[0.98] touch-manipulation transition-transform"
           >
             <div className="w-12 h-12 bg-[var(--gold)]/15 border border-[var(--gold)]/30 rounded-xl flex items-center justify-center flex-shrink-0">
-              <ShoppingBag size={20} className="text-[var(--gold)]" strokeWidth={2} />
+              <Plus size={20} className="text-[var(--gold)]" strokeWidth={2} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-[var(--foreground)] leading-tight">
-                {language === "pt" ? "Boné Lusitano" : language === "es" ? "Gorra Lusitana" : "Lusitano Cap"}
+                {language === "pt"
+                  ? "Vender o meu cavalo"
+                  : language === "es"
+                    ? "Vender mi caballo"
+                    : "Sell my horse"}
               </p>
               <p className="text-[11px] text-[var(--foreground-muted)] mt-0.5 leading-tight">
-                {language === "pt" ? "Coleção exclusiva · Envio mundial" : language === "es" ? "Colección exclusiva · Envío mundial" : "Exclusive collection · Worldwide shipping"}
+                {language === "pt"
+                  ? "Publique o anúncio em minutos"
+                  : language === "es"
+                    ? "Publique su anuncio en minutos"
+                    : "Publish your listing in minutes"}
               </p>
             </div>
             <ArrowRight size={16} className="text-[var(--gold)] flex-shrink-0" />
@@ -203,12 +169,6 @@ export const MobileMenu = memo(function MobileMenu({
 
         {/* Additional Links */}
         <div className="border-t border-[var(--border)] pt-4 mt-4 space-y-2">
-          <LocalizedLink
-            href="/instagram"
-            className="flex items-center gap-4 py-3 px-3 text-[var(--foreground-secondary)] hover:text-[var(--gold)] hover:bg-[var(--surface-hover)] transition-colors rounded-lg active:scale-[0.98] touch-manipulation"
-          >
-            {t.nav.advertising} / Instagram
-          </LocalizedLink>
           <LocalizedLink
             href="/minha-conta"
             className="flex items-center gap-4 py-3 px-3 text-[var(--foreground-secondary)] hover:text-[var(--gold)] hover:bg-[var(--surface-hover)] transition-colors rounded-lg active:scale-[0.98] touch-manipulation"
@@ -220,13 +180,6 @@ export const MobileMenu = memo(function MobileMenu({
 
         {/* CTA & Language */}
         <div className="border-t border-[var(--border)] pt-4 mt-4 space-y-3">
-          <LocalizedLink
-            href="/ebook-gratis"
-            className="flex items-center justify-center gap-3 bg-gradient-to-r from-[var(--gold)] to-[var(--gold-hover)] text-black px-4 py-4 text-sm uppercase tracking-widest font-bold w-full rounded-lg active:scale-[0.98] touch-manipulation shadow-[0_0_20px_rgba(197,160,89,0.2)]"
-          >
-            <Gift size={18} />
-            {t.nav.free_ebook}
-          </LocalizedLink>
           <button
             onClick={() => {
               onLanguageToggle();

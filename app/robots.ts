@@ -21,7 +21,6 @@ export default function robots(): MetadataRoute.Robots {
           "/favoritos",
           "/studio/",
           "/directorio/registar",
-          "/ebook-gratis/download",
           "/resultado/",
         ],
       },

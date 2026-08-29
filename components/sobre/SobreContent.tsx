@@ -19,14 +19,14 @@ import {
   Heart,
   Globe,
   Store,
-  Wrench,
-  ShoppingCart,
   Search,
   Building2,
   Trophy,
   Briefcase,
   Check,
   LucideIcon,
+  Euro,
+  Calendar,
 } from "lucide-react";
 
 export default function SobreContent() {
@@ -103,34 +103,24 @@ export default function SobreContent() {
         href: "/directorio",
       },
       {
-        icon: Wrench,
-        title: tr("Ferramentas Equestres", "Equestrian Tools", "Herramientas Ecuestres"),
+        icon: Euro,
+        title: tr("Vender o seu cavalo", "Sell your horse", "Vender su caballo"),
         desc: tr(
-          "Calculadora de valor, comparador, verificador de compatibilidade e análise de perfil.",
-          "Value calculator, comparator, compatibility checker and profile analysis.",
-          "Calculadora de valor, comparador, verificador de compatibilidad y análisis de perfil."
+          "Publique com fotografias, pedigree e histórico. Gere o anúncio e as mensagens a partir da sua conta.",
+          "Publish with photographs, pedigree and history. Manage the listing and messages from your account.",
+          "Publique con fotografías, pedigrí e historial. Gestione el anuncio y los mensajes desde su cuenta."
         ),
-        href: "/ferramentas",
+        href: "/vender-cavalo",
       },
       {
-        icon: BookOpen,
-        title: tr("Jornal & Arquivo", "Journal & Archive", "Diario & Archivo"),
+        icon: Calendar,
+        title: tr("Eventos", "Events", "Eventos"),
         desc: tr(
-          "Artigos de investigação, crónicas e o maior arquivo digital sobre o cavalo Lusitano.",
-          "Research articles, chronicles and the largest digital archive about the Lusitano horse.",
-          "Artículos de investigación, crónicas y el mayor archivo digital sobre el caballo Lusitano."
+          "Feiras, concursos e leilões onde compradores e criadores se encontram.",
+          "Fairs, competitions and auctions where buyers and breeders meet.",
+          "Ferias, concursos y subastas donde compradores y criadores se encuentran."
         ),
-        href: "/jornal",
-      },
-      {
-        icon: ShoppingCart,
-        title: tr("Loja Equestre", "Equestrian Shop", "Tienda Ecuestre"),
-        desc: tr(
-          "Vestuário e acessórios que celebram a herança equestre portuguesa.",
-          "Clothing and accessories that celebrate Portuguese equestrian heritage.",
-          "Ropa y accesorios que celebran el patrimonio ecuestre portugués."
-        ),
-        href: "/loja",
+        href: "/eventos",
       },
       {
         icon: Users,
@@ -228,7 +218,6 @@ export default function SobreContent() {
 
   return (
     <main className="min-h-screen bg-[var(--background)] overflow-x-hidden">
-
       {/* ═══════════════════════════════════════════════════════════════════════
           HERO — cinematic full-viewport with background image
       ══════════════════════════════════════════════════════════════════════════ */}
@@ -250,12 +239,18 @@ export default function SobreContent() {
         {/* Dark cinematic overlays */}
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0.85) 100%)" }}
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0.85) 100%)",
+          }}
           aria-hidden
         />
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: "linear-gradient(90deg, rgba(0,0,0,0.5) 0%, transparent 40%, rgba(0,0,0,0.4) 100%)" }}
+          style={{
+            background:
+              "linear-gradient(90deg, rgba(0,0,0,0.5) 0%, transparent 40%, rgba(0,0,0,0.4) 100%)",
+          }}
           aria-hidden
         />
 
@@ -274,7 +269,8 @@ export default function SobreContent() {
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(197,160,89,0.006) 2px, rgba(197,160,89,0.006) 4px)",
+            backgroundImage:
+              "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(197,160,89,0.006) 2px, rgba(197,160,89,0.006) 4px)",
           }}
           aria-hidden
         />
@@ -282,15 +278,29 @@ export default function SobreContent() {
         {/* Vignette */}
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%)" }}
+          style={{
+            background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%)",
+          }}
           aria-hidden
         />
 
         {/* Corner ornaments */}
-        <div className="absolute top-8 left-6 sm:left-10 lg:left-16 w-14 h-14 border-t border-l border-[var(--gold)]/15 pointer-events-none z-10" aria-hidden />
-        <div className="absolute top-8 right-6 sm:right-10 lg:right-16 w-14 h-14 border-t border-r border-[var(--gold)]/15 pointer-events-none hidden sm:block z-10" aria-hidden />
-        <div className="absolute bottom-8 left-6 sm:left-10 lg:left-16 w-14 h-14 border-b border-l border-[var(--gold)]/15 pointer-events-none hidden sm:block z-10" aria-hidden />
-        <div className="absolute bottom-8 right-6 sm:right-10 lg:right-16 w-14 h-14 border-b border-r border-[var(--gold)]/15 pointer-events-none hidden sm:block z-10" aria-hidden />
+        <div
+          className="absolute top-8 left-6 sm:left-10 lg:left-16 w-14 h-14 border-t border-l border-[var(--gold)]/15 pointer-events-none z-10"
+          aria-hidden
+        />
+        <div
+          className="absolute top-8 right-6 sm:right-10 lg:right-16 w-14 h-14 border-t border-r border-[var(--gold)]/15 pointer-events-none hidden sm:block z-10"
+          aria-hidden
+        />
+        <div
+          className="absolute bottom-8 left-6 sm:left-10 lg:left-16 w-14 h-14 border-b border-l border-[var(--gold)]/15 pointer-events-none hidden sm:block z-10"
+          aria-hidden
+        />
+        <div
+          className="absolute bottom-8 right-6 sm:right-10 lg:right-16 w-14 h-14 border-b border-r border-[var(--gold)]/15 pointer-events-none hidden sm:block z-10"
+          aria-hidden
+        />
 
         {/* Top bar */}
         <div
@@ -321,7 +331,9 @@ export default function SobreContent() {
           <div className="mb-10 flex justify-center relative">
             <div
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[250px] pointer-events-none"
-              style={{ background: "radial-gradient(ellipse, rgba(197,160,89,0.08) 0%, transparent 60%)" }}
+              style={{
+                background: "radial-gradient(ellipse, rgba(197,160,89,0.08) 0%, transparent 60%)",
+              }}
               aria-hidden
             />
             <div className="relative w-[110px] h-[110px] sm:w-[140px] sm:h-[140px]">
@@ -338,11 +350,21 @@ export default function SobreContent() {
 
           {/* Label */}
           <div className="flex items-center justify-center gap-4 mb-8">
-            <div className="w-12 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(197,160,89,0.55))" }} aria-hidden />
+            <div
+              className="w-12 h-px"
+              style={{
+                background: "linear-gradient(to right, transparent, rgba(197,160,89,0.55))",
+              }}
+              aria-hidden
+            />
             <span className="text-[8px] font-mono uppercase tracking-[0.7em] text-[var(--gold)]/70">
               {tr("Sobre Nós", "About Us", "Sobre Nosotros")}
             </span>
-            <div className="w-12 h-px" style={{ background: "linear-gradient(to left, transparent, rgba(197,160,89,0.55))" }} aria-hidden />
+            <div
+              className="w-12 h-px"
+              style={{ background: "linear-gradient(to left, transparent, rgba(197,160,89,0.55))" }}
+              aria-hidden
+            />
           </div>
 
           {/* Title */}
@@ -365,7 +387,8 @@ export default function SobreContent() {
             style={{
               width: "clamp(60px, 12vw, 140px)",
               height: "1px",
-              background: "linear-gradient(to right, transparent, rgba(197,160,89,0.8), transparent)",
+              background:
+                "linear-gradient(to right, transparent, rgba(197,160,89,0.8), transparent)",
             }}
             aria-hidden
           />
@@ -435,13 +458,22 @@ export default function SobreContent() {
               {/* Top gold accent */}
               <div
                 className="absolute top-0 left-0 right-0 h-[1px]"
-                style={{ background: "linear-gradient(90deg, rgba(197,160,89,0.5) 0%, rgba(197,160,89,0.1) 60%, transparent 100%)" }}
+                style={{
+                  background:
+                    "linear-gradient(90deg, rgba(197,160,89,0.5) 0%, rgba(197,160,89,0.1) 60%, transparent 100%)",
+                }}
                 aria-hidden
               />
               {/* Hover sweep */}
-              <div className="absolute bottom-0 left-0 h-[1px] w-0 group-hover:w-full transition-[width] duration-500 bg-[var(--gold)]/30 pointer-events-none" aria-hidden />
+              <div
+                className="absolute bottom-0 left-0 h-[1px] w-0 group-hover:w-full transition-[width] duration-500 bg-[var(--gold)]/30 pointer-events-none"
+                aria-hidden
+              />
               {/* Hover fill */}
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: "rgba(197,160,89,0.025)" }} />
+              <div
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                style={{ background: "rgba(197,160,89,0.025)" }}
+              />
 
               {/* Animated number */}
               <div className="relative z-10" style={{ fontSize: "clamp(2.2rem, 5vw, 3.5rem)" }}>
@@ -511,11 +543,21 @@ export default function SobreContent() {
             </blockquote>
 
             <div className="mt-10 flex items-center justify-center gap-4">
-              <div className="w-10 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(197,160,89,0.4))" }} />
+              <div
+                className="w-10 h-px"
+                style={{
+                  background: "linear-gradient(to right, transparent, rgba(197,160,89,0.4))",
+                }}
+              />
               <span className="text-[8px] font-mono uppercase tracking-[0.5em] text-[var(--gold)]/50">
                 Portal Lusitano
               </span>
-              <div className="w-10 h-px" style={{ background: "linear-gradient(to left, transparent, rgba(197,160,89,0.4))" }} />
+              <div
+                className="w-10 h-px"
+                style={{
+                  background: "linear-gradient(to left, transparent, rgba(197,160,89,0.4))",
+                }}
+              />
             </div>
           </div>
         </RevealOnScroll>
@@ -524,14 +566,21 @@ export default function SobreContent() {
       {/* ═══════════════════════════════════════════════════════════════════════
           ORIGIN STORY — editorial timeline
       ══════════════════════════════════════════════════════════════════════════ */}
-      <section className="px-6 sm:px-10 lg:px-16 py-16 sm:py-28" style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}>
+      <section
+        className="px-6 sm:px-10 lg:px-16 py-16 sm:py-28"
+        style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}
+      >
         <div className="max-w-6xl mx-auto">
           <RevealOnScroll variant="fade-up">
             <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-16 lg:gap-24 items-start">
               {/* Left — story */}
               <div>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-6 h-px" style={{ background: "rgba(197,160,89,0.55)" }} aria-hidden />
+                  <div
+                    className="w-6 h-px"
+                    style={{ background: "rgba(197,160,89,0.55)" }}
+                    aria-hidden
+                  />
                   <span className="text-[8px] font-mono uppercase tracking-[0.6em] text-[var(--gold)]/60">
                     {tr("A Origem", "The Origin", "El Origen")}
                   </span>
@@ -567,12 +616,18 @@ export default function SobreContent() {
                       <div className="flex flex-col items-center flex-shrink-0 pt-2">
                         <div
                           className="w-2 h-2 rounded-full flex-shrink-0"
-                          style={{ background: "rgba(197,160,89,0.5)", boxShadow: "0 0 12px rgba(197,160,89,0.2)" }}
+                          style={{
+                            background: "rgba(197,160,89,0.5)",
+                            boxShadow: "0 0 12px rgba(197,160,89,0.2)",
+                          }}
                         />
                         {i < 2 && (
                           <div
                             className="w-px flex-1 mt-2"
-                            style={{ background: "linear-gradient(to bottom, rgba(197,160,89,0.2), transparent)" }}
+                            style={{
+                              background:
+                                "linear-gradient(to bottom, rgba(197,160,89,0.2), transparent)",
+                            }}
                           />
                         )}
                       </div>
@@ -594,8 +649,14 @@ export default function SobreContent() {
                   }}
                 >
                   {/* Corner ornaments */}
-                  <div className="absolute top-3 left-3 w-6 h-6 border-t border-l border-[var(--gold)]/20 pointer-events-none" aria-hidden />
-                  <div className="absolute bottom-3 right-3 w-6 h-6 border-b border-r border-[var(--gold)]/20 pointer-events-none" aria-hidden />
+                  <div
+                    className="absolute top-3 left-3 w-6 h-6 border-t border-l border-[var(--gold)]/20 pointer-events-none"
+                    aria-hidden
+                  />
+                  <div
+                    className="absolute bottom-3 right-3 w-6 h-6 border-b border-r border-[var(--gold)]/20 pointer-events-none"
+                    aria-hidden
+                  />
 
                   <p className="text-[8px] font-mono uppercase tracking-[0.5em] text-[var(--gold)]/70 mb-8">
                     {tr("Os Nossos Compromissos", "Our Commitments", "Nuestros Compromisos")}
@@ -637,17 +698,26 @@ export default function SobreContent() {
         />
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.7) 100%)" }}
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.7) 100%)",
+          }}
           aria-hidden
         />
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: "radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.5) 100%)" }}
+          style={{
+            background: "radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.5) 100%)",
+          }}
           aria-hidden
         />
 
         {/* Centered editorial text */}
-        <RevealOnScroll variant="blur-up" duration={700} className="absolute inset-0 flex items-center justify-center z-10">
+        <RevealOnScroll
+          variant="blur-up"
+          duration={700}
+          className="absolute inset-0 flex items-center justify-center z-10"
+        >
           <div className="text-center px-6">
             <p
               className="font-serif italic text-white/80 leading-[1.3] max-w-xl mx-auto"
@@ -670,22 +740,45 @@ export default function SobreContent() {
         </RevealOnScroll>
 
         {/* Gold horizontal lines */}
-        <div className="absolute top-0 inset-x-0 h-px" style={{ background: "rgba(197,160,89,0.1)" }} aria-hidden />
-        <div className="absolute bottom-0 inset-x-0 h-px" style={{ background: "rgba(197,160,89,0.1)" }} aria-hidden />
+        <div
+          className="absolute top-0 inset-x-0 h-px"
+          style={{ background: "rgba(197,160,89,0.1)" }}
+          aria-hidden
+        />
+        <div
+          className="absolute bottom-0 inset-x-0 h-px"
+          style={{ background: "rgba(197,160,89,0.1)" }}
+          aria-hidden
+        />
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════
           VALUES — editorial grid
       ══════════════════════════════════════════════════════════════════════════ */}
-      <section className="px-6 sm:px-10 lg:px-16 py-16 sm:py-28" style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}>
+      <section
+        className="px-6 sm:px-10 lg:px-16 py-16 sm:py-28"
+        style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}
+      >
         <div className="max-w-6xl mx-auto">
           <RevealOnScroll variant="fade-up" className="text-center mb-12 sm:mb-20">
             <div className="flex items-center justify-center gap-4 mb-5">
-              <div className="w-8 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(197,160,89,0.5))" }} aria-hidden />
+              <div
+                className="w-8 h-px"
+                style={{
+                  background: "linear-gradient(to right, transparent, rgba(197,160,89,0.5))",
+                }}
+                aria-hidden
+              />
               <span className="text-[8px] font-mono uppercase tracking-[0.6em] text-[var(--gold)]/60">
                 {tr("Valores", "Values", "Valores")}
               </span>
-              <div className="w-8 h-px" style={{ background: "linear-gradient(to left, transparent, rgba(197,160,89,0.5))" }} aria-hidden />
+              <div
+                className="w-8 h-px"
+                style={{
+                  background: "linear-gradient(to left, transparent, rgba(197,160,89,0.5))",
+                }}
+                aria-hidden
+              />
             </div>
             <h2
               className="font-serif text-[var(--foreground)]"
@@ -695,7 +788,10 @@ export default function SobreContent() {
             </h2>
           </RevealOnScroll>
 
-          <div className="grid sm:grid-cols-2 gap-px" style={{ background: "rgba(197,160,89,0.06)" }}>
+          <div
+            className="grid sm:grid-cols-2 gap-px"
+            style={{ background: "rgba(197,160,89,0.06)" }}
+          >
             {values.map((value, i) => (
               <RevealOnScroll key={value.title} delay={i * 100} variant="fade-up">
                 <div
@@ -703,13 +799,22 @@ export default function SobreContent() {
                   style={{ background: "var(--background)" }}
                 >
                   {/* Hover fill */}
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: "rgba(197,160,89,0.02)" }} />
+                  <div
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                    style={{ background: "rgba(197,160,89,0.02)" }}
+                  />
 
                   {/* Gold sweep on hover */}
-                  <div className="absolute top-0 left-0 h-[1px] w-0 group-hover:w-full transition-[width] duration-700 bg-[var(--gold)]/40 pointer-events-none" aria-hidden />
+                  <div
+                    className="absolute top-0 left-0 h-[1px] w-0 group-hover:w-full transition-[width] duration-700 bg-[var(--gold)]/40 pointer-events-none"
+                    aria-hidden
+                  />
 
                   {/* Ordinal */}
-                  <span className="text-[9px] font-mono uppercase tracking-[0.4em] text-[var(--gold)]/30 mb-6 block relative z-10" aria-hidden>
+                  <span
+                    className="text-[9px] font-mono uppercase tracking-[0.4em] text-[var(--gold)]/30 mb-6 block relative z-10"
+                    aria-hidden
+                  >
                     {String(i + 1).padStart(2, "0")}
                   </span>
 
@@ -749,15 +854,30 @@ export default function SobreContent() {
       {/* ═══════════════════════════════════════════════════════════════════════
           WHAT WE OFFER — feature cards
       ══════════════════════════════════════════════════════════════════════════ */}
-      <section className="px-6 sm:px-10 lg:px-16 py-16 sm:py-28" style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}>
+      <section
+        className="px-6 sm:px-10 lg:px-16 py-16 sm:py-28"
+        style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}
+      >
         <div className="max-w-6xl mx-auto">
           <RevealOnScroll variant="fade-up" className="text-center mb-12 sm:mb-20">
             <div className="flex items-center justify-center gap-4 mb-5">
-              <div className="w-8 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(197,160,89,0.5))" }} aria-hidden />
+              <div
+                className="w-8 h-px"
+                style={{
+                  background: "linear-gradient(to right, transparent, rgba(197,160,89,0.5))",
+                }}
+                aria-hidden
+              />
               <span className="text-[8px] font-mono uppercase tracking-[0.6em] text-[var(--gold)]/60">
                 {tr("Plataforma", "Platform", "Plataforma")}
               </span>
-              <div className="w-8 h-px" style={{ background: "linear-gradient(to left, transparent, rgba(197,160,89,0.5))" }} aria-hidden />
+              <div
+                className="w-8 h-px"
+                style={{
+                  background: "linear-gradient(to left, transparent, rgba(197,160,89,0.5))",
+                }}
+                aria-hidden
+              />
             </div>
             <h2
               className="font-serif text-[var(--foreground)]"
@@ -767,7 +887,10 @@ export default function SobreContent() {
             </h2>
           </RevealOnScroll>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "rgba(197,160,89,0.06)" }}>
+          <div
+            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px"
+            style={{ background: "rgba(197,160,89,0.06)" }}
+          >
             {features.map((feature, i) => (
               <RevealOnScroll key={feature.title} delay={i * 80} variant="fade-up">
                 <LocalizedLink
@@ -776,17 +899,26 @@ export default function SobreContent() {
                   style={{ background: "var(--background)" }}
                 >
                   {/* Hover fill */}
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: "rgba(197,160,89,0.02)" }} />
+                  <div
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                    style={{ background: "rgba(197,160,89,0.02)" }}
+                  />
 
                   {/* Gold sweep */}
-                  <div className="absolute top-0 left-0 h-[1px] w-0 group-hover:w-full transition-[width] duration-600 bg-[var(--gold)]/40 pointer-events-none" aria-hidden />
+                  <div
+                    className="absolute top-0 left-0 h-[1px] w-0 group-hover:w-full transition-[width] duration-600 bg-[var(--gold)]/40 pointer-events-none"
+                    aria-hidden
+                  />
 
                   <div className="flex items-start justify-between mb-5 relative z-10">
                     <div
                       className="w-10 h-10 flex items-center justify-center group-hover:bg-[var(--gold)]/10 transition-colors duration-300"
                       style={{ border: "1px solid rgba(197,160,89,0.12)" }}
                     >
-                      <feature.icon size={17} className="text-[var(--gold)]/70 group-hover:text-[var(--gold)] transition-colors duration-300" />
+                      <feature.icon
+                        size={17}
+                        className="text-[var(--gold)]/70 group-hover:text-[var(--gold)] transition-colors duration-300"
+                      />
                     </div>
                     <ArrowUpRight
                       size={15}
@@ -812,15 +944,30 @@ export default function SobreContent() {
       {/* ═══════════════════════════════════════════════════════════════════════
           AUDIENCE — who is this for
       ══════════════════════════════════════════════════════════════════════════ */}
-      <section className="px-6 sm:px-10 lg:px-16 py-16 sm:py-28" style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}>
+      <section
+        className="px-6 sm:px-10 lg:px-16 py-16 sm:py-28"
+        style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}
+      >
         <div className="max-w-6xl mx-auto">
           <RevealOnScroll variant="fade-up" className="text-center mb-12 sm:mb-20">
             <div className="flex items-center justify-center gap-4 mb-5">
-              <div className="w-8 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(197,160,89,0.5))" }} aria-hidden />
+              <div
+                className="w-8 h-px"
+                style={{
+                  background: "linear-gradient(to right, transparent, rgba(197,160,89,0.5))",
+                }}
+                aria-hidden
+              />
               <span className="text-[8px] font-mono uppercase tracking-[0.6em] text-[var(--gold)]/60">
                 {tr("Audiência", "Audience", "Audiencia")}
               </span>
-              <div className="w-8 h-px" style={{ background: "linear-gradient(to left, transparent, rgba(197,160,89,0.5))" }} aria-hidden />
+              <div
+                className="w-8 h-px"
+                style={{
+                  background: "linear-gradient(to left, transparent, rgba(197,160,89,0.5))",
+                }}
+                aria-hidden
+              />
             </div>
             <h2
               className="font-serif text-[var(--foreground)]"
@@ -830,7 +977,10 @@ export default function SobreContent() {
             </h2>
           </RevealOnScroll>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-px" style={{ background: "rgba(197,160,89,0.06)" }}>
+          <div
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-px"
+            style={{ background: "rgba(197,160,89,0.06)" }}
+          >
             {audience.map((a, i) => (
               <RevealOnScroll key={a.title} delay={i * 80} variant="fade-up">
                 <div
@@ -838,16 +988,25 @@ export default function SobreContent() {
                   style={{ background: "var(--background)" }}
                 >
                   {/* Hover fill */}
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: "rgba(197,160,89,0.025)" }} />
+                  <div
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                    style={{ background: "rgba(197,160,89,0.025)" }}
+                  />
 
                   {/* Gold sweep */}
-                  <div className="absolute top-0 left-0 h-[1px] w-0 group-hover:w-full transition-[width] duration-500 bg-[var(--gold)]/30 pointer-events-none" aria-hidden />
+                  <div
+                    className="absolute top-0 left-0 h-[1px] w-0 group-hover:w-full transition-[width] duration-500 bg-[var(--gold)]/30 pointer-events-none"
+                    aria-hidden
+                  />
 
                   <div
                     className="w-14 h-14 flex items-center justify-center mb-5 relative z-10 group-hover:bg-[var(--gold)]/10 transition-colors duration-300"
                     style={{ border: "1px solid rgba(197,160,89,0.12)" }}
                   >
-                    <a.icon size={22} className="text-[var(--gold)] group-hover:scale-110 transition-transform duration-300" />
+                    <a.icon
+                      size={22}
+                      className="text-[var(--gold)] group-hover:scale-110 transition-transform duration-300"
+                    />
                   </div>
                   <h3 className="font-serif text-[var(--foreground)] mb-2 relative z-10 text-base sm:text-lg">
                     {a.title}
@@ -865,7 +1024,10 @@ export default function SobreContent() {
       {/* ═══════════════════════════════════════════════════════════════════════
           CTA — join the community
       ══════════════════════════════════════════════════════════════════════════ */}
-      <section className="relative px-6 sm:px-10 lg:px-16 py-24 sm:py-40 overflow-hidden" style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}>
+      <section
+        className="relative px-6 sm:px-10 lg:px-16 py-24 sm:py-40 overflow-hidden"
+        style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}
+      >
         {/* Atmospheric glow */}
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
@@ -881,9 +1043,19 @@ export default function SobreContent() {
           <div className="max-w-3xl mx-auto relative z-10 text-center">
             {/* Diamond separator */}
             <div className="flex items-center justify-center gap-4 mb-10" aria-hidden>
-              <div className="w-14 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(197,160,89,0.4))" }} />
+              <div
+                className="w-14 h-px"
+                style={{
+                  background: "linear-gradient(to right, transparent, rgba(197,160,89,0.4))",
+                }}
+              />
               <Heart className="text-[var(--gold)]/30" size={18} />
-              <div className="w-14 h-px" style={{ background: "linear-gradient(to left, transparent, rgba(197,160,89,0.4))" }} />
+              <div
+                className="w-14 h-px"
+                style={{
+                  background: "linear-gradient(to left, transparent, rgba(197,160,89,0.4))",
+                }}
+              />
             </div>
 
             <h2
@@ -920,7 +1092,10 @@ export default function SobreContent() {
               >
                 <Mail size={12} />
                 {tr("Contactar", "Contact", "Contactar")}
-                <ArrowRight size={10} className="group-hover/mail:translate-x-0.5 transition-transform duration-300" />
+                <ArrowRight
+                  size={10}
+                  className="group-hover/mail:translate-x-0.5 transition-transform duration-300"
+                />
               </a>
             </div>
 
@@ -943,9 +1118,15 @@ export default function SobreContent() {
         style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}
       >
         <div className="flex items-center gap-4" aria-hidden>
-          <div className="w-8 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(197,160,89,0.3))" }} />
+          <div
+            className="w-8 h-px"
+            style={{ background: "linear-gradient(to right, transparent, rgba(197,160,89,0.3))" }}
+          />
           <span className="text-[var(--gold)]/30 text-[8px]">&#9670;</span>
-          <div className="w-8 h-px" style={{ background: "linear-gradient(to left, transparent, rgba(197,160,89,0.3))" }} />
+          <div
+            className="w-8 h-px"
+            style={{ background: "linear-gradient(to left, transparent, rgba(197,160,89,0.3))" }}
+          />
         </div>
         <span className="text-[6px] font-mono uppercase tracking-[0.6em] text-[var(--foreground-muted)]/25">
           38.7° N · 9.1° W — Portal Lusitano · Est. MMXXIII · Portugal

@@ -3,11 +3,11 @@
 import { memo } from "react";
 import LocalizedLink from "@/components/LocalizedLink";
 import { usePathname } from "next/navigation";
-import { Home, ShoppingCart, ShoppingBag, User, Wrench } from "lucide-react";
+import { Home, ShoppingCart, User, Plus, MessagesSquare } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 export default memo(function MobileBottomNav() {
   const pathname = usePathname();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   // Don't show on certain pages
   const hiddenPaths = ["/studio", "/admin"];
   if (hiddenPaths.some((path) => pathname.startsWith(path))) {
@@ -22,27 +22,23 @@ export default memo(function MobileBottomNav() {
       isActive: pathname === "/",
     },
     {
-      href: "/ferramentas",
-      icon: Wrench,
-      label: t.mobile_nav.tools,
-      isActive:
-        pathname === "/ferramentas" ||
-        pathname.startsWith("/calculadora-valor") ||
-        pathname.startsWith("/comparador-cavalos") ||
-        pathname.startsWith("/verificador-compatibilidade") ||
-        pathname.startsWith("/analise-perfil"),
-    },
-    {
       href: "/comprar",
       icon: ShoppingCart,
       label: t.mobile_nav.horses,
-      isActive: pathname.startsWith("/comprar") || pathname === "/marketplace",
+      isActive: pathname.startsWith("/comprar"),
     },
     {
-      href: "/loja",
-      icon: ShoppingBag,
-      label: t.mobile_nav.shop,
-      isActive: pathname.startsWith("/loja"),
+      // A acção que sustenta o marketplace fica ao alcance do polegar.
+      href: "/vender-cavalo",
+      icon: Plus,
+      label: language === "pt" ? "Vender" : language === "es" ? "Vender" : "Sell",
+      isActive: pathname.startsWith("/vender-cavalo"),
+    },
+    {
+      href: "/minha-conta/mensagens",
+      icon: MessagesSquare,
+      label: language === "pt" ? "Mensagens" : language === "es" ? "Mensajes" : "Messages",
+      isActive: pathname.startsWith("/minha-conta/mensagens"),
     },
     {
       href: "/minha-conta",

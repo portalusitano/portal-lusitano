@@ -33,7 +33,6 @@ import MagneticButton from "@/components/ui/MagneticButton";
 import EventosCalendar from "@/components/eventos/EventosCalendar";
 import EventosMap from "@/components/eventos/EventosMap";
 import type { Evento } from "./types";
-import AdUnit from "@/components/ads/AdUnit";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -425,9 +424,7 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
         )}
 
         {/* AD — between featured and search */}
-        <div className="mb-12">
-          <AdUnit format="horizontal" />
-        </div>
+        <div className="mb-12"></div>
 
         {/* ═══ SEARCH ═══ */}
         <RevealOnScroll variant="fade-up" className="relative max-w-md mx-auto mb-8">

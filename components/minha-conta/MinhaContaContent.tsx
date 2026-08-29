@@ -9,21 +9,12 @@ import {
   ExternalLink,
   Mail,
   LogOut,
-  Calculator,
-  GitCompare,
   Heart,
   ShoppingBag,
-  BookOpen,
   Building2,
   Calendar,
-  Trophy,
   GitBranch,
-  Store,
   CheckCircle,
-  ShieldCheck,
-  Sparkles,
-  Package,
-  Lock,
   Tag,
   MessagesSquare,
   BellRing,
@@ -224,7 +215,7 @@ function RecentFavorites({ delay }: { delay: number }) {
         Os meus Favoritos
         <span className="h-[1px] flex-1 bg-[var(--border)]" />
         <LocalizedLink
-          href="/favoritos"
+          href="/cavalos-favoritos"
           className="text-[var(--gold)]/60 hover:text-[var(--gold)] transition-colors normal-case tracking-normal text-[10px]"
         >
           Ver todos →
@@ -246,10 +237,7 @@ function RecentFavorites({ delay }: { delay: number }) {
               fav.item_type === "cavalo"
                 ? fav.cavalos_venda?.foto_principal
                 : fav.coudelarias?.foto_capa;
-            const href =
-              fav.item_type === "cavalo"
-                ? `/marketplace/${fav.cavalos_venda?.slug || fav.item_id}`
-                : `/coudelarias`;
+            const href = fav.item_type === "cavalo" ? `/comprar/${fav.item_id}` : `/directorio`;
 
             return (
               <LocalizedLink
@@ -322,26 +310,13 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
     ? new Date(customer.createdAt).toLocaleDateString(locale, { month: "long", year: "numeric" })
     : "—";
 
-  const formatPrice = (amount: string, currency: string) =>
-    new Intl.NumberFormat(locale, { style: "currency", currency }).format(Number(amount));
-
-  // Tools — first is free, rest PRO-locked for non-subscribers
-  const tools = [
-    { href: "/ferramentas/calculadora", icon: Calculator, label: "Calculadora", pro: false },
-    { href: "/ferramentas/comparador", icon: GitCompare, label: "Comparador", pro: true },
-    { href: "/ferramentas/verificador", icon: ShieldCheck, label: "Verificador", pro: true },
-    { href: "/ferramentas/analise", icon: Sparkles, label: "Analise", pro: true },
-  ];
-
   const explore = [
-    { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
-    { href: "/favoritos", icon: Heart, label: "Favoritos" },
-    { href: "/jornal", icon: BookOpen, label: "Jornal" },
-    { href: "/coudelarias", icon: Building2, label: "Coudelarias" },
+    { href: "/comprar", icon: ShoppingBag, label: "Comprar" },
+    { href: "/vender-cavalo", icon: Tag, label: "Vender" },
+    { href: "/cavalos-favoritos", icon: Heart, label: "Favoritos" },
+    { href: "/directorio", icon: Building2, label: "Coudelarias" },
     { href: "/eventos", icon: Calendar, label: "Eventos" },
-    { href: "/cavalos-famosos", icon: Trophy, label: "Lusitanos Notaveis" },
-    { href: "/linhagens", icon: GitBranch, label: "Linhagens" },
-    { href: "/loja", icon: Store, label: "Loja" },
+    { href: "/mapa", icon: GitBranch, label: "Mapa" },
   ];
 
   return (
@@ -553,7 +528,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
 
             {/* Favoritos shortcut */}
             <LocalizedLink
-              href="/favoritos"
+              href="/cavalos-favoritos"
               className="glow-pulse flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(197,160,89,0.1)] transition-all duration-200 group"
             >
               <span className="flex items-center gap-3 text-[11px] uppercase tracking-widest text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
@@ -568,51 +543,6 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
 
           {/* ── MAIN CONTENT ─────────────────────────── */}
           <div className="space-y-8">
-            {/* Tools grid */}
-            <section
-              className="opacity-0 translate-y-5 transition-all duration-700"
-              style={{ transitionDelay: "280ms" }}
-              data-animate
-            >
-              <h2 className="text-[9px] uppercase tracking-[0.4em] text-[var(--foreground-muted)] mb-4 flex items-center gap-3">
-                As suas Ferramentas
-                <span className="h-[1px] flex-1 bg-[var(--border)]" />
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 bg-[var(--gold)]/8 gap-px">
-                {tools.map(({ href, icon: Icon, label, pro }) => {
-                  const locked = pro && !isActive;
-                  return (
-                    <div key={href} className="relative group">
-                      <LocalizedLink
-                        href={locked ? "/ferramentas" : href}
-                        className={`glow-pulse flex flex-col items-center justify-center gap-2.5 py-7 bg-[var(--background)] hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(197,160,89,0.1)] transition-all duration-200 ${locked ? "opacity-40 pointer-events-none" : ""}`}
-                      >
-                        <div className="w-9 h-9 rounded-full bg-[var(--gold)]/10 flex items-center justify-center group-hover:bg-[var(--gold)]/20 transition-colors">
-                          <Icon size={15} className="text-[var(--gold)]" />
-                        </div>
-                        <span className="text-[9px] uppercase tracking-widest text-[var(--foreground-muted)] group-hover:text-[var(--foreground-secondary)] transition-colors text-center">
-                          {label}
-                        </span>
-                      </LocalizedLink>
-
-                      {/* Lock overlay for PRO tools */}
-                      {locked && (
-                        <LocalizedLink
-                          href="/ferramentas"
-                          className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-[var(--background)]/60 backdrop-blur-[2px] hover:bg-[var(--gold)]/5 transition-colors cursor-pointer"
-                        >
-                          <Lock size={13} className="text-[var(--gold)]/50" />
-                          <span className="text-[8px] uppercase tracking-widest text-[var(--gold)]/50">
-                            PRO
-                          </span>
-                        </LocalizedLink>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-
             {/* Recent Favorites */}
             <RecentFavorites delay={360} />
 
@@ -643,91 +573,6 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                   </LocalizedLink>
                 ))}
               </div>
-            </section>
-
-            {/* Orders */}
-            <section
-              className="opacity-0 translate-y-5 transition-all duration-700"
-              style={{ transitionDelay: "520ms" }}
-              data-animate
-            >
-              <h2 className="text-[9px] uppercase tracking-[0.4em] text-[var(--foreground-muted)] mb-4 flex items-center gap-3">
-                {t.account.history}
-                <span className="h-[1px] flex-1 bg-[var(--border)]" />
-              </h2>
-
-              {customer.orders.edges.length > 0 ? (
-                <div className="space-y-3">
-                  {customer.orders.edges.map(({ node: order }) => (
-                    <div
-                      key={order.id}
-                      className="border border-[var(--border)] p-5 hover:border-[var(--gold)]/30 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(197,160,89,0.08)] transition-all duration-200 group bg-[var(--background-secondary)]/10"
-                    >
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <p className="text-[var(--gold)] font-mono text-xs">
-                            {t.account.order} #{order.orderNumber}
-                          </p>
-                          <p className="text-[var(--foreground-muted)] text-[10px] mt-0.5">
-                            {new Date(order.processedAt).toLocaleDateString(locale)}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-[var(--foreground)] font-mono text-sm">
-                            {formatPrice(order.totalPrice.amount, order.totalPrice.currencyCode)}
-                          </p>
-                          <span className="inline-block mt-1.5 px-2 py-0.5 bg-[var(--background-card)] text-[8px] uppercase tracking-widest text-[var(--foreground-muted)]">
-                            {order.financialStatus}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex gap-2 overflow-x-auto pt-4 border-t border-[var(--border)]">
-                        {order.lineItems.edges.map(({ node: item }) => (
-                          <div
-                            key={item.title}
-                            className="w-10 h-14 bg-[var(--background-card)] flex-shrink-0 relative overflow-hidden"
-                          >
-                            {item.variant?.image?.url ? (
-                              <Image
-                                src={item.variant.image.url}
-                                alt={item.title}
-                                fill
-                                sizes="40px"
-                                className="object-cover opacity-70 group-hover:opacity-100 transition-opacity"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <Package size={12} className="text-[var(--foreground-muted)]/40" />
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="relative overflow-hidden border border-dashed border-[var(--border)] py-16 px-6 text-center bg-[var(--background-secondary)]/5">
-                  <div className="gradient-orb w-48 h-48 bg-[#C5A059] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-                  <div className="relative z-10">
-                    <div className="w-12 h-12 rounded-full bg-[var(--gold)]/10 flex items-center justify-center mx-auto mb-5">
-                      <ShoppingBag size={18} className="text-[var(--gold)]/60" />
-                    </div>
-                    <p className="font-serif italic text-[var(--foreground-muted)] mb-1 text-base">
-                      {t.account.no_orders}
-                    </p>
-                    <p className="text-[10px] text-[var(--foreground-muted)]/60 mb-6">
-                      Descubra a nossa colecao exclusiva.
-                    </p>
-                    <LocalizedLink
-                      href="/loja"
-                      className="shimmer-gold inline-flex items-center gap-2 px-5 py-2.5 border border-[var(--gold)]/40 text-[var(--gold)] text-[10px] uppercase tracking-widest hover:bg-[var(--gold)]/10 hover:border-[var(--gold)]/60 hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(197,160,89,0.15)] transition-all duration-200"
-                    >
-                      {t.account.explore} →
-                    </LocalizedLink>
-                  </div>
-                </div>
-              )}
             </section>
           </div>
         </div>

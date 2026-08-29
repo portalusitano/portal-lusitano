@@ -2,7 +2,7 @@
 
 import { memo, useMemo, Fragment } from "react";
 import LocalizedLink from "@/components/LocalizedLink";
-import { ArrowUpRight, Gift, ArrowRight } from "lucide-react";
+import { ArrowUpRight, Plus, ArrowRight } from "lucide-react";
 import { IconInstagram, IconTikTok, IconEmail } from "@/components/icons/SocialIcons";
 import { useLanguage } from "@/context/LanguageContext";
 import { CONTACT_EMAIL, SOCIAL_LINKS } from "@/lib/constants";
@@ -10,52 +10,55 @@ import { CONTACT_EMAIL, SOCIAL_LINKS } from "@/lib/constants";
 export default memo(function Footer() {
   const { t } = useLanguage();
 
+  // Comprar
   const col1 = useMemo(
     () => [
-      { name: t.nav.home, href: "/" },
-      { name: t.nav.shop, href: "/loja" },
-      { name: t.nav.journal, href: "/jornal" },
-      { name: t.footer.about, href: "/sobre" },
-      { name: t.footer.pricing, href: "/precos" },
+      { name: t.footer.buy_horse, href: "/comprar" },
+      { name: "Cavalos favoritos", href: "/cavalos-favoritos" },
+      { name: "Alertas de pesquisa", href: "/minha-conta/alertas" },
     ],
-    [t.nav.home, t.nav.shop, t.nav.journal, t.footer.about, t.footer.pricing]
+    [t.footer.buy_horse]
   );
 
+  // Vender
   const col2 = useMemo(
     () => [
-      { name: t.footer.buy_horse, href: "/comprar" },
-      { name: t.footer.studs, href: "/directorio" },
-      { name: t.footer.events, href: "/eventos" },
-      { name: t.footer.lineages, href: "/linhagens" },
-      { name: t.footer.notable, href: "/cavalos-famosos" },
+      { name: t.footer.sell_horse, href: "/vender-cavalo" },
+      { name: "Os meus anúncios", href: "/minha-conta/anuncios" },
+      { name: "As minhas mensagens", href: "/minha-conta/mensagens" },
     ],
-    [t.footer.buy_horse, t.footer.studs, t.footer.events, t.footer.lineages, t.footer.notable]
+    [t.footer.sell_horse]
   );
 
+  // Descobrir
   const col3 = useMemo(
     () => [
-      { name: t.footer.calculator, href: "/calculadora-valor" },
-      { name: t.footer.comparator, href: "/comparador-cavalos" },
-      { name: t.footer.compatibility, href: "/verificador-compatibilidade" },
-      { name: t.footer.profile_analysis, href: "/analise-perfil" },
+      { name: t.footer.studs, href: "/directorio" },
+      { name: t.footer.events, href: "/eventos" },
+      { name: t.nav.map || "Mapa", href: "/mapa" },
     ],
-    [t.footer.calculator, t.footer.comparator, t.footer.compatibility, t.footer.profile_analysis]
+    [t.footer.studs, t.footer.events, t.nav.map]
   );
 
+  // Portal
   const col4 = useMemo(
     () => [
-      { name: t.footer.sell_horse, href: "/vender-cavalo" },
-      { name: t.footer.professionals, href: "/profissionais" },
-      { name: t.footer.returns, href: "/devolucoes" },
+      { name: t.nav.home, href: "/" },
+      { name: t.footer.about, href: "/sobre" },
       { name: t.footer.contact, href: "/contacto" },
+      { name: t.footer.returns, href: "/devolucoes" },
     ],
-    [t.footer.sell_horse, t.footer.professionals, t.footer.returns, t.footer.contact]
+    [t.nav.home, t.footer.about, t.footer.contact, t.footer.returns]
   );
 
   const legalLinks = useMemo(
     () => [
       { label: t.footer.complaints_book, href: "https://www.livroreclamacoes.pt", external: true },
-      { label: t.footer.dispute_resolution, href: "https://ec.europa.eu/consumers/odr", external: true },
+      {
+        label: t.footer.dispute_resolution,
+        href: "https://ec.europa.eu/consumers/odr",
+        external: true,
+      },
       { label: t.footer.privacy, href: "/privacidade", external: false },
       { label: t.footer.terms, href: "/termos", external: false },
     ],
@@ -73,7 +76,12 @@ export default memo(function Footer() {
       hover: "hover:bg-gradient-to-br hover:from-purple-600 hover:via-pink-500 hover:to-orange-400",
     },
     { href: SOCIAL_LINKS.tiktok, label: "TikTok", icon: IconTikTok, hover: "hover:bg-[#ff0050]" },
-    { href: `mailto:${CONTACT_EMAIL}`, label: "Email", icon: IconEmail, hover: "hover:bg-[var(--gold)]" },
+    {
+      href: `mailto:${CONTACT_EMAIL}`,
+      label: "Email",
+      icon: IconEmail,
+      hover: "hover:bg-[var(--gold)]",
+    },
   ];
 
   const cols = [
@@ -85,7 +93,6 @@ export default memo(function Footer() {
 
   return (
     <footer className="bg-[var(--background)] relative overflow-hidden">
-
       {/* ── AMBIENT LIGHT ─────────────────────────────── */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[700px] h-[450px] bg-[var(--gold)] opacity-[0.045] blur-[130px] [transform:translateZ(0)]" />
@@ -96,17 +103,27 @@ export default memo(function Footer() {
       {/* ── TOP GOLD HAIRLINE ─────────────────────────── */}
       <div
         className="h-px w-full"
-        style={{ background: "linear-gradient(to right, transparent, rgba(197,160,89,0.45) 50%, transparent)" }}
+        style={{
+          background:
+            "linear-gradient(to right, transparent, rgba(197,160,89,0.45) 50%, transparent)",
+        }}
         aria-hidden="true"
       />
 
       {/* ── BRAND STATEMENT ───────────────────────────── */}
       <div className="relative text-center pt-14 sm:pt-20 pb-10 sm:pb-14 px-4 sm:px-6 overflow-hidden">
-
         {/* Grain texture */}
-        <svg className="absolute inset-0 w-full h-full opacity-[0.03] pointer-events-none select-none" aria-hidden="true">
+        <svg
+          className="absolute inset-0 w-full h-full opacity-[0.03] pointer-events-none select-none"
+          aria-hidden="true"
+        >
           <filter id="ftg">
-            <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.65"
+              numOctaves="3"
+              stitchTiles="stitch"
+            />
           </filter>
           <rect width="100%" height="100%" filter="url(#ftg)" />
         </svg>
@@ -118,14 +135,26 @@ export default memo(function Footer() {
           "bottom-6 left-4 sm:left-10 border-b border-l",
           "bottom-6 right-4 sm:right-10 border-b border-r",
         ].map((cls) => (
-          <div key={cls} className={`absolute ${cls} w-7 h-7 border-[var(--gold)]/20 pointer-events-none`} aria-hidden="true" />
+          <div
+            key={cls}
+            className={`absolute ${cls} w-7 h-7 border-[var(--gold)]/20 pointer-events-none`}
+            aria-hidden="true"
+          />
         ))}
 
         {/* Est. label */}
         <div className="flex items-center justify-center gap-3 mb-7">
-          <div className="h-px w-6 sm:w-16" style={{ background: "linear-gradient(to right, transparent, rgba(197,160,89,0.5))" }} />
-          <span className="text-[var(--gold)] text-[8px] uppercase tracking-[0.5em]">Est. MMXXIII · Portugal</span>
-          <div className="h-px w-6 sm:w-16" style={{ background: "linear-gradient(to left, transparent, rgba(197,160,89,0.5))" }} />
+          <div
+            className="h-px w-6 sm:w-16"
+            style={{ background: "linear-gradient(to right, transparent, rgba(197,160,89,0.5))" }}
+          />
+          <span className="text-[var(--gold)] text-[8px] uppercase tracking-[0.5em]">
+            Est. MMXXIII · Portugal
+          </span>
+          <div
+            className="h-px w-6 sm:w-16"
+            style={{ background: "linear-gradient(to left, transparent, rgba(197,160,89,0.5))" }}
+          />
         </div>
 
         {/* Wordmark — medium, refined */}
@@ -148,11 +177,24 @@ export default memo(function Footer() {
 
         {/* Diamond + tagline */}
         <div className="flex items-center justify-center gap-3 mt-5 mb-5">
-          <div className="h-px w-8 sm:w-28" style={{ background: "linear-gradient(to right, transparent, rgba(197,160,89,0.3))" }} />
-          <svg width="5" height="5" viewBox="0 0 5 5" fill="currentColor" className="text-[var(--gold)]/50 rotate-45 flex-shrink-0" aria-hidden="true">
+          <div
+            className="h-px w-8 sm:w-28"
+            style={{ background: "linear-gradient(to right, transparent, rgba(197,160,89,0.3))" }}
+          />
+          <svg
+            width="5"
+            height="5"
+            viewBox="0 0 5 5"
+            fill="currentColor"
+            className="text-[var(--gold)]/50 rotate-45 flex-shrink-0"
+            aria-hidden="true"
+          >
             <rect width="5" height="5" />
           </svg>
-          <div className="h-px w-8 sm:w-28" style={{ background: "linear-gradient(to left, transparent, rgba(197,160,89,0.3))" }} />
+          <div
+            className="h-px w-8 sm:w-28"
+            style={{ background: "linear-gradient(to left, transparent, rgba(197,160,89,0.3))" }}
+          />
         </div>
 
         <p className="text-[var(--foreground-muted)] text-xs sm:text-sm font-light max-w-sm mx-auto leading-relaxed mb-7">
@@ -183,7 +225,8 @@ export default memo(function Footer() {
           borderTop: "1px solid rgba(255,255,255,0.05)",
           borderBottom: "1px solid rgba(255,255,255,0.05)",
           maskImage: "linear-gradient(to right, transparent, black 7%, black 93%, transparent)",
-          WebkitMaskImage: "linear-gradient(to right, transparent, black 7%, black 93%, transparent)",
+          WebkitMaskImage:
+            "linear-gradient(to right, transparent, black 7%, black 93%, transparent)",
         }}
         aria-hidden="true"
       >
@@ -192,7 +235,10 @@ export default memo(function Footer() {
           style={{ animation: "footer-marquee 38s linear infinite", willChange: "transform" }}
         >
           {[0, 1].map((i) => (
-            <span key={i} className="text-[7px] sm:text-[8px] uppercase tracking-[0.45em] text-[var(--foreground-muted)]/30 flex-shrink-0 pr-0">
+            <span
+              key={i}
+              className="text-[7px] sm:text-[8px] uppercase tracking-[0.45em] text-[var(--foreground-muted)]/30 flex-shrink-0 pr-0"
+            >
               {Array(6).fill(MARQUEE).join("")}
             </span>
           ))}
@@ -201,7 +247,6 @@ export default memo(function Footer() {
 
       {/* ── MAIN CONTAINER ────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
-
         {/* ── 4-COLUMN NAV ──────────────────────────── */}
         <div
           className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 py-8 sm:py-10"
@@ -232,20 +277,22 @@ export default memo(function Footer() {
           ))}
         </div>
 
-        {/* ── EBOOK CTA ─────────────────────────────── */}
+        {/* ── VENDER CTA ────────────────────────────── */}
         <LocalizedLink
-          href="/ebook-gratis"
+          href="/vender-cavalo"
           className="group flex items-center justify-between gap-4 py-5"
           style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
         >
           <div className="flex items-center gap-4 min-w-0">
             <div className="w-8 h-8 border border-[var(--gold)]/35 flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--gold)]/10 transition-colors duration-300">
-              <Gift size={13} className="text-[var(--gold)]" />
+              <Plus size={13} className="text-[var(--gold)]" />
             </div>
             <div className="min-w-0">
-              <p className="text-[var(--foreground)] text-xs font-medium tracking-wide">{t.footer.ebook}</p>
+              <p className="text-[var(--foreground)] text-xs font-medium tracking-wide">
+                {t.footer.sell_horse}
+              </p>
               <p className="text-[var(--foreground-muted)] text-[10px] font-light">
-                {t.footer.ebook_subtitle}
+                Publique o seu Lusitano e chegue a compradores em todo o país
               </p>
             </div>
           </div>
@@ -256,15 +303,19 @@ export default memo(function Footer() {
         </LocalizedLink>
 
         {/* ── LEGAL ─────────────────────────────────── */}
-        <div
-          className="py-3.5"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
-        >
+        <div className="py-3.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
             {legalLinks.map((link, i) =>
               link.external ? (
                 <Fragment key={link.href}>
-                  {i > 0 && <span className="text-[var(--foreground-muted)]/20 text-[8px] select-none" aria-hidden="true">·</span>}
+                  {i > 0 && (
+                    <span
+                      className="text-[var(--foreground-muted)]/20 text-[8px] select-none"
+                      aria-hidden="true"
+                    >
+                      ·
+                    </span>
+                  )}
                   <a
                     href={link.href}
                     target="_blank"
@@ -277,7 +328,14 @@ export default memo(function Footer() {
                 </Fragment>
               ) : (
                 <Fragment key={link.href}>
-                  {i > 0 && <span className="text-[var(--foreground-muted)]/20 text-[8px] select-none" aria-hidden="true">·</span>}
+                  {i > 0 && (
+                    <span
+                      className="text-[var(--foreground-muted)]/20 text-[8px] select-none"
+                      aria-hidden="true"
+                    >
+                      ·
+                    </span>
+                  )}
                   <LocalizedLink
                     href={link.href}
                     className="text-[8px] uppercase tracking-[0.22em] text-[var(--foreground-muted)] hover:text-[var(--foreground-secondary)] transition-colors"
@@ -292,12 +350,13 @@ export default memo(function Footer() {
 
         {/* ── COPYRIGHT ─────────────────────────────── */}
         <div className="py-4 pb-16 lg:pb-12 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-[var(--foreground-muted)] text-[8px] uppercase tracking-[0.25em]" suppressHydrationWarning>
+          <p
+            className="text-[var(--foreground-muted)] text-[8px] uppercase tracking-[0.25em]"
+            suppressHydrationWarning
+          >
             © {new Date().getFullYear()} Portal Lusitano · {t.footer.rights}
           </p>
-          <p className="text-[var(--foreground-muted)] text-[8px] tracking-wide">
-            NIF 255669801
-          </p>
+          <p className="text-[var(--foreground-muted)] text-[8px] tracking-wide">NIF 255669801</p>
         </div>
       </div>
 

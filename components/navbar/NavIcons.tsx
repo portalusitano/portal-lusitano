@@ -1,9 +1,7 @@
 import { memo } from "react";
 import LocalizedLink from "@/components/LocalizedLink";
-import { Search, Heart, User, ShoppingBag, Menu, X, Sun, Moon } from "lucide-react";
+import { Search, Heart, User, Plus, Menu, X, Sun, Moon } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
-import { useCart } from "@/context/CartContext";
-import { useWishlist } from "@/context/WishlistContext";
 import { useHorseFavorites } from "@/context/HorseFavoritesContext";
 
 interface NavIconsProps {
@@ -28,10 +26,7 @@ export const NavIcons = memo(function NavIcons({
   onMobileToggle,
 }: NavIconsProps) {
   const { theme, toggleTheme } = useTheme();
-  const { totalQuantity, openCart } = useCart();
-  const { wishlist } = useWishlist();
   const { favoritesCount } = useHorseFavorites();
-  const _wishlistCount = wishlist.length;
 
   return (
     <div className="flex items-center gap-2 md:gap-4">
@@ -108,24 +103,15 @@ export const NavIcons = memo(function NavIcons({
         <User size={20} strokeWidth={1.5} />
       </LocalizedLink>
 
-      {/* Carrinho */}
-      <button
-        onClick={openCart}
-        className="flex items-center gap-2 text-[var(--foreground-secondary)] hover:text-[var(--gold)] transition-colors group active:scale-95 touch-manipulation"
-        aria-label={`${tr3(language, "Carrinho", "Cart", "Carrito")} (${totalQuantity} ${tr3(language, "itens", "items", "artículos")})`}
+      {/* Publicar anúncio — a acção que sustenta o marketplace, por isso é o
+          único destaque com fundo cheio na barra. */}
+      <LocalizedLink
+        href="/vender-cavalo"
+        className="hidden sm:flex items-center gap-2 bg-[var(--gold)] text-black px-4 py-2 text-[10px] uppercase tracking-widest font-medium hover:bg-[var(--gold-hover)] transition-colors active:scale-95 touch-manipulation"
       >
-        <div className="relative p-2 min-w-[44px] min-h-[44px] flex items-center justify-center">
-          <ShoppingBag size={20} strokeWidth={1.5} />
-          {totalQuantity > 0 && (
-            <span className="absolute top-0.5 right-0.5 w-5 h-5 bg-[var(--gold)] rounded-full flex items-center justify-center text-[10px] text-black font-bold">
-              {totalQuantity}
-            </span>
-          )}
-        </div>
-        <span className="hidden xl:block text-[10px] uppercase tracking-widest group-hover:text-[var(--foreground)] font-medium">
-          {t.cart} ({totalQuantity})
-        </span>
-      </button>
+        <Plus size={14} strokeWidth={2} />
+        {tr3(language, "Vender", "Sell", "Vender")}
+      </LocalizedLink>
 
       {/* Menu Mobile — hidden when BottomNav is active (< lg) */}
       <button
