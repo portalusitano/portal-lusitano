@@ -4,9 +4,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase-admin";
+import ContactarVendedor from "@/components/comprar/ContactarVendedor";
 import Pedigree from "@/components/Pedigree";
 import { HorseSchema, BreadcrumbSchema } from "@/components/JsonLd";
-import { MapPin, Calendar, ArrowLeft, Phone, Mail, ChevronRight, MessageCircle, Share2, Heart } from "lucide-react";
+import {
+  MapPin,
+  Calendar,
+  ArrowLeft,
+  Phone,
+  Mail,
+  ChevronRight,
+  MessageCircle,
+  Share2,
+  Heart,
+} from "lucide-react";
 import HorseCard from "@/components/HorseCard";
 import PhotoGallery from "@/components/PhotoGallery";
 
@@ -109,6 +120,8 @@ interface CavaloDetalhe extends CavaloVenda {
   regiao?: string;
   coudelaria?: string;
   linhagem?: string;
+  /** Conta do vendedor. Ausente em anúncios que nunca foram reclamados. */
+  user_id?: string | null;
 }
 
 export default async function DetalheCavaloPage({ params }: { params: Promise<{ id: string }> }) {
@@ -144,12 +157,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
   else {
     const [fetchedCavalo, { data: similar }] = await Promise.all([
       getCavalo(id),
-      supabase
-        .from("cavalos_venda")
-        .select("*")
-        .eq("status", "active")
-        .neq("id", id)
-        .limit(4)
+      supabase.from("cavalos_venda").select("*").eq("status", "active").neq("id", id).limit(4),
     ]);
     cavalo = fetchedCavalo;
     similarHorses = (similar || []).map((c) => ({ ...c }));
@@ -178,8 +186,15 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
     if (cavalo.image_url) photos.push(cavalo.image_url);
     const extras = cavalo.image_urls || cavalo.fotos;
     if (extras) {
-      const arr = Array.isArray(extras) ? extras : typeof extras === "string" ? extras.split(",") : [];
-      arr.forEach((u: string) => { const t = u.trim(); if (t && !photos.includes(t)) photos.push(t); });
+      const arr = Array.isArray(extras)
+        ? extras
+        : typeof extras === "string"
+          ? extras.split(",")
+          : [];
+      arr.forEach((u: string) => {
+        const t = u.trim();
+        if (t && !photos.includes(t)) photos.push(t);
+      });
     }
     return photos;
   })();
@@ -213,7 +228,9 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
       {/* ── Sticky CTA bar — mobile only (above BottomNav) ── */}
       <div className="lg:hidden fixed bottom-16 left-0 right-0 z-30 bg-[var(--background)]/95 backdrop-blur-md border-t border-[var(--border)] px-3 py-2.5 flex items-center gap-2">
         <div className="flex-1 min-w-0">
-          <p className="text-[9px] uppercase tracking-widest text-[var(--foreground-muted)] leading-none mb-0.5">Preço</p>
+          <p className="text-[9px] uppercase tracking-widest text-[var(--foreground-muted)] leading-none mb-0.5">
+            Preço
+          </p>
           <p className="text-base font-serif text-[var(--gold)] leading-none">
             {Number(cavalo.preco).toLocaleString("pt-PT")} €
           </p>
@@ -450,10 +467,21 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                       </span>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-[var(--foreground)]">{cavalo.contacto_nome}</p>
-                      <p className="text-[10px] text-[var(--foreground-muted)] uppercase tracking-wide">Vendedor verificado</p>
+                      <p className="text-sm font-medium text-[var(--foreground)]">
+                        {cavalo.contacto_nome}
+                      </p>
+                      <p className="text-[10px] text-[var(--foreground-muted)] uppercase tracking-wide">
+                        Vendedor verificado
+                      </p>
                     </div>
                   </div>
+                )}
+
+                {/* Mensagem no portal — preferida quando o anúncio tem conta
+                    associada, para o contacto directo do vendedor deixar de ser
+                    o único caminho e não ficar exposto a scraping. */}
+                {cavalo.user_id && (
+                  <ContactarVendedor cavaloId={cavalo.id} cavaloNome={cavalo.nome_cavalo} />
                 )}
 
                 {/* WhatsApp CTA — primary */}

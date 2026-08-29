@@ -25,6 +25,7 @@ import {
   Package,
   Lock,
   Tag,
+  MessagesSquare,
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -506,6 +507,20 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
 
             {/* PRO subscription card */}
             <SubscriptionSection />
+
+            {/* Mensagens shortcut */}
+            <LocalizedLink
+              href="/minha-conta/mensagens"
+              className="glow-pulse flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(197,160,89,0.1)] transition-all duration-200 group"
+            >
+              <span className="flex items-center gap-3 text-[11px] uppercase tracking-widest text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
+                <MessagesSquare size={13} className="text-[var(--gold)]" />
+                As minhas Mensagens
+              </span>
+              <span className="text-[var(--gold)]/40 group-hover:text-[var(--gold)] transition-colors text-sm">
+                →
+              </span>
+            </LocalizedLink>
 
             {/* Os meus anúncios shortcut */}
             <LocalizedLink
