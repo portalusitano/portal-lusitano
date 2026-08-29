@@ -24,6 +24,7 @@ import {
   Sparkles,
   Package,
   Lock,
+  Tag,
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -73,7 +74,10 @@ function useSubscriptionStatus() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) { setLoading(false); return; }
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     const load = async () => {
       try {
         const supabase = createSupabaseBrowserClient();
@@ -107,7 +111,9 @@ function SubscriptionSection() {
       const data = await res.json();
       if (data.url) window.location.href = data.url;
       else setPortalLoading(false);
-    } catch { setPortalLoading(false); }
+    } catch {
+      setPortalLoading(false);
+    }
   };
 
   const handleSubscribe = async () => {
@@ -117,17 +123,22 @@ function SubscriptionSection() {
       const data = await res.json();
       if (data.url) window.location.href = data.url;
       else setPortalLoading(false);
-    } catch { setPortalLoading(false); }
+    } catch {
+      setPortalLoading(false);
+    }
   };
 
-  if (loading) return (
-    <div className="border border-[var(--border)] p-6 flex items-center justify-center h-24">
-      <Loader2 size={16} className="animate-spin text-[var(--gold)]/40" />
-    </div>
-  );
+  if (loading)
+    return (
+      <div className="border border-[var(--border)] p-6 flex items-center justify-center h-24">
+        <Loader2 size={16} className="animate-spin text-[var(--gold)]/40" />
+      </div>
+    );
 
   return (
-    <div className={`relative overflow-hidden ${isActive ? "pro-border-active" : "border border-[var(--border)]"} bg-[var(--background-secondary)]/20 p-6`}>
+    <div
+      className={`relative overflow-hidden ${isActive ? "pro-border-active" : "border border-[var(--border)]"} bg-[var(--background-secondary)]/20 p-6`}
+    >
       {isActive && (
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--gold)]/5 to-transparent animate-[proShimmerSweep_8s_ease-in-out_infinite]" />
@@ -156,7 +167,11 @@ function SubscriptionSection() {
               disabled={portalLoading}
               className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest text-[var(--gold)] hover:text-[#D4AF6A] transition-colors disabled:opacity-50"
             >
-              {portalLoading ? <Loader2 size={12} className="animate-spin" /> : <ExternalLink size={12} />}
+              {portalLoading ? (
+                <Loader2 size={12} className="animate-spin" />
+              ) : (
+                <ExternalLink size={12} />
+              )}
               Gerir subscricao
             </button>
           </>
@@ -206,7 +221,10 @@ function RecentFavorites({ delay }: { delay: number }) {
       <h2 className="text-[9px] uppercase tracking-[0.4em] text-[var(--foreground-muted)] mb-4 flex items-center gap-3">
         Os meus Favoritos
         <span className="h-[1px] flex-1 bg-[var(--border)]" />
-        <LocalizedLink href="/favoritos" className="text-[var(--gold)]/60 hover:text-[var(--gold)] transition-colors normal-case tracking-normal text-[10px]">
+        <LocalizedLink
+          href="/favoritos"
+          className="text-[var(--gold)]/60 hover:text-[var(--gold)] transition-colors normal-case tracking-normal text-[10px]"
+        >
           Ver todos →
         </LocalizedLink>
       </h2>
@@ -220,15 +238,16 @@ function RecentFavorites({ delay }: { delay: number }) {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-4 bg-[var(--gold)]/8 gap-px">
           {items.map((fav) => {
-            const nome = fav.item_type === "cavalo"
-              ? fav.cavalos_venda?.nome
-              : fav.coudelarias?.nome;
-            const foto = fav.item_type === "cavalo"
-              ? fav.cavalos_venda?.foto_principal
-              : fav.coudelarias?.foto_capa;
-            const href = fav.item_type === "cavalo"
-              ? `/marketplace/${fav.cavalos_venda?.slug || fav.item_id}`
-              : `/coudelarias`;
+            const nome =
+              fav.item_type === "cavalo" ? fav.cavalos_venda?.nome : fav.coudelarias?.nome;
+            const foto =
+              fav.item_type === "cavalo"
+                ? fav.cavalos_venda?.foto_principal
+                : fav.coudelarias?.foto_capa;
+            const href =
+              fav.item_type === "cavalo"
+                ? `/marketplace/${fav.cavalos_venda?.slug || fav.item_id}`
+                : `/coudelarias`;
 
             return (
               <LocalizedLink
@@ -253,7 +272,9 @@ function RecentFavorites({ delay }: { delay: number }) {
                   </div>
                 )}
                 <div className="absolute bottom-0 left-0 right-0 p-2.5">
-                  <p className="text-[10px] uppercase tracking-wider text-white/80 truncate">{nome}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-white/80 truncate">
+                    {nome}
+                  </p>
                   <p className="text-[8px] text-[var(--gold)]/60 uppercase tracking-widest mt-0.5">
                     {fav.item_type === "cavalo" ? "Cavalo" : "Coudelaria"}
                   </p>
@@ -292,8 +313,8 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
     });
   }, [visible]);
 
-  const initials = [customer.firstName?.[0], customer.lastName?.[0]]
-    .filter(Boolean).join("").toUpperCase() || "M";
+  const initials =
+    [customer.firstName?.[0], customer.lastName?.[0]].filter(Boolean).join("").toUpperCase() || "M";
   const fullName = [customer.firstName, customer.lastName].filter(Boolean).join(" ") || "Membro";
   const memberSince = customer.createdAt
     ? new Date(customer.createdAt).toLocaleDateString(locale, { month: "long", year: "numeric" })
@@ -305,25 +326,24 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
   // Tools — first is free, rest PRO-locked for non-subscribers
   const tools = [
     { href: "/ferramentas/calculadora", icon: Calculator, label: "Calculadora", pro: false },
-    { href: "/ferramentas/comparador",  icon: GitCompare,  label: "Comparador",  pro: true  },
-    { href: "/ferramentas/verificador", icon: ShieldCheck, label: "Verificador", pro: true  },
-    { href: "/ferramentas/analise",     icon: Sparkles,    label: "Analise",     pro: true  },
+    { href: "/ferramentas/comparador", icon: GitCompare, label: "Comparador", pro: true },
+    { href: "/ferramentas/verificador", icon: ShieldCheck, label: "Verificador", pro: true },
+    { href: "/ferramentas/analise", icon: Sparkles, label: "Analise", pro: true },
   ];
 
   const explore = [
-    { href: "/marketplace",       icon: ShoppingBag, label: "Marketplace"       },
-    { href: "/favoritos",         icon: Heart,       label: "Favoritos"         },
-    { href: "/jornal",            icon: BookOpen,    label: "Jornal"            },
-    { href: "/coudelarias",       icon: Building2,   label: "Coudelarias"       },
-    { href: "/eventos",           icon: Calendar,    label: "Eventos"           },
-    { href: "/cavalos-famosos",   icon: Trophy,      label: "Lusitanos Notaveis"},
-    { href: "/linhagens",         icon: GitBranch,   label: "Linhagens"         },
-    { href: "/loja",              icon: Store,       label: "Loja"              },
+    { href: "/marketplace", icon: ShoppingBag, label: "Marketplace" },
+    { href: "/favoritos", icon: Heart, label: "Favoritos" },
+    { href: "/jornal", icon: BookOpen, label: "Jornal" },
+    { href: "/coudelarias", icon: Building2, label: "Coudelarias" },
+    { href: "/eventos", icon: Calendar, label: "Eventos" },
+    { href: "/cavalos-famosos", icon: Trophy, label: "Lusitanos Notaveis" },
+    { href: "/linhagens", icon: GitBranch, label: "Linhagens" },
+    { href: "/loja", icon: Store, label: "Loja" },
   ];
 
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-24 selection:bg-[var(--gold)] selection:text-black">
-
       {/* ── HERO ─────────────────────────────────────── */}
       <div className="relative overflow-hidden pt-20 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6">
         {/* Grain texture overlay */}
@@ -331,7 +351,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
           className="absolute inset-0 pointer-events-none opacity-[0.025]"
           style={{
             backgroundImage:
-              'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")',
+              "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
             backgroundRepeat: "repeat",
             backgroundSize: "200px 200px",
           }}
@@ -413,18 +433,30 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
             data-animate
           >
             <div className="px-4 sm:px-7 py-3.5 sm:py-5 group hover:bg-[var(--gold)]/5 transition-colors">
-              <p className="text-[8px] uppercase tracking-[0.35em] text-[var(--foreground-muted)] mb-1">Plano</p>
-              <p className={`text-sm font-semibold ${isActive ? "text-[var(--gold)]" : "text-[var(--foreground-secondary)]"}`}>
+              <p className="text-[8px] uppercase tracking-[0.35em] text-[var(--foreground-muted)] mb-1">
+                Plano
+              </p>
+              <p
+                className={`text-sm font-semibold ${isActive ? "text-[var(--gold)]" : "text-[var(--foreground-secondary)]"}`}
+              >
                 {isActive ? "PRO" : "Basico"}
               </p>
             </div>
             <div className="px-4 sm:px-7 py-3.5 sm:py-5 hover:bg-[var(--gold)]/5 transition-colors">
-              <p className="text-[8px] uppercase tracking-[0.35em] text-[var(--foreground-muted)] mb-1">Email</p>
-              <p className="text-sm text-[var(--foreground)] truncate font-light">{customer.email}</p>
+              <p className="text-[8px] uppercase tracking-[0.35em] text-[var(--foreground-muted)] mb-1">
+                Email
+              </p>
+              <p className="text-sm text-[var(--foreground)] truncate font-light">
+                {customer.email}
+              </p>
             </div>
             <div className="px-4 sm:px-7 py-3.5 sm:py-5 hover:bg-[var(--gold)]/5 transition-colors">
-              <p className="text-[8px] uppercase tracking-[0.35em] text-[var(--foreground-muted)] mb-1">Membro desde</p>
-              <p className="text-sm text-[var(--foreground)] font-light capitalize">{memberSince}</p>
+              <p className="text-[8px] uppercase tracking-[0.35em] text-[var(--foreground-muted)] mb-1">
+                Membro desde
+              </p>
+              <p className="text-sm text-[var(--foreground)] font-light capitalize">
+                {memberSince}
+              </p>
             </div>
           </div>
         </div>
@@ -433,7 +465,6 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
       {/* ── MAIN GRID ────────────────────────────────── */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-2">
         <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6">
-
           {/* ── SIDEBAR ──────────────────────────────── */}
           <div
             className="opacity-0 translate-y-5 transition-all duration-700 space-y-4"
@@ -451,8 +482,12 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                     <Mail size={12} className="text-[var(--gold)]" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[9px] uppercase tracking-widest text-[var(--foreground-muted)] mb-0.5">{t.account.email}</p>
-                    <p className="text-sm text-[var(--foreground)] font-light truncate">{customer.email}</p>
+                    <p className="text-[9px] uppercase tracking-widest text-[var(--foreground-muted)] mb-0.5">
+                      {t.account.email}
+                    </p>
+                    <p className="text-sm text-[var(--foreground)] font-light truncate">
+                      {customer.email}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -460,7 +495,9 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                     <CheckCircle size={12} className="text-emerald-400" />
                   </div>
                   <div>
-                    <p className="text-[9px] uppercase tracking-widest text-[var(--foreground-muted)] mb-0.5">{t.account.name}</p>
+                    <p className="text-[9px] uppercase tracking-widest text-[var(--foreground-muted)] mb-0.5">
+                      {t.account.name}
+                    </p>
                     <p className="text-sm text-[var(--foreground)] font-light">{fullName}</p>
                   </div>
                 </div>
@@ -469,6 +506,20 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
 
             {/* PRO subscription card */}
             <SubscriptionSection />
+
+            {/* Os meus anúncios shortcut */}
+            <LocalizedLink
+              href="/minha-conta/anuncios"
+              className="glow-pulse flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(197,160,89,0.1)] transition-all duration-200 group"
+            >
+              <span className="flex items-center gap-3 text-[11px] uppercase tracking-widest text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
+                <Tag size={13} className="text-[var(--gold)]" />
+                Os meus Anúncios
+              </span>
+              <span className="text-[var(--gold)]/40 group-hover:text-[var(--gold)] transition-colors text-sm">
+                →
+              </span>
+            </LocalizedLink>
 
             {/* Favoritos shortcut */}
             <LocalizedLink
@@ -479,13 +530,14 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                 <Heart size={13} className="text-[var(--gold)]" />
                 Os meus Favoritos
               </span>
-              <span className="text-[var(--gold)]/40 group-hover:text-[var(--gold)] transition-colors text-sm">→</span>
+              <span className="text-[var(--gold)]/40 group-hover:text-[var(--gold)] transition-colors text-sm">
+                →
+              </span>
             </LocalizedLink>
           </div>
 
           {/* ── MAIN CONTENT ─────────────────────────── */}
           <div className="space-y-8">
-
             {/* Tools grid */}
             <section
               className="opacity-0 translate-y-5 transition-all duration-700"
@@ -520,7 +572,9 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                           className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-[var(--background)]/60 backdrop-blur-[2px] hover:bg-[var(--gold)]/5 transition-colors cursor-pointer"
                         >
                           <Lock size={13} className="text-[var(--gold)]/50" />
-                          <span className="text-[8px] uppercase tracking-widest text-[var(--gold)]/50">PRO</span>
+                          <span className="text-[8px] uppercase tracking-widest text-[var(--gold)]/50">
+                            PRO
+                          </span>
                         </LocalizedLink>
                       )}
                     </div>
@@ -549,7 +603,10 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                     href={href}
                     className="shimmer-gold flex items-center gap-2.5 px-4 py-4 bg-[var(--background)] hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgba(197,160,89,0.08)] transition-all duration-200 group"
                   >
-                    <Icon size={13} className="text-[var(--gold)]/60 group-hover:text-[var(--gold)] transition-colors flex-shrink-0" />
+                    <Icon
+                      size={13}
+                      className="text-[var(--gold)]/60 group-hover:text-[var(--gold)] transition-colors flex-shrink-0"
+                    />
                     <span className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] group-hover:text-[var(--foreground-secondary)] transition-colors">
                       {label}
                     </span>

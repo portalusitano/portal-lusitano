@@ -5,6 +5,7 @@ import { logger } from "@/lib/logger";
 import { escapeHtml } from "@/lib/sanitize";
 import Stripe from "stripe";
 import { registerPayment, linkPaymentToSubmission } from "./utils";
+import { computeExpiry, computeFeaturedUntil } from "@/lib/marketplace-listings";
 
 export async function handleCavaloAnuncio(
   session: Stripe.Checkout.Session,
@@ -51,6 +52,13 @@ export async function handleCavaloAnuncio(
   const imageUrls = Array.isArray(formData.imageUrls) ? (formData.imageUrls as string[]) : [];
   const fotoPrincipal = imageUrls[0] || null;
 
+  // Período pago do anúncio. Sem isto o anúncio ficava sem data de fim e a área
+  // do vendedor não conseguia mostrar quantos dias restam.
+  const tier = metadata.tier || "standard";
+  const publicadoEm = new Date();
+  const expiraEm = computeExpiry(tier, publicadoEm);
+  const destaqueAte = computeFeaturedUntil(tier, publicadoEm);
+
   // Insert cavalo em cavalos_venda
   const { data, error } = await supabase
     .from("cavalos_venda")
@@ -64,6 +72,12 @@ export async function handleCavaloAnuncio(
       preco: formData.preco,
       preco_negociavel: formData.precoNegociavel || false,
       destaque: metadata.tier === "destaque" || metadata.tier === "premium",
+      listing_tier: tier,
+      listing_expires_at: expiraEm ? expiraEm.toISOString() : null,
+      featured_until: destaqueAte ? destaqueAte.toISOString() : null,
+      // Presente quando o vendedor estava autenticado no checkout; caso contrário
+      // o anúncio é reclamado depois por email (ver lib/seller-auth).
+      user_id: metadata.user_id || null,
       vendedor_email: session.customer_details?.email,
       vendedor_nome: formData.proprietarioNome,
       vendedor_telefone: formData.proprietarioTelefone,
