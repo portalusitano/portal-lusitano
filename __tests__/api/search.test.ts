@@ -96,17 +96,17 @@ describe("GET /api/search", () => {
   });
 
   it("should return matching static pages for valid query", async () => {
-    const request = createGetRequest({ q: "loja" });
+    const request = createGetRequest({ q: "comprar" });
     const response = await GET(request);
     const data = await response.json();
 
     expect(response.status).toBe(200);
     expect(data.results.length).toBeGreaterThan(0);
 
-    const lojaResult = data.results.find((r: { url: string }) => r.url === "/loja");
-    expect(lojaResult).toBeDefined();
-    expect(lojaResult.type).toBe("page");
-    expect(lojaResult.title).toBe("Loja");
+    const resultado = data.results.find((r: { url: string }) => r.url === "/comprar");
+    expect(resultado).toBeDefined();
+    expect(resultado.type).toBe("page");
+    expect(resultado.title).toBe("Comprar cavalo");
   });
 
   it("should return horse results from supabase", async () => {
@@ -233,12 +233,12 @@ describe("GET /api/search", () => {
 
   it("should cap limit at 30", async () => {
     // The route caps limit at 30 via Math.min
-    const request = createGetRequest({ q: "loja", limit: "100" });
+    const request = createGetRequest({ q: "comprar", limit: "100" });
     const response = await GET(request);
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    // The total static pages matching "loja" won't exceed 30,
+    // O total de páginas estáticas que casam com "comprar" não excede 30,
     // but the important thing is it didn't crash
     expect(data.results.length).toBeLessThanOrEqual(30);
   });
@@ -261,7 +261,7 @@ describe("GET /api/search", () => {
     }));
 
     const routeModule = await import("@/app/api/search/route");
-    const request = createGetRequest({ q: "loja" });
+    const request = createGetRequest({ q: "comprar" });
     const response = await routeModule.GET(request);
     const data = await response.json();
 
@@ -269,7 +269,7 @@ describe("GET /api/search", () => {
     // static pages should still return
     expect(response.status).toBe(200);
     expect(data.results).toBeDefined();
-    const lojaResult = data.results.find((r: { url: string }) => r.url === "/loja");
-    expect(lojaResult).toBeDefined();
+    const resultado = data.results.find((r: { url: string }) => r.url === "/comprar");
+    expect(resultado).toBeDefined();
   });
 });

@@ -131,7 +131,7 @@ describe("Navbar", () => {
     render(<Navbar />);
     const logoImg = screen.getByAltText("Portal Lusitano");
     expect(logoImg).toBeInTheDocument();
-    expect(logoImg).toHaveAttribute("src", "/logo.png");
+    expect(logoImg).toHaveAttribute("src", "/logo.webp");
   });
 
   it("renders the EST. 2023 tagline", () => {
