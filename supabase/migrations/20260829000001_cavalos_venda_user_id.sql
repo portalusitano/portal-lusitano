@@ -11,6 +11,21 @@
 -- editar o que é seu.
 
 -- =============================================================================
+-- 0. Pré-requisito
+-- =============================================================================
+-- Nenhuma migração cria cavalos_venda: a tabela só é definida no script solto
+-- supabase/NOVAS-FUNCIONALIDADES.sql. Sem esta verificação, aplicar a migração
+-- a uma base de dados sem essa tabela rebenta com um "42P01: relation
+-- cavalos_venda does not exist", que não diz a ninguém o que fazer a seguir.
+DO $$
+BEGIN
+  IF to_regclass('public.cavalos_venda') IS NULL THEN
+    RAISE EXCEPTION
+      'A tabela public.cavalos_venda nao existe nesta base de dados. Corra primeiro supabase/cavalos-venda-bootstrap.sql (idempotente, sem dados de exemplo) e volte a aplicar esta migracao. Nao corra NOVAS-FUNCIONALIDADES.sql numa base de dados ja povoada: os INSERT desse ficheiro nao tem ON CONFLICT e duplicam os dados.';
+  END IF;
+END $$;
+
+-- =============================================================================
 -- 1. Coluna de ligação ao utilizador
 -- =============================================================================
 -- ON DELETE SET NULL: apagar a conta não deve apagar o anúncio pago nem partir
