@@ -5,8 +5,10 @@ import {
   computeExpiry,
   computeFeaturedUntil,
   daysUntil,
+  filtroNaoExpirado,
   isExpired,
   normalizeListing,
+  visibilidadeFicha,
 } from "@/lib/marketplace-listings";
 
 const NOW = new Date("2026-08-29T12:00:00.000Z");
@@ -186,5 +188,50 @@ describe("normalizeListing", () => {
     const listing = normalizeListing({ id: "a", preco: "45000.00", idade: "7" }, NOW);
     expect(listing.preco).toBe(45000);
     expect(listing.idade).toBe(7);
+  });
+});
+
+describe("visibilidadeFicha", () => {
+  const agora = new Date("2026-03-01T12:00:00.000Z");
+  const futuro = "2026-04-01T12:00:00.000Z";
+  const passado = "2026-02-01T12:00:00.000Z";
+
+  it("mostra o anúncio activo dentro do prazo", () => {
+    expect(visibilidadeFicha(LISTING_STATUS.ACTIVE, futuro, agora)).toBe("visivel");
+    expect(visibilidadeFicha(LISTING_STATUS.RESERVADO, futuro, agora)).toBe("visivel");
+  });
+
+  it("mostra os anúncios sem prazo definido", () => {
+    expect(visibilidadeFicha(LISTING_STATUS.ACTIVE, null, agora)).toBe("visivel");
+  });
+
+  it("marca como expirado o anúncio cujo prazo passou", () => {
+    expect(visibilidadeFicha(LISTING_STATUS.ACTIVE, passado, agora)).toBe("expirado");
+    expect(visibilidadeFicha(LISTING_STATUS.RESERVADO, passado, agora)).toBe("expirado");
+  });
+
+  it("marca o vendido como vendido, mesmo dentro do prazo", () => {
+    expect(visibilidadeFicha(LISTING_STATUS.VENDIDO, futuro, agora)).toBe("vendido");
+    expect(visibilidadeFicha(LISTING_STATUS.VENDIDO, passado, agora)).toBe("vendido");
+  });
+
+  it("esconde o que nunca foi público, o pausado e o removido", () => {
+    expect(visibilidadeFicha(LISTING_STATUS.PENDING, futuro, agora)).toBe("indisponivel");
+    expect(visibilidadeFicha(LISTING_STATUS.INATIVO, futuro, agora)).toBe("indisponivel");
+    expect(visibilidadeFicha(LISTING_STATUS.REMOVIDO, futuro, agora)).toBe("indisponivel");
+  });
+
+  it("esconde estados desconhecidos em vez de os deixar passar", () => {
+    expect(visibilidadeFicha("", futuro, agora)).toBe("indisponivel");
+    expect(visibilidadeFicha("qualquer-coisa", futuro, agora)).toBe("indisponivel");
+  });
+});
+
+describe("filtroNaoExpirado", () => {
+  it("deixa passar as linhas sem prazo e as que ainda não expiraram", () => {
+    const agora = new Date("2026-03-01T12:00:00.000Z");
+    expect(filtroNaoExpirado(agora)).toBe(
+      "listing_expires_at.is.null,listing_expires_at.gt.2026-03-01T12:00:00.000Z"
+    );
   });
 });

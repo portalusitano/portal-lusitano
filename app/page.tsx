@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase-admin";
-import { LISTING_STATUS, normalizeListing } from "@/lib/marketplace-listings";
+import { LISTING_STATUS, filtroNaoExpirado, normalizeListing } from "@/lib/marketplace-listings";
 import { logger } from "@/lib/logger";
 import HomeContent from "@/components/HomeContent";
 
@@ -30,7 +30,8 @@ export default async function HomePage() {
   const { count: totalAtivos } = await supabase
     .from("cavalos_venda")
     .select("id", { count: "exact", head: true })
-    .eq("status", LISTING_STATUS.ACTIVE);
+    .eq("status", LISTING_STATUS.ACTIVE)
+    .or(filtroNaoExpirado(agora));
 
   return (
     <HomeContent

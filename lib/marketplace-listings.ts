@@ -173,6 +173,40 @@ export function isExpired(expiresAt: string | null, now: Date = new Date()): boo
 }
 
 /**
+ * Como a ficha de um anúncio deve responder a quem lhe chega pelo URL.
+ *
+ * O anúncio pago tem um fim: passada a data, deixa de ocupar espaço no
+ * marketplace. Mas o link já circulou por WhatsApp e por email, e devolver 404
+ * a quem o abre é pior do que dizer-lhe que acabou — por isso o expirado e o
+ * vendido continuam a abrir, sem os contactos do vendedor. Já o que nunca foi
+ * público (por aprovar), o que o vendedor pausou e o que ele apagou não são da
+ * conta de ninguém: esses são 404.
+ */
+export type VisibilidadeFicha = "visivel" | "expirado" | "vendido" | "indisponivel";
+
+export function visibilidadeFicha(
+  status: string,
+  expiresAt: string | null,
+  now: Date = new Date()
+): VisibilidadeFicha {
+  if (status === LISTING_STATUS.VENDIDO) return "vendido";
+  if (status !== LISTING_STATUS.ACTIVE && status !== LISTING_STATUS.RESERVADO) {
+    return "indisponivel";
+  }
+  return isExpired(expiresAt, now) ? "expirado" : "visivel";
+}
+
+/**
+ * Filtro PostgREST que deixa de fora os anúncios cujo período pago acabou.
+ *
+ * As linhas sem data ficam visíveis: são anúncios anteriores aos escalões
+ * pagos e nunca tiveram prazo nenhum para expirar.
+ */
+export function filtroNaoExpirado(now: Date = new Date()): string {
+  return `listing_expires_at.is.null,listing_expires_at.gt.${now.toISOString()}`;
+}
+
+/**
  * Whether a seller may move a listing from `from` to `to`.
  *
  * An expired listing can only move to a hidden state: bringing it back into the

@@ -19,11 +19,13 @@ import {
   Mail,
   ChevronRight,
   MessageCircle,
+  Clock,
 } from "lucide-react";
 import HorseCard from "@/components/HorseCard";
 import PhotoGallery from "@/components/PhotoGallery";
 
 import { CavaloVenda } from "@/types/cavalo";
+import { filtroNaoExpirado, visibilidadeFicha } from "@/lib/marketplace-listings";
 
 // cache() deduplicates this call between generateMetadata and the page component
 // within a single server request — saves 1 Supabase round-trip per page load
@@ -50,7 +52,8 @@ export async function generateStaticParams() {
     const { data: cavalos } = await supabase
       .from("cavalos_venda")
       .select("id")
-      .eq("status", "active");
+      .eq("status", "active")
+      .or(filtroNaoExpirado());
     return (cavalos || []).map((c) => ({ id: c.id }));
   } catch {
     return [{ id: "demo" }];
@@ -124,6 +127,9 @@ interface CavaloDetalhe extends CavaloVenda {
   linhagem?: string;
   /** Conta do vendedor. Ausente em anúncios que nunca foram reclamados. */
   user_id?: string | null;
+  /** Fim do período pago. Ausente nos anúncios anteriores aos escalões. */
+  listing_expires_at?: string | null;
+  status?: string | null;
 }
 
 export default async function DetalheCavaloPage({ params }: { params: Promise<{ id: string }> }) {
@@ -159,7 +165,13 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
   else {
     const [fetchedCavalo, { data: similar }] = await Promise.all([
       getCavalo(id),
-      supabase.from("cavalos_venda").select("*").eq("status", "active").neq("id", id).limit(4),
+      supabase
+        .from("cavalos_venda")
+        .select("*")
+        .eq("status", "active")
+        .or(filtroNaoExpirado())
+        .neq("id", id)
+        .limit(4),
     ]);
     cavalo = fetchedCavalo;
     similarHorses = (similar || []).map((c) => ({ ...c }));
@@ -168,6 +180,21 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
   if (!cavalo) {
     notFound();
   }
+
+  // O anúncio pago tem um fim. Passado o prazo — ou depois de vendido — a ficha
+  // continua a abrir, porque o link já circulou, mas deixa de encaminhar
+  // contactos para um vendedor que já não está à espera deles. O que nunca foi
+  // público, o que está pausado e o que foi apagado dão 404.
+  const visibilidade =
+    id === "demo"
+      ? ("visivel" as const)
+      : visibilidadeFicha(cavalo.status ?? "", cavalo.listing_expires_at ?? null);
+
+  if (visibilidade === "indisponivel") {
+    notFound();
+  }
+
+  const encerrado = visibilidade !== "visivel";
 
   // Normalise disciplines to array
   const disciplines: string[] = (() => {
@@ -228,35 +255,37 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
       />
 
       {/* ── Sticky CTA bar — mobile only (above BottomNav) ── */}
-      <div className="lg:hidden fixed bottom-16 left-0 right-0 z-30 bg-[var(--background)]/95 backdrop-blur-md border-t border-[var(--border)] px-3 py-2.5 flex items-center gap-2">
-        <div className="flex-1 min-w-0">
-          <p className="text-[9px] uppercase tracking-widest text-[var(--foreground-muted)] leading-none mb-0.5">
-            Preço
-          </p>
-          <p className="text-base font-serif text-[var(--gold)] leading-none">
-            {Number(cavalo.preco).toLocaleString("pt-PT")} €
-          </p>
-        </div>
-        {whatsappLink ? (
+      {!encerrado && (
+        <div className="lg:hidden fixed bottom-16 left-0 right-0 z-30 bg-[var(--background)]/95 backdrop-blur-md border-t border-[var(--border)] px-3 py-2.5 flex items-center gap-2">
+          <div className="flex-1 min-w-0">
+            <p className="text-[9px] uppercase tracking-widest text-[var(--foreground-muted)] leading-none mb-0.5">
+              Preço
+            </p>
+            <p className="text-base font-serif text-[var(--gold)] leading-none">
+              {Number(cavalo.preco).toLocaleString("pt-PT")} €
+            </p>
+          </div>
+          {whatsappLink ? (
+            <a
+              href={whatsappLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-4 py-2.5 text-[11px] uppercase font-bold tracking-wide rounded-lg touch-manipulation active:scale-95 whitespace-nowrap"
+              style={{ background: "#25D366", color: "#fff" }}
+            >
+              <MessageCircle size={14} />
+              WhatsApp
+            </a>
+          ) : null}
           <a
-            href={whatsappLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-4 py-2.5 text-[11px] uppercase font-bold tracking-wide rounded-lg touch-manipulation active:scale-95 whitespace-nowrap"
-            style={{ background: "#25D366", color: "#fff" }}
+            href={`mailto:${cavalo.contacto_email || "geral@portal-lusitano.pt"}?subject=Interesse: ${encodeURIComponent(cavalo.nome_cavalo)} (REG: ${cavalo.id.slice(0, 8).toUpperCase()})`}
+            className="flex items-center gap-1.5 bg-[var(--gold)] text-black px-4 py-2.5 text-[11px] uppercase font-bold tracking-wide rounded-lg touch-manipulation active:scale-95 whitespace-nowrap"
           >
-            <MessageCircle size={14} />
-            WhatsApp
+            <Mail size={14} />
+            Email
           </a>
-        ) : null}
-        <a
-          href={`mailto:${cavalo.contacto_email || "geral@portal-lusitano.pt"}?subject=Interesse: ${encodeURIComponent(cavalo.nome_cavalo)} (REG: ${cavalo.id.slice(0, 8).toUpperCase()})`}
-          className="flex items-center gap-1.5 bg-[var(--gold)] text-black px-4 py-2.5 text-[11px] uppercase font-bold tracking-wide rounded-lg touch-manipulation active:scale-95 whitespace-nowrap"
-        >
-          <Mail size={14} />
-          Email
-        </a>
-      </div>
+        </div>
+      )}
 
       <div className="flex flex-col lg:flex-row min-h-screen bg-[var(--background)] text-[var(--foreground)]">
         {/* LEFT PANEL — gallery (desktop sticky / mobile top) */}
@@ -282,6 +311,36 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
           <div className="px-4 sm:px-8 py-12 sm:py-16 lg:p-20 xl:p-24 pb-28 lg:pb-20 max-w-2xl mx-auto space-y-12 sm:space-y-16">
             {/* HEADER */}
             <header className="space-y-4 border-b border-[var(--background-secondary)] pb-8">
+              {encerrado && (
+                <div
+                  role="status"
+                  className="flex items-start gap-3 border border-[var(--gold)]/30 bg-[var(--gold)]/5 px-4 py-3"
+                >
+                  <Clock
+                    size={15}
+                    aria-hidden="true"
+                    className="text-[var(--gold)] mt-0.5 flex-shrink-0"
+                  />
+                  <div className="space-y-1">
+                    <p className="text-[11px] uppercase tracking-widest font-bold text-[var(--gold)]">
+                      {visibilidade === "vendido" ? "Cavalo vendido" : "Anúncio terminado"}
+                    </p>
+                    <p className="text-xs text-[var(--foreground-secondary)] leading-relaxed">
+                      {visibilidade === "vendido"
+                        ? "Este cavalo já foi vendido. A ficha fica para consulta — os contactos do vendedor deixaram de estar disponíveis."
+                        : "O período de publicação deste anúncio chegou ao fim, por isso os contactos do vendedor já não estão disponíveis."}{" "}
+                      <Link
+                        href="/comprar"
+                        className="text-[var(--gold)] hover:underline underline-offset-2"
+                      >
+                        Ver cavalos disponíveis
+                      </Link>
+                      .
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Breadcrumb chips */}
               <nav
                 aria-label="Localização no site"
@@ -485,7 +544,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                 id="contact-heading"
                 className="text-[var(--gold)] uppercase tracking-[0.5em] text-[10px] font-bold mb-6"
               >
-                Contactar Vendedor
+                {encerrado ? "Vendedor" : "Contactar Vendedor"}
               </h2>
 
               <div className="space-y-3">
@@ -517,15 +576,37 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                   </div>
                 )}
 
+                {/* Passado o prazo, os contactos deixam de ser encaminhados:
+                    o vendedor já não está à espera de chamadas por este
+                    anúncio, e recebê-las é pior do que não receber nada. */}
+                {encerrado && (
+                  <p className="px-4 py-3 bg-[var(--background-secondary)] border border-[var(--border)] text-xs text-[var(--foreground-secondary)] leading-relaxed">
+                    Os contactos deste anúncio já não estão disponíveis.
+                    {cavalo.user_id ? (
+                      <>
+                        {" "}
+                        Pode ver o que este vendedor tem à venda em{" "}
+                        <Link
+                          href={`/vendedor/${cavalo.user_id}`}
+                          className="text-[var(--gold)] hover:underline underline-offset-2"
+                        >
+                          outros anúncios
+                        </Link>
+                        .
+                      </>
+                    ) : null}
+                  </p>
+                )}
+
                 {/* Mensagem no portal — preferida quando o anúncio tem conta
                     associada, para o contacto directo do vendedor deixar de ser
                     o único caminho e não ficar exposto a scraping. */}
-                {cavalo.user_id && (
+                {!encerrado && cavalo.user_id && (
                   <ContactarVendedor cavaloId={cavalo.id} cavaloNome={cavalo.nome_cavalo} />
                 )}
 
                 {/* WhatsApp CTA — primary */}
-                {whatsappLink && (
+                {!encerrado && whatsappLink && (
                   <a
                     href={whatsappLink}
                     target="_blank"
@@ -539,7 +620,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                 )}
 
                 {/* Phone call */}
-                {cavalo.contacto_telefone && (
+                {!encerrado && cavalo.contacto_telefone && (
                   <a
                     href={`tel:${cavalo.contacto_telefone.replace(/\s/g, "")}`}
                     className="flex w-full items-center justify-center gap-3 py-4 text-[12px] uppercase font-bold tracking-[0.2em] bg-[var(--background-secondary)] border border-[var(--border)] text-[var(--foreground)] hover:border-[var(--gold)]/50 transition-all duration-300"
@@ -550,17 +631,21 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                 )}
 
                 {/* Email — always available as fallback */}
-                <a
-                  href={`mailto:${cavalo.contacto_email || "geral@portal-lusitano.pt"}?subject=Interesse: ${encodeURIComponent(cavalo.nome_cavalo)} (REG: ${cavalo.id.slice(0, 8).toUpperCase()})`}
-                  className="flex w-full items-center justify-center gap-3 bg-[var(--gold)] text-black py-4 text-[12px] uppercase font-bold tracking-[0.2em] hover:bg-[var(--gold-hover)] transition-all duration-300 shadow-[0_0_30px_rgba(197,160,89,0.2)]"
-                >
-                  <Mail size={16} aria-hidden="true" />
-                  Enviar Mensagem
-                </a>
+                {!encerrado && (
+                  <a
+                    href={`mailto:${cavalo.contacto_email || "geral@portal-lusitano.pt"}?subject=Interesse: ${encodeURIComponent(cavalo.nome_cavalo)} (REG: ${cavalo.id.slice(0, 8).toUpperCase()})`}
+                    className="flex w-full items-center justify-center gap-3 bg-[var(--gold)] text-black py-4 text-[12px] uppercase font-bold tracking-[0.2em] hover:bg-[var(--gold-hover)] transition-all duration-300 shadow-[0_0_30px_rgba(197,160,89,0.2)]"
+                  >
+                    <Mail size={16} aria-hidden="true" />
+                    Enviar Mensagem
+                  </a>
+                )}
 
-                <p className="text-center text-[9px] text-[var(--foreground-muted)] uppercase tracking-widest pt-1">
-                  Resposta em menos de 24 horas · Transacção segura
-                </p>
+                {!encerrado && (
+                  <p className="text-center text-[9px] text-[var(--foreground-muted)] uppercase tracking-widest pt-1">
+                    Resposta em menos de 24 horas · Transacção segura
+                  </p>
+                )}
 
                 <DenunciarAnuncio cavaloId={cavalo.id} />
               </div>

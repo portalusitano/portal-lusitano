@@ -1,6 +1,6 @@
 import { MetadataRoute } from "next";
 import { supabase } from "@/lib/supabase-admin";
-import { LISTING_STATUS } from "@/lib/marketplace-listings";
+import { LISTING_STATUS, filtroNaoExpirado } from "@/lib/marketplace-listings";
 import { logger } from "@/lib/logger";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://portal-lusitano.pt";
@@ -92,7 +92,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     supabase
       .from("cavalos_venda")
       .select("id, updated_at, created_at")
-      .in("status", [LISTING_STATUS.ACTIVE, LISTING_STATUS.RESERVADO]),
+      .in("status", [LISTING_STATUS.ACTIVE, LISTING_STATUS.RESERVADO])
+      .or(filtroNaoExpirado()),
     supabase.from("coudelarias").select("slug, updated_at"),
     supabase.from("eventos").select("slug, updated_at").eq("status", "active"),
   ]);

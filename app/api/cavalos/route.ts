@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase-admin";
 import { logger } from "@/lib/logger";
 import { sanitizeSearchInput } from "@/lib/sanitize";
+import { filtroNaoExpirado } from "@/lib/marketplace-listings";
 
 // GET - Listar cavalos à venda
 export async function GET(request: NextRequest) {
@@ -17,8 +18,11 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from("cavalos_venda")
-      .select("id, nome, slug, sexo, idade, preco, regiao, nivel_treino, disciplina, raca, imagens, destaque, created_at, coudelarias(nome, slug)")
+      .select(
+        "id, nome, slug, sexo, idade, preco, regiao, nivel_treino, disciplina, raca, imagens, destaque, created_at, coudelarias(nome, slug)"
+      )
       .eq("status", "active")
+      .or(filtroNaoExpirado())
       .order("destaque", { ascending: false })
       .order("created_at", { ascending: false });
 

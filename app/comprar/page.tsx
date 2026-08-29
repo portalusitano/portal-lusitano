@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase-admin";
 import { logger } from "@/lib/logger";
 import ComprarContent from "@/components/ComprarContent";
 import { generatePageMetadata } from "@/lib/seo";
+import { filtroNaoExpirado } from "@/lib/marketplace-listings";
 
 // ISR: Revalidate marketplace every hour (cavalos can be added/updated)
 export const revalidate = 3600;
@@ -30,6 +31,8 @@ export default async function ComprarPage() {
     .from("cavalos_venda")
     .select("*")
     .eq("status", "active")
+    // Anúncio pago que chegou ao fim do prazo sai da montra.
+    .or(filtroNaoExpirado())
     .order("created_at", { ascending: false });
 
   if (error) {
