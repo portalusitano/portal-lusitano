@@ -84,7 +84,7 @@ export default function ContactoPage() {
 
         {/* Assuntos frequentes */}
         <div className="border-t border-[var(--border)] pt-10 mb-12">
-          <h2 className="text-[var(--gold)] rotulo font-medium mb-6">Assuntos Frequentes</h2>
+          <h2 className="rotulo-forte mb-6">Assuntos Frequentes</h2>
           <div className="grid sm:grid-cols-2 gap-3 text-sm">
             {[
               {
@@ -92,12 +92,12 @@ export default function ContactoPage() {
                 detalhe: "Dúvidas sobre planos ou publicação",
               },
               {
-                assunto: "Subscrição Profissional",
-                detalhe: "Registo, plano, faturação ou cancelamento",
+                assunto: "Conta e anúncios",
+                detalhe: "Gestão dos seus anúncios, mensagens ou alertas",
               },
               {
-                assunto: "Loja — Devolução",
-                detalhe: "Produto recebido com defeito ou pedido de devolução",
+                assunto: "Denunciar um anúncio",
+                detalhe: "Anúncio enganador, duplicado ou já vendido",
               },
               {
                 assunto: "Parceria / Publicidade",
@@ -112,7 +112,7 @@ export default function ContactoPage() {
               <a
                 key={item.assunto}
                 href={`mailto:portal.lusitano2023@gmail.com?subject=${encodeURIComponent(item.assunto)}`}
-                className="border border-[var(--border)] p-4 hover:border-[var(--gold)]/40 hover:bg-[var(--gold)]/[0.03] transition-colors group"
+                className="cartao cartao-interactivo p-4 hover:bg-[var(--gold)]/[0.03] group"
               >
                 <p className="text-[var(--foreground)] text-xs font-medium group-hover:text-[var(--gold)] transition-colors mb-1">
                   {item.assunto}

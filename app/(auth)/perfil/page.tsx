@@ -11,11 +11,17 @@ import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import LocalizedLink from "@/components/LocalizedLink";
 import { Mail, Crown, LogOut, Loader2, Check, Pencil, Star, BarChart2 } from "lucide-react";
 
+/**
+ * Rótulos históricos de ferramentas que o portal já teve.
+ *
+ * Mantidos só para dar nome a registos antigos que ainda referem estas
+ * chaves; nenhuma delas corresponde hoje a uma funcionalidade do site.
+ */
 const TOOL_LABELS: Record<string, string> = {
-  calculadora: "Calculadora de Valor",
-  comparador: "Comparador de Cavalos",
-  compatibilidade: "Verificador de Compatibilidade",
-  perfil: "Análise de Perfil",
+  calculadora: "Calculadora de Valor (descontinuada)",
+  comparador: "Comparador de Cavalos (descontinuado)",
+  compatibilidade: "Verificador de Compatibilidade (descontinuado)",
+  perfil: "Análise de Perfil (descontinuada)",
 };
 
 function PerfilContent() {
