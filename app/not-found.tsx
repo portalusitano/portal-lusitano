@@ -84,7 +84,7 @@ export default function NotFound() {
           style={{ animationDelay: "0.45s" }}
         >
           <div className="w-12 h-[1px] bg-[var(--gold)]" />
-          <span className="text-[10px] sm:text-[10px] uppercase tracking-wider text-[var(--foreground-muted)]">
+          <span className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)]">
             Portal Lusitano
           </span>
           <div className="w-12 h-[1px] bg-[var(--gold)]" />

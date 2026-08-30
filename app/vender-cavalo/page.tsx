@@ -130,10 +130,18 @@ export default function VenderCavaloPage() {
       if (!formData.nome) newErrors.push(t.form_validation.required_horse_name);
       if (!formData.nome_registo) newErrors.push(t.form_validation.required_registration_name);
       if (!formData.numero_registo) newErrors.push(t.form_validation.required_registration_number);
-      if (!formData.microchip || formData.microchip.length < 15) newErrors.push(t.form_validation.required_microchip);
+      if (!formData.microchip || formData.microchip.length < 15)
+        newErrors.push(t.form_validation.required_microchip);
       if (!formData.data_nascimento) newErrors.push(t.form_validation.required_birth_date);
       if (!formData.sexo) newErrors.push(t.form_validation.required_sex);
-      if (!formData.temperamento) newErrors.push(tr("Selecione o temperamento do cavalo.", "Please select the horse's temperament.", "Por favor seleccione el temperamento del caballo."));
+      if (!formData.temperamento)
+        newErrors.push(
+          tr(
+            "Selecione o temperamento do cavalo.",
+            "Please select the horse's temperament.",
+            "Por favor seleccione el temperamento del caballo."
+          )
+        );
     }
 
     if (currentStep === 2) {
@@ -145,14 +153,28 @@ export default function VenderCavaloPage() {
       if (!documentos.livroAzul) newErrors.push(t.form_validation.required_blue_book);
       // Training & Health
       if (!formData.nivel_treino) newErrors.push(t.form_validation.required_training_level);
-      if (!formData.nivel_cavaleiro) newErrors.push(tr("Selecione o nível de cavaleiro recomendado.", "Please select the recommended rider level.", "Por favor seleccione el nivel de jinete recomendado."));
+      if (!formData.nivel_cavaleiro)
+        newErrors.push(
+          tr(
+            "Selecione o nível de cavaleiro recomendado.",
+            "Please select the recommended rider level.",
+            "Por favor seleccione el nivel de jinete recomendado."
+          )
+        );
       if (!formData.estado_saude) newErrors.push(t.form_validation.required_health_status);
       if (!formData.vacinacao_atualizada) newErrors.push(t.form_validation.required_vaccination);
     }
 
     if (currentStep === 3) {
       if (!formData.preco) newErrors.push(t.form_validation.required_price);
-      if (!formData.regiao) newErrors.push(tr("Selecione o distrito / região do cavalo.", "Please select the horse's district / region.", "Por favor seleccione el distrito / región del caballo."));
+      if (!formData.regiao)
+        newErrors.push(
+          tr(
+            "Selecione o distrito / região do cavalo.",
+            "Please select the horse's district / region.",
+            "Por favor seleccione el distrito / región del caballo."
+          )
+        );
       if (!formData.localizacao) newErrors.push(t.vender_cavalo.error_location_required);
       if (!formData.descricao || formData.descricao.length < MIN_DESCRIPTION_LENGTH)
         newErrors.push(t.vender_cavalo.error_description_min);
@@ -213,7 +235,14 @@ export default function VenderCavaloPage() {
 
         if (!uploadRes.ok) {
           const uploadErr = await uploadRes.json();
-          throw new Error(uploadErr.error || tr("Erro ao fazer upload das imagens", "Error uploading images", "Error al subir las imágenes"));
+          throw new Error(
+            uploadErr.error ||
+              tr(
+                "Erro ao fazer upload das imagens",
+                "Error uploading images",
+                "Error al subir las imágenes"
+              )
+          );
         }
 
         const { urls } = await uploadRes.json();
@@ -340,9 +369,15 @@ export default function VenderCavaloPage() {
 
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-24 md:pt-32 pb-32 px-4 sm:px-6 md:px-12">
-      <PageHeader />
-      <HowItWorks />
-      <PricingBanner selectedTier={selectedTier} onTierChange={setSelectedTier} />
+      <div data-revelar="">
+        <PageHeader />
+      </div>
+      <div data-revelar="" style={{ "--rdelay": "100ms" } as React.CSSProperties}>
+        <HowItWorks />
+      </div>
+      <div data-revelar="" style={{ "--rdelay": "200ms" } as React.CSSProperties}>
+        <PricingBanner selectedTier={selectedTier} onTierChange={setSelectedTier} />
+      </div>
 
       <div className="max-w-3xl mx-auto">
         <StepIndicator currentStep={step} />

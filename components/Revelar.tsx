@@ -89,7 +89,12 @@ export function ObservadorRevelar() {
           }
         }
       },
-      { rootMargin: "0px 0px -6% 0px", threshold: 0.04 }
+      // `threshold: 0` — qualquer pixel visível chega. Com 0.04 exigia-se que
+      // 4% do elemento estivesse no ecrã, e uma secção muito alta (uma página
+      // de termos, por exemplo) nunca lá chega: mil pixels de ecrã não são 4%
+      // de trinta mil, e o bloco ficava invisível até a rede de segurança o
+      // apanhar segundos depois.
+      { rootMargin: "0px 0px -6% 0px", threshold: 0 }
     );
 
     // Blocos que aparecem depois (paginação, filtros) também entram.
@@ -111,11 +116,13 @@ export function ObservadorRevelar() {
 
     const aoRolar = () => varrer();
     window.addEventListener("scroll", aoRolar, { passive: true });
+    const primeiroFotograma = requestAnimationFrame(varrer);
     const inicial = window.setTimeout(varrer, 400);
     const rede = window.setTimeout(todos, 4000);
 
     return () => {
       window.removeEventListener("scroll", aoRolar);
+      cancelAnimationFrame(primeiroFotograma);
       window.clearTimeout(inicial);
       window.clearTimeout(rede);
       observador.disconnect();

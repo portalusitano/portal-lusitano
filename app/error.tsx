@@ -126,7 +126,7 @@ export default function Error({
           aria-hidden="true"
         >
           <div className="w-12 h-[1px] bg-[var(--gold)]" />
-          <span className="text-[10px] sm:text-[10px] uppercase tracking-wider text-[var(--foreground-muted)]">
+          <span className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)]">
             Portal Lusitano
           </span>
           <div className="w-12 h-[1px] bg-[var(--gold)]" />

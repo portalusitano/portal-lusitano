@@ -3,8 +3,8 @@ import LocalizedLink from "@/components/LocalizedLink";
 export default function DevolucoesPage() {
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-32 pb-20 px-4 sm:px-6 font-normal selection:bg-[var(--gold)] selection:text-black">
-      <div className="max-w-4xl mx-auto">
-        <span className="text-[var(--gold)] text-[10px] sm:rotulo font-bold block mb-6 text-center">
+      <div data-revelar="" className="max-w-4xl mx-auto">
+        <span className="text-[var(--gold)] rotulo font-bold block mb-6 text-center">
           Direitos do Consumidor
         </span>
         <h1 className="text-2xl sm:text-4xl md:text-5xl font-normal mb-4 text-center">

@@ -301,7 +301,7 @@ export default function SobreContent() {
                 />
               </div>
 
-              <p className="text-[10px] sm:text-[10px] font-mono uppercase tracking-wider text-[var(--foreground-muted)]/60 mt-3 relative z-10">
+              <p className="text-[10px] font-mono uppercase tracking-wider text-[var(--foreground-muted)]/60 mt-3 relative z-10">
                 {stat.label}
               </p>
 

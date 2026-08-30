@@ -32,7 +32,10 @@ export default function OfflinePage() {
   const t = text[language];
 
   return (
-    <main className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center px-6 text-center">
+    <main
+      data-revelar=""
+      className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center px-6 text-center"
+    >
       {/* Linha decorativa */}
       <div className="w-px h-16 bg-gradient-to-b from-transparent via-[var(--gold)] to-transparent mb-10" />
 

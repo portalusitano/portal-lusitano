@@ -8,7 +8,9 @@ export default function ContactoPage() {
         {/* Header */}
         <div data-revelar="" className="text-center mb-16">
           <span className="text-[var(--gold)] rotulo font-bold block mb-6">Fale Connosco</span>
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-normal mb-4">Contacto</h1>
+          <h1 className="titulo-gradiente text-4xl sm:text-5xl md:text-[4rem] font-normal leading-[100%] tracking-[-0.01em] mb-4">
+            Contacto
+          </h1>
           <p className="text-[var(--foreground-secondary)] text-sm font-normal max-w-md mx-auto">
             Estamos disponíveis para responder a questões sobre anúncios, subscrições, parcerias ou
             qualquer outro assunto.

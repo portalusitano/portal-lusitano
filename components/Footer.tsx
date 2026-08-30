@@ -244,7 +244,7 @@ export default memo(function Footer() {
           {[0, 1].map((i) => (
             <span
               key={i}
-              className="text-[10px] sm:text-[10px] uppercase tracking-wider text-[var(--foreground-muted)]/30 flex-shrink-0 pr-0"
+              className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)]/30 flex-shrink-0 pr-0"
             >
               {Array(6).fill(MARQUEE).join("")}
             </span>
@@ -263,7 +263,7 @@ export default memo(function Footer() {
             <nav key={col.label} aria-label={col.label}>
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-3 h-px bg-[var(--gold)]" />
-                <h3 className="text-[var(--gold)] text-[10px] sm:text-[10px] uppercase tracking-wider font-medium">
+                <h3 className="text-[var(--gold)] text-[10px] uppercase tracking-wider font-medium">
                   {col.label}
                 </h3>
               </div>
