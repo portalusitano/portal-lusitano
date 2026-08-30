@@ -4,9 +4,7 @@ export default function NotFound() {
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center">
       <p className="text-[var(--gold)] text-sm uppercase tracking-wider mb-4">404</p>
-      <h1 className="text-3xl md:text-4xl font-serif text-[var(--foreground)] mb-4">
-        Evento Não Encontrado
-      </h1>
+      <h1 className="text-3xl md:text-4xl text-[var(--foreground)] mb-4">Evento Não Encontrado</h1>
       <p className="text-[var(--foreground-muted)] mb-8 max-w-md">
         O evento que procura não existe ou foi removido. Consulte a nossa agenda para descobrir
         próximos eventos.

@@ -36,7 +36,7 @@ export default function Preloader() {
       aria-hidden
     >
       <div className="relative mb-12">
-        <h1 className="text-4xl md:text-5xl font-serif text-[var(--foreground)] tracking-wide">
+        <h1 className="text-4xl md:text-5xl text-[var(--foreground)] tracking-wide">
           PORTAL LUSITANO
         </h1>
         <div className="absolute -bottom-2 left-0 h-[1px] bg-[var(--gold)] w-full preloader-line" />

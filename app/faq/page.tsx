@@ -19,7 +19,7 @@ export default async function FAQPage() {
           <span className="text-xs uppercase tracking-wider text-[var(--gold)] block mb-4">
             {tr("Suporte", "Support", "Soporte")}
           </span>
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-serif text-[var(--foreground)] mb-4">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl text-[var(--foreground)] mb-4">
             {tr("Perguntas Frequentes", "Frequently Asked Questions", "Preguntas Frecuentes")}
           </h1>
           <p className="text-[var(--foreground-secondary)] font-normal">

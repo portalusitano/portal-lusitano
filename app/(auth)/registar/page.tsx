@@ -32,7 +32,7 @@ function inputClass(hasError: boolean, isFocused?: boolean) {
     hasError
       ? "border-red-500/60 focus:border-red-500/60 focus:ring-red-500/20"
       : "border-[var(--border)] hover:border-[var(--border-hover)]",
-  ].join(" ");
+  ].join("");
 }
 
 function FieldError({ id, message }: { id: string; message: string }) {
@@ -121,8 +121,14 @@ function PasswordChecks({ password }: { password: string }) {
   const tr = createTranslator(language);
   if (!password) return null;
   const checks = [
-    { ok: password.length >= 8, label: tr("Mínimo 8 caracteres", "Minimum 8 characters", "Mínimo 8 caracteres") },
-    { ok: /[A-Z]/.test(password), label: tr("Uma letra maiúscula", "One uppercase letter", "Una letra mayúscula") },
+    {
+      ok: password.length >= 8,
+      label: tr("Mínimo 8 caracteres", "Minimum 8 characters", "Mínimo 8 caracteres"),
+    },
+    {
+      ok: /[A-Z]/.test(password),
+      label: tr("Uma letra maiúscula", "One uppercase letter", "Una letra mayúscula"),
+    },
     { ok: /[0-9]/.test(password), label: tr("Um número", "One number", "Un número") },
   ];
   return (
@@ -204,13 +210,29 @@ function RegistarContent() {
 
     // Client-side validation
     const errors: typeof fieldErrors = {};
-    if (!name.trim()) errors.name = tr("O nome é obrigatório.", "Name is required.", "El nombre es obligatorio.");
-    if (!email) errors.email = tr("O email é obrigatório.", "Email is required.", "El email es obligatorio.");
-    if (!password) errors.password = tr("A palavra-passe é obrigatória.", "Password is required.", "La contraseña es obligatoria.");
-    else if (!passwordValid) errors.password = tr("A palavra-passe não cumpre os requisitos.", "Password does not meet requirements.", "La contraseña no cumple los requisitos.");
+    if (!name.trim())
+      errors.name = tr("O nome é obrigatório.", "Name is required.", "El nombre es obligatorio.");
+    if (!email)
+      errors.email = tr("O email é obrigatório.", "Email is required.", "El email es obligatorio.");
+    if (!password)
+      errors.password = tr(
+        "A palavra-passe é obrigatória.",
+        "Password is required.",
+        "La contraseña es obligatoria."
+      );
+    else if (!passwordValid)
+      errors.password = tr(
+        "A palavra-passe não cumpre os requisitos.",
+        "Password does not meet requirements.",
+        "La contraseña no cumple los requisitos."
+      );
     if (!confirmPassword) errors.confirmPassword = "Por favor confirme a palavra-passe.";
     else if (password !== confirmPassword)
-      errors.confirmPassword = tr("As palavras-passe não coincidem.", "Passwords do not match.", "Las contraseñas no coinciden.");
+      errors.confirmPassword = tr(
+        "As palavras-passe não coincidem.",
+        "Passwords do not match.",
+        "Las contraseñas no coinciden."
+      );
     if (!termsAccepted) errors.terms = "Deve aceitar os termos para continuar.";
 
     if (Object.keys(errors).length > 0) {
@@ -289,7 +311,7 @@ function RegistarContent() {
           {/* Outer glow ring */}
           <div
             className="absolute inset-0 rounded-full bg-emerald-500/10 animate-ping"
-            style={{ animationDuration: "2s" }}
+            style={{ animationDuration: "1.4s", animationIterationCount: 1 }}
           />
           {/* Main circle */}
           <div className="relative w-20 h-20 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border-2 border-emerald-500/40 rounded-full flex items-center justify-center">
@@ -302,7 +324,7 @@ function RegistarContent() {
           </div>
         </div>
 
-        <h2 className="text-xl font-serif text-[var(--foreground)] mb-2 animate-auth-fadeInUp auth-stagger-2">
+        <h2 className="text-xl text-[var(--foreground)] mb-2 animate-auth-fadeInUp auth-stagger-2">
           Conta Criada com Sucesso!
         </h2>
         <p className="text-sm text-[var(--foreground-secondary)] mb-1 animate-auth-fadeInUp auth-stagger-3">
@@ -333,7 +355,8 @@ function RegistarContent() {
         {toolParam && redirect && (
           <div className="bg-[var(--gold)]/5 border border-[var(--gold)]/20 rounded-xl p-3 mb-5 animate-auth-fadeInUp auth-stagger-5">
             <p className="text-xs text-[var(--foreground-muted)]">
-              Após confirmar o email e iniciar sessão, será redirecionado de volta à ferramenta com{" "}
+              Após confirmar o email e iniciar sessão, será redirecionado de volta à ferramenta com
+              {""}
               <strong className="text-[var(--gold)]">1 uso gratuito</strong> disponível.
             </p>
           </div>
@@ -356,7 +379,7 @@ function RegistarContent() {
       {/* Header with staggered animation */}
       <div className="animate-auth-fadeInUp">
         <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-2xl font-serif text-[var(--foreground)]">{t.auth.create_account}</h1>
+          <h1 className="text-2xl text-[var(--foreground)]">{t.auth.create_account}</h1>
           <Sparkles
             size={18}
             className="text-[var(--gold)] animate-auth-float"
@@ -380,7 +403,7 @@ function RegistarContent() {
               Acesso à Ferramenta
             </p>
             <p className="text-xs text-[var(--foreground-muted)] leading-relaxed">
-              Crie a sua conta para aceder à ferramenta com{" "}
+              Crie a sua conta para aceder à ferramenta com{""}
               <strong className="text-[var(--gold)]">1 uso gratuito</strong>.
             </p>
           </div>
@@ -636,7 +659,7 @@ function RegistarContent() {
               </div>
             </div>
             <span className="text-xs text-[var(--foreground-muted)] leading-relaxed">
-              Aceito os{" "}
+              Aceito os{""}
               <LocalizedLink
                 href="/termos"
                 className="text-[var(--gold)] hover:text-[var(--gold-hover)] underline underline-offset-2"
@@ -644,8 +667,8 @@ function RegistarContent() {
                 rel="noopener noreferrer"
               >
                 Termos de Serviço
-              </LocalizedLink>{" "}
-              e a{" "}
+              </LocalizedLink>
+              {""}e a{""}
               <LocalizedLink
                 href="/privacidade"
                 className="text-[var(--gold)] hover:text-[var(--gold-hover)] underline underline-offset-2"
@@ -701,7 +724,8 @@ function RegistarContent() {
         </div>
 
         <p className="text-center text-sm text-[var(--foreground-muted)]">
-          {t.auth.already_have_account}{" "}
+          {t.auth.already_have_account}
+          {""}
           <LocalizedLink
             href={redirect ? `/login?returnUrl=${encodeURIComponent(redirect)}` : "/login"}
             className="text-[var(--gold)] hover:text-[var(--gold-hover)] font-medium transition-colors"

@@ -48,9 +48,7 @@ function UnsubscribeContent() {
   return (
     <main className="min-h-screen bg-[var(--background)] flex items-center justify-center px-6">
       <div className="max-w-md w-full bg-[var(--background-secondary)]/40 backdrop-blur-md border border-[var(--border)] p-10 text-center">
-        <h1 className="text-2xl font-serif text-[var(--foreground)] mb-4">
-          {t.unsubscribe_page.title}
-        </h1>
+        <h1 className="text-2xl text-[var(--foreground)] mb-4">{t.unsubscribe_page.title}</h1>
 
         <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-[#C5A059] to-transparent mx-auto mb-8"></div>
 
@@ -61,7 +59,8 @@ function UnsubscribeContent() {
             </p>
             {email && (
               <p className="text-[var(--foreground-muted)] text-sm mb-6">
-                {t.unsubscribe_page.email_label}{" "}
+                {t.unsubscribe_page.email_label}
+                {""}
                 <span className="text-[var(--foreground)]">{email}</span>
               </p>
             )}

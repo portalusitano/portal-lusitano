@@ -92,7 +92,7 @@ export default function Newsletter() {
   return (
     <section className="bg-[var(--background-secondary)] border-y border-[var(--border)] py-16 px-6">
       <div className="max-w-4xl mx-auto text-center">
-        <h2 className="text-3xl font-serif text-[var(--foreground)] mb-4">
+        <h2 className="text-3xl text-[var(--foreground)] mb-4">
           {tx(nl.title, language)} <span className="text-[var(--gold)]">Gazeta Lusitana</span>
         </h2>
         <p className="text-[var(--foreground-muted)] mb-8 uppercase tracking-wider text-xs">

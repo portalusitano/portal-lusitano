@@ -16,12 +16,10 @@ export default function NotFound() {
         </div>
 
         {/* Error Code */}
-        <h1 className="text-8xl font-serif text-[var(--gold)] mb-4">404</h1>
+        <h1 className="text-8xl text-[var(--gold)] mb-4">404</h1>
 
         {/* Message */}
-        <h2 className="text-3xl font-serif text-[var(--foreground)] mb-4">
-          Coudelaria não encontrada
-        </h2>
+        <h2 className="text-3xl text-[var(--foreground)] mb-4">Coudelaria não encontrada</h2>
         <p className="text-[var(--foreground-secondary)] text-lg mb-8 max-w-md mx-auto">
           A coudelaria que procura não existe ou foi removida do nosso diretório.
         </p>

@@ -76,7 +76,12 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
 - Cabeçalho: entra a descer 500ms; ao rolar ganha véu (150ms) e hairline (200ms).
 - Dropdowns: `.anim-crescer`, 200ms, origem no topo.
 - **Um só ciclo infinito em todo o site** — o ponto verde da contagem de
-  anúncios. Com vários, o site fica inquieto.
+  anúncios (`pulsar-ponto`). É o único `infinite` no CSS e assim deve ficar.
+  Os esqueletos de carregamento usam `animate-pulse` do Tailwind: são a
+  excepção aceite, porque só existem enquanto o conteúdo não chegou.
+- Entrada anterior (`fadeSlideIn`) ainda em várias páginas: mesma família de
+  movimento, alinhada na distância. Diferença que fica: dispara ao carregar,
+  não ao entrar no ecrã. Em código novo usar `Revelar`/`data-revelar`.
 - Há um bloco `prefers-reduced-motion: reduce` que anula tudo isto. Manter.
 - Preferir transição CSS a tween em JS: com dezenas de blocos, deixar opacidade
   e transform ao compositor não disputa a thread principal.

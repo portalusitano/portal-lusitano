@@ -46,7 +46,7 @@ export default function StepPagamento({
 
   return (
     <div className="bg-[var(--background-secondary)]/50 cartao p-6">
-      <h2 className="text-xl font-serif mb-6 flex items-center gap-3">
+      <h2 className="text-xl mb-6 flex items-center gap-3">
         <span className="w-8 h-8 bg-[var(--gold)] rounded-full flex items-center justify-center text-black text-sm font-bold">
           6
         </span>
@@ -143,11 +143,14 @@ export default function StepPagamento({
             className="w-5 h-5 accent-[var(--gold)] mt-0.5"
           />
           <span className="text-sm text-[var(--foreground-secondary)]">
-            {t.vender_cavalo.terms_agree}{" "}
+            {t.vender_cavalo.terms_agree}
+            {""}
             <LocalizedLink href="/termos" className="text-[var(--gold)] hover:underline">
               {t.vender_cavalo.terms_link}
-            </LocalizedLink>{" "}
-            {t.vender_cavalo.privacy_and}{" "}
+            </LocalizedLink>
+            {""}
+            {t.vender_cavalo.privacy_and}
+            {""}
             <LocalizedLink href="/privacidade" className="text-[var(--gold)] hover:underline">
               {t.vender_cavalo.privacy_link}
             </LocalizedLink>

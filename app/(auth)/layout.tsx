@@ -58,7 +58,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         {/* Logo */}
         <Link href="/" className="relative z-10 inline-flex flex-col gap-1 group w-fit">
-          <span className="text-2xl font-serif text-[var(--foreground)] tracking-wider group-hover:text-[var(--gold)] transition-colors duration-300">
+          <span className="text-2xl text-[var(--foreground)] tracking-wider group-hover:text-[var(--gold)] transition-colors duration-300">
             PORTAL LUSITANO
           </span>
           <div className="flex items-center gap-3">
@@ -95,7 +95,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </div>
 
           <div>
-            <h2 className="text-3xl xl:text-4xl font-serif text-[var(--foreground)] leading-snug mb-3">
+            <h2 className="text-3xl xl:text-4xl text-[var(--foreground)] leading-snug mb-3">
               A referência do
               <br />
               <span className="text-[var(--gold)]">cavalo Lusitano</span>
@@ -181,7 +181,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-10 sm:px-8 lg:px-12 xl:px-16 min-h-screen lg:min-h-0">
         {/* Mobile-only logo */}
         <Link href="/" className="flex flex-col items-center mb-8 lg:hidden group" tabIndex={0}>
-          <span className="text-xl font-serif text-[var(--foreground)] tracking-wide group-hover:text-[var(--gold)] transition-colors">
+          <span className="text-xl text-[var(--foreground)] tracking-wide group-hover:text-[var(--gold)] transition-colors">
             PORTAL LUSITANO
           </span>
           <span className="rotulo mt-1">EST. 2023</span>

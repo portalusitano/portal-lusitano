@@ -17,20 +17,20 @@ export default function NotFound() {
       <div className="relative z-10 text-center max-w-2xl">
         {/* Numero 404 */}
         <div className="relative mb-8 opacity-0 animate-[scaleIn_0.4s_ease-out_forwards]">
-          <span className="text-[180px] md:text-[250px] font-serif text-transparent bg-clip-text bg-gradient-to-b from-[var(--background-elevated)] to-transparent leading-none select-none">
+          <span className="text-[180px] md:text-[250px] text-transparent bg-clip-text bg-gradient-to-b from-[var(--background-elevated)] to-transparent leading-none select-none">
             404
           </span>
           <div
             className="absolute inset-0 flex items-center justify-center opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
             style={{ animationDelay: "0.1s" }}
           >
-            <span className="text-6xl md:text-8xl font-serif text-[var(--gold)]">404</span>
+            <span className="text-6xl md:text-8xl text-[var(--gold)]">404</span>
           </div>
         </div>
 
         {/* Titulo */}
         <h1
-          className="text-3xl md:text-4xl font-serif text-[var(--foreground)] mb-4 opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
+          className="text-3xl md:text-4xl text-[var(--foreground)] mb-4 opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
           style={{ animationDelay: "0.15s" }}
         >
           {t.not_found.title}

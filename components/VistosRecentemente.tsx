@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { History, X } from "lucide-react";
 import HorseCard from "@/components/HorseCard";
+import Revelar, { atrasoEmGrelha } from "@/components/Revelar";
 import { lerVistos, limparVistos, excepto, type CavaloVisto } from "@/lib/vistos-recentemente";
 
 interface VistosRecentementeProps {
@@ -16,7 +17,7 @@ interface VistosRecentementeProps {
 }
 
 /**
- * Faixa "Vistos recentemente" alimentada pelo histórico local do browser.
+ * Faixa"Vistos recentemente" alimentada pelo histórico local do browser.
  *
  * Só aparece depois de montar: o histórico vive no localStorage e desenhá-lo
  * no servidor daria sempre um desencontro de hidratação.
@@ -61,20 +62,21 @@ export default function VistosRecentemente({
       </div>
 
       <div className={`grid ${gridClassName} gap-3 sm:gap-4`}>
-        {visiveis.map((cavalo) => (
-          <HorseCard
-            key={cavalo.id}
-            horse={{
-              id: cavalo.id,
-              nome_cavalo: cavalo.nome,
-              preco: cavalo.preco ?? 0,
-              image_url: cavalo.imagem ?? undefined,
-              localizacao: cavalo.localizacao ?? undefined,
-            }}
-            href={`/comprar/${cavalo.id}`}
-            compact
-            priority={false}
-          />
+        {visiveis.map((cavalo, i) => (
+          <Revelar key={cavalo.id} y={20} atraso={atrasoEmGrelha(i)}>
+            <HorseCard
+              horse={{
+                id: cavalo.id,
+                nome_cavalo: cavalo.nome,
+                preco: cavalo.preco ?? 0,
+                image_url: cavalo.imagem ?? undefined,
+                localizacao: cavalo.localizacao ?? undefined,
+              }}
+              href={`/comprar/${cavalo.id}`}
+              compact
+              priority={false}
+            />
+          </Revelar>
         ))}
       </div>
     </section>

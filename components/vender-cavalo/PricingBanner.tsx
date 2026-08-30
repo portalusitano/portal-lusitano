@@ -26,7 +26,7 @@ export default function PricingBanner({ selectedTier, onTierChange }: PricingBan
 
   return (
     <div className="max-w-5xl mx-auto mb-8">
-      <h3 className="text-lg font-serif text-center mb-6">
+      <h3 className="text-lg text-center mb-6">
         {tr("Escolha o seu plano", "Choose your plan", "Elija su plan")}
       </h3>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">

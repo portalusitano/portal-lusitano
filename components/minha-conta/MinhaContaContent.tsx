@@ -171,7 +171,7 @@ function SubscriptionSection() {
         ) : (
           <>
             <p className="text-[11px] text-[var(--foreground-secondary)] mb-4 leading-relaxed">
-              Desbloqueie todas as ferramentas por{" "}
+              Desbloqueie todas as ferramentas por{""}
               <span className="text-[var(--gold)] font-semibold">9,99 EUR/mes</span>.
             </p>
             <button
@@ -207,6 +207,7 @@ function RecentFavorites({ delay }: { delay: number }) {
 
   return (
     <section
+      data-revelar=""
       className="opacity-0 translate-y-5 transition-all duration-700"
       style={{ animationDelay: `${delay}ms`, transitionDelay: `${delay}ms` }}
       data-animate
@@ -305,7 +306,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
 
   const initials =
     [customer.firstName?.[0], customer.lastName?.[0]].filter(Boolean).join("").toUpperCase() || "M";
-  const fullName = [customer.firstName, customer.lastName].filter(Boolean).join(" ") || "Membro";
+  const fullName = [customer.firstName, customer.lastName].filter(Boolean).join("") || "Membro";
   const memberSince = customer.createdAt
     ? new Date(customer.createdAt).toLocaleDateString(locale, { month: "long", year: "numeric" })
     : "—";
@@ -353,7 +354,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                 {/* Avatar */}
                 <div className="relative flex-shrink-0">
                   <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#C5A059] to-[#7A5A20] flex items-center justify-center shadow-[0_0_50px_rgba(197,160,89,0.3)]">
-                    <span className="text-xl sm:text-2xl font-serif font-bold text-black tracking-wider select-none">
+                    <span className="text-xl sm:text-2xl font-bold text-black tracking-wider select-none">
                       {initials}
                     </span>
                   </div>
@@ -544,6 +545,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
 
             {/* Explore grid */}
             <section
+              data-revelar=""
               className="opacity-0 translate-y-5 transition-all duration-700"
               style={{ transitionDelay: "440ms" }}
               data-animate

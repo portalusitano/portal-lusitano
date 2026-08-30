@@ -19,7 +19,7 @@ export default async function PrivacidadePage() {
 
           <div className="space-y-12 text-[var(--foreground-secondary)] leading-relaxed text-sm">
             {/* Introdução */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.privacy.intro}
               </h2>
@@ -27,7 +27,7 @@ export default async function PrivacidadePage() {
             </section>
 
             {/* Responsável */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.privacy.controller}
               </h2>
@@ -35,7 +35,7 @@ export default async function PrivacidadePage() {
             </section>
 
             {/* Dados Recolhidos */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.privacy.data_collected}
               </h2>
@@ -51,7 +51,7 @@ export default async function PrivacidadePage() {
             </section>
 
             {/* Finalidade */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.privacy.purposes}
               </h2>
@@ -67,7 +67,7 @@ export default async function PrivacidadePage() {
             </section>
 
             {/* Base Legal */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.privacy.legal_basis}
               </h2>
@@ -81,7 +81,7 @@ export default async function PrivacidadePage() {
             </section>
 
             {/* Prazo de Conservação */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.privacy.retention}
               </h2>
@@ -95,7 +95,7 @@ export default async function PrivacidadePage() {
             </section>
 
             {/* Direitos */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.privacy.rights}
               </h2>
@@ -112,7 +112,7 @@ export default async function PrivacidadePage() {
             </section>
 
             {/* Cookies */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.privacy.cookies_title}
               </h2>
@@ -126,7 +126,7 @@ export default async function PrivacidadePage() {
             </section>
 
             {/* Terceiros */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.privacy.third_parties}
               </h2>
@@ -141,7 +141,7 @@ export default async function PrivacidadePage() {
             </section>
 
             {/* Segurança */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.privacy.security}
               </h2>
@@ -149,7 +149,7 @@ export default async function PrivacidadePage() {
             </section>
 
             {/* Reclamação */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.privacy.complaint}
               </h2>
@@ -160,7 +160,7 @@ export default async function PrivacidadePage() {
             </section>
 
             {/* Alterações */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.privacy.changes}
               </h2>

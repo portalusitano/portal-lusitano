@@ -102,7 +102,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             </div>
 
             {/* Titulo */}
-            <h1 className="text-3xl font-serif text-[var(--foreground)] mb-4">{t.title}</h1>
+            <h1 className="text-3xl text-[var(--foreground)] mb-4">{t.title}</h1>
 
             {/* Descricao */}
             <p className="text-[var(--foreground-secondary)] mb-8">{t.description}</p>

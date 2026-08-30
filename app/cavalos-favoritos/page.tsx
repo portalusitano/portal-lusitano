@@ -5,8 +5,7 @@
  * Usa HorseFavoritesContext (cavalos à venda no marketplace).
  *
  * NÃO confundir com /favoritos que é a wishlist de produtos da loja Shopify.
- */
-"use client";
+ */ "use client";
 
 import { Heart, Trash2, MapPin, Calendar, ExternalLink, Share2, Filter } from "lucide-react";
 import LocalizedLink from "@/components/LocalizedLink";
@@ -61,7 +60,7 @@ export default function CavalosFavoritosPage() {
             <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[var(--gold)]/10 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
               <Heart className="text-[var(--gold)]" size={28} />
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-[var(--foreground)] mb-2 sm:mb-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--foreground)] mb-2 sm:mb-4">
               {txt.title}
             </h1>
             <p className="text-[var(--foreground-secondary)] font-normal text-sm sm:text-base">
@@ -89,9 +88,7 @@ export default function CavalosFavoritosPage() {
               style={{ animationDelay: "0.2s" }}
             >
               <Heart className="text-[var(--foreground-muted)] mx-auto mb-6" size={56} />
-              <h2 className="text-xl sm:text-2xl font-serif text-[var(--foreground)] mb-3">
-                {txt.empty}
-              </h2>
+              <h2 className="text-xl sm:text-2xl text-[var(--foreground)] mb-3">{txt.empty}</h2>
               <p className="text-[var(--foreground-muted)] mb-8 text-sm sm:text-base max-w-md mx-auto">
                 {txt.empty_subtitle}
               </p>
@@ -163,7 +160,7 @@ export default function CavalosFavoritosPage() {
                         {/* Quick info overlay - Mobile */}
                         <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
                           {horse.price && (
-                            <p className="text-[var(--gold)] font-serif text-lg sm:text-xl font-medium">
+                            <p className="text-[var(--gold)] text-lg sm:text-xl font-medium">
                               {Number(horse.price).toLocaleString(locale)} €
                             </p>
                           )}
@@ -174,7 +171,7 @@ export default function CavalosFavoritosPage() {
                     {/* Info */}
                     <div className="p-4 sm:p-5">
                       <LocalizedLink href={`/comprar/${horse.id}`}>
-                        <h3 className="text-lg sm:text-xl font-serif text-[var(--foreground)] mb-2 group-hover:text-[var(--gold)] transition-colors line-clamp-1">
+                        <h3 className="text-lg sm:text-xl text-[var(--foreground)] mb-2 group-hover:text-[var(--gold)] transition-colors line-clamp-1">
                           {horse.name}
                         </h3>
                       </LocalizedLink>

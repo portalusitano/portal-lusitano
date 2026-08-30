@@ -34,7 +34,7 @@ export default function HowItWorks() {
         {steps.map(({ number, icon: Icon, title, desc }) => (
           <div key={number} className="bg-[var(--background-secondary)]/60 p-5 flex flex-col gap-3">
             <div className="flex items-center gap-3">
-              <span className="text-[var(--gold)]/40 font-serif text-2xl leading-none select-none">
+              <span className="text-[var(--gold)]/40 text-2xl leading-none select-none">
                 {number}
               </span>
               <div className="w-7 h-7 border border-[var(--gold)]/30 flex items-center justify-center">

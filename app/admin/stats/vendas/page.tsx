@@ -63,7 +63,7 @@ export default async function AdminVendasPage({
                     {c.created_at ? new Date(c.created_at).toLocaleDateString("pt-PT") : "—"}
                   </td>
                   <td className="py-8 px-6">
-                    <span className="font-serif text-xl text-white group-hover:text-[#C5A059] transition-colors">
+                    <span className="text-xl text-white group-hover:text-[#C5A059] transition-colors">
                       {c.nome_cavalo}
                     </span>
                     <span className="block text-[11px] text-zinc-600 uppercase mt-1">
@@ -71,7 +71,7 @@ export default async function AdminVendasPage({
                     </span>
                   </td>
                   <td className="py-8 px-6 text-zinc-400 font-normal">{c.linhagem}</td>
-                  <td className="py-8 px-6 font-serif text-[#C5A059] text-lg">
+                  <td className="py-8 px-6 text-[#C5A059] text-lg">
                     {Number(c.preco).toLocaleString("pt-PT")} €
                   </td>
                   <td className="py-8 px-6">

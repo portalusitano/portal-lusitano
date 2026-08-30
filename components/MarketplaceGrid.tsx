@@ -5,6 +5,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { BellRing, ChevronLeft, ChevronRight, Search, SlidersHorizontal, X } from "lucide-react";
 import LocalizedLink from "@/components/LocalizedLink";
 import HorseCard from "@/components/HorseCard";
+import Revelar, { atrasoEmGrelha } from "@/components/Revelar";
 import {
   ORDENACOES,
   aplicarFiltros,
@@ -318,7 +319,7 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
               Limpar filtros
             </button>
             {/* Uma pesquisa que não devolve nada hoje é exactamente aquela que
-                vale a pena guardar como alerta. */}
+ vale a pena guardar como alerta. */}
             <LocalizedLink
               href={hrefAlerta}
               className="btn btn-sm border-[var(--gold)]/40 text-[var(--gold)] hover:bg-[var(--gold)]/10"
@@ -356,12 +357,9 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
         <>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {pagina.itens.map((horse, i) => (
-              <HorseCard
-                key={horse.id}
-                horse={horse}
-                href={`/comprar/${horse.id}`}
-                priority={i < 5}
-              />
+              <Revelar key={horse.id} y={20} atraso={atrasoEmGrelha(i)}>
+                <HorseCard horse={horse} href={`/comprar/${horse.id}`} priority={i < 5} />
+              </Revelar>
             ))}
           </div>
 

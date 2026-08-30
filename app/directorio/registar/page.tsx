@@ -103,7 +103,7 @@ export default function RegistarCoudelariaPage() {
           <span className="text-xs uppercase tracking-wider text-[var(--gold)] block mb-4">
             {t.registar_coudelaria.directory_label}
           </span>
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-serif text-[var(--foreground)] mb-4">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl text-[var(--foreground)] mb-4">
             {t.registar_coudelaria.title}
           </h1>
           <p className="text-[var(--foreground-secondary)] max-w-xl mx-auto">
@@ -138,7 +138,7 @@ export default function RegistarCoudelariaPage() {
         {/* Step 1: Informações */}
         {step === 1 && (
           <div className="opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
-            <h2 className="text-2xl font-serif text-[var(--foreground)] mb-6 text-center">
+            <h2 className="text-2xl text-[var(--foreground)] mb-6 text-center">
               {t.registar_coudelaria.step_info_title}
             </h2>
 
@@ -365,7 +365,7 @@ export default function RegistarCoudelariaPage() {
         {/* Step 2: Confirmar */}
         {step === 2 && (
           <div className="opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
-            <h2 className="text-2xl font-serif text-[var(--foreground)] mb-6 text-center">
+            <h2 className="text-2xl text-[var(--foreground)] mb-6 text-center">
               {t.registar_coudelaria.confirm_title}
             </h2>
 
@@ -452,7 +452,7 @@ export default function RegistarCoudelariaPage() {
             <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <Check className="text-green-500" size={40} />
             </div>
-            <h2 className="text-3xl font-serif text-[var(--foreground)] mb-4">
+            <h2 className="text-3xl text-[var(--foreground)] mb-4">
               {t.registar_coudelaria.success_title}
             </h2>
             <p className="text-[var(--foreground-secondary)] mb-8 max-w-md mx-auto">

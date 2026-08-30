@@ -219,9 +219,10 @@ export default function SobreContent() {
   return (
     <main className="min-h-screen bg-[var(--background)] overflow-x-hidden">
       {/* ═══════════════════════════════════════════════════════════════════════
-          HERO — cinematic full-viewport with background image
-      ══════════════════════════════════════════════════════════════════════════ */}
+ HERO — cinematic full-viewport with background image
+ ══════════════════════════════════════════════════════════════════════════ */}
       <section
+        data-revelar=""
         className="relative flex items-center justify-center overflow-hidden"
         style={{ minHeight: "100svh" }}
       >
@@ -369,7 +370,7 @@ export default function SobreContent() {
 
           {/* Title */}
           <h1
-            className="font-serif text-white leading-[0.88] mb-3"
+            className="text-white leading-[0.88] mb-3"
             style={{ fontSize: "clamp(2.8rem, 7vw, 5.5rem)", letterSpacing: "-0.01em" }}
           >
             {tr("A Nossa", "Our", "Nuestra")}
@@ -443,9 +444,10 @@ export default function SobreContent() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          STATS — editorial pillars
-      ══════════════════════════════════════════════════════════════════════════ */}
+ STATS — editorial pillars
+ ══════════════════════════════════════════════════════════════════════════ */}
       <section
+        data-revelar=""
         className="grid grid-cols-2 sm:grid-cols-4 gap-px"
         style={{ background: "rgba(197,160,89,0.07)" }}
       >
@@ -481,7 +483,7 @@ export default function SobreContent() {
                   end={stat.value}
                   duration={1800}
                   suffix={stat.suffix}
-                  className="font-serif text-[var(--gold)] tabular-nums leading-none"
+                  className="text-[var(--gold)] tabular-nums leading-none"
                 />
               </div>
 
@@ -491,7 +493,7 @@ export default function SobreContent() {
 
               {/* Ghost watermark */}
               <span
-                className="absolute bottom-1 right-3 font-serif select-none pointer-events-none"
+                className="absolute bottom-1 right-3 select-none pointer-events-none"
                 aria-hidden
                 style={{ fontSize: "56px", color: "rgba(197,160,89,0.04)", lineHeight: 1 }}
               >
@@ -503,9 +505,12 @@ export default function SobreContent() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          MANIFESTO — cinematic quote
-      ══════════════════════════════════════════════════════════════════════════ */}
-      <section className="relative px-6 sm:px-10 lg:px-16 py-24 sm:py-40 overflow-hidden">
+ MANIFESTO — cinematic quote
+ ══════════════════════════════════════════════════════════════════════════ */}
+      <section
+        data-revelar=""
+        className="relative px-6 sm:px-10 lg:px-16 py-24 sm:py-40 overflow-hidden"
+      >
         {/* Atmospheric glow */}
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
@@ -522,7 +527,7 @@ export default function SobreContent() {
             {/* Giant quotation mark */}
             <div className="relative mb-6 select-none pointer-events-none" aria-hidden>
               <span
-                className="absolute left-1/2 -translate-x-1/2 -top-8 font-serif leading-none text-[var(--gold)]/8 select-none"
+                className="absolute left-1/2 -translate-x-1/2 -top-8 leading-none text-[var(--gold)]/8 select-none"
                 style={{ fontSize: "clamp(8rem, 20vw, 16rem)" }}
               >
                 &ldquo;
@@ -564,9 +569,10 @@ export default function SobreContent() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          ORIGIN STORY — editorial timeline
-      ══════════════════════════════════════════════════════════════════════════ */}
+ ORIGIN STORY — editorial timeline
+ ══════════════════════════════════════════════════════════════════════════ */}
       <section
+        data-revelar=""
         className="px-6 sm:px-10 lg:px-16 py-16 sm:py-28"
         style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}
       >
@@ -587,7 +593,7 @@ export default function SobreContent() {
                 </div>
 
                 <h2
-                  className="font-serif text-[var(--foreground)] leading-[0.92] mb-10"
+                  className="text-[var(--foreground)] leading-[0.92] mb-10"
                   style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)" }}
                 >
                   {tr("Fundado em 2023", "Founded in 2023", "Fundado en 2023")}
@@ -684,9 +690,9 @@ export default function SobreContent() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          FULL-BLEED IMAGE BREAK — cinematic interlude
-      ══════════════════════════════════════════════════════════════════════════ */}
-      <section className="relative h-[50vh] sm:h-[60vh] overflow-hidden">
+ FULL-BLEED IMAGE BREAK — cinematic interlude
+ ══════════════════════════════════════════════════════════════════════════ */}
+      <section data-revelar="" className="relative h-[50vh] sm:h-[60vh] overflow-hidden">
         <Image
           src="/images/sobre/break/break.png"
           alt=""
@@ -753,9 +759,10 @@ export default function SobreContent() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          VALUES — editorial grid
-      ══════════════════════════════════════════════════════════════════════════ */}
+ VALUES — editorial grid
+ ══════════════════════════════════════════════════════════════════════════ */}
       <section
+        data-revelar=""
         className="px-6 sm:px-10 lg:px-16 py-16 sm:py-28"
         style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}
       >
@@ -780,10 +787,7 @@ export default function SobreContent() {
                 aria-hidden
               />
             </div>
-            <h2
-              className="font-serif text-[var(--foreground)]"
-              style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}
-            >
+            <h2 className="text-[var(--foreground)]" style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}>
               {tr("O Que Nos Define", "What Defines Us", "Lo Que Nos Define")}
             </h2>
           </RevealOnScroll>
@@ -827,7 +831,7 @@ export default function SobreContent() {
                   </div>
 
                   <h3
-                    className="font-serif text-[var(--foreground)] mb-4 relative z-10"
+                    className="text-[var(--foreground)] mb-4 relative z-10"
                     style={{ fontSize: "clamp(1.2rem, 2.5vw, 1.6rem)" }}
                   >
                     {value.title}
@@ -838,7 +842,7 @@ export default function SobreContent() {
 
                   {/* Ghost number */}
                   <span
-                    className="absolute bottom-2 right-4 font-serif select-none pointer-events-none"
+                    className="absolute bottom-2 right-4 select-none pointer-events-none"
                     aria-hidden
                     style={{ fontSize: "72px", color: "rgba(197,160,89,0.03)", lineHeight: 1 }}
                   >
@@ -852,9 +856,10 @@ export default function SobreContent() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          WHAT WE OFFER — feature cards
-      ══════════════════════════════════════════════════════════════════════════ */}
+ WHAT WE OFFER — feature cards
+ ══════════════════════════════════════════════════════════════════════════ */}
       <section
+        data-revelar=""
         className="px-6 sm:px-10 lg:px-16 py-16 sm:py-28"
         style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}
       >
@@ -879,10 +884,7 @@ export default function SobreContent() {
                 aria-hidden
               />
             </div>
-            <h2
-              className="font-serif text-[var(--foreground)]"
-              style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}
-            >
+            <h2 className="text-[var(--foreground)]" style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}>
               {tr("O Que Oferecemos", "What We Offer", "Lo Que Ofrecemos")}
             </h2>
           </RevealOnScroll>
@@ -926,7 +928,7 @@ export default function SobreContent() {
                     />
                   </div>
                   <h3
-                    className="font-serif text-[var(--foreground)] mb-2 relative z-10 group-hover:text-[var(--gold)] transition-colors duration-300"
+                    className="text-[var(--foreground)] mb-2 relative z-10 group-hover:text-[var(--gold)] transition-colors duration-300"
                     style={{ fontSize: "clamp(1rem, 2vw, 1.2rem)" }}
                   >
                     {feature.title}
@@ -942,9 +944,10 @@ export default function SobreContent() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          AUDIENCE — who is this for
-      ══════════════════════════════════════════════════════════════════════════ */}
+ AUDIENCE — who is this for
+ ══════════════════════════════════════════════════════════════════════════ */}
       <section
+        data-revelar=""
         className="px-6 sm:px-10 lg:px-16 py-16 sm:py-28"
         style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}
       >
@@ -969,10 +972,7 @@ export default function SobreContent() {
                 aria-hidden
               />
             </div>
-            <h2
-              className="font-serif text-[var(--foreground)]"
-              style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}
-            >
+            <h2 className="text-[var(--foreground)]" style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}>
               {tr("Para Quem é o Portal?", "Who Is the Portal For?", "¿Para Quién es el Portal?")}
             </h2>
           </RevealOnScroll>
@@ -1008,7 +1008,7 @@ export default function SobreContent() {
                       className="text-[var(--gold)] group-hover:scale-110 transition-transform duration-300"
                     />
                   </div>
-                  <h3 className="font-serif text-[var(--foreground)] mb-2 relative z-10 text-base sm:text-lg">
+                  <h3 className="text-[var(--foreground)] mb-2 relative z-10 text-base sm:text-lg">
                     {a.title}
                   </h3>
                   <p className="text-[var(--foreground-muted)] text-xs sm:text-sm leading-relaxed relative z-10 group-hover:text-[var(--foreground-secondary)] transition-colors duration-300">
@@ -1022,9 +1022,10 @@ export default function SobreContent() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          CTA — join the community
-      ══════════════════════════════════════════════════════════════════════════ */}
+ CTA — join the community
+ ══════════════════════════════════════════════════════════════════════════ */}
       <section
+        data-revelar=""
         className="relative px-6 sm:px-10 lg:px-16 py-24 sm:py-40 overflow-hidden"
         style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}
       >
@@ -1059,7 +1060,7 @@ export default function SobreContent() {
             </div>
 
             <h2
-              className="font-serif text-[var(--foreground)] mb-5"
+              className="text-[var(--foreground)] mb-5"
               style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}
             >
               {tr("Junta-te à Comunidade", "Join the Community", "Únete a la Comunidad")}
@@ -1111,8 +1112,8 @@ export default function SobreContent() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════════════
-          FOOTER COLOPHON
-      ══════════════════════════════════════════════════════════════════════════ */}
+ FOOTER COLOPHON
+ ══════════════════════════════════════════════════════════════════════════ */}
       <footer
         className="px-6 sm:px-10 lg:px-16 py-14 flex flex-col items-center text-center gap-5"
         style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}

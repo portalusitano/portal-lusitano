@@ -108,7 +108,7 @@ function PerfilContent() {
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-24 pb-16 px-4">
       <div className="max-w-lg mx-auto space-y-6">
-        <h1 className="text-3xl font-serif">{t.profile.my_profile}</h1>
+        <h1 className="text-3xl">{t.profile.my_profile}</h1>
 
         {/* User Info */}
         <div className="bg-[var(--background-secondary)] cartao p-6 space-y-4">
@@ -205,7 +205,7 @@ function PerfilContent() {
               <Star className="text-[var(--gold)]" size={20} />
               <h2 className="text-lg font-medium">{tr("Favoritos", "Favourites", "Favoritos")}</h2>
             </div>
-            <span className="text-2xl font-serif text-[var(--gold)]">{favoritesCount}</span>
+            <span className="text-2xl text-[var(--gold)]">{favoritesCount}</span>
           </div>
           {favoritesCount > 0 && (
             <LocalizedLink

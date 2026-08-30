@@ -140,8 +140,9 @@ export default function EventosCalendar({
         >
           <ChevronLeft size={20} />
         </button>
-        <h3 className="text-lg font-serif">
-          <span className="text-gradient-gold">{meses[currentMonth]}</span>{" "}
+        <h3 className="text-lg">
+          <span className="text-gradient-gold">{meses[currentMonth]}</span>
+          {""}
           <span className="text-[var(--foreground)]">{currentYear}</span>
         </h3>
         <button

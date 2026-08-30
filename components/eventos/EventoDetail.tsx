@@ -274,7 +274,7 @@ END:VCALENDAR`;
 
           {/* Titulo */}
           <h1
-            className="text-3xl md:text-5xl font-serif text-[var(--foreground)] mb-6 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]"
+            className="text-3xl md:text-5xl text-[var(--foreground)] mb-6 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]"
             style={{ animationDelay: "0.2s" }}
           >
             {evento.titulo}
@@ -352,7 +352,7 @@ END:VCALENDAR`;
             style={{ animationDelay: "0.4s" }}
           >
             <div className="bg-[var(--background-secondary)]/50 border border-[var(--border)] p-6">
-              <h2 className="text-xl font-serif text-[var(--foreground)] mb-4">Sobre o Evento</h2>
+              <h2 className="text-xl text-[var(--foreground)] mb-4">Sobre o Evento</h2>
               <div className="prose prose-invert prose-zinc max-w-none">
                 <p className="text-[var(--foreground-secondary)] whitespace-pre-line leading-relaxed">
                   {evento.descricao_completa || evento.descricao}
@@ -378,7 +378,7 @@ END:VCALENDAR`;
             {/* Organizador */}
             {evento.organizador && (
               <div className="bg-[var(--background-secondary)]/50 border border-[var(--border)] p-6">
-                <h3 className="text-lg font-serif text-[var(--foreground)] mb-2 flex items-center gap-2">
+                <h3 className="text-lg text-[var(--foreground)] mb-2 flex items-center gap-2">
                   <Users size={18} className="text-[var(--gold)]" />
                   Organizador
                 </h3>
@@ -488,9 +488,7 @@ END:VCALENDAR`;
             className="mt-16 opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
             style={{ animationDelay: "0.3s" }}
           >
-            <h2 className="text-2xl font-serif text-[var(--foreground)] mb-6">
-              Eventos Relacionados
-            </h2>
+            <h2 className="text-2xl text-[var(--foreground)] mb-6">Eventos Relacionados</h2>
             <div className="grid md:grid-cols-3 gap-6">
               {relacionados.map((rel) => {
                 const relTipo = tiposEvento[rel.tipo] || {
@@ -523,7 +521,7 @@ END:VCALENDAR`;
                       <span className={`inline-block px-2 py-0.5 text-xs ${relTipo.color} mb-2`}>
                         {rel.tipo}
                       </span>
-                      <h3 className="font-serif text-[var(--foreground)] group-hover:text-[var(--gold)] transition-colors mb-2 line-clamp-2">
+                      <h3 className="text-[var(--foreground)] group-hover:text-[var(--gold)] transition-colors mb-2 line-clamp-2">
                         {rel.titulo}
                       </h3>
                       <p className="text-[var(--foreground-muted)] text-sm flex items-center gap-1">

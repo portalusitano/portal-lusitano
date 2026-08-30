@@ -195,6 +195,7 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
     <main className="min-h-screen bg-[var(--background)]">
       {/* ── Hero ── */}
       <section
+        data-revelar=""
         className="relative pt-20 sm:pt-32 pb-16 overflow-hidden"
         aria-label="Cabeçalho do directório"
       >
@@ -209,7 +210,7 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
               {t.directorio.badge}
               <span className="block w-8 h-px bg-[var(--gold)]/60" />
             </span>
-            <h1 className="text-2xl sm:text-4xl md:text-6xl font-serif text-[var(--foreground)] mb-5">
+            <h1 className="text-2xl sm:text-4xl md:text-6xl text-[var(--foreground)] mb-5">
               {t.directorio.title}
             </h1>
             <p className="text-[var(--foreground-secondary)] max-w-2xl mx-auto text-lg leading-relaxed">
@@ -231,7 +232,7 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
                 key={label}
                 className="text-center p-4 bg-[var(--surface-hover)] border border-[var(--border)] hover:border-[var(--gold)]/30 transition-colors"
               >
-                <div className="text-3xl font-serif text-[var(--gold)]">{value}</div>
+                <div className="text-3xl text-[var(--gold)]">{value}</div>
                 <div className="text-sm text-[var(--foreground-muted)] mt-1">{label}</div>
               </div>
             ))}
@@ -253,7 +254,7 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
                   <Crown className="text-black" size={28} />
                 </div>
                 <div>
-                  <h2 className="text-lg sm:text-xl font-serif text-[var(--foreground)] mb-1">
+                  <h2 className="text-lg sm:text-xl text-[var(--foreground)] mb-1">
                     {t.directorio.has_stud}
                   </h2>
                   <p className="text-[var(--foreground-secondary)] text-sm sm:text-base">
@@ -388,13 +389,13 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
         {/* ── Results ── */}
         <div className="space-y-12">
           {paginadas.length > 0 && (
-            <section aria-label={t.directorio.coudelarias}>
+            <section data-revelar="" aria-label={t.directorio.coudelarias}>
               <AnimateOnScroll>
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-3">
                     <span className="w-px h-6 bg-[var(--gold)]" aria-hidden="true" />
                     <Crown className="text-[var(--gold)]" size={20} aria-hidden="true" />
-                    <h2 className="text-2xl font-serif text-[var(--foreground)]">
+                    <h2 className="text-2xl text-[var(--foreground)]">
                       {t.directorio.coudelarias}
                       <span className="text-[var(--foreground-muted)] text-base font-normal ml-3">
                         ({deferredFiltered.length})
@@ -427,9 +428,7 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
                 >
                   <Search className="text-[var(--foreground-muted)]" size={32} />
                 </div>
-                <h3 className="text-xl font-serif text-[var(--foreground)] mb-2">
-                  {t.directorio.no_results}
-                </h3>
+                <h3 className="text-xl text-[var(--foreground)] mb-2">{t.directorio.no_results}</h3>
                 <p className="text-[var(--foreground-muted)] max-w-sm mx-auto">
                   {t.directorio.no_results_hint}
                 </p>
@@ -520,7 +519,7 @@ function CoudelariaCard({
 
         {/* Content (bottom overlay) */}
         <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
-          <h3 className="text-base sm:text-2xl font-serif text-white mb-1.5 sm:mb-2 group-hover:text-[var(--gold)] transition-colors duration-300 line-clamp-1 sm:line-clamp-none">
+          <h3 className="text-base sm:text-2xl text-white mb-1.5 sm:mb-2 group-hover:text-[var(--gold)] transition-colors duration-300 line-clamp-1 sm:line-clamp-none">
             {coudelaria.nome}
           </h3>
 

@@ -139,7 +139,10 @@ export default function MensagensContent() {
             Todas as mensagens
           </button>
 
-          <header className="flex items-center gap-4 pb-6 border-b border-[var(--border)]">
+          <header
+            data-revelar=""
+            className="flex items-center gap-4 pb-6 border-b border-[var(--border)]"
+          >
             <div className="relative w-14 h-14 shrink-0 bg-[var(--background-secondary)]/30">
               {aberta.cavaloFoto ? (
                 <Image
@@ -240,7 +243,7 @@ export default function MensagensContent() {
           <ArrowLeft size={12} />A minha conta
         </LocalizedLink>
 
-        <header className="mb-12">
+        <header data-revelar="" className="mb-12">
           <h1 className="titulo-gradiente text-[1.75rem] md:text-[2.5rem] font-normal leading-[120%] tracking-tighter">
             As minhas mensagens
           </h1>

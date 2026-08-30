@@ -89,7 +89,7 @@ const StatCard = memo(function StatCard({
         <Icon size={16} className="text-black" />
       </div>
       <div className="pt-3 text-center">
-        <div className="text-2xl font-serif text-[var(--foreground)]">{value}</div>
+        <div className="text-2xl text-[var(--foreground)]">{value}</div>
         <div className="rotulo mt-1">{label}</div>
       </div>
     </div>
@@ -131,9 +131,7 @@ const CoudelariaCard = memo(function CoudelariaCard({
           )}
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-[var(--foreground)] font-serif text-sm truncate">
-            {coudelaria.nome}
-          </h3>
+          <h3 className="text-[var(--foreground)] text-sm truncate">{coudelaria.nome}</h3>
           <p className="text-[var(--foreground-muted)] text-xs flex items-center gap-1">
             <MapPin size={10} className="text-[var(--gold)]" />
             {coudelaria.localizacao}
@@ -183,7 +181,7 @@ const GridCard = memo(function GridCard({
         </div>
       </div>
       <div className="p-3">
-        <h3 className="font-serif text-[var(--foreground)] group-hover:text-[var(--gold)] transition-colors">
+        <h3 className="text-[var(--foreground)] group-hover:text-[var(--gold)] transition-colors">
           {coudelaria.nome}
         </h3>
         <p className="text-[var(--foreground-muted)] text-xs mb-1">{coudelaria.localizacao}</p>
@@ -267,7 +265,7 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
             <Compass className="text-[var(--gold)]" size={16} />
             <span className="rotulo-forte">{t.mapa.badge}</span>
           </div>
-          <h1 className="text-2xl sm:text-4xl md:text-6xl font-serif mb-4 text-[var(--foreground)]">
+          <h1 className="text-2xl sm:text-4xl md:text-6xl mb-4 text-[var(--foreground)]">
             {t.mapa.title.split("Portugal")[0]}
             <span className="text-[var(--gold)]">Portugal</span>
             {t.mapa.title.split("Portugal")[1]}
@@ -356,13 +354,12 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
                         <span className="text-[11px] text-[var(--gold)] uppercase tracking-wider">
                           {t.mapa.region}
                         </span>
-                        <h2 className="text-xl font-serif text-[var(--foreground)]">
-                          {selectedRegiao}
-                        </h2>
+                        <h2 className="text-xl text-[var(--foreground)]">{selectedRegiao}</h2>
                         <p className="text-[var(--foreground-secondary)] text-sm">
                           <span className="text-[var(--gold)] font-bold">
                             {coudelariasPorRegiao[selectedRegiao]?.length || 0}
-                          </span>{" "}
+                          </span>
+                          {""}
                           {t.mapa.studs_count}
                         </p>
                       </div>
@@ -391,9 +388,7 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
                   <div className="mb-4 p-4 bg-[var(--background-secondary)]/80 border border-[var(--border)] rounded-xl">
                     <div className="flex items-center gap-2 mb-1">
                       <Layers className="text-[var(--gold)]" size={16} />
-                      <h2 className="font-serif text-[var(--foreground)]">
-                        {t.mapa.explore_regions}
-                      </h2>
+                      <h2 className="text-[var(--foreground)]">{t.mapa.explore_regions}</h2>
                     </div>
                     <p className="text-[var(--foreground-muted)] text-xs">
                       {t.mapa.select_region_hint}
@@ -414,9 +409,7 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
                                 <MapPin className="text-[var(--gold)]" size={16} />
                               </div>
                               <div>
-                                <h3 className="text-[var(--foreground)] font-serif text-sm">
-                                  {regiao}
-                                </h3>
+                                <h3 className="text-[var(--foreground)] text-sm">{regiao}</h3>
                                 <p className="text-[var(--foreground-muted)] text-[10px]">
                                   {list.length} {t.mapa.studs_count}
                                 </p>
@@ -435,7 +428,8 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
           <div>
             {searchQuery && (
               <p className="mb-4 text-[var(--foreground-secondary)] text-sm">
-                <span className="text-[var(--gold)] font-bold">{filteredCoudelarias.length}</span>{" "}
+                <span className="text-[var(--gold)] font-bold">{filteredCoudelarias.length}</span>
+                {""}
                 resultados
               </p>
             )}
@@ -480,9 +474,7 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
                 )}
               </div>
               <div className="p-5">
-                <h3 className="text-xl font-serif text-[var(--foreground)] mb-1">
-                  {selectedCoudelaria.nome}
-                </h3>
+                <h3 className="text-xl text-[var(--foreground)] mb-1">{selectedCoudelaria.nome}</h3>
                 <p className="text-[var(--foreground-secondary)] text-sm flex items-center gap-1 mb-3">
                   <MapPin size={12} className="text-[var(--gold)]" />
                   {selectedCoudelaria.localizacao}, {selectedCoudelaria.regiao}

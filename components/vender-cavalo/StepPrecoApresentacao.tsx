@@ -66,7 +66,7 @@ export default function StepPrecoApresentacao({
 
   return (
     <div className="bg-[var(--background-secondary)]/50 cartao p-6">
-      <h2 className="text-xl font-serif mb-6 flex items-center gap-3">
+      <h2 className="text-xl mb-6 flex items-center gap-3">
         <span className="w-8 h-8 bg-[var(--gold)] rounded-full flex items-center justify-center text-black text-sm font-bold">
           5
         </span>
@@ -552,7 +552,7 @@ export default function StepPrecoApresentacao({
                   {isDragging ? t.vender_cavalo.drop_here : t.vender_cavalo.drag_or_click}
                 </p>
                 <p className="text-xs text-[var(--foreground-muted)] mt-1">
-                  JPG, PNG, WEBP &middot;{" "}
+                  JPG, PNG, WEBP &middot;{""}
                   {t.vender_cavalo.max_images_hint.replace("{max}", String(maxImages))}
                 </p>
               </div>

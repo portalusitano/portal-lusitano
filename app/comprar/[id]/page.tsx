@@ -22,6 +22,7 @@ import {
   Clock,
 } from "lucide-react";
 import HorseCard from "@/components/HorseCard";
+import Revelar from "@/components/Revelar";
 import PhotoGallery from "@/components/PhotoGallery";
 
 import { CavaloVenda } from "@/types/cavalo";
@@ -232,7 +233,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
 
   // WhatsApp link helper
   const whatsappLink = cavalo.contacto_telefone
-    ? `https://wa.me/${cavalo.contacto_telefone.replace(/\D/g, "")}?text=${encodeURIComponent(`Olá! Tenho interesse no cavalo "${cavalo.nome_cavalo}" (REG: ${cavalo.id.slice(0, 8).toUpperCase()}) anunciado no Portal Lusitano.`)}`
+    ? `https://wa.me/${cavalo.contacto_telefone.replace(/\D/g, "")}?text=${encodeURIComponent(`Olá! Tenho interesse no cavalo"${cavalo.nome_cavalo}" (REG: ${cavalo.id.slice(0, 8).toUpperCase()}) anunciado no Portal Lusitano.`)}`
     : null;
 
   return (
@@ -328,7 +329,8 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                     <p className="text-xs text-[var(--foreground-secondary)] leading-relaxed">
                       {visibilidade === "vendido"
                         ? "Este cavalo já foi vendido. A ficha fica para consulta — os contactos do vendedor deixaram de estar disponíveis."
-                        : "O período de publicação deste anúncio chegou ao fim, por isso os contactos do vendedor já não estão disponíveis."}{" "}
+                        : "O período de publicação deste anúncio chegou ao fim, por isso os contactos do vendedor já não estão disponíveis."}
+                      {""}
                       <Link
                         href="/comprar"
                         className="text-[var(--gold)] hover:underline underline-offset-2"
@@ -368,7 +370,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
               </p>
 
               {/* Guardar + partilhar — como em qualquer classificados, é daqui
-                  que o anúncio circula para fora do site. */}
+ que o anúncio circula para fora do site. */}
               <AccoesAnuncio
                 cavalo={{
                   id: cavalo.id,
@@ -406,92 +408,96 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
             </header>
 
             {/* BIOMETRIC SPECS */}
-            <section aria-labelledby="specs-heading">
-              <h2 id="specs-heading" className="titulo-seccao mb-5">
-                Especificações
-              </h2>
-              <dl className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-5">
-                {cavalo.idade && (
-                  <div>
-                    <dt className="rotulo mb-1">Idade</dt>
-                    <dd className="text-base font-medium text-[var(--foreground)]">
-                      {cavalo.idade} Anos
-                    </dd>
-                  </div>
-                )}
-                {cavalo.localizacao && (
-                  <div>
-                    <dt className="rotulo mb-1">Localização</dt>
-                    <dd className="text-base font-medium text-[var(--foreground)]">
-                      {cavalo.localizacao}
-                    </dd>
-                  </div>
-                )}
-                {cavalo.altura && (
-                  <div>
-                    <dt className="rotulo mb-1">Altura ao Garrote</dt>
-                    <dd className="text-base font-medium text-[var(--foreground)]">
-                      {cavalo.altura} cm
-                    </dd>
-                  </div>
-                )}
-                {cavalo.pelagem && (
-                  <div>
-                    <dt className="rotulo mb-1">Pelagem</dt>
-                    <dd className="text-base font-medium text-[var(--foreground)]">
-                      {cavalo.pelagem}
-                    </dd>
-                  </div>
-                )}
-                {cavalo.nivel && (
-                  <div>
-                    <dt className="rotulo mb-1">Nível de Treino</dt>
-                    <dd className="text-base font-medium text-[var(--foreground)]">
-                      {cavalo.nivel}
-                    </dd>
-                  </div>
-                )}
-                {cavalo.pontuacao_apsl && (
-                  <div>
-                    <dt className="rotulo mb-1">Pontuação APSL</dt>
-                    <dd className="text-base font-medium text-[var(--foreground)]">
-                      {cavalo.pontuacao_apsl} pts
-                    </dd>
-                  </div>
-                )}
-              </dl>
+            <Revelar duracao={600}>
+              <section aria-labelledby="specs-heading">
+                <h2 id="specs-heading" className="titulo-seccao mb-5">
+                  Especificações
+                </h2>
+                <dl className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-5">
+                  {cavalo.idade && (
+                    <div>
+                      <dt className="rotulo mb-1">Idade</dt>
+                      <dd className="text-base font-medium text-[var(--foreground)]">
+                        {cavalo.idade} Anos
+                      </dd>
+                    </div>
+                  )}
+                  {cavalo.localizacao && (
+                    <div>
+                      <dt className="rotulo mb-1">Localização</dt>
+                      <dd className="text-base font-medium text-[var(--foreground)]">
+                        {cavalo.localizacao}
+                      </dd>
+                    </div>
+                  )}
+                  {cavalo.altura && (
+                    <div>
+                      <dt className="rotulo mb-1">Altura ao Garrote</dt>
+                      <dd className="text-base font-medium text-[var(--foreground)]">
+                        {cavalo.altura} cm
+                      </dd>
+                    </div>
+                  )}
+                  {cavalo.pelagem && (
+                    <div>
+                      <dt className="rotulo mb-1">Pelagem</dt>
+                      <dd className="text-base font-medium text-[var(--foreground)]">
+                        {cavalo.pelagem}
+                      </dd>
+                    </div>
+                  )}
+                  {cavalo.nivel && (
+                    <div>
+                      <dt className="rotulo mb-1">Nível de Treino</dt>
+                      <dd className="text-base font-medium text-[var(--foreground)]">
+                        {cavalo.nivel}
+                      </dd>
+                    </div>
+                  )}
+                  {cavalo.pontuacao_apsl && (
+                    <div>
+                      <dt className="rotulo mb-1">Pontuação APSL</dt>
+                      <dd className="text-base font-medium text-[var(--foreground)]">
+                        {cavalo.pontuacao_apsl} pts
+                      </dd>
+                    </div>
+                  )}
+                </dl>
 
-              {/* Description */}
-              {cavalo.descricao && (
-                <div className="mt-10 pt-8 border-t border-[var(--background-secondary)]">
-                  <h3 className="rotulo-forte mb-2">Parecer Técnico</h3>
-                  <p className="leading-relaxed text-sm sm:text-base text-[var(--foreground-secondary)]">
-                    &ldquo;{cavalo.descricao}&rdquo;
-                  </p>
-                </div>
-              )}
-            </section>
+                {/* Description */}
+                {cavalo.descricao && (
+                  <div className="mt-10 pt-8 border-t border-[var(--background-secondary)]">
+                    <h3 className="rotulo-forte mb-2">Parecer Técnico</h3>
+                    <p className="leading-relaxed text-sm sm:text-base text-[var(--foreground-secondary)]">
+                      &ldquo;{cavalo.descricao}&rdquo;
+                    </p>
+                  </div>
+                )}
+              </section>
+            </Revelar>
 
             {/* PEDIGREE */}
             {(cavalo.pai || cavalo.mae) && (
-              <section
-                aria-labelledby="pedigree-heading"
-                className="border-t border-[var(--background-secondary)] pt-10"
-              >
-                <h2 id="pedigree-heading" className="titulo-seccao mb-5">
-                  Certificado de Sangue
-                </h2>
-                <Pedigree cavalo={cavalo} />
-                <p className="meta text-center mt-4">Dados verificados via Stud-Book Digital</p>
-              </section>
+              <Revelar duracao={600}>
+                <section
+                  aria-labelledby="pedigree-heading"
+                  className="border-t border-[var(--background-secondary)] pt-10"
+                >
+                  <h2 id="pedigree-heading" className="titulo-seccao mb-5">
+                    Certificado de Sangue
+                  </h2>
+                  <Pedigree cavalo={cavalo} />
+                  <p className="meta text-center mt-4">Dados verificados via Stud-Book Digital</p>
+                </section>
+              </Revelar>
             )}
 
             {/* Conta a visualização — o vendedor paga o anúncio e este é o
-                único indicador de retorno que recebe. */}
+ único indicador de retorno que recebe. */}
             <RegistarVisualizacao cavaloId={cavalo.id} />
 
             {/* Histórico local, para o comprador conseguir voltar a este
-                anúncio depois de percorrer outros. */}
+ anúncio depois de percorrer outros. */}
             <HistoricoVisita
               id={cavalo.id}
               nome={cavalo.nome_cavalo}
@@ -501,117 +507,119 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
             />
 
             {/* CONTACT / CTA */}
-            <section
-              aria-labelledby="contact-heading"
-              className="border-t border-[var(--background-secondary)] pt-10"
-            >
-              <h2 id="contact-heading" className="titulo-seccao mb-4">
-                {encerrado ? "Vendedor" : "Contactar Vendedor"}
-              </h2>
+            <Revelar duracao={600}>
+              <section
+                aria-labelledby="contact-heading"
+                className="border-t border-[var(--background-secondary)] pt-10"
+              >
+                <h2 id="contact-heading" className="titulo-seccao mb-4">
+                  {encerrado ? "Vendedor" : "Contactar Vendedor"}
+                </h2>
 
-              <div className="space-y-3">
-                {/* Seller info chip */}
-                {cavalo.contacto_nome && (
-                  <div className="flex items-center gap-3 px-4 py-3 bg-[var(--background-secondary)] border border-[var(--border)]">
-                    <div className="w-9 h-9 rounded-full bg-[var(--gold)]/15 flex items-center justify-center flex-shrink-0">
-                      <span className="text-[var(--gold)] text-sm font-bold">
-                        {cavalo.contacto_nome.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-[var(--foreground)]">
-                        {cavalo.contacto_nome}
-                      </p>
-                      {cavalo.user_id ? (
-                        <a
-                          href={`/vendedor/${cavalo.user_id}`}
-                          className="text-[10px] text-[var(--gold)]/70 hover:text-[var(--gold)] uppercase tracking-wide transition-colors"
-                        >
-                          Ver outros anúncios deste vendedor →
-                        </a>
-                      ) : (
-                        <p className="text-[10px] text-[var(--foreground-muted)] uppercase tracking-wide">
-                          Vendedor verificado
+                <div className="space-y-3">
+                  {/* Seller info chip */}
+                  {cavalo.contacto_nome && (
+                    <div className="flex items-center gap-3 px-4 py-3 bg-[var(--background-secondary)] border border-[var(--border)]">
+                      <div className="w-9 h-9 rounded-full bg-[var(--gold)]/15 flex items-center justify-center flex-shrink-0">
+                        <span className="text-[var(--gold)] text-sm font-bold">
+                          {cavalo.contacto_nome.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-[var(--foreground)]">
+                          {cavalo.contacto_nome}
                         </p>
-                      )}
+                        {cavalo.user_id ? (
+                          <a
+                            href={`/vendedor/${cavalo.user_id}`}
+                            className="text-[10px] text-[var(--gold)]/70 hover:text-[var(--gold)] uppercase tracking-wide transition-colors"
+                          >
+                            Ver outros anúncios deste vendedor →
+                          </a>
+                        ) : (
+                          <p className="text-[10px] text-[var(--foreground-muted)] uppercase tracking-wide">
+                            Vendedor verificado
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Passado o prazo, os contactos deixam de ser encaminhados:
-                    o vendedor já não está à espera de chamadas por este
-                    anúncio, e recebê-las é pior do que não receber nada. */}
-                {encerrado && (
-                  <p className="px-4 py-3 bg-[var(--background-secondary)] border border-[var(--border)] text-xs text-[var(--foreground-secondary)] leading-relaxed">
-                    Os contactos deste anúncio já não estão disponíveis.
-                    {cavalo.user_id ? (
-                      <>
-                        {" "}
-                        Pode ver o que este vendedor tem à venda em{" "}
-                        <Link
-                          href={`/vendedor/${cavalo.user_id}`}
-                          className="text-[var(--gold)] hover:underline underline-offset-2"
-                        >
-                          outros anúncios
-                        </Link>
-                        .
-                      </>
-                    ) : null}
-                  </p>
-                )}
+                  {/* Passado o prazo, os contactos deixam de ser encaminhados:
+ o vendedor já não está à espera de chamadas por este
+ anúncio, e recebê-las é pior do que não receber nada. */}
+                  {encerrado && (
+                    <p className="px-4 py-3 bg-[var(--background-secondary)] border border-[var(--border)] text-xs text-[var(--foreground-secondary)] leading-relaxed">
+                      Os contactos deste anúncio já não estão disponíveis.
+                      {cavalo.user_id ? (
+                        <>
+                          {""}
+                          Pode ver o que este vendedor tem à venda em{""}
+                          <Link
+                            href={`/vendedor/${cavalo.user_id}`}
+                            className="text-[var(--gold)] hover:underline underline-offset-2"
+                          >
+                            outros anúncios
+                          </Link>
+                          .
+                        </>
+                      ) : null}
+                    </p>
+                  )}
 
-                {/* Mensagem no portal — preferida quando o anúncio tem conta
-                    associada, para o contacto directo do vendedor deixar de ser
-                    o único caminho e não ficar exposto a scraping. */}
-                {!encerrado && cavalo.user_id && (
-                  <ContactarVendedor cavaloId={cavalo.id} cavaloNome={cavalo.nome_cavalo} />
-                )}
+                  {/* Mensagem no portal — preferida quando o anúncio tem conta
+ associada, para o contacto directo do vendedor deixar de ser
+ o único caminho e não ficar exposto a scraping. */}
+                  {!encerrado && cavalo.user_id && (
+                    <ContactarVendedor cavaloId={cavalo.id} cavaloNome={cavalo.nome_cavalo} />
+                  )}
 
-                {/* WhatsApp CTA — primary */}
-                {!encerrado && whatsappLink && (
-                  <a
-                    href={whatsappLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn w-full text-white"
-                    style={{ background: "#25D366", color: "#fff" }}
-                  >
-                    <MessageCircle size={16} aria-hidden="true" />
-                    Contactar via WhatsApp
-                  </a>
-                )}
+                  {/* WhatsApp CTA — primary */}
+                  {!encerrado && whatsappLink && (
+                    <a
+                      href={whatsappLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn w-full text-white"
+                      style={{ background: "#25D366", color: "#fff" }}
+                    >
+                      <MessageCircle size={16} aria-hidden="true" />
+                      Contactar via WhatsApp
+                    </a>
+                  )}
 
-                {/* Phone call */}
-                {!encerrado && cavalo.contacto_telefone && (
-                  <a
-                    href={`tel:${cavalo.contacto_telefone.replace(/\s/g, "")}`}
-                    className="btn btn-secundario w-full"
-                  >
-                    <Phone size={16} aria-hidden="true" />
-                    {cavalo.contacto_telefone}
-                  </a>
-                )}
+                  {/* Phone call */}
+                  {!encerrado && cavalo.contacto_telefone && (
+                    <a
+                      href={`tel:${cavalo.contacto_telefone.replace(/\s/g, "")}`}
+                      className="btn btn-secundario w-full"
+                    >
+                      <Phone size={16} aria-hidden="true" />
+                      {cavalo.contacto_telefone}
+                    </a>
+                  )}
 
-                {/* Email — always available as fallback */}
-                {!encerrado && (
-                  <a
-                    href={`mailto:${cavalo.contacto_email || "geral@portal-lusitano.pt"}?subject=Interesse: ${encodeURIComponent(cavalo.nome_cavalo)} (REG: ${cavalo.id.slice(0, 8).toUpperCase()})`}
-                    className="btn btn-primario w-full"
-                  >
-                    <Mail size={16} aria-hidden="true" />
-                    Enviar Mensagem
-                  </a>
-                )}
+                  {/* Email — always available as fallback */}
+                  {!encerrado && (
+                    <a
+                      href={`mailto:${cavalo.contacto_email || "geral@portal-lusitano.pt"}?subject=Interesse: ${encodeURIComponent(cavalo.nome_cavalo)} (REG: ${cavalo.id.slice(0, 8).toUpperCase()})`}
+                      className="btn btn-primario w-full"
+                    >
+                      <Mail size={16} aria-hidden="true" />
+                      Enviar Mensagem
+                    </a>
+                  )}
 
-                {!encerrado && (
-                  <p className="meta text-center pt-1">
-                    Resposta em menos de 24 horas · Transacção segura
-                  </p>
-                )}
+                  {!encerrado && (
+                    <p className="meta text-center pt-1">
+                      Resposta em menos de 24 horas · Transacção segura
+                    </p>
+                  )}
 
-                <DenunciarAnuncio cavaloId={cavalo.id} />
-              </div>
-            </section>
+                  <DenunciarAnuncio cavaloId={cavalo.id} />
+                </div>
+              </section>
+            </Revelar>
 
             {/* SIMILAR HORSES */}
             {similarHorses.length > 0 && (

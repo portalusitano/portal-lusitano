@@ -65,7 +65,7 @@ export default memo(function Footer() {
   );
 
   const MARQUEE =
-    "Cavalos Lusitanos · Portugal · Est. 2023 · O Legado Nobre · Raça Lusitana · The Lusitano Archive · Coudelarias · Profissionais Equestres · ";
+    "Cavalos Lusitanos · Portugal · Est. 2023 · O Legado Nobre · Raça Lusitana · The Lusitano Archive · Coudelarias · Profissionais Equestres ·";
 
   const socials = [
     {
@@ -160,7 +160,7 @@ export default memo(function Footer() {
         <LocalizedLink href="/" className="group inline-block mb-2" aria-label="Portal Lusitano">
           <div className="leading-[0.9]">
             <span
-              className="block font-serif font-normal tracking-[-0.03em] text-[var(--foreground)] group-hover:text-[var(--gold)] transition-colors duration-700"
+              className="block font-normal tracking-[-0.03em] text-[var(--foreground)] group-hover:text-[var(--gold)] transition-colors duration-700"
               style={{ fontSize: "clamp(2.2rem, 5.5vw, 4.5rem)" }}
             >
               PORTAL
@@ -319,7 +319,7 @@ export default memo(function Footer() {
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-[10px] uppercase tracking-[0.22em] text-[var(--foreground-muted)] hover:text-[var(--foreground-secondary)] transition-colors"
+                    className="flex items-center gap-1 rotulo hover:text-[var(--foreground-secondary)] transition-colors"
                   >
                     {link.label}
                     <ArrowUpRight size={8} />
@@ -337,7 +337,7 @@ export default memo(function Footer() {
                   )}
                   <LocalizedLink
                     href={link.href}
-                    className="text-[10px] uppercase tracking-[0.22em] text-[var(--foreground-muted)] hover:text-[var(--foreground-secondary)] transition-colors"
+                    className="rotulo hover:text-[var(--foreground-secondary)] transition-colors"
                   >
                     {link.label}
                   </LocalizedLink>
@@ -360,11 +360,11 @@ export default memo(function Footer() {
       </div>
 
       <style>{`
-        @keyframes footer-marquee {
-          from { transform: translateX(0); }
-          to   { transform: translateX(-50%); }
-        }
-      `}</style>
+ @keyframes footer-marquee {
+ from { transform: translateX(0); }
+ to { transform: translateX(-50%); }
+ }
+ `}</style>
     </footer>
   );
 });

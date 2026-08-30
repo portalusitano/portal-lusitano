@@ -149,7 +149,7 @@ function SectionTitle({ icon, title }: { icon?: React.ReactNode; title: string }
           {icon}
         </span>
       )}
-      <h2 className="text-lg sm:text-2xl font-serif text-[var(--foreground)] leading-tight min-w-0">
+      <h2 className="text-lg sm:text-2xl text-[var(--foreground)] leading-tight min-w-0">
         {title}
       </h2>
     </div>
@@ -257,6 +257,7 @@ export default function CoudelariaDetail({
     <main className="min-h-screen bg-[var(--background)] [overflow-x:clip]">
       {/* ── Hero ── */}
       <section
+        data-revelar=""
         className="relative h-[50vh] sm:h-[65vh] min-h-[340px] sm:min-h-[460px]"
         aria-label={coudelaria.nome}
       >
@@ -316,7 +317,7 @@ export default function CoudelariaDetail({
                   {t.directorio.founded} {coudelaria.ano_fundacao}
                 </span>
               )}
-              <h1 className="text-2xl sm:text-4xl md:text-6xl font-serif text-white mb-4 leading-tight">
+              <h1 className="text-2xl sm:text-4xl md:text-6xl text-white mb-4 leading-tight">
                 {coudelaria.nome}
               </h1>
               <div className="flex flex-wrap items-center gap-4 text-white/70 text-sm">
@@ -365,7 +366,7 @@ export default function CoudelariaDetail({
             {/* Especialidades */}
             {Array.isArray(coudelaria.especialidades) && coudelaria.especialidades.length > 0 && (
               <AnimateOnScroll delay={100}>
-                <section aria-label={t.directorio.specialties}>
+                <section data-revelar="" aria-label={t.directorio.specialties}>
                   <SectionTitle icon={<Sparkles size={22} />} title={t.directorio.specialties} />
                   <div className="flex flex-wrap gap-3">
                     {coudelaria.especialidades.map((esp) => (
@@ -384,7 +385,7 @@ export default function CoudelariaDetail({
             {/* Historia */}
             {coudelaria.historia && (
               <AnimateOnScroll delay={150}>
-                <section aria-label={t.directorio.history}>
+                <section data-revelar="" aria-label={t.directorio.history}>
                   <SectionTitle icon={<Calendar size={22} />} title={t.directorio.history} />
                   <div className="space-y-4">
                     {coudelaria.historia.split("\n\n").map((paragraph, i) => (
@@ -403,7 +404,7 @@ export default function CoudelariaDetail({
             {/* Galeria */}
             {images.length > 1 && (
               <AnimateOnScroll delay={200}>
-                <section aria-label={t.directorio.gallery}>
+                <section data-revelar="" aria-label={t.directorio.gallery}>
                   <SectionTitle title={t.directorio.gallery} />
                   <div className="relative">
                     <div className="aspect-video relative overflow-hidden bg-[var(--background-secondary)] border border-[var(--border)]">
@@ -473,7 +474,7 @@ export default function CoudelariaDetail({
             {/* Premios */}
             {Array.isArray(coudelaria.premios) && coudelaria.premios.length > 0 && (
               <AnimateOnScroll delay={250}>
-                <section aria-label={t.directorio.awards}>
+                <section data-revelar="" aria-label={t.directorio.awards}>
                   <SectionTitle icon={<Trophy size={22} />} title={t.directorio.awards} />
                   <div className="space-y-3">
                     {coudelaria.premios.map((premio) => (
@@ -500,7 +501,7 @@ export default function CoudelariaDetail({
             {Array.isArray(coudelaria.cavalos_destaque) &&
               coudelaria.cavalos_destaque.length > 0 && (
                 <AnimateOnScroll delay={300}>
-                  <section aria-label={t.directorio.featured_horses}>
+                  <section data-revelar="" aria-label={t.directorio.featured_horses}>
                     <SectionTitle icon={<Star size={22} />} title={t.directorio.featured_horses} />
                     <div className="grid sm:grid-cols-2 gap-4">
                       {coudelaria.cavalos_destaque.map((cavalo) => (
@@ -557,7 +558,7 @@ export default function CoudelariaDetail({
             {/* Testemunhos */}
             {Array.isArray(coudelaria.testemunhos) && coudelaria.testemunhos.length > 0 && (
               <AnimateOnScroll delay={350}>
-                <section aria-label={t.directorio.testimonials}>
+                <section data-revelar="" aria-label={t.directorio.testimonials}>
                   <SectionTitle icon={<Quote size={22} />} title={t.directorio.testimonials} />
                   <div className="space-y-4">
                     {coudelaria.testemunhos.map((test) => (
@@ -585,12 +586,12 @@ export default function CoudelariaDetail({
 
             {/* Reviews */}
             <AnimateOnScroll delay={400}>
-              <section aria-label={t.directorio.reviews}>
+              <section data-revelar="" aria-label={t.directorio.reviews}>
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                   <div className="flex items-center gap-3">
                     <span className="w-px h-6 bg-[var(--gold)]" aria-hidden="true" />
                     <MessageSquare className="text-[var(--gold)]" size={22} aria-hidden="true" />
-                    <h2 className="text-xl sm:text-2xl font-serif text-[var(--foreground)]">
+                    <h2 className="text-xl sm:text-2xl text-[var(--foreground)]">
                       {t.directorio.reviews}
                     </h2>
                     {reviewStats.total > 0 && (
@@ -614,7 +615,7 @@ export default function CoudelariaDetail({
                   <div className="flex items-center gap-6 mb-6 p-5 bg-[var(--background-secondary)]/50 border border-[var(--border)]">
                     <div className="text-center">
                       <div
-                        className="text-4xl font-serif text-[var(--gold)]"
+                        className="text-4xl text-[var(--gold)]"
                         aria-label={`${reviewStats.media} estrelas`}
                       >
                         {reviewStats.media}
@@ -635,7 +636,7 @@ export default function CoudelariaDetail({
                       className="mb-6 sm:mb-8 p-4 sm:p-6 bg-[var(--background-secondary)]/50 border border-[var(--gold)]/25"
                       aria-label={t.directorio.share_experience}
                     >
-                      <h3 className="text-lg font-serif text-[var(--foreground)] mb-5">
+                      <h3 className="text-lg text-[var(--foreground)] mb-5">
                         {t.directorio.share_experience}
                       </h3>
 
@@ -772,7 +773,7 @@ export default function CoudelariaDetail({
                         key={review.id}
                         className="p-4 sm:p-6 bg-[var(--background-secondary)]/50 border border-[var(--border)] hover:border-[var(--gold)]/20 transition-colors"
                       >
-                        <header className="flex items-start justify-between mb-3">
+                        <header data-revelar="" className="flex items-start justify-between mb-3">
                           <div>
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-[var(--foreground)] font-medium text-sm">

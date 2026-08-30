@@ -57,7 +57,7 @@ export default function AlertasContent() {
   const [maximo, setMaximo] = useState(10);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
-  // Chegar aqui a partir de "Guardar esta pesquisa" traz os critérios no URL:
+  // Chegar aqui a partir de"Guardar esta pesquisa" traz os critérios no URL:
   // reescrevê-los à mão seria pedir à pessoa o trabalho que ela acabou de fazer.
   const filtrosDoUrl = useMemo(() => {
     const ler = (k: string) => searchParams.get(k) || "";
@@ -194,7 +194,7 @@ export default function AlertasContent() {
           <ArrowLeft size={12} />A minha conta
         </LocalizedLink>
 
-        <header className="mb-10">
+        <header data-revelar="" className="mb-10">
           <h1 className="titulo-gradiente text-[1.75rem] md:text-[2.5rem] font-normal leading-[120%] tracking-tighter">
             Os meus alertas
           </h1>

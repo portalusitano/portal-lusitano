@@ -216,11 +216,12 @@ export default function CookieConsent() {
               <p className="text-[var(--gold)] rotulo">{t.label}</p>
             </div>
 
-            <h3 className="font-serif text-[var(--foreground)] text-[1.15rem] leading-snug mb-2.5">
+            <h3 className="text-[var(--foreground)] text-[1.15rem] leading-snug mb-2.5">
               {t.title}
             </h3>
             <p className="text-[var(--foreground-muted)] text-[11px] leading-relaxed">
-              {t.description}{" "}
+              {t.description}
+              {""}
               <LocalizedLink
                 href="/privacidade"
                 className="text-[var(--gold)]/70 hover:text-[var(--gold)] transition-colors underline underline-offset-2 decoration-[var(--gold)]/30"

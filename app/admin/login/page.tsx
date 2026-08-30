@@ -28,9 +28,7 @@ export default function AdminLoginPage() {
       <div className="relative z-20 w-full max-w-md bg-[var(--background-secondary)]/40 backdrop-blur-md border border-[var(--border)] p-10 md:p-14 shadow-2xl">
         <div className="text-center mb-12">
           <span className="text-[var(--gold)] rotulo font-bold block mb-4">Acesso Restrito</span>
-          <h1 className="text-4xl font-serif text-[var(--foreground)] tracking-tight">
-            Administração
-          </h1>
+          <h1 className="text-4xl text-[var(--foreground)] tracking-tight">Administração</h1>
           <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent mx-auto mt-6"></div>
         </div>
 

@@ -191,7 +191,7 @@ export default function MeusAnunciosContent() {
           <ArrowLeft size={12} />A minha conta
         </LocalizedLink>
 
-        <header className="mb-12">
+        <header data-revelar="" className="mb-12">
           <h1 className="titulo-gradiente text-[1.75rem] md:text-[2.5rem] font-normal leading-[120%] tracking-tighter">
             Os meus anúncios
           </h1>
@@ -333,13 +333,14 @@ export default function MeusAnunciosContent() {
 
                       {anuncio.expirado && anuncio.status !== LISTING_STATUS.VENDIDO && (
                         <p className="text-[11px] text-[var(--foreground-muted)] mt-3">
-                          O período do anúncio terminou.{" "}
+                          O período do anúncio terminou.{""}
                           <LocalizedLink
                             href="/vender-cavalo"
                             className="text-[var(--gold)] hover:underline"
                           >
                             Publique novamente
-                          </LocalizedLink>{" "}
+                          </LocalizedLink>
+                          {""}
                           para voltar ao marketplace.
                         </p>
                       )}

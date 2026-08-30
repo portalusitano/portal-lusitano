@@ -33,7 +33,7 @@ export default async function AdminStatsPage({
             <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-bold">
               Valor em Carteira
             </span>
-            <p className="text-5xl font-serif text-[#C5A059] mt-6 italic">
+            <p className="text-5xl text-[#C5A059] mt-6 italic">
               {valorTotal.toLocaleString("pt-PT")} €
             </p>
           </div>
@@ -42,14 +42,14 @@ export default async function AdminStatsPage({
             <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-bold">
               Exemplares Ativos
             </span>
-            <p className="text-5xl font-serif text-white mt-6 italic">{aprovados.length}</p>
+            <p className="text-5xl text-white mt-6 italic">{aprovados.length}</p>
           </div>
 
           <div className="bg-zinc-950 border border-zinc-900 p-10 group hover:border-blue-500/30 transition-all duration-700">
             <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-bold">
               Aguardam Curadoria
             </span>
-            <p className="text-5xl font-serif text-white mt-6 italic">{pendentes.length}</p>
+            <p className="text-5xl text-white mt-6 italic">{pendentes.length}</p>
           </div>
         </div>
 
@@ -63,14 +63,12 @@ export default async function AdminStatsPage({
                 className="flex justify-between items-center border-b border-zinc-900 pb-4"
               >
                 <div>
-                  <p className="font-serif text-xl italic">{c.nome_cavalo}</p>
+                  <p className="text-xl italic">{c.nome_cavalo}</p>
                   <p className="text-[10px] text-zinc-600 uppercase tracking-tighter">
                     {c.linhagem}
                   </p>
                 </div>
-                <p className="text-[#C5A059] font-serif">
-                  {Number(c.preco).toLocaleString("pt-PT")} €
-                </p>
+                <p className="text-[#C5A059]">{Number(c.preco).toLocaleString("pt-PT")} €</p>
               </div>
             ))}
           </div>

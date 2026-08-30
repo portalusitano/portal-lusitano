@@ -18,7 +18,7 @@ function inputClass(hasError: boolean) {
     hasError
       ? "border-red-500/60 focus:border-red-500/60 focus:ring-red-500/20"
       : "border-[var(--border)]",
-  ].join(" ");
+  ].join("");
 }
 
 // ─── Inline field error ────────────────────────────────────────────────────────
@@ -60,8 +60,14 @@ function LoginContent() {
 
     // Basic client-side validation
     const errors: { email?: string; password?: string } = {};
-    if (!email) errors.email = tr("O email é obrigatório.", "Email is required.", "El email es obligatorio.");
-    if (!password) errors.password = tr("A palavra-passe é obrigatória.", "Password is required.", "La contraseña es obligatoria.");
+    if (!email)
+      errors.email = tr("O email é obrigatório.", "Email is required.", "El email es obligatorio.");
+    if (!password)
+      errors.password = tr(
+        "A palavra-passe é obrigatória.",
+        "Password is required.",
+        "La contraseña es obligatoria."
+      );
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       triggerShake();
@@ -95,7 +101,7 @@ function LoginContent() {
 
   return (
     <div>
-      <h1 className="text-2xl font-serif text-[var(--foreground)] mb-1">{t.auth.login_account}</h1>
+      <h1 className="text-2xl text-[var(--foreground)] mb-1">{t.auth.login_account}</h1>
       <p className="text-sm text-[var(--foreground-muted)] mb-6">{t.auth.recover_desc}</p>
 
       {/* Global error banner */}
@@ -226,7 +232,8 @@ function LoginContent() {
 
       {/* Register link */}
       <p className="mt-6 text-center text-sm text-[var(--foreground-muted)]">
-        {t.auth.no_account}{" "}
+        {t.auth.no_account}
+        {""}
         <LocalizedLink
           href={
             returnUrl !== "/" ? `/registar?redirect=${encodeURIComponent(returnUrl)}` : "/registar"

@@ -514,10 +514,14 @@ body {
 }
 
 /* Stagger children - cada filho anima em cascata */
+/* Entrada do sistema anterior, ainda usada por várias páginas. É a mesma
+   família de movimento do `data-revelar` — fade mais deslocamento vertical —
+   por isso alinha-se aqui a distância em vez de se tocar em cada chamada.
+   Diferença que fica: esta dispara ao carregar, não ao entrar no ecrã. */
 @keyframes fadeSlideIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -871,7 +875,7 @@ body {
   }
 }
 .float-gentle {
-  animation: floatGentle 6s ease-in-out infinite;
+  animation: none;
   will-change: transform;
 }
 /* Disable continuous animation on touch devices — saves battery */
@@ -964,7 +968,7 @@ body {
   background-clip: text;
 }
 .text-gradient-gold:hover {
-  animation: textGradientShift 2s linear infinite;
+  animation: none;
 }
 
 /* Horizontal scroll gallery */
@@ -1059,7 +1063,7 @@ body {
   display: flex;
   width: max-content;
   will-change: transform;
-  animation: marqueeScroll 30s linear infinite;
+  animation: none;
 }
 .marquee-track:hover {
   animation-play-state: paused;

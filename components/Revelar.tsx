@@ -19,6 +19,17 @@ interface RevelarProps {
  * Só marca o elemento; quem o anima é o `ObservadorRevelar`, montado uma vez
  * para toda a aplicação — um observador partilhado em vez de um por bloco.
  */
+/**
+ * Atraso de um item numa grelha, com tecto.
+ *
+ * Numa página de resultados com 24 anúncios, 100ms por cartão punha o último
+ * a entrar 2,4 segundos depois do primeiro — a grelha ficava a montar-se à
+ * frente de quem já estava a ler. Ao fim de cinco passos o atraso pára.
+ */
+export function atrasoEmGrelha(indice: number, passo = 100, maximo = 5): number {
+  return Math.min(indice, maximo) * passo;
+}
+
 export default function Revelar({
   children,
   y = 24,
@@ -50,7 +61,7 @@ export default function Revelar({
  * não é uma animação falhada — é uma página em branco:
  *
  * 1. Uma varredura periódica revela o que já está visível, caso o observador
- *    não dispare (separador escondido, iframe, browser antigo).
+ * não dispare (separador escondido, iframe, browser antigo).
  * 2. Ao fim de quatro segundos revela-se tudo, aconteça o que acontecer.
  */
 export function ObservadorRevelar() {

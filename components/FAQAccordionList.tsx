@@ -20,7 +20,7 @@ function FAQAccordion({
         aria-expanded={isOpen}
         className="w-full py-6 flex items-center justify-between text-left group"
       >
-        <span className="text-lg font-serif text-[var(--foreground)] group-hover:text-[var(--gold)] transition-colors pr-8">
+        <span className="text-lg text-[var(--foreground)] group-hover:text-[var(--gold)] transition-colors pr-8">
           {item.question}
         </span>
         <div

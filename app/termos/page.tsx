@@ -19,13 +19,13 @@ export default async function TermosPage() {
 
           <div className="space-y-12 text-[var(--foreground-secondary)] leading-relaxed text-sm">
             {/* 1. Âmbito */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">{t.terms.scope}</h2>
               <p>{t.terms.scope_text}</p>
             </section>
 
             {/* 2. Serviços */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.terms.services}
               </h2>
@@ -41,7 +41,7 @@ export default async function TermosPage() {
             </section>
 
             {/* 3. Marketplace */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.terms.marketplace}
               </h2>
@@ -49,7 +49,7 @@ export default async function TermosPage() {
             </section>
 
             {/* 4. Obrigações do Vendedor */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.terms.seller_obligations}
               </h2>
@@ -57,7 +57,7 @@ export default async function TermosPage() {
             </section>
 
             {/* 5. Pagamentos */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.terms.payments}
               </h2>
@@ -65,7 +65,7 @@ export default async function TermosPage() {
             </section>
 
             {/* 6. Propriedade Intelectual */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.terms.intellectual}
               </h2>
@@ -73,7 +73,7 @@ export default async function TermosPage() {
             </section>
 
             {/* 7. Conteúdo do Utilizador */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.terms.user_content}
               </h2>
@@ -81,7 +81,7 @@ export default async function TermosPage() {
             </section>
 
             {/* 8. Limitação de Responsabilidade */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.terms.liability}
               </h2>
@@ -89,7 +89,7 @@ export default async function TermosPage() {
             </section>
 
             {/* 9. Lei Aplicável */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.terms.governing_law}
               </h2>
@@ -97,7 +97,7 @@ export default async function TermosPage() {
             </section>
 
             {/* 10. Reclamações */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.terms.complaints}
               </h2>
@@ -105,7 +105,7 @@ export default async function TermosPage() {
             </section>
 
             {/* 11. Alterações */}
-            <section>
+            <section data-revelar="">
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.terms.changes}
               </h2>

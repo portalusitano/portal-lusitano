@@ -165,16 +165,22 @@
   animation-delay: 0.35s;
 }
 
+/* Antes flutuava sem parar. O movimento contínuo em três elementos de
+   fundo mais o gradiente deixava o ecrã de entrada nervoso; fica a posição,
+   sai o ciclo. */
 .animate-auth-float {
-  animation: auth-float 4s ease-in-out infinite;
+  animation: none;
 }
 
 .animate-auth-shimmer {
   background-size: 200% 100%;
-  animation: auth-shimmer 2s ease-in-out infinite;
+  animation: none;
 }
 
+/* O gradiente fica; o ciclo infinito não.
+   O site tem um só — o ponto verde da contagem de anúncios. Com vários, o
+   site fica inquieto e nenhum deles quer dizer nada. */
 .animate-auth-gradient {
   background-size: 200% 200%;
-  animation: auth-gradient-shift 6s ease-in-out infinite;
+  animation: none;
 }

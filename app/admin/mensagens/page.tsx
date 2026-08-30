@@ -217,7 +217,7 @@ export default function MensagensPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-serif text-white mb-2">Mensagens</h1>
+              <h1 className="text-3xl text-white mb-2">Mensagens</h1>
               <p className="text-zinc-400">Gestão centralizada de contactos</p>
             </div>
 
@@ -483,7 +483,7 @@ export default function MensagensPage() {
                 <div className="flex items-start justify-between mb-6 pb-6 border-b border-white/10">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h2 className="text-2xl font-serif text-white">{selectedMessage.name}</h2>
+                      <h2 className="text-2xl text-white">{selectedMessage.name}</h2>
                       <span
                         className={`text-xs px-2 py-1 rounded border ${getFormTypeColor(selectedMessage.form_type)}`}
                       >
@@ -606,7 +606,7 @@ export default function MensagensPage() {
                   <div className="bg-zinc-800/50 p-4 rounded-lg space-y-2 text-sm">
                     {selectedMessage.responded_at && (
                       <div className="text-green-400">
-                        ✅ Respondida em{" "}
+                        ✅ Respondida em{""}
                         {new Date(selectedMessage.responded_at).toLocaleDateString("pt-PT", {
                           day: "2-digit",
                           month: "long",
@@ -644,7 +644,7 @@ export default function MensagensPage() {
           <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-6 z-50">
             <div className="bg-zinc-900 border border-white/10 rounded-xl max-w-2xl w-full p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-serif text-white">Responder Email</h3>
+                <h3 className="text-xl text-white">Responder Email</h3>
                 <button
                   onClick={() => setShowReplyModal(false)}
                   className="text-zinc-500 hover:text-white transition-colors"

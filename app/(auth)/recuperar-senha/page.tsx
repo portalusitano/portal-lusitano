@@ -53,7 +53,7 @@ export default function RecuperarSenhaPage() {
         <div className="w-16 h-16 bg-[var(--gold)]/10 border border-[var(--gold)]/25 rounded-full flex items-center justify-center mx-auto mb-5">
           <CheckCircle className="text-[var(--gold)]" size={32} aria-hidden="true" />
         </div>
-        <h2 className="text-xl font-serif text-[var(--foreground)] mb-2">{t.auth.email_sent}</h2>
+        <h2 className="text-xl text-[var(--foreground)] mb-2">{t.auth.email_sent}</h2>
         <p className="text-sm text-[var(--foreground-secondary)] mb-1">
           Se existir uma conta associada a
         </p>
@@ -75,9 +75,7 @@ export default function RecuperarSenhaPage() {
   // ── Form ──────────────────────────────────────────────────────────────────
   return (
     <div>
-      <h1 className="text-2xl font-serif text-[var(--foreground)] mb-1">
-        {t.auth.recover_password}
-      </h1>
+      <h1 className="text-2xl text-[var(--foreground)] mb-1">{t.auth.recover_password}</h1>
       <p className="text-sm text-[var(--foreground-muted)] mb-6">{t.auth.recover_desc}</p>
 
       {error && (
@@ -131,7 +129,7 @@ export default function RecuperarSenhaPage() {
                 error
                   ? "border-red-500/60 focus:border-red-500/60 focus:ring-red-500/20"
                   : "border-[var(--border)]",
-              ].join(" ")}
+              ].join("")}
             />
           </div>
           {error && (

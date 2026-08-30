@@ -44,7 +44,7 @@ export default function Error({
           aria-hidden="true"
         >
           {/* Grande exclamação decorativa em segundo plano */}
-          <span className="text-[180px] md:text-[220px] font-serif text-transparent bg-clip-text bg-gradient-to-b from-[var(--background-elevated)] to-transparent leading-none select-none">
+          <span className="text-[180px] md:text-[220px] text-transparent bg-clip-text bg-gradient-to-b from-[var(--background-elevated)] to-transparent leading-none select-none">
             !
           </span>
           {/* Exclamação dourada sobreposta */}
@@ -52,14 +52,14 @@ export default function Error({
             className="absolute inset-0 flex items-center justify-center opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
             style={{ animationDelay: "0.1s" }}
           >
-            <span className="text-6xl md:text-8xl font-serif text-[var(--gold)]">!</span>
+            <span className="text-6xl md:text-8xl text-[var(--gold)]">!</span>
           </div>
         </div>
 
         {/* Título */}
         <h1
           id="error-title"
-          className="text-2xl md:text-3xl font-serif text-[var(--foreground)] mb-4 opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
+          className="text-2xl md:text-3xl text-[var(--foreground)] mb-4 opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
           style={{ animationDelay: "0.15s" }}
         >
           {t.error_page.something_wrong}
@@ -109,7 +109,8 @@ export default function Error({
           className="text-[var(--foreground-muted)] text-xs mt-10 opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
           style={{ animationDelay: "0.4s" }}
         >
-          {t.error_page.persist_contact}{" "}
+          {t.error_page.persist_contact}
+          {""}
           <a
             href={`mailto:${SUPPORT_EMAIL}`}
             className="text-[var(--gold)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
