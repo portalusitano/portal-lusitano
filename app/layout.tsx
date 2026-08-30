@@ -150,11 +150,14 @@ export default function RootLayout({
   return (
     <html lang="pt" className={`${geist.variable} ${geistMono.variable} dark`}>
       <head>
-        {/* Inline script to set theme before React hydration (prevents FOUC) */}
+        {/* Corre antes da primeira pintura. Além do tema, marca `.js`, que é
+            o que arma o estado inicial das animações de entrada: pô-la só na
+            hidratação faria o conteúdo acima da dobra aparecer e voltar a
+            desaparecer antes de ser revelado. */}
         <script
           suppressHydrationWarning
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('portal-lusitano-theme');if(t==='light'){document.documentElement.classList.remove('dark');document.documentElement.classList.add('light')}}catch(e){}})()`,
+            __html: `(function(){var d=document.documentElement;try{var t=localStorage.getItem('portal-lusitano-theme');if(t==='light'){d.classList.remove('dark');d.classList.add('light')}}catch(e){}d.classList.add('js')})()`,
           }}
         />
         {/* Preconnect para recursos críticos — reduz latência de first requests */}

@@ -55,8 +55,9 @@ export default function Revelar({
  */
 export function ObservadorRevelar() {
   useEffect(() => {
-    const raiz = document.documentElement;
-    raiz.classList.add("js");
+    // Normalmente já lá está, posta pelo script inline antes da primeira
+    // pintura; aqui é só rede de segurança para quem chegue por outro caminho.
+    document.documentElement.classList.add("js");
 
     const reduzido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 

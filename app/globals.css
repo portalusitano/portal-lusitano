@@ -1648,3 +1648,24 @@ html.light .btn-primario:hover:not(:disabled) {
     animation: none;
   }
 }
+
+/* --- Ponto a pulsar ------------------------------------------------------ */
+/* O único ciclo infinito do site inteiro. Um site com vários fica inquieto;
+   com um só, esse um quer dizer "isto está vivo agora". */
+@keyframes pulsar-ponto {
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.anim-pulsar {
+  animation: pulsar-ponto 1s var(--ease-out) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-pulsar {
+    animation: none;
+  }
+}

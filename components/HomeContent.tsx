@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import LocalizedLink from "@/components/LocalizedLink";
+import Revelar from "@/components/Revelar";
 import {
   ArrowRight,
   BellRing,
@@ -125,52 +126,78 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
         </div>
 
         <div className="relative z-10 max-w-3xl w-full">
-          <p className="rotulo-forte mb-4">Puro-Sangue Lusitano</p>
+          <Revelar duracao={600}>
+            <p className="rotulo-forte mb-4">Puro-Sangue Lusitano</p>
+          </Revelar>
 
-          <h1 className="titulo-gradiente text-4xl sm:text-5xl md:text-[4rem] font-normal leading-[100%] tracking-[-0.01em]">
-            O mercado do Lusitano.
-            <br />
-            Num só sítio.
-          </h1>
+          <Revelar duracao={600} atraso={100}>
+            <h1 className="titulo-gradiente text-4xl sm:text-5xl md:text-[4rem] font-normal leading-[100%] tracking-[-0.01em]">
+              O mercado do Lusitano.
+              <br />
+              Num só sítio.
+            </h1>
 
-          <p className="text-[var(--foreground-secondary)] text-sm sm:text-base mt-4 max-w-xl mx-auto">
-            Compre e venda directamente entre criadores e cavaleiros. Sem intermediários.
-          </p>
+            <p className="text-[var(--foreground-secondary)] text-sm sm:text-base mt-4 max-w-xl mx-auto">
+              Compre e venda directamente entre criadores e cavaleiros. Sem intermediários.
+            </p>
+          </Revelar>
 
           {/* A pesquisa é o CTA principal: quem chega aqui está a procurar um cavalo,
               não a ler sobre a marca. */}
-          <form onSubmit={pesquisar} className="mt-7 flex max-w-xl mx-auto gap-2">
-            <div className="relative flex-1">
-              <Search
-                size={16}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]"
-              />
-              <input
-                type="search"
-                value={termo}
-                onChange={(e) => setTermo(e.target.value)}
-                placeholder="Linhagem, nome, região…"
-                aria-label="Procurar cavalos"
-                className="campo pl-10 bg-[var(--background)]/85 backdrop-blur"
-              />
-            </div>
-            <button type="submit" className="btn btn-primario px-6">
-              Procurar
-            </button>
-          </form>
+          <Revelar duracao={600} atraso={200}>
+            <form onSubmit={pesquisar} className="mt-7 flex max-w-xl mx-auto gap-2">
+              <div className="relative flex-1">
+                <Search
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]"
+                />
+                <input
+                  type="search"
+                  value={termo}
+                  onChange={(e) => setTermo(e.target.value)}
+                  placeholder="Linhagem, nome, região…"
+                  aria-label="Procurar cavalos"
+                  className="campo pl-10 bg-[var(--background)]/85 backdrop-blur"
+                />
+              </div>
+              <button type="submit" className="btn btn-primario px-6">
+                Procurar
+              </button>
+            </form>
 
-          <div className="flex flex-wrap justify-center gap-2 mt-5">
-            {ATALHOS.map((a) => (
-              <LocalizedLink key={a.label} href={a.href} className="chip backdrop-blur">
-                {a.label}
-              </LocalizedLink>
-            ))}
-          </div>
+            <div className="flex flex-wrap justify-center gap-2 mt-5">
+              {ATALHOS.map((a) => (
+                <LocalizedLink key={a.label} href={a.href} className="chip backdrop-blur">
+                  {a.label}
+                </LocalizedLink>
+              ))}
+            </div>
+          </Revelar>
 
           {totalAtivos > 0 && (
-            <p className="meta mt-6">
-              {totalAtivos} {totalAtivos === 1 ? "cavalo à venda" : "cavalos à venda"}
-            </p>
+            <Revelar duracao={600} atraso={300} className="flex justify-center mt-8">
+              <div className="flex justify-center">
+                <LocalizedLink
+                  href="/comprar"
+                  className="botao-vidro group inline-flex items-center gap-2.5 rounded-full px-5 py-2.5 text-sm font-medium text-[var(--foreground-strong)]"
+                >
+                  <span className="relative flex h-2 w-2">
+                    <span
+                      className="anim-pulsar absolute inline-flex h-full w-full rounded-full opacity-75"
+                      style={{ background: "var(--ok)" }}
+                    />
+                    <span
+                      className="relative inline-flex h-2 w-2 rounded-full"
+                      style={{ background: "var(--ok)" }}
+                    />
+                  </span>
+                  {totalAtivos} {totalAtivos === 1 ? "cavalo à venda" : "cavalos à venda"}
+                  <span className="text-[var(--foreground-secondary)] transition-transform duration-200 group-hover:translate-x-0.5">
+                    →
+                  </span>
+                </LocalizedLink>
+              </div>
+            </Revelar>
           )}
         </div>
       </section>
@@ -179,7 +206,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
       {destaques.length > 0 && (
         <section className="px-5 sm:px-8 py-12 border-t border-[var(--border)]">
           <div className="max-w-6xl mx-auto">
-            <div className="flex items-end justify-between gap-4 mb-5">
+            <Revelar duracao={600} className="flex items-end justify-between gap-4 mb-5">
               <div>
                 <p className="rotulo-forte">Em destaque</p>
                 <h2 className="titulo-gradiente text-2xl sm:text-3xl font-normal leading-[120%] tracking-tighter mt-1">
@@ -192,11 +219,13 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
               >
                 Ver todos <ArrowRight size={12} />
               </LocalizedLink>
-            </div>
+            </Revelar>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {destaques.map((a) => (
-                <CartaoAnuncio key={a.id} a={a} grande />
+              {destaques.map((a, i) => (
+                <Revelar key={a.id} y={20} atraso={i * 100}>
+                  <CartaoAnuncio a={a} grande />
+                </Revelar>
               ))}
             </div>
           </div>
@@ -207,7 +236,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
       {recentes.length > 0 && (
         <section className="px-5 sm:px-8 py-12 border-t border-[var(--border)]">
           <div className="max-w-6xl mx-auto">
-            <div className="flex items-end justify-between gap-4 mb-5">
+            <Revelar duracao={600} className="flex items-end justify-between gap-4 mb-5">
               <div>
                 <p className="rotulo-forte">Últimos anúncios</p>
                 <h2 className="titulo-gradiente text-2xl sm:text-3xl font-normal leading-[120%] tracking-tighter mt-1">
@@ -220,11 +249,13 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
               >
                 Ver todos <ArrowRight size={12} />
               </LocalizedLink>
-            </div>
+            </Revelar>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {recentes.map((a) => (
-                <CartaoAnuncio key={a.id} a={a} />
+              {recentes.map((a, i) => (
+                <Revelar key={a.id} y={20} atraso={i * 100}>
+                  <CartaoAnuncio a={a} />
+                </Revelar>
               ))}
             </div>
 

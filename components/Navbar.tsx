@@ -69,6 +69,9 @@ export default memo(function Navbar() {
   }, []);
 
   return (
+    // A barra entra a descer uma vez, ao carregar. Depois disso só reage ao
+    // scroll: ganha um véu escuro com desfoque e uma hairline em vez de ter
+    // fundo sólido desde o início, para o topo da página respirar.
     <nav
       id="main-navigation"
       role="navigation"
@@ -79,10 +82,19 @@ export default memo(function Navbar() {
             ? "Navegación principal"
             : "Main navigation"
       }
-      className={`fixed w-full z-50 border-b [transform:translateZ(0)] transition-[background-color,box-shadow] duration-300 ${scrolled ? "bg-[var(--nav-bg-scrolled)] border-[var(--border)] shadow-lg" : "bg-[var(--nav-bg)] border-[var(--border)]"}`}
+      className={`anim-cabecalho fixed w-full z-50 border-b [transform:translateZ(0)] transition-[border-color] duration-200 ease-in-out ${
+        scrolled ? "border-[var(--border-soft)]" : "border-transparent"
+      }`}
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
-      <div className="max-w-7xl mx-auto px-4 md:px-6 h-14 md:h-24 flex items-center justify-between gap-4">
+      <div
+        aria-hidden="true"
+        className={`absolute inset-0 bg-[var(--nav-bg-scrolled)] backdrop-blur-md transition-opacity duration-150 ${
+          scrolled ? "opacity-100" : "opacity-0"
+        }`}
+      />
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 h-14 md:h-20 flex items-center justify-between gap-4">
         {/* LOGÓTIPO COM IMAGEM */}
         <LocalizedLink href="/" className="flex items-center gap-2 md:gap-3 group flex-shrink-0">
           <Image
@@ -94,7 +106,7 @@ export default memo(function Navbar() {
             className="w-9 h-9 md:w-11 md:h-11 object-contain group-hover:scale-105 transition-transform"
           />
           <div className="flex flex-col justify-center">
-            <span className="text-base md:text-lg lg:text-xl font-serif text-[var(--foreground)] tracking-wide group-hover:text-[var(--gold)] transition-colors leading-none whitespace-nowrap">
+            <span className="text-base md:text-lg font-semibold tracking-tight text-[var(--foreground-strong)] group-hover:text-[var(--gold)] transition-colors leading-none whitespace-nowrap">
               PORTAL LUSITANO
             </span>
             <span className="text-[10px] md:text-[9px] uppercase tracking-[0.2em] md:tracking-[0.3em] text-[var(--foreground-muted)] mt-0.5 group-hover:text-[var(--gold)]/70 transition-colors leading-none">
