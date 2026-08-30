@@ -132,7 +132,7 @@ export const NavIcons = memo(function NavIcons({
           único destaque com fundo cheio na barra. */}
       <LocalizedLink
         href="/vender-cavalo"
-        className="btn btn-primario btn-sm hidden sm:inline-flex active:scale-95 touch-manipulation"
+        className="btn btn-acento btn-sm hidden sm:inline-flex active:scale-95 touch-manipulation"
       >
         <Plus size={14} strokeWidth={2} />
         {tr3(language, "Publicar anúncio", "Post listing", "Publicar anuncio")}

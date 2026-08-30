@@ -2,6 +2,8 @@
 
 import dynamic from "next/dynamic";
 
+import { ObservadorRevelar } from "@/components/Revelar";
+
 const ScrollToTop = dynamic(() => import("@/components/ScrollToTop"), { ssr: false });
 const CookieConsent = dynamic(() => import("@/components/CookieConsent"), { ssr: false });
 const PushNotificationPrompt = dynamic(() => import("@/components/PushNotificationPrompt"), {
@@ -16,6 +18,7 @@ const ServiceWorkerRegistration = dynamic(() => import("@/components/ServiceWork
 export default function ClientOverlays() {
   return (
     <>
+      <ObservadorRevelar />
       <ScrollToTop />
       <CookieConsent />
       <PushNotificationPrompt />

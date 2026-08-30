@@ -127,10 +127,10 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
         <div className="relative z-10 max-w-3xl w-full">
           <p className="rotulo-forte mb-4">Puro-Sangue Lusitano</p>
 
-          <h1 className="font-serif text-3xl sm:text-5xl leading-[1.08] text-[var(--foreground)]">
-            O mercado do
+          <h1 className="titulo-gradiente text-4xl sm:text-5xl md:text-[4rem] font-normal leading-[100%] tracking-[-0.01em]">
+            O mercado do Lusitano.
             <br />
-            <span className="text-[var(--gold)]">cavalo Lusitano.</span>
+            Num só sítio.
           </h1>
 
           <p className="text-[var(--foreground-secondary)] text-sm sm:text-base mt-4 max-w-xl mx-auto">
@@ -182,7 +182,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
             <div className="flex items-end justify-between gap-4 mb-5">
               <div>
                 <p className="rotulo-forte">Em destaque</p>
-                <h2 className="font-serif text-xl sm:text-2xl text-[var(--foreground)] mt-1">
+                <h2 className="titulo-gradiente text-2xl sm:text-3xl font-normal leading-[120%] tracking-tighter mt-1">
                   Exemplares seleccionados
                 </h2>
               </div>
@@ -210,7 +210,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
             <div className="flex items-end justify-between gap-4 mb-5">
               <div>
                 <p className="rotulo-forte">Últimos anúncios</p>
-                <h2 className="font-serif text-xl sm:text-2xl text-[var(--foreground)] mt-1">
+                <h2 className="titulo-gradiente text-2xl sm:text-3xl font-normal leading-[120%] tracking-tighter mt-1">
                   Acabados de publicar
                 </h2>
               </div>
@@ -242,7 +242,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
         <section className="px-5 sm:px-8 py-14 border-t border-[var(--border)]">
           <div className="max-w-lg mx-auto text-center">
             <Sparkles size={22} className="mx-auto text-[var(--gold)]/30 mb-5" />
-            <h2 className="font-serif text-2xl text-[var(--foreground)]">
+            <h2 className="titulo-gradiente text-2xl font-normal leading-[120%] tracking-tighter">
               Ainda não há cavalos publicados
             </h2>
             <p className="text-sm text-[var(--foreground-muted)] mt-3">
@@ -262,7 +262,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
       {/* ── CONFIANÇA ────────────────────────────────────────────────────── */}
       <section className="px-5 sm:px-8 py-12 border-t border-[var(--border)] bg-[var(--background-secondary)]/30">
         <div className="max-w-5xl mx-auto">
-          <h2 className="font-serif text-2xl sm:text-3xl text-[var(--foreground)] text-center">
+          <h2 className="titulo-gradiente text-2xl sm:text-3xl font-normal leading-[120%] tracking-tighter text-center">
             Um negócio de milhares de euros
             <br className="hidden sm:block" /> merece mais do que um classificado.
           </h2>
@@ -306,7 +306,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
       <section className="px-5 sm:px-8 py-14 border-t border-[var(--border)]">
         <div className="max-w-3xl mx-auto text-center">
           <p className="rotulo-forte">Tem um cavalo para vender?</p>
-          <h2 className="font-serif text-3xl sm:text-4xl text-[var(--foreground)] mt-4 leading-tight">
+          <h2 className="titulo-gradiente text-3xl sm:text-4xl font-normal leading-[120%] tracking-tighter mt-4">
             Chegue a quem procura
             <br /> um Lusitano a sério.
           </h2>

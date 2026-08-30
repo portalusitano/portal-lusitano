@@ -261,7 +261,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
             <p className="text-[9px] uppercase tracking-widest text-[var(--foreground-muted)] leading-none mb-0.5">
               Preço
             </p>
-            <p className="text-base font-serif text-[var(--gold)] leading-none">
+            <p className="preco text-base leading-none">
               {Number(cavalo.preco).toLocaleString("pt-PT")} €
             </p>
           </div>
@@ -359,7 +359,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                 <span className="meta font-mono">REG: {cavalo.id.slice(0, 8).toUpperCase()}</span>
               </div>
 
-              <h1 className="text-3xl sm:text-4xl font-serif italic text-[var(--foreground)] leading-tight">
+              <h1 className="titulo-gradiente text-3xl sm:text-4xl font-normal leading-[110%] tracking-tight">
                 {cavalo.nome_cavalo}
               </h1>
 

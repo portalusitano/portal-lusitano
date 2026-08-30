@@ -47,57 +47,86 @@ html.lenis body {
 /* Dark mode (default) */
 :root,
 html.dark {
-  --background: #050505;
+  /* Cinco valores de fundo, não uma escala de cinzentos ao acaso. */
+  --background: #000000;
   --background-secondary: #0a0a0a;
-  --background-card: #111111;
-  --background-elevated: #1a1a1a;
-  --foreground: #ededed;
-  --foreground-secondary: #a1a1aa;
-  --foreground-muted: #8b8b94;
-  --border: rgba(255, 255, 255, 0.1);
-  --border-hover: rgba(255, 255, 255, 0.2);
-  --gold: #c5a059;
-  --gold-hover: #d4af6a;
-  --surface-hover: rgba(255, 255, 255, 0.08);
-  --scrollbar-track: #0a0a0a;
-  --scrollbar-thumb: #333;
-  --selection-bg: #c5a059;
-  --selection-fg: black;
-  --nav-bg: #050505;
-  --nav-bg-scrolled: #050505;
+  --background-card: #0a0a0a;
+  --background-elevated: #141414;
+  --foreground: #f0f0f0;
+  --foreground-strong: #ffffff;
+  --foreground-secondary: #a1a4a5;
+  --foreground-muted: #666666;
+  /* Hairlines com um toque de azul: a luz fria sobre preto lê-se como vidro,
+     o branco puro lê-se como uma caixa desenhada. */
+  --border: rgba(214, 235, 253, 0.19);
+  --border-soft: rgba(214, 235, 253, 0.1);
+  --border-hover: rgba(214, 235, 253, 0.15);
+  --elevate-1: rgba(255, 255, 255, 0.04);
+  --elevate-2: rgba(255, 255, 255, 0.09);
+  /* Um só acento em todo o site. Mudar aqui muda tudo. */
+  --gold: #c6a15b;
+  --gold-hover: #d4b273;
+  --ok: #34d399;
+  --surface-hover: rgba(255, 255, 255, 0.04);
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: #2b2b2b;
+  --selection-bg: #c6a15b;
+  --selection-fg: #000;
+  --nav-bg: transparent;
+  --nav-bg-scrolled: rgba(0, 0, 0, 0.6);
+  /* Curvas de movimento, iguais em todo o lado. */
+  --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-inout: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Light mode */
 html.light {
-  --background: #f8f7f4;
-  --background-secondary: #ffffff;
+  --background: #ffffff;
+  --background-secondary: #fafafa;
   --background-card: #ffffff;
-  --background-elevated: #f0efe8;
-  --foreground: #1a1a1a;
-  --foreground-secondary: #555555;
-  --foreground-muted: #737373;
-  --border: rgba(0, 0, 0, 0.1);
-  --border-hover: rgba(0, 0, 0, 0.2);
-  --gold: #a8873a;
-  --gold-hover: #c5a059;
-  --surface-hover: rgba(0, 0, 0, 0.05);
-  --scrollbar-track: #f0f0f0;
-  --scrollbar-thumb: #ccc;
-  --selection-bg: #a8873a;
-  --selection-fg: white;
-  --nav-bg: rgba(255, 255, 255, 0.97);
-  --nav-bg-scrolled: #ffffff;
+  --background-elevated: #f4f4f5;
+  --foreground: #0a0a0a;
+  --foreground-strong: #000000;
+  --foreground-secondary: #52525b;
+  --foreground-muted: #8b8b93;
+  --border: rgba(9, 9, 11, 0.14);
+  --border-soft: rgba(9, 9, 11, 0.07);
+  --border-hover: rgba(9, 9, 11, 0.22);
+  --elevate-1: rgba(9, 9, 11, 0.03);
+  --elevate-2: rgba(9, 9, 11, 0.06);
+  --gold: #8a6d2f;
+  --gold-hover: #a8873a;
+  --ok: #059669;
+  --surface-hover: rgba(9, 9, 11, 0.04);
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: #d4d4d8;
+  --selection-bg: #8a6d2f;
+  --selection-fg: #fff;
+  --nav-bg: transparent;
+  --nav-bg-scrolled: rgba(255, 255, 255, 0.75);
+  --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-inout: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  /* Uma família para tudo o que é texto. `font-serif` fica a apontar para a
+     Geist de propósito: havia dezenas de `font-serif` espalhados pelas
+     páginas e mapeá-los aqui trocou-os todos de uma vez, sem tocar em cada
+     um deles e sem deixar nenhum a cair no serif do browser. */
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans, Arial, Helvetica, sans-serif);
+  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* Theme transition only runs during explicit theme toggle */
@@ -158,8 +187,13 @@ html.is-theme-transitioning body {
 /* Focus styles visíveis para navegação por teclado */
 /* !important necessário para sobrescrever outline-none do Tailwind */
 :focus-visible {
-  outline: 2px solid var(--gold) !important;
+  outline: 2px solid rgba(255, 255, 255, 0.45) !important;
   outline-offset: 2px !important;
+  border-radius: 8px;
+}
+
+html.light :focus-visible {
+  outline-color: rgba(0, 0, 0, 0.45) !important;
 }
 
 /* Remove outline em cliques de rato mas mantém para teclado */
@@ -1132,9 +1166,9 @@ body {
 :root {
   /* Cantos. Um raio pequeno e constante lê-se como sistema; vários raios
      diferentes lêem-se como descuido. */
-  --raio: 6px;
-  --raio-sm: 4px;
-  --raio-lg: 10px;
+  --raio: 12px;
+  --raio-sm: 8px;
+  --raio-lg: 24px;
 }
 
 /* --- Tipografia ---------------------------------------------------------- */
@@ -1203,8 +1237,9 @@ body {
 
 .cartao {
   background: var(--background-card);
-  border: 1px solid var(--border);
-  border-radius: var(--raio);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--raio-lg);
+  overflow: hidden;
 }
 
 .cartao-interactivo {
@@ -1214,7 +1249,7 @@ body {
 }
 
 .cartao-interactivo:hover {
-  border-color: var(--border-hover);
+  border-color: var(--border);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -1256,24 +1291,47 @@ body {
   }
 }
 
+/* Branco, não dourado. O acento é do tamanho de um ícone; usá-lo em cada
+   botão gastava-o e deixava de assinalar seja o que for. */
 .btn-primario {
-  background: var(--gold);
+  background: var(--foreground-strong);
   color: #000;
+  font-weight: 600;
 }
 
 .btn-primario:hover:not(:disabled) {
+  background: #e4e4e7;
+}
+
+html.light .btn-primario {
+  background: #0a0a0a;
+  color: #fff;
+}
+
+html.light .btn-primario:hover:not(:disabled) {
+  background: #27272a;
+}
+
+/* Para a única acção que merece o acento: publicar um anúncio. */
+.btn-acento {
+  background: var(--gold);
+  color: #000;
+  font-weight: 600;
+}
+
+.btn-acento:hover:not(:disabled) {
   background: var(--gold-hover);
 }
 
 .btn-secundario {
-  background: var(--background-elevated);
-  border-color: var(--border);
-  color: var(--foreground);
+  background: transparent;
+  border-color: var(--border-soft);
+  color: var(--foreground-secondary);
 }
 
 .btn-secundario:hover:not(:disabled) {
-  border-color: var(--gold);
-  color: var(--gold);
+  border-color: var(--border);
+  color: var(--foreground-strong);
 }
 
 .btn-subtil {
@@ -1295,9 +1353,9 @@ body {
 
 .campo {
   width: 100%;
-  padding: 0.625rem 0.75rem;
-  background: var(--background-secondary);
-  border: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  background: var(--background-elevated);
+  border: 1px solid var(--border-soft);
   border-radius: var(--raio);
   color: var(--foreground);
   font-size: 0.875rem; /* 14px — abaixo disto o iOS faz zoom ao focar */
@@ -1314,7 +1372,8 @@ body {
 }
 
 .campo:focus {
-  border-color: var(--gold);
+  border-color: var(--border);
+  outline: none;
 }
 
 /* --- Fichas e distintivos ------------------------------------------------ */
@@ -1325,9 +1384,9 @@ body {
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-soft);
   border-radius: 999px;
-  background: var(--background-secondary);
+  background: var(--elevate-1);
   color: var(--foreground-secondary);
   font-size: 0.75rem;
   font-weight: 500;
@@ -1340,8 +1399,8 @@ body {
 }
 
 .chip:hover {
-  border-color: var(--border-hover);
-  color: var(--foreground);
+  border-color: var(--border);
+  color: var(--foreground-strong);
 }
 
 .chip-activo {
@@ -1370,12 +1429,222 @@ body {
 }
 
 .selo-novo {
-  background: #10b981;
-  color: #fff;
+  background: var(--ok);
+  color: #000;
 }
 
 .selo-neutro {
   background: rgba(0, 0, 0, 0.6);
   color: #fff;
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
+}
+
+/* ===========================================================================
+ * PRIMITIVAS VISUAIS
+ * ===========================================================================
+ * As três receitas que dão identidade ao site. Vivem aqui e não nas páginas
+ * para que um cartão seja o mesmo cartão em todo o lado.
+ * ========================================================================= */
+
+/* --- Título com gradiente ------------------------------------------------ */
+/* O branco puro no topo a esbater para 75% dá volume ao texto grande sem
+   precisar de sombra. Só vale a pena em títulos: em corpo de texto o
+   degradê corta a legibilidade. */
+.titulo-gradiente {
+  background: linear-gradient(180deg, var(--foreground-strong), var(--foreground-secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* --- Separador com brilho ------------------------------------------------ */
+/* A costura entre secções: um risco de luz que nasce no centro e desvanece,
+   mais um halo largo por baixo. É o que faz as secções encaixarem umas nas
+   outras em vez de ficarem empilhadas. */
+.separador-brilho {
+  position: relative;
+}
+
+.separador-brilho::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  max-width: 100%;
+  height: 1px;
+  background: radial-gradient(ellipse at center, var(--elevate-2) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.separador-brilho::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 400px;
+  max-width: 100%;
+  height: 200px;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center top, var(--elevate-1) 0%, transparent 70%);
+}
+
+/* --- Cartão assinatura --------------------------------------------------- */
+/* Sem borda em baixo e com um gradiente a dissolver as laterais no fundo: o
+   cartão parece emergir do preto em vez de estar colado a ele. O risco de luz
+   de 150px no topo é o que o separa do fundo sem uma caixa desenhada. */
+.cartao-seco {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  overflow: hidden;
+}
+
+.cartao-seco__costura {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 1px;
+  width: 150px;
+  max-width: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(143, 143, 143, 0.67) 50%,
+    transparent 100%
+  );
+}
+
+.cartao-seco__esbatido {
+  pointer-events: none;
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  height: calc(100% + 4px);
+  width: calc(100% + 4px);
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    var(--background) 60%,
+    var(--background) 100%
+  );
+}
+
+/* --- Botão de vidro ------------------------------------------------------ */
+.botao-vidro {
+  border: 2px solid var(--elevate-1);
+  -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: blur(25px);
+  background-origin: border-box;
+  background-image: linear-gradient(104deg, rgba(253, 253, 253, 0.05) 5%, rgba(240, 240, 228, 0.1));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s var(--ease-inout);
+}
+
+.botao-vidro:hover {
+  background-image: linear-gradient(104deg, rgba(253, 253, 253, 0.1) 5%, rgba(240, 240, 228, 0.15));
+  border-color: var(--elevate-2);
+}
+
+/* --- Previews em HTML dentro dos cartões --------------------------------- */
+/* Tabelas verdadeiras a 10–11px em vez de capturas de ecrã: pesam zero, ficam
+   nítidas em qualquer ecrã e o conteúdo actualiza-se sozinho. */
+.linha-ui {
+  display: grid;
+  align-items: center;
+  border-bottom: 1px solid var(--border-soft);
+  padding: 10px 0;
+}
+
+.cabeca-ui {
+  display: grid;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 0;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--foreground-secondary);
+}
+
+.ponto {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* --- Entrada ao entrar no ecrã ------------------------------------------- */
+/* O estado inicial só se aplica havendo JS, para a página nunca ficar em
+   branco se o script falhar. */
+.js [data-revelar] {
+  opacity: 0;
+  transform: translateY(var(--ry, 24px));
+  transition:
+    opacity var(--rd, 500ms) var(--ease) var(--rdelay, 0ms),
+    transform var(--rd, 500ms) var(--ease) var(--rdelay, 0ms);
+  will-change: opacity, transform;
+}
+
+.js [data-revelar].dentro {
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes descer-cabecalho {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes crescer {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.anim-cabecalho {
+  animation: descer-cabecalho 0.5s var(--ease-out);
+}
+
+.anim-crescer {
+  animation: crescer 0.2s var(--ease-out);
+  transform-origin: top center;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js [data-revelar] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .anim-cabecalho,
+  .anim-crescer {
+    animation: none;
+  }
 }

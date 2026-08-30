@@ -70,7 +70,7 @@ const VAZIO = { destaques: [], recentes: [], totalAtivos: 0 };
 describe("HomeContent", () => {
   it("mostra a proposta do marketplace no cabeçalho", () => {
     render(<HomeContent {...VAZIO} />);
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("cavalo Lusitano");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Lusitano");
   });
 
   it("oferece a pesquisa como acção principal", () => {

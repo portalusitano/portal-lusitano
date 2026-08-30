@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display, Montserrat } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -8,19 +8,25 @@ import { OrganizationSchema, WebsiteSchema } from "@/components/JsonLd";
 import SkipLinks from "@/components/SkipLinks";
 import ClientShell from "@/components/ClientShell";
 
-// Apenas pesos necessários - reduz tamanho do bundle de fontes
-const playfair = Playfair_Display({
+// Geist em toda a interface. O peso 400 chega para quase tudo, títulos
+// grandes incluídos — é a moderação do peso que dá o ar caro, não o serif.
+// `--font-serif` continua a existir e a apontar para a Geist: havia dezenas
+// de `font-serif` espalhados pelo site e trocá-los todos de uma vez era mais
+// arriscado do que deixar o nome a resolver para a fonte certa.
+const geist = Geist({
   subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-serif",
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-geist",
   display: "swap",
   preload: true,
 });
 
-const montserrat = Montserrat({
+// Números, identificadores e dados tabelados. Alinham em coluna e distinguem-se
+// do texto corrido — é o que faz uma tabela de anúncios ler-se de relance.
+const geistMono = Geist_Mono({
   subsets: ["latin"],
-  weight: ["300", "400", "700"],
-  variable: "--font-sans",
+  weight: ["400", "500"],
+  variable: "--font-geist-mono",
   display: "swap",
   preload: true,
 });
@@ -28,7 +34,7 @@ const montserrat = Montserrat({
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://portal-lusitano.pt";
 
 export const viewport: Viewport = {
-  themeColor: "#C5A059",
+  themeColor: "#c6a15b",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -142,7 +148,7 @@ export default function RootLayout({
   // theme-detection script and Next.js RSC inline scripts to execute.
 
   return (
-    <html lang="pt" className={`${playfair.variable} ${montserrat.variable} dark`}>
+    <html lang="pt" className={`${geist.variable} ${geistMono.variable} dark`}>
       <head>
         {/* Inline script to set theme before React hydration (prevents FOUC) */}
         <script
@@ -154,7 +160,11 @@ export default function RootLayout({
         {/* Preconnect para recursos críticos — reduz latência de first requests */}
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://cdn.sanity.io" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://yrfcepsagtzkxwnnrztd.supabase.co" crossOrigin="anonymous" />
+        <link
+          rel="preconnect"
+          href="https://yrfcepsagtzkxwnnrztd.supabase.co"
+          crossOrigin="anonymous"
+        />
         {/* dns-prefetch para recursos secundários */}
         <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
