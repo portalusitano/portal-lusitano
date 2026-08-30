@@ -171,7 +171,7 @@ const GridCard = memo(function GridCard({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
         {coudelaria.destaque && (
-          <div className="absolute top-2 left-2 flex items-center gap-1 bg-[var(--gold)] text-black px-2 py-0.5 text-[10px] font-bold rounded-full">
+          <div className="selo selo-destaque absolute top-2 left-2 rounded-full">
             <Star size={10} /> Destaque
           </div>
         )}
@@ -252,7 +252,7 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
   };
 
   return (
-    <main className="min-h-screen bg-[#030303]">
+    <main className="min-h-screen bg-[var(--background)]">
       {/* Background */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[var(--gold)]/5 via-transparent to-transparent" />
@@ -468,7 +468,7 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
                   <X size={18} />
                 </button>
                 {selectedCoudelaria.destaque && (
-                  <div className="absolute top-3 left-3 flex items-center gap-1 bg-[var(--gold)] text-black px-2 py-0.5 text-xs font-bold rounded-full">
+                  <div className="selo selo-destaque absolute top-3 left-3 rounded-full">
                     <Star size={12} /> Destaque
                   </div>
                 )}

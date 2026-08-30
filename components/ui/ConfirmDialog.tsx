@@ -87,7 +87,7 @@ export default function ConfirmDialog({
       icon: "text-amber-400",
       iconBg: "bg-amber-500/10",
       confirmBtn:
-        "bg-gradient-to-r from-[var(--gold)] to-[#D4B068] text-black hover:from-[#D4B068] hover:to-[#E8D5A3]",
+        "bg-gradient-to-r from-[var(--gold)] to-[var(--gold-hover)] text-black hover:from-[var(--gold-hover)] hover:to-[#E8D5A3]",
     },
     info: {
       icon: "text-blue-400",

@@ -147,7 +147,7 @@ export default function RecuperarSenhaPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 bg-gradient-to-r from-[#C5A059] to-[#B8956F] text-black font-semibold rounded-lg hover:from-[#D4AF6A] hover:to-[#C5A059] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-3 bg-gradient-to-r from-[var(--gold)] to-[#B8956F] text-black font-semibold rounded-lg hover:from-[var(--gold-hover)] hover:to-[var(--gold)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           aria-busy={loading}
         >
           {loading ? (

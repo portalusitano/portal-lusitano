@@ -103,11 +103,7 @@ export default function GestorFotos({ anuncioId, fotos, onGuardado }: GestorFoto
           >
             <Image src={url} alt="" fill sizes="120px" className="object-cover" />
 
-            {indice === 0 && (
-              <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-[var(--gold)] text-black text-[10px] uppercase tracking-wider font-bold">
-                Capa
-              </span>
-            )}
+            {indice === 0 && <span className="selo selo-destaque absolute top-1 left-1">Capa</span>}
 
             <div className="absolute bottom-1 right-1 flex gap-1">
               {indice !== 0 && (

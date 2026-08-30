@@ -297,7 +297,7 @@ export default function CoudelariaDetail({
         {/* Destaque + Verified badges */}
         <div className="absolute top-28 right-4 sm:right-6 z-10 flex flex-col gap-2 items-end">
           {coudelaria.destaque && (
-            <div className="flex items-center gap-1.5 bg-gradient-to-r from-[#C5A059] to-[#E8D5A3] text-black px-3 py-1.5 text-xs font-bold uppercase tracking-wide">
+            <div className="flex items-center gap-1.5 bg-gradient-to-r from-[var(--gold)] to-[#E8D5A3] text-black px-3 py-1.5 text-xs font-bold uppercase tracking-wide">
               <Star size={13} aria-hidden="true" />
               {t.directorio.highlight}
             </div>
@@ -603,7 +603,7 @@ export default function CoudelariaDetail({
                   <button
                     onClick={() => setShowReviewForm(!showReviewForm)}
                     aria-expanded={showReviewForm}
-                    className="inline-flex items-center gap-2 bg-[var(--gold)] text-black px-4 py-2 text-sm font-bold hover:bg-[var(--gold-hover)] active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+                    className="btn btn-primario active:scale-95"
                   >
                     <Star size={15} aria-hidden="true" />
                     {t.directorio.rate_stud}
@@ -742,7 +742,7 @@ export default function CoudelariaDetail({
                           onChange={(e) =>
                             setReviewForm({ ...reviewForm, recomenda: e.target.checked })
                           }
-                          className="w-4 h-4 accent-[#C5A059]"
+                          className="w-4 h-4 accent-[var(--gold)]"
                         />
                         <span className="text-[var(--foreground-secondary)] text-sm">
                           {t.directorio.recommend}
@@ -752,7 +752,7 @@ export default function CoudelariaDetail({
                       <button
                         type="submit"
                         disabled={submittingReview}
-                        className="inline-flex items-center gap-2 bg-[var(--gold)] text-black px-6 py-3 font-bold hover:bg-[var(--gold-hover)] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+                        className="btn btn-primario active:scale-95"
                       >
                         {submittingReview ? (
                           <Loader2 size={16} className="animate-spin" aria-hidden="true" />
@@ -1029,7 +1029,7 @@ export default function CoudelariaDetail({
 
               {/* CTA */}
               <AnimateOnScroll delay={300}>
-                <div className="bg-gradient-to-br from-[#C5A059]/15 to-[#C5A059]/5 border border-[var(--gold)]/25 p-4 sm:p-6">
+                <div className="bg-gradient-to-br from-[var(--gold)]/15 to-[var(--gold)]/5 border border-[var(--gold)]/25 p-4 sm:p-6">
                   <h3 className="text-base font-semibold text-[var(--foreground)] mb-2">
                     {t.directorio.has_stud_sidebar}
                   </h3>
@@ -1085,17 +1085,14 @@ export default function CoudelariaDetail({
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Website"
-                className="flex items-center gap-2 bg-[var(--gold)] text-black px-4 h-10 rounded-lg text-sm font-semibold touch-manipulation active:scale-95 transition-transform"
+                className="btn btn-primario"
               >
                 <Globe size={14} />
                 Website
               </a>
             )}
             {!coudelaria.website && coudelaria.email && (
-              <a
-                href={`mailto:${coudelaria.email}`}
-                className="flex items-center gap-2 bg-[var(--gold)] text-black px-4 h-10 rounded-lg text-sm font-semibold touch-manipulation active:scale-95 transition-transform"
-              >
+              <a href={`mailto:${coudelaria.email}`} className="btn btn-primario">
                 <Mail size={14} />
                 Contactar
               </a>

@@ -364,7 +364,7 @@ function RegistarContent() {
 
         <LocalizedLink
           href={loginUrl}
-          className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-[#C5A059] to-[#B8956F] text-black font-semibold rounded-xl hover:from-[#D4AF6A] hover:to-[#C5A059] transition-all shadow-lg shadow-[var(--gold)]/20 hover:shadow-[var(--gold)]/30 hover:scale-[1.02] active:scale-[0.98] animate-auth-fadeInUp auth-stagger-5"
+          className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-[var(--gold)] to-[#B8956F] text-black font-semibold rounded-xl hover:from-[var(--gold-hover)] hover:to-[var(--gold)] transition-all shadow-lg shadow-[var(--gold)]/20 hover:shadow-[var(--gold)]/30 hover:scale-[1.02] active:scale-[0.98] animate-auth-fadeInUp auth-stagger-5"
         >
           Iniciar Sessão
           <ArrowRight size={16} aria-hidden="true" />
@@ -687,7 +687,7 @@ function RegistarContent() {
           <button
             type="submit"
             disabled={loading || !passwordValid}
-            className="relative w-full py-3.5 bg-gradient-to-r from-[#C5A059] to-[#B8956F] text-black font-semibold rounded-xl hover:from-[#D4AF6A] hover:to-[#C5A059] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[var(--gold)]/15 hover:shadow-[var(--gold)]/25 hover:scale-[1.01] active:scale-[0.99] overflow-hidden group/btn"
+            className="relative w-full py-3.5 bg-gradient-to-r from-[var(--gold)] to-[#B8956F] text-black font-semibold rounded-xl hover:from-[var(--gold-hover)] hover:to-[var(--gold)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[var(--gold)]/15 hover:shadow-[var(--gold)]/25 hover:scale-[1.01] active:scale-[0.99] overflow-hidden group/btn"
             aria-busy={loading}
           >
             {/* Shimmer overlay */}

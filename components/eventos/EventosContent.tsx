@@ -812,11 +812,7 @@ function EventoModal({
             >
               {getTipoIcon(evento.tipo)} {evento.tipo}
             </span>
-            {evento.destaque && (
-              <span className="px-3 py-1 bg-[var(--gold)] text-black text-[10px] font-bold uppercase tracking-wider">
-                {t.eventos.highlight}
-              </span>
-            )}
+            {evento.destaque && <span className="selo selo-destaque">{t.eventos.highlight}</span>}
             {(() => {
               const badge = getConfirmacaoBadge(evento.confirmado);
               if (!badge) return null;
@@ -926,10 +922,7 @@ function EventoModal({
           {/* CTA buttons */}
           <div className="flex flex-col gap-3">
             <MagneticButton strength={0.15}>
-              <LocalizedLink
-                href={`/eventos/${evento.slug}`}
-                className="ripple-btn flex items-center justify-center gap-2 w-full bg-[var(--gold)] text-black py-3 font-bold uppercase tracking-wider hover:bg-[var(--gold-hover)] transition-colors glow-pulse"
-              >
+              <LocalizedLink href={`/eventos/${evento.slug}`} className="btn btn-primario w-full">
                 {t.eventos.view_full_page}
               </LocalizedLink>
             </MagneticButton>

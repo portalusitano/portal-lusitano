@@ -158,7 +158,7 @@ function SubscriptionSection() {
             <button
               onClick={handleManagePortal}
               disabled={portalLoading}
-              className="inline-flex items-center gap-2 text-[10px] uppercase tracking-wider text-[var(--gold)] hover:text-[#D4AF6A] transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-2 text-[10px] uppercase tracking-wider text-[var(--gold)] hover:text-[var(--gold-hover)] transition-colors disabled:opacity-50"
             >
               {portalLoading ? (
                 <Loader2 size={12} className="animate-spin" />
@@ -177,7 +177,7 @@ function SubscriptionSection() {
             <button
               onClick={handleSubscribe}
               disabled={portalLoading}
-              className="shimmer-gold inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#C5A059] to-[#B8956F] text-black text-[10px] uppercase tracking-wider font-bold hover:from-[#D4AF6A] hover:to-[#C5A059] transition-all disabled:opacity-50"
+              className="shimmer-gold inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[var(--gold)] to-[#B8956F] text-black text-[10px] uppercase tracking-wider font-bold hover:from-[var(--gold-hover)] hover:to-[var(--gold)] transition-all disabled:opacity-50"
             >
               {portalLoading ? <Loader2 size={12} className="animate-spin" /> : <Crown size={12} />}
               Subscrever PRO
@@ -336,7 +336,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
         />
 
         {/* Gradient orbs */}
-        <div className="gradient-orb w-[600px] h-[600px] bg-[#C5A059] top-[-240px] left-[-120px] opacity-[0.07]" />
+        <div className="gradient-orb w-[600px] h-[600px] bg-[var(--gold)] top-[-240px] left-[-120px] opacity-[0.07]" />
         <div className="gradient-orb w-[400px] h-[400px] bg-purple-700 top-[-180px] right-[-60px] opacity-[0.04]" />
 
         {/* Fine top rule */}
@@ -353,7 +353,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
               <div className="flex items-end gap-5 sm:gap-6">
                 {/* Avatar */}
                 <div className="relative flex-shrink-0">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#C5A059] to-[#7A5A20] flex items-center justify-center shadow-[0_0_50px_rgba(197,160,89,0.3)]">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[var(--gold)] to-[#7A5A20] flex items-center justify-center shadow-[0_0_50px_rgba(197,160,89,0.3)]">
                     <span className="text-xl sm:text-2xl font-bold text-black tracking-wider select-none">
                       {initials}
                     </span>

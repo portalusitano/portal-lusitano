@@ -110,7 +110,7 @@ function TierCard({
     >
       {/* Popular badge */}
       {isPopular && (
-        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-[var(--gold)] text-black text-[10px] font-bold uppercase tracking-wider rounded-full whitespace-nowrap">
+        <span className="selo selo-destaque absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full whitespace-nowrap">
           {tr("Popular", "Popular", "Popular")}
         </span>
       )}

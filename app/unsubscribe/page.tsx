@@ -50,7 +50,7 @@ function UnsubscribeContent() {
       <div className="max-w-md w-full bg-[var(--background-secondary)]/40 backdrop-blur-md border border-[var(--border)] p-10 text-center">
         <h1 className="text-2xl text-[var(--foreground)] mb-4">{t.unsubscribe_page.title}</h1>
 
-        <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-[#C5A059] to-transparent mx-auto mb-8"></div>
+        <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent mx-auto mb-8"></div>
 
         {status === "idle" && (
           <>

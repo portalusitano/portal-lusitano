@@ -280,7 +280,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
           ) : null}
           <a
             href={`mailto:${cavalo.contacto_email || "geral@portal-lusitano.pt"}?subject=Interesse: ${encodeURIComponent(cavalo.nome_cavalo)} (REG: ${cavalo.id.slice(0, 8).toUpperCase()})`}
-            className="flex items-center gap-1.5 bg-[var(--gold)] text-black px-4 py-2.5 text-[11px] uppercase font-bold tracking-wide rounded-lg touch-manipulation active:scale-95 whitespace-nowrap"
+            className="btn btn-primario btn-sm touch-manipulation active:scale-95 whitespace-nowrap"
           >
             <Mail size={14} />
             Email

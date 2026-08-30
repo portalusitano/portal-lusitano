@@ -113,7 +113,7 @@ function PerfilContent() {
         {/* User Info */}
         <div className="bg-[var(--background-secondary)] cartao p-6 space-y-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#C5A059] to-[#8B7355] flex items-center justify-center text-black text-xl font-bold">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[var(--gold)] to-[#8B7355] flex items-center justify-center text-black text-xl font-bold">
               {(name || user?.email || "U").charAt(0).toUpperCase()}
             </div>
             <div className="flex-1">
@@ -185,7 +185,7 @@ function PerfilContent() {
                 {!isPro && (
                   <a
                     href="/vender-cavalo"
-                    className="px-4 py-2 bg-gradient-to-r from-[#C5A059] to-[#B8956F] text-black text-sm font-semibold rounded-lg hover:from-[#D4AF6A] hover:to-[#C5A059] transition-all"
+                    className="px-4 py-2 bg-gradient-to-r from-[var(--gold)] to-[#B8956F] text-black text-sm font-semibold rounded-lg hover:from-[var(--gold-hover)] hover:to-[var(--gold)] transition-all"
                   >
                     {t.profile.upgrade_pro}
                   </a>

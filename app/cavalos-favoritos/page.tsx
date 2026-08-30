@@ -118,11 +118,7 @@ export default function CavalosFavoritosPage() {
                     <button
                       key={option.key}
                       onClick={() => setSortBy(option.key as typeof sortBy)}
-                      className={`px-2 sm:px-3 py-1.5 text-[10px] sm:text-xs uppercase tracking-wider transition-all active:scale-95 ${
-                        sortBy === option.key
-                          ? "bg-[var(--gold)] text-black"
-                          : "bg-[var(--background-secondary)] text-[var(--foreground-secondary)] hover:text-[var(--foreground)]"
-                      }`}
+                      className={`chip active:scale-95 ${sortBy === option.key ? "chip-activo" : ""}`}
                     >
                       {option.label}
                     </button>

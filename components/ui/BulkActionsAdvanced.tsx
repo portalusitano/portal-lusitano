@@ -123,7 +123,7 @@ export default function BulkActionsAdvanced({
     <>
       {/* Bulk Actions Bar */}
       <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 animate-slide-up">
-        <div className="bg-gradient-to-r from-[#C5A059] to-[#d4b469] rounded-full shadow-2xl px-6 py-4 flex items-center gap-4">
+        <div className="bg-gradient-to-r from-[var(--gold)] to-[var(--gold-hover)] rounded-full shadow-2xl px-6 py-4 flex items-center gap-4">
           {/* Selection Count */}
           <div className="flex items-center gap-2 text-black font-bold">
             <CheckSquare className="w-5 h-5" />
@@ -183,7 +183,7 @@ export default function BulkActionsAdvanced({
       {/* Preview Modal */}
       {showPreview && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1A1A1A] border border-white/10 rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+          <div className="bg-[var(--background-elevated)] border border-white/10 rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
             <div className="p-6 border-b border-white/10 flex items-center justify-between">
               <h3 className="text-xl font-bold text-white">
                 Preview: {selectedItems.length} {entityName}
@@ -211,7 +211,7 @@ export default function BulkActionsAdvanced({
                         <p className="text-sm text-gray-400">{String(item.email)}</p>
                       )}
                       {Boolean(item.status) && (
-                        <span className="inline-block mt-2 px-2 py-1 bg-[#C5A059]/20 text-[#C5A059] text-xs rounded">
+                        <span className="inline-block mt-2 px-2 py-1 bg-[var(--gold)]/20 text-[var(--gold)] text-xs rounded">
                           {String(item.status)}
                         </span>
                       )}
@@ -236,7 +236,7 @@ export default function BulkActionsAdvanced({
       {/* Confirmation Modal */}
       {showConfirm && confirmAction && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1A1A1A] border border-white/10 rounded-xl max-w-md w-full">
+          <div className="bg-[var(--background-elevated)] border border-white/10 rounded-xl max-w-md w-full">
             <div className="p-6">
               <div className="flex items-center gap-3 mb-4">
                 <div
@@ -279,7 +279,7 @@ export default function BulkActionsAdvanced({
                   className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-all disabled:opacity-50 ${
                     confirmAction.dangerous
                       ? "bg-red-500 hover:bg-red-600 text-white"
-                      : "bg-[#C5A059] hover:bg-[#d4b469] text-black"
+                      : "bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black"
                   }`}
                 >
                   {loading ? "A executar..." : "Confirmar"}
@@ -293,10 +293,10 @@ export default function BulkActionsAdvanced({
       {/* History Modal */}
       {showHistory && onUndo && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1A1A1A] border border-white/10 rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+          <div className="bg-[var(--background-elevated)] border border-white/10 rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
             <div className="p-6 border-b border-white/10 flex items-center justify-between">
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <RotateCcw className="w-5 h-5 text-[#C5A059]" />
+                <RotateCcw className="w-5 h-5 text-[var(--gold)]" />
                 Histórico de Ações ({history.length})
               </h3>
               <button
@@ -327,7 +327,7 @@ export default function BulkActionsAdvanced({
                     <button
                       onClick={() => handleUndo(entry)}
                       disabled={loading}
-                      className="px-4 py-2 bg-[#C5A059]/20 hover:bg-[#C5A059]/30 text-[#C5A059] rounded-lg font-semibold transition-all disabled:opacity-50 flex items-center gap-2"
+                      className="px-4 py-2 bg-[var(--gold)]/20 hover:bg-[var(--gold)]/30 text-[var(--gold)] rounded-lg font-semibold transition-all disabled:opacity-50 flex items-center gap-2"
                     >
                       <RotateCcw className="w-4 h-4" />
                       Reverter

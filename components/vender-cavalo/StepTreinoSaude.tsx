@@ -78,10 +78,8 @@ export default function StepTreinoSaude({
                 key={uso}
                 type="button"
                 onClick={() => onToggleUso(uso)}
-                className={`px-3 py-1.5 rounded-lg text-sm transition-colors touch-manipulation ${
-                  formData.uso_atual.includes(uso)
-                    ? "bg-[var(--gold)] text-black"
-                    : "bg-[var(--background-card)] text-[var(--foreground-secondary)] hover:bg-[var(--surface-hover)]"
+                className={`chip touch-manipulation ${
+                  formData.uso_atual.includes(uso) ? "chip-activo" : ""
                 }`}
               >
                 {uso}

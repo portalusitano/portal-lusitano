@@ -61,7 +61,7 @@ export default function FormNavigation({ step, onPrev, onNext }: FormNavigationP
         {step < TOTAL_STEPS && (
           <button
             onClick={onNext}
-            className="flex-none px-6 py-3 bg-[var(--gold)] text-black font-semibold rounded-lg text-sm touch-manipulation active:scale-95 transition-transform"
+            className="btn btn-primario flex-none px-6 touch-manipulation active:scale-95"
           >
             {t.vender_cavalo.continue}
           </button>

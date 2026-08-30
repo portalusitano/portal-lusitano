@@ -352,7 +352,7 @@ export default function RegistarCoudelariaPage() {
                     !formData.localizacao ||
                     !formData.regiao
                   }
-                  className="inline-flex items-center gap-2 bg-[var(--gold)] text-black px-8 py-3 text-sm font-bold uppercase tracking-wider hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn btn-acento px-8"
                 >
                   {t.registar_coudelaria.btn_continue}
                   <ArrowRight size={18} />
@@ -427,7 +427,7 @@ export default function RegistarCoudelariaPage() {
                 <button
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 bg-[var(--gold)] text-black px-8 py-3 text-sm font-bold uppercase tracking-wider hover:bg-white transition-colors disabled:opacity-50"
+                  className="btn btn-acento px-8"
                 >
                   {isSubmitting ? (
                     <>

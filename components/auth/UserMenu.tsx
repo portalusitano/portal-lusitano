@@ -48,7 +48,7 @@ export default function UserMenu() {
         onClick={() => setOpen(!open)}
         className="flex items-center gap-2 text-[var(--foreground-secondary)] hover:text-[var(--foreground)] transition-colors"
       >
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C5A059] to-[#8B7355] flex items-center justify-center text-black text-sm font-bold">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--gold)] to-[#8B7355] flex items-center justify-center text-black text-sm font-bold">
           {initial}
         </div>
         <span className="hidden xl:block text-sm max-w-[80px] sm:max-w-[100px] md:max-w-none truncate">

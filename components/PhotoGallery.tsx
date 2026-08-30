@@ -94,9 +94,7 @@ export default function PhotoGallery({ photos, alt, backHref, destaque }: PhotoG
           {/* Destaque badge */}
           {destaque && (
             <div className="absolute top-4 right-4 z-10">
-              <span className="bg-[var(--gold)] text-black rotulo font-bold px-3 py-1">
-                Destaque
-              </span>
+              <span className="selo selo-destaque">Destaque</span>
             </div>
           )}
         </div>

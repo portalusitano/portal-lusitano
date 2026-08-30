@@ -433,7 +433,7 @@ export default function AdvancedFilters({
               <button
                 onClick={savePreset}
                 disabled={!presetName.trim()}
-                className="flex-1 px-4 py-2 bg-[var(--gold)] text-black rounded-lg font-semibold hover:bg-[#B39048] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 bg-[var(--gold)] text-black rounded-lg font-semibold hover:bg-[var(--gold)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Guardar
               </button>
