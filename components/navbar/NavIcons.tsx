@@ -1,6 +1,6 @@
 import { memo } from "react";
 import LocalizedLink from "@/components/LocalizedLink";
-import { Search, Heart, User, Plus, Menu, X, Sun, Moon, MessagesSquare } from "lucide-react";
+import { Search, Heart, User, Plus, X, Sun, Moon, MessagesSquare } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useHorseFavorites } from "@/context/HorseFavoritesContext";
 import { useMensagensPorLer } from "@/context/MensagensContext";
@@ -57,7 +57,7 @@ export const NavIcons = memo(function NavIcons({
       {/* Pesquisa */}
       <button
         onClick={onSearchClick}
-        className="text-[var(--foreground-secondary)] hover:text-[var(--gold)] transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95 touch-manipulation"
+        className="hidden lg:flex text-[var(--foreground-secondary)] hover:text-[var(--gold)] transition-colors p-2 min-w-[44px] min-h-[44px] items-center justify-center active:scale-95 touch-manipulation"
         aria-label={tr3(language, "Pesquisar", "Search", "Buscar")}
       >
         <Search size={20} strokeWidth={1.5} />
@@ -138,9 +138,10 @@ export const NavIcons = memo(function NavIcons({
         {tr3(language, "Publicar anúncio", "Post listing", "Publicar anuncio")}
       </LocalizedLink>
 
-      {/* Menu Mobile — hidden when BottomNav is active (< lg) */}
+      {/* Menu em ecrã pequeno: pastilha com a palavra, não um ícone de três
+          traços. Lê-se à primeira e é um alvo de toque maior. */}
       <button
-        className="hidden text-[var(--foreground)] p-2 min-w-[44px] min-h-[44px] flex items-center justify-center active:scale-95 touch-manipulation"
+        className="btn btn-pilula lg:hidden active:scale-95 touch-manipulation"
         onClick={onMobileToggle}
         aria-label={
           isMobileOpen
@@ -150,7 +151,10 @@ export const NavIcons = memo(function NavIcons({
         aria-expanded={isMobileOpen}
         aria-controls="mobile-menu"
       >
-        {isMobileOpen ? <X size={26} /> : <Menu size={26} />}
+        {isMobileOpen ? <X size={18} /> : null}
+        {isMobileOpen
+          ? tr3(language, "Fechar", "Close", "Cerrar")
+          : tr3(language, "Menu", "Menu", "Menú")}
       </button>
     </div>
   );

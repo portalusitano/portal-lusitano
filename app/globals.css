@@ -1356,6 +1356,22 @@ body {
     background: var(--surface-hover);
   }
 
+  /* Pastilha cheia e translúcida — o botão de menu em ecrã pequeno. Não é
+     `.btn-secundario` porque não é uma hairline: é uma superfície suave que
+     se lê sobre fotografia sem precisar de contorno. */
+  .btn-pilula {
+    background: var(--elevate-2);
+    color: var(--foreground-strong);
+    border-radius: 999px;
+    padding: 0.5rem 1.125rem;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .btn-pilula:hover:not(:disabled) {
+    background: var(--elevate-1);
+  }
+
   .btn-sm {
     padding: 0.375rem 0.625rem;
     font-size: 0.75rem;

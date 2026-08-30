@@ -101,12 +101,12 @@ describe("Navbar", () => {
     expect(nav).toBeInTheDocument();
   });
 
-  it("renders the PORTAL LUSITANO logo/link", () => {
+  it("mostra a marca como texto e liga-a à página inicial", () => {
     render(<Navbar />);
-    expect(screen.getByText("PORTAL LUSITANO")).toBeInTheDocument();
+    expect(screen.getByText("Portal Lusitano")).toBeInTheDocument();
 
     // The logo text should be inside a link pointing to "/"
-    const logoLink = screen.getByText("PORTAL LUSITANO").closest("a");
+    const logoLink = screen.getByText("Portal Lusitano").closest("a");
     expect(logoLink).toBeTruthy();
     expect(logoLink).toHaveAttribute("href", "/");
   });
@@ -134,9 +134,10 @@ describe("Navbar", () => {
     expect(logoImg).toHaveAttribute("src", "/logo.webp");
   });
 
-  it("renders the EST. 2023 tagline", () => {
+  it("não mostra a data de fundação", () => {
+    // Roubava atenção ao nome e envelhece sozinha.
     render(<Navbar />);
-    expect(screen.getByText("EST. 2023")).toBeInTheDocument();
+    expect(screen.queryByText(/EST\. ?2023/i)).not.toBeInTheDocument();
   });
 
   it("renders MobileMenu component", () => {

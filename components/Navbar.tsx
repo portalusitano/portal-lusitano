@@ -103,16 +103,14 @@ export default memo(function Navbar() {
             width={44}
             height={44}
             priority
-            className="w-9 h-9 md:w-11 md:h-11 object-contain group-hover:scale-105 transition-transform"
+            className="hidden md:block w-11 h-11 object-contain group-hover:scale-105 transition-transform"
           />
-          <div className="flex flex-col justify-center">
-            <span className="text-base md:text-lg font-semibold tracking-tight text-[var(--foreground-strong)] group-hover:text-[var(--gold)] transition-colors leading-none whitespace-nowrap">
-              PORTAL LUSITANO
-            </span>
-            <span className="rotulo text-[var(--foreground-muted)] mt-0.5 group-hover:text-[var(--gold)]/70 transition-colors leading-none">
-              EST. 2023
-            </span>
-          </div>
+          {/* A marca é o texto. Peso forte e tracking apertado dão-lhe presença
+              sem precisar de tamanho — e sem a data por baixo, que roubava
+              atenção ao nome e envelhece sozinha. */}
+          <span className="text-xl md:text-2xl font-bold tracking-[-0.03em] text-[var(--foreground-strong)] group-hover:text-[var(--gold)] transition-colors leading-none whitespace-nowrap">
+            Portal Lusitano
+          </span>
         </LocalizedLink>
 
         {/* MENU DESKTOP */}

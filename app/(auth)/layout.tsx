@@ -62,7 +62,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             PORTAL LUSITANO
           </span>
           <div className="flex items-center gap-3">
-            <span className="rotulo">EST. 2023</span>
             <div className="h-px flex-1 bg-gradient-to-r from-[var(--gold)]/30 to-transparent" />
           </div>
         </Link>
@@ -184,7 +183,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <span className="text-xl text-[var(--foreground)] tracking-wide group-hover:text-[var(--gold)] transition-colors">
             PORTAL LUSITANO
           </span>
-          <span className="rotulo mt-1">EST. 2023</span>
         </Link>
 
         {/* Form card — glass-morphism */}
