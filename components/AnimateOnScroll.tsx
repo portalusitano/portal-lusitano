@@ -24,10 +24,16 @@ export function AnimateOnScroll({ children, className = "", delay = 0 }: Animate
   return (
     <div
       ref={ref}
-      className={`transition-all duration-700 ease-out ${
+      className={`transition-all ${
         inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       } ${className}`}
-      style={{ transitionDelay: `${delay}ms` }}
+      style={{
+        // 500ms com a curva do sistema, como o `Revelar`. Estava a 700ms com
+        // `ease-out`, e a diferença lia-se ao mudar de secção.
+        transitionDuration: "500ms",
+        transitionTimingFunction: "var(--ease)",
+        transitionDelay: `${delay}ms`,
+      }}
     >
       {children}
     </div>

@@ -58,7 +58,11 @@ export default memo(function RevealOnScroll({
 
   const styles = getStyles(variant, inView, distance);
 
-  const easing = `cubic-bezier(0.25,0.46,0.45,0.94)`;
+  // A curva do sistema, lida do token, para as três implementações de reveal
+  // que o site tem falarem a mesma linguagem de movimento. Estavam com curvas
+  // diferentes — esta, a do `Revelar` e a do `AnimateOnScroll` — e isso
+  // notava-se ao passar de uma secção para outra.
+  const easing = "var(--ease)";
   const usesBlur = variant === "blur-up";
   const transitionProps = usesBlur
     ? `opacity ${duration}ms ${easing} ${delay}ms, transform ${duration}ms ${easing} ${delay}ms, filter ${duration}ms ${easing} ${delay}ms`
