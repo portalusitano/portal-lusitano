@@ -105,7 +105,7 @@ function PerfilContent() {
         <h1 className="text-3xl font-serif">{t.profile.my_profile}</h1>
 
         {/* User Info */}
-        <div className="bg-[var(--background-secondary)] border border-[var(--border)] rounded-xl p-6 space-y-4">
+        <div className="bg-[var(--background-secondary)] cartao p-6 space-y-4">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#C5A059] to-[#8B7355] flex items-center justify-center text-black text-xl font-bold">
               {(name || user?.email || "U").charAt(0).toUpperCase()}
@@ -147,7 +147,7 @@ function PerfilContent() {
         </div>
 
         {/* Subscription */}
-        <div className="bg-[var(--background-secondary)] border border-[var(--border)] rounded-xl p-6">
+        <div className="bg-[var(--background-secondary)] cartao p-6">
           <div className="flex items-center gap-3 mb-4">
             <Crown className="text-[var(--gold)]" size={20} />
             <h2 className="text-lg font-medium">{t.profile.subscription}</h2>
@@ -193,7 +193,7 @@ function PerfilContent() {
         </div>
 
         {/* Favoritos */}
-        <div className="bg-[var(--background-secondary)] border border-[var(--border)] rounded-xl p-6">
+        <div className="bg-[var(--background-secondary)] cartao p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Star className="text-[var(--gold)]" size={20} />
@@ -212,7 +212,7 @@ function PerfilContent() {
         </div>
 
         {/* Histórico de Uso */}
-        <div className="bg-[var(--background-secondary)] border border-[var(--border)] rounded-xl p-6">
+        <div className="bg-[var(--background-secondary)] cartao p-6">
           <div className="flex items-center gap-3 mb-4">
             <BarChart2 className="text-[var(--foreground-secondary)]" size={20} />
             <h2 className="text-lg font-medium">{t.profile.usage_history}</h2>

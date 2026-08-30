@@ -9,7 +9,7 @@ export default function ContactoPage() {
         <div className="text-center mb-16">
           <span className="text-[var(--gold)] rotulo font-bold block mb-6">Fale Connosco</span>
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-normal mb-4">Contacto</h1>
-          <p className="text-[var(--foreground-secondary)] text-sm font-light max-w-md mx-auto">
+          <p className="text-[var(--foreground-secondary)] text-sm font-normal max-w-md mx-auto">
             Estamos disponíveis para responder a questões sobre anúncios, subscrições, parcerias ou
             qualquer outro assunto.
           </p>
@@ -25,7 +25,7 @@ export default function ContactoPage() {
               </div>
               <span className="rotulo-forte font-medium">Email</span>
             </div>
-            <p className="text-[var(--foreground)] text-sm font-light break-all">
+            <p className="text-[var(--foreground)] text-sm font-normal break-all">
               portal.lusitano2023@gmail.com
             </p>
             <CopyEmailButton />
@@ -39,7 +39,7 @@ export default function ContactoPage() {
               </div>
               <span className="rotulo-forte font-medium">Sede</span>
             </div>
-            <p className="text-[var(--foreground)] text-sm font-light leading-relaxed">
+            <p className="text-[var(--foreground)] text-sm font-normal leading-relaxed">
               Rua Dom Teotónio de Bragança, 33, 1.º
               <br />
               7005-454 Évora
@@ -56,7 +56,7 @@ export default function ContactoPage() {
               </div>
               <span className="rotulo-forte font-medium">Tempo de Resposta</span>
             </div>
-            <p className="text-[var(--foreground)] text-sm font-light">
+            <p className="text-[var(--foreground)] text-sm font-normal">
               Respondemos em regra dentro de <strong>48 horas úteis</strong>.
             </p>
             <p className="text-[var(--foreground-muted)] text-xs">
@@ -72,7 +72,7 @@ export default function ContactoPage() {
               </div>
               <span className="rotulo-forte font-medium">Identificação Legal</span>
             </div>
-            <p className="text-[var(--foreground)] text-sm font-light leading-relaxed">
+            <p className="text-[var(--foreground)] text-sm font-normal leading-relaxed">
               Francisco Maria Carrelhas das Neves
               <br />
               da Palma Gaspar
@@ -125,7 +125,7 @@ export default function ContactoPage() {
 
         {/* Links legais */}
         <div className="border-t border-[var(--border)] pt-8 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <p className="text-xs text-[var(--foreground-muted)] font-light">
+          <p className="text-xs text-[var(--foreground-muted)] font-normal">
             Reclamações formais podem ser submetidas via:
           </p>
           <div className="flex flex-wrap gap-4">

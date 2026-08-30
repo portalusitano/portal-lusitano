@@ -85,12 +85,12 @@ export default async function VendedorPage({ params }: { params: Promise<{ id: s
         <header className="pb-8 border-b border-[var(--border)]">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-[var(--gold)]/12 flex items-center justify-center shrink-0">
-              <span className="text-[var(--gold)] text-xl font-light">
+              <span className="text-[var(--gold)] text-xl font-normal">
                 {vendedor.nome.charAt(0).toUpperCase()}
               </span>
             </div>
             <div className="min-w-0">
-              <h1 className="text-2xl font-light tracking-wide text-[var(--foreground)] truncate">
+              <h1 className="text-2xl font-normal tracking-wide text-[var(--foreground)] truncate">
                 {vendedor.nome}
               </h1>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 rotulo">

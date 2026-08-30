@@ -3,7 +3,15 @@
 import { useMemo } from "react";
 import { Upload, CheckCircle, Shield } from "lucide-react";
 import type { StepProps, Documentos, DocumentType } from "@/components/vender-cavalo/types";
-import { niveisTreino, disciplinasOpcoes, tiposFerragemOpcoes, niveisCavaleiro, usosAtuais, regimesEstabulacao, tiposAlimentacao } from "@/components/vender-cavalo/data";
+import {
+  niveisTreino,
+  disciplinasOpcoes,
+  tiposFerragemOpcoes,
+  niveisCavaleiro,
+  usosAtuais,
+  regimesEstabulacao,
+  tiposAlimentacao,
+} from "@/components/vender-cavalo/data";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
 
@@ -26,7 +34,7 @@ export default function StepTreinoSaude({
   const tr = useMemo(() => createTranslator(language), [language]);
 
   return (
-    <div className="bg-[var(--background-secondary)]/50 border border-[var(--border)] rounded-xl p-6">
+    <div className="bg-[var(--background-secondary)]/50 cartao p-6">
       <h2 className="text-xl font-serif mb-6 flex items-center gap-3">
         <span className="w-8 h-8 bg-[var(--gold)] rounded-full flex items-center justify-center text-black text-sm font-bold">
           4
@@ -48,7 +56,7 @@ export default function StepTreinoSaude({
             required
             value={formData.nivel_treino}
             onChange={(e) => updateField("nivel_treino", e.target.value)}
-            className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+            className="campo"
           >
             <option value="">{t.vender_cavalo.select}</option>
             {(niveisTreino[language] || niveisTreino.pt).map((n) => (
@@ -113,7 +121,9 @@ export default function StepTreinoSaude({
               className="block text-sm text-[var(--foreground-secondary)] mb-1"
             >
               {tr("Anos de Treino", "Training Years", "Años de Entrenamiento")}
-              <span className="text-[var(--foreground-muted)] text-xs ml-1">{tr("(anos em trabalho)", "(years in work)", "(años en trabajo)")}</span>
+              <span className="text-[var(--foreground-muted)] text-xs ml-1">
+                {tr("(anos em trabalho)", "(years in work)", "(años en trabajo)")}
+              </span>
             </label>
             <input
               id="anos_treino"
@@ -122,7 +132,7 @@ export default function StepTreinoSaude({
               max={30}
               value={formData.anos_treino}
               onChange={(e) => updateField("anos_treino", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder="Ex: 5"
             />
           </div>
@@ -131,18 +141,24 @@ export default function StepTreinoSaude({
               htmlFor="nivel_cavaleiro"
               className="block text-sm text-[var(--foreground-secondary)] mb-1"
             >
-              {tr("Nível de Cavaleiro Recomendado *", "Recommended Rider Level *", "Nivel de Jinete Recomendado *")}
+              {tr(
+                "Nível de Cavaleiro Recomendado *",
+                "Recommended Rider Level *",
+                "Nivel de Jinete Recomendado *"
+              )}
             </label>
             <select
               id="nivel_cavaleiro"
               required
               value={formData.nivel_cavaleiro}
               onChange={(e) => updateField("nivel_cavaleiro", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
             >
               <option value="">{t.vender_cavalo.select}</option>
               {(niveisCavaleiro[language] || niveisCavaleiro.pt).map((n) => (
-                <option key={n} value={n}>{n}</option>
+                <option key={n} value={n}>
+                  {n}
+                </option>
               ))}
             </select>
           </div>
@@ -156,14 +172,16 @@ export default function StepTreinoSaude({
               className="block text-sm text-[var(--foreground-secondary)] mb-1"
             >
               {tr("Treinador Atual", "Current Trainer", "Entrenador Actual")}
-              <span className="text-[var(--foreground-muted)] text-xs ml-1">{tr("(opcional)", "(optional)", "(opcional)")}</span>
+              <span className="text-[var(--foreground-muted)] text-xs ml-1">
+                {tr("(opcional)", "(optional)", "(opcional)")}
+              </span>
             </label>
             <input
               id="treinador_atual"
               type="text"
               value={formData.treinador_atual}
               onChange={(e) => updateField("treinador_atual", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder="Nome do treinador"
             />
           </div>
@@ -173,14 +191,16 @@ export default function StepTreinoSaude({
               className="block text-sm text-[var(--foreground-secondary)] mb-1"
             >
               {tr("Ginete Habitual", "Regular Rider", "Jinete Habitual")}
-              <span className="text-[var(--foreground-muted)] text-xs ml-1">{tr("(opcional)", "(optional)", "(opcional)")}</span>
+              <span className="text-[var(--foreground-muted)] text-xs ml-1">
+                {tr("(opcional)", "(optional)", "(opcional)")}
+              </span>
             </label>
             <input
               id="ginete_habitual"
               type="text"
               value={formData.ginete_habitual}
               onChange={(e) => updateField("ginete_habitual", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder="Nome do cavaleiro habitual"
             />
           </div>
@@ -200,7 +220,7 @@ export default function StepTreinoSaude({
               type="text"
               value={formData.competicoes}
               onChange={(e) => updateField("competicoes", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder={t.vender_cavalo.placeholder_competitions}
             />
           </div>
@@ -216,7 +236,7 @@ export default function StepTreinoSaude({
               type="text"
               value={formData.premios}
               onChange={(e) => updateField("premios", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder={t.vender_cavalo.placeholder_awards}
             />
           </div>
@@ -226,10 +246,18 @@ export default function StepTreinoSaude({
         <div className="border-t border-[var(--border)] pt-6">
           <h3 className="text-sm font-medium text-[var(--foreground)] mb-4 flex items-center gap-2">
             <Shield size={18} className="text-[var(--gold)]" />
-            {tr("Comportamento e Maneabilidade", "Behaviour & Tractability", "Comportamiento y Manejabilidad")}
+            {tr(
+              "Comportamento e Maneabilidade",
+              "Behaviour & Tractability",
+              "Comportamiento y Manejabilidad"
+            )}
           </h3>
           <p className="text-xs text-[var(--foreground-muted)] mb-4">
-            {tr("Assinale as características confirmadas. Esta informação é muito valorizada pelos compradores.", "Mark confirmed characteristics. This information is highly valued by buyers.", "Marque las características confirmadas. Esta información es muy valorada por los compradores.")}
+            {tr(
+              "Assinale as características confirmadas. Esta informação é muito valorizada pelos compradores.",
+              "Mark confirmed characteristics. This information is highly valued by buyers.",
+              "Marque las características confirmadas. Esta información es muy valorada por los compradores."
+            )}
           </p>
           <div className="grid sm:grid-cols-2 gap-3">
             {[
@@ -242,7 +270,11 @@ export default function StepTreinoSaude({
               { id: "habituado_campo", label: "Habituado a campo / exterior" },
               { id: "apto_criancas", label: "Apto para crianças / principiantes" },
             ].map(({ id, label }) => (
-              <label key={id} htmlFor={id} className="flex items-center gap-3 cursor-pointer touch-manipulation">
+              <label
+                key={id}
+                htmlFor={id}
+                className="flex items-center gap-3 cursor-pointer touch-manipulation"
+              >
                 <input
                   id={id}
                   type="checkbox"
@@ -265,42 +297,59 @@ export default function StepTreinoSaude({
 
           <div className="grid sm:grid-cols-2 gap-4 mb-4">
             <div>
-              <label htmlFor="regime_estabulacao" className="block text-sm text-[var(--foreground-secondary)] mb-1">
+              <label
+                htmlFor="regime_estabulacao"
+                className="block text-sm text-[var(--foreground-secondary)] mb-1"
+              >
                 {tr("Regime de Estabulação", "Stabling Regime", "Régimen de Estabulación")}
               </label>
               <select
                 id="regime_estabulacao"
                 value={formData.regime_estabulacao}
                 onChange={(e) => updateField("regime_estabulacao", e.target.value)}
-                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+                className="campo"
               >
                 <option value="">{tr("Selecionar", "Select", "Seleccionar")}</option>
                 {(regimesEstabulacao[language] || regimesEstabulacao.pt).map((r) => (
-                  <option key={r} value={r}>{r}</option>
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
-              <label htmlFor="tipo_alimentacao" className="block text-sm text-[var(--foreground-secondary)] mb-1">
+              <label
+                htmlFor="tipo_alimentacao"
+                className="block text-sm text-[var(--foreground-secondary)] mb-1"
+              >
                 {tr("Tipo de Alimentação", "Feeding Type", "Tipo de Alimentación")}
               </label>
               <select
                 id="tipo_alimentacao"
                 value={formData.tipo_alimentacao}
                 onChange={(e) => updateField("tipo_alimentacao", e.target.value)}
-                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+                className="campo"
               >
                 <option value="">{tr("Selecionar", "Select", "Seleccionar")}</option>
                 {(tiposAlimentacao[language] || tiposAlimentacao.pt).map((a) => (
-                  <option key={a} value={a}>{a}</option>
+                  <option key={a} value={a}>
+                    {a}
+                  </option>
                 ))}
               </select>
             </div>
           </div>
 
           <div className="mb-4">
-            <label htmlFor="horas_trabalho_semana" className="block text-sm text-[var(--foreground-secondary)] mb-1">
-              {tr("Horas de Trabalho por Semana", "Working Hours per Week", "Horas de Trabajo por Semana")}
+            <label
+              htmlFor="horas_trabalho_semana"
+              className="block text-sm text-[var(--foreground-secondary)] mb-1"
+            >
+              {tr(
+                "Horas de Trabalho por Semana",
+                "Working Hours per Week",
+                "Horas de Trabajo por Semana"
+              )}
               <span className="text-[var(--foreground-muted)] text-xs ml-1">(horas/semana)</span>
             </label>
             <input
@@ -310,13 +359,16 @@ export default function StepTreinoSaude({
               max={40}
               value={formData.horas_trabalho_semana}
               onChange={(e) => updateField("horas_trabalho_semana", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder="Ex: 5"
             />
           </div>
 
           <div className="flex flex-wrap gap-4">
-            <label htmlFor="teste_dna_realizado" className="flex items-center gap-3 cursor-pointer touch-manipulation">
+            <label
+              htmlFor="teste_dna_realizado"
+              className="flex items-center gap-3 cursor-pointer touch-manipulation"
+            >
               <input
                 id="teste_dna_realizado"
                 type="checkbox"
@@ -326,7 +378,10 @@ export default function StepTreinoSaude({
               />
               <span className="text-sm">Teste de DNA realizado (parentesco verificado)</span>
             </label>
-            <label htmlFor="seguro_equino" className="flex items-center gap-3 cursor-pointer touch-manipulation">
+            <label
+              htmlFor="seguro_equino"
+              className="flex items-center gap-3 cursor-pointer touch-manipulation"
+            >
               <input
                 id="seguro_equino"
                 type="checkbox"
@@ -358,7 +413,7 @@ export default function StepTreinoSaude({
               required
               value={formData.estado_saude}
               onChange={(e) => updateField("estado_saude", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
             >
               <option value="">{t.vender_cavalo.select}</option>
               <option value="Excelente">{t.vender_cavalo.health_excellent}</option>
@@ -449,7 +504,7 @@ export default function StepTreinoSaude({
                 type="date"
                 value={formData.data_ultima_vacinacao}
                 onChange={(e) => updateField("data_ultima_vacinacao", e.target.value)}
-                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+                className="campo"
               />
             </div>
             <div>
@@ -464,7 +519,7 @@ export default function StepTreinoSaude({
                 type="date"
                 value={formData.data_ultima_desparasitacao}
                 onChange={(e) => updateField("data_ultima_desparasitacao", e.target.value)}
-                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+                className="campo"
               />
             </div>
           </div>
@@ -482,7 +537,7 @@ export default function StepTreinoSaude({
               type="text"
               value={formData.nome_veterinario}
               onChange={(e) => updateField("nome_veterinario", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder="Ex: Dr. João Silva — +351 912 345 678"
             />
           </div>
@@ -501,7 +556,7 @@ export default function StepTreinoSaude({
                 type="date"
                 value={formData.data_ultima_ferragem}
                 onChange={(e) => updateField("data_ultima_ferragem", e.target.value)}
-                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+                className="campo"
               />
             </div>
             <div>
@@ -515,11 +570,13 @@ export default function StepTreinoSaude({
                 id="tipo_ferragem"
                 value={formData.tipo_ferragem}
                 onChange={(e) => updateField("tipo_ferragem", e.target.value)}
-                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+                className="campo"
               >
                 <option value="">{tr("Selecionar", "Select", "Seleccionar")}</option>
                 {(tiposFerragemOpcoes[language] || tiposFerragemOpcoes.pt).map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
                 ))}
               </select>
             </div>
@@ -538,7 +595,7 @@ export default function StepTreinoSaude({
               id="historico_lesoes"
               value={formData.historico_lesoes}
               onChange={(e) => updateField("historico_lesoes", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)] h-20 resize-none"
+              className="campo h-20 resize-none"
               placeholder="Ex: Cólica cirúrgica em 2021, totalmente recuperado. Sem lesões articulares."
             />
           </div>
@@ -554,14 +611,14 @@ export default function StepTreinoSaude({
               id="observacoes_saude"
               value={formData.observacoes_saude}
               onChange={(e) => updateField("observacoes_saude", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)] h-24 resize-none"
+              className="campo h-24 resize-none"
               placeholder={t.vender_cavalo.placeholder_health_notes}
             />
           </div>
 
           {/* Upload Exame Veterinário */}
           {formData.exame_veterinario && (
-            <div className="mt-4 bg-[var(--background-card)]/50 border border-[var(--border)] rounded-lg p-4">
+            <div className="mt-4 bg-[var(--background-card)]/50 cartao p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">{t.vender_cavalo.vet_report}</span>
                 {documentos.exameVet && <CheckCircle size={18} className="text-green-400" />}

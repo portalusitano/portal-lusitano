@@ -11,7 +11,7 @@ export default function StepProprietario({ formData, updateField }: StepProps) {
   const tr = useMemo(() => createTranslator(language), [language]);
 
   return (
-    <div className="bg-[var(--background-secondary)]/50 border border-[var(--border)] rounded-xl p-6">
+    <div className="bg-[var(--background-secondary)]/50 cartao p-6">
       <h2 className="text-xl font-serif mb-6 flex items-center gap-3">
         <span className="w-8 h-8 bg-[var(--gold)] rounded-full flex items-center justify-center text-black text-sm font-bold">
           1
@@ -33,11 +33,13 @@ export default function StepProprietario({ formData, updateField }: StepProps) {
               required
               value={formData.tipo_proprietario}
               onChange={(e) => updateField("tipo_proprietario", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
             >
               <option value="">{t.vender_cavalo.select}</option>
               {(tiposProprietario[language] || tiposProprietario.pt).map((tp) => (
-                <option key={tp} value={tp}>{tp}</option>
+                <option key={tp} value={tp}>
+                  {tp}
+                </option>
               ))}
             </select>
           </div>
@@ -53,11 +55,13 @@ export default function StepProprietario({ formData, updateField }: StepProps) {
               required
               value={formData.pais_proprietario}
               onChange={(e) => updateField("pais_proprietario", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
             >
               <option value="">{t.vender_cavalo.select}</option>
               {paisesOpcoes.map((p) => (
-                <option key={p} value={p}>{p}</option>
+                <option key={p} value={p}>
+                  {p}
+                </option>
               ))}
             </select>
           </div>
@@ -78,7 +82,7 @@ export default function StepProprietario({ formData, updateField }: StepProps) {
               minLength={3}
               value={formData.proprietario_nome}
               onChange={(e) => updateField("proprietario_nome", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder={t.vender_cavalo.placeholder_full_name}
             />
           </div>
@@ -88,7 +92,9 @@ export default function StepProprietario({ formData, updateField }: StepProps) {
               className="block text-sm text-[var(--foreground-secondary)] mb-1"
             >
               {t.vender_cavalo.nif}
-              <span className="text-[var(--foreground-muted)] text-xs ml-1">{tr("(opcional)", "(optional)", "(opcional)")}</span>
+              <span className="text-[var(--foreground-muted)] text-xs ml-1">
+                {tr("(opcional)", "(optional)", "(opcional)")}
+              </span>
             </label>
             <input
               id="proprietario_nif"
@@ -97,7 +103,7 @@ export default function StepProprietario({ formData, updateField }: StepProps) {
               maxLength={9}
               value={formData.proprietario_nif}
               onChange={(e) => updateField("proprietario_nif", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder={t.vender_cavalo.placeholder_nif}
             />
           </div>
@@ -117,7 +123,7 @@ export default function StepProprietario({ formData, updateField }: StepProps) {
               required
               value={formData.proprietario_email}
               onChange={(e) => updateField("proprietario_email", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder={t.vender_cavalo.placeholder_email}
             />
           </div>
@@ -134,7 +140,7 @@ export default function StepProprietario({ formData, updateField }: StepProps) {
               required
               value={formData.proprietario_telefone}
               onChange={(e) => updateField("proprietario_telefone", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder={t.vender_cavalo.placeholder_phone}
             />
           </div>
@@ -153,7 +159,7 @@ export default function StepProprietario({ formData, updateField }: StepProps) {
               type="text"
               value={formData.proprietario_morada}
               onChange={(e) => updateField("proprietario_morada", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder={t.vender_cavalo.placeholder_address}
             />
           </div>
@@ -163,34 +169,47 @@ export default function StepProprietario({ formData, updateField }: StepProps) {
               className="block text-sm text-[var(--foreground-secondary)] mb-1"
             >
               WhatsApp
-              <span className="text-[var(--foreground-muted)] text-xs ml-1">{tr("(se diferente do telefone)", "(if different from phone)", "(si diferente del teléfono)")}</span>
+              <span className="text-[var(--foreground-muted)] text-xs ml-1">
+                {tr(
+                  "(se diferente do telefone)",
+                  "(if different from phone)",
+                  "(si diferente del teléfono)"
+                )}
+              </span>
             </label>
             <input
               id="proprietario_whatsapp"
               type="tel"
               value={formData.proprietario_whatsapp}
               onChange={(e) => updateField("proprietario_whatsapp", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder="+351 9XX XXX XXX"
             />
           </div>
         </div>
 
-        {(formData.tipo_proprietario === "Coudelaria" || formData.tipo_proprietario === "Clube / Escola de Equitação") && (
+        {(formData.tipo_proprietario === "Coudelaria" ||
+          formData.tipo_proprietario === "Clube / Escola de Equitação") && (
           <div>
             <label
               htmlFor="website_coudelaria"
               className="block text-sm text-[var(--foreground-secondary)] mb-1"
             >
-              {tr("Website da Coudelaria / Escola", "Stud Farm / School Website", "Sitio Web del Criadero / Escuela")}
-              <span className="text-[var(--foreground-muted)] text-xs ml-1">{tr("(opcional)", "(optional)", "(opcional)")}</span>
+              {tr(
+                "Website da Coudelaria / Escola",
+                "Stud Farm / School Website",
+                "Sitio Web del Criadero / Escuela"
+              )}
+              <span className="text-[var(--foreground-muted)] text-xs ml-1">
+                {tr("(opcional)", "(optional)", "(opcional)")}
+              </span>
             </label>
             <input
               id="website_coudelaria"
               type="url"
               value={formData.website_coudelaria}
               onChange={(e) => updateField("website_coudelaria", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder="https://www.coudelaria.pt"
             />
           </div>

@@ -3,7 +3,14 @@
 import { useMemo } from "react";
 import { Info } from "lucide-react";
 import type { StepProps } from "@/components/vender-cavalo/types";
-import { pelagens, coresOlhos, coresCasco, temperamentosOpcoes, coresCrina, paisesOpcoes } from "@/components/vender-cavalo/data";
+import {
+  pelagens,
+  coresOlhos,
+  coresCasco,
+  temperamentosOpcoes,
+  coresCrina,
+  paisesOpcoes,
+} from "@/components/vender-cavalo/data";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
 
@@ -12,7 +19,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
   const tr = useMemo(() => createTranslator(language), [language]);
 
   return (
-    <div className="bg-[var(--background-secondary)]/50 border border-[var(--border)] rounded-xl p-6">
+    <div className="bg-[var(--background-secondary)]/50 cartao p-6">
       <h2 className="text-xl font-serif mb-6 flex items-center gap-3">
         <span className="w-8 h-8 bg-[var(--gold)] rounded-full flex items-center justify-center text-black text-sm font-bold">
           2
@@ -40,7 +47,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
               minLength={2}
               value={formData.nome}
               onChange={(e) => updateField("nome", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder={t.vender_cavalo.placeholder_horse_name}
             />
           </div>
@@ -58,7 +65,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
               minLength={2}
               value={formData.nome_registo}
               onChange={(e) => updateField("nome_registo", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder={t.vender_cavalo.placeholder_registration_name}
             />
           </div>
@@ -78,7 +85,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
               required
               value={formData.numero_registo}
               onChange={(e) => updateField("numero_registo", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder={t.vender_cavalo.placeholder_registration_number}
             />
           </div>
@@ -97,7 +104,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
               maxLength={15}
               value={formData.microchip}
               onChange={(e) => updateField("microchip", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder={t.vender_cavalo.placeholder_microchip}
             />
           </div>
@@ -115,7 +122,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
             type="text"
             value={formData.passaporte_equino}
             onChange={(e) => updateField("passaporte_equino", e.target.value)}
-            className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+            className="campo"
             placeholder={t.vender_cavalo.placeholder_passport}
           />
         </div>
@@ -133,7 +140,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
               required
               value={formData.raca_confirmada}
               onChange={(e) => updateField("raca_confirmada", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
             >
               <option value="">{t.vender_cavalo.select}</option>
               <option value="PSL — Puro Sangue Lusitano">PSL — Puro Sangue Lusitano</option>
@@ -155,11 +162,13 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
               required
               value={formData.pais_nascimento}
               onChange={(e) => updateField("pais_nascimento", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
             >
               <option value="">{t.vender_cavalo.select}</option>
               {paisesOpcoes.map((p) => (
-                <option key={p} value={p}>{p}</option>
+                <option key={p} value={p}>
+                  {p}
+                </option>
               ))}
             </select>
           </div>
@@ -179,7 +188,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
               required
               value={formData.data_nascimento}
               onChange={(e) => updateField("data_nascimento", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
             />
           </div>
           <div>
@@ -191,7 +200,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
               required
               value={formData.sexo}
               onChange={(e) => updateField("sexo", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
             >
               <option value="">{t.vender_cavalo.select}</option>
               <option value="Garanhão">{t.vender_cavalo.stallion}</option>
@@ -210,7 +219,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
               id="pelagem"
               value={formData.pelagem}
               onChange={(e) => updateField("pelagem", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
             >
               <option value="">{t.vender_cavalo.select}</option>
               {(pelagens[language] || pelagens.pt).map((p) => (
@@ -224,7 +233,10 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
 
         <div className="grid sm:grid-cols-3 gap-4">
           <div>
-            <label htmlFor="altura" className="block text-sm text-[var(--foreground-secondary)] mb-1">
+            <label
+              htmlFor="altura"
+              className="block text-sm text-[var(--foreground-secondary)] mb-1"
+            >
               {t.vender_cavalo.height}
               <span className="text-[var(--foreground-muted)] text-xs ml-1">(cm)</span>
             </label>
@@ -233,7 +245,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
               type="number"
               value={formData.altura}
               onChange={(e) => updateField("altura", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder={t.vender_cavalo.placeholder_height}
               min={140}
               max={180}
@@ -249,25 +261,30 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
               type="number"
               value={formData.peso}
               onChange={(e) => updateField("peso", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder="500"
               min={100}
               max={900}
             />
           </div>
           <div>
-            <label htmlFor="cor_olhos" className="block text-sm text-[var(--foreground-secondary)] mb-1">
+            <label
+              htmlFor="cor_olhos"
+              className="block text-sm text-[var(--foreground-secondary)] mb-1"
+            >
               {tr("Cor dos Olhos", "Eye Color", "Color de Ojos")}
             </label>
             <select
               id="cor_olhos"
               value={formData.cor_olhos}
               onChange={(e) => updateField("cor_olhos", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
             >
               <option value="">{t.vender_cavalo.select}</option>
               {coresOlhos.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>
+                  {c}
+                </option>
               ))}
             </select>
           </div>
@@ -275,37 +292,54 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
 
         <div className="grid sm:grid-cols-3 gap-4">
           <div>
-            <label htmlFor="cor_crina" className="block text-sm text-[var(--foreground-secondary)] mb-1">
+            <label
+              htmlFor="cor_crina"
+              className="block text-sm text-[var(--foreground-secondary)] mb-1"
+            >
               {tr("Cor da Crina", "Mane Color", "Color de Crines")}
             </label>
             <select
               id="cor_crina"
               value={formData.cor_crina}
               onChange={(e) => updateField("cor_crina", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
             >
               <option value="">{t.vender_cavalo.select}</option>
               {coresCrina.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>
+                  {c}
+                </option>
               ))}
             </select>
           </div>
           <div>
-            <label htmlFor="nivel_apsl" className="block text-sm text-[var(--foreground-secondary)] mb-1">
-              {tr("Pontuação Morfológica APSL", "APSL Morphological Score", "Puntuación Morfológica APSL")}
-              <span className="text-[var(--foreground-muted)] text-xs ml-1">{tr("(opcional)", "(optional)", "(opcional)")}</span>
+            <label
+              htmlFor="nivel_apsl"
+              className="block text-sm text-[var(--foreground-secondary)] mb-1"
+            >
+              {tr(
+                "Pontuação Morfológica APSL",
+                "APSL Morphological Score",
+                "Puntuación Morfológica APSL"
+              )}
+              <span className="text-[var(--foreground-muted)] text-xs ml-1">
+                {tr("(opcional)", "(optional)", "(opcional)")}
+              </span>
             </label>
             <input
               id="nivel_apsl"
               type="text"
               value={formData.nivel_apsl}
               onChange={(e) => updateField("nivel_apsl", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder="Ex: 78.5 pontos — Muito Bom"
             />
           </div>
           <div>
-            <label htmlFor="temperamento" className="block text-sm text-[var(--foreground-secondary)] mb-1">
+            <label
+              htmlFor="temperamento"
+              className="block text-sm text-[var(--foreground-secondary)] mb-1"
+            >
               {tr("Temperamento *", "Temperament *", "Temperamento *")}
             </label>
             <select
@@ -313,11 +347,13 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
               required
               value={formData.temperamento}
               onChange={(e) => updateField("temperamento", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
             >
               <option value="">{t.vender_cavalo.select}</option>
               {(temperamentosOpcoes[language] || temperamentosOpcoes.pt).map((tp) => (
-                <option key={tp} value={tp}>{tp}</option>
+                <option key={tp} value={tp}>
+                  {tp}
+                </option>
               ))}
             </select>
           </div>
@@ -325,39 +361,52 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="marcas_distintivas" className="block text-sm text-[var(--foreground-secondary)] mb-1">
+            <label
+              htmlFor="marcas_distintivas"
+              className="block text-sm text-[var(--foreground-secondary)] mb-1"
+            >
               {tr("Marcas Distintivas", "Distinctive Markings", "Marcas Distintivas")}
-              <span className="text-[var(--foreground-muted)] text-xs ml-1">(estrela, meia-lua, meias, rodados, etc.)</span>
+              <span className="text-[var(--foreground-muted)] text-xs ml-1">
+                (estrela, meia-lua, meias, rodados, etc.)
+              </span>
             </label>
             <input
               id="marcas_distintivas"
               type="text"
               value={formData.marcas_distintivas}
               onChange={(e) => updateField("marcas_distintivas", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder="Ex: Estrela na testa, meia-lua, meia no posterior esquerdo"
             />
           </div>
           <div>
-            <label htmlFor="cor_casco" className="block text-sm text-[var(--foreground-secondary)] mb-1">
+            <label
+              htmlFor="cor_casco"
+              className="block text-sm text-[var(--foreground-secondary)] mb-1"
+            >
               {tr("Cor do Casco", "Hoof Color", "Color del Casco")}
             </label>
             <select
               id="cor_casco"
               value={formData.cor_casco}
               onChange={(e) => updateField("cor_casco", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
             >
               <option value="">{t.vender_cavalo.select}</option>
               {coresCasco.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>
+                  {c}
+                </option>
               ))}
             </select>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <label htmlFor="prova_aptidao_apsl" className="flex items-center gap-3 cursor-pointer touch-manipulation">
+          <label
+            htmlFor="prova_aptidao_apsl"
+            className="flex items-center gap-3 cursor-pointer touch-manipulation"
+          >
             <input
               id="prova_aptidao_apsl"
               type="checkbox"
@@ -365,7 +414,13 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
               onChange={(e) => updateField("prova_aptidao_apsl", e.target.checked)}
               className="w-5 h-5 accent-[var(--gold)]"
             />
-            <span className="text-sm">{tr("Prova de Aptidão APSL realizada", "APSL Aptitude Test completed", "Prueba de Aptitud APSL realizada")}</span>
+            <span className="text-sm">
+              {tr(
+                "Prova de Aptidão APSL realizada",
+                "APSL Aptitude Test completed",
+                "Prueba de Aptitud APSL realizada"
+              )}
+            </span>
           </label>
         </div>
       </div>

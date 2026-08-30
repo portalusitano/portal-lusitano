@@ -385,7 +385,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                     />
                   </div>
 
-                  <p className="text-[11px] text-[var(--foreground-muted)] mt-1.5 font-light">
+                  <p className="text-[11px] text-[var(--foreground-muted)] mt-1.5 font-normal">
                     Membro desde <span className="capitalize">{memberSince}</span>
                   </p>
                 </div>
@@ -421,7 +421,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
               <p className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] mb-1">
                 Email
               </p>
-              <p className="text-sm text-[var(--foreground)] truncate font-light">
+              <p className="text-sm text-[var(--foreground)] truncate font-normal">
                 {customer.email}
               </p>
             </div>
@@ -429,7 +429,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
               <p className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] mb-1">
                 Membro desde
               </p>
-              <p className="text-sm text-[var(--foreground)] font-light capitalize">
+              <p className="text-sm text-[var(--foreground)] font-normal capitalize">
                 {memberSince}
               </p>
             </div>
@@ -458,7 +458,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                     <p className="text-[11px] uppercase tracking-wider text-[var(--foreground-muted)] mb-0.5">
                       {t.account.email}
                     </p>
-                    <p className="text-sm text-[var(--foreground)] font-light truncate">
+                    <p className="text-sm text-[var(--foreground)] font-normal truncate">
                       {customer.email}
                     </p>
                   </div>
@@ -471,7 +471,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                     <p className="text-[11px] uppercase tracking-wider text-[var(--foreground-muted)] mb-0.5">
                       {t.account.name}
                     </p>
-                    <p className="text-sm text-[var(--foreground)] font-light">{fullName}</p>
+                    <p className="text-sm text-[var(--foreground)] font-normal">{fullName}</p>
                   </div>
                 </div>
               </div>

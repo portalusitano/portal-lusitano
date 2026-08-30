@@ -37,7 +37,7 @@ export default function VenderCavaloSucessoContent() {
         </div>
 
         <div className="space-y-4 mb-8">
-          <div className="bg-[var(--background-secondary)] border border-[var(--border)] rounded-xl p-6">
+          <div className="bg-[var(--background-secondary)] cartao p-6">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--gold)]/20 flex items-center justify-center">
                 <Mail className="w-5 h-5 text-[var(--gold)]" />
@@ -51,7 +51,7 @@ export default function VenderCavaloSucessoContent() {
             </div>
           </div>
 
-          <div className="bg-[var(--background-secondary)] border border-[var(--border)] rounded-xl p-6">
+          <div className="bg-[var(--background-secondary)] cartao p-6">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--gold)]/20 flex items-center justify-center">
                 <Clock className="w-5 h-5 text-[var(--gold)]" />
@@ -65,7 +65,7 @@ export default function VenderCavaloSucessoContent() {
             </div>
           </div>
 
-          <div className="bg-[var(--background-secondary)] border border-[var(--border)] rounded-xl p-6">
+          <div className="bg-[var(--background-secondary)] cartao p-6">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--gold)]/20 flex items-center justify-center">
                 <Eye className="w-5 h-5 text-[var(--gold)]" />
@@ -81,7 +81,7 @@ export default function VenderCavaloSucessoContent() {
         </div>
 
         {sessionId && (
-          <div className="bg-[var(--background-secondary)]/50 border border-[var(--border)] rounded-lg p-4 mb-8">
+          <div className="bg-[var(--background-secondary)]/50 cartao p-4 mb-8">
             <p className="text-xs text-[var(--foreground-muted)] mb-1">
               {t.success_pages.transaction_id}:
             </p>
@@ -113,7 +113,6 @@ export default function VenderCavaloSucessoContent() {
             {t.success_pages.redirecting_to} {countdown}s...
           </p>
         )}
-
       </div>
     </main>
   );

@@ -44,7 +44,7 @@ function ComprarContentInner({
       >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-serif text-[var(--foreground)] leading-tight">
+            <h1 className="titulo-gradiente text-[1.75rem] md:text-[2.5rem] font-normal leading-[120%] tracking-tighter">
               {language === "en"
                 ? "Lusitano Horses for Sale"
                 : language === "es"

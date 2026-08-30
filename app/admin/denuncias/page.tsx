@@ -74,7 +74,7 @@ export default function AdminDenunciasPage() {
   return (
     <main className="p-6 sm:p-10">
       <header className="mb-8">
-        <h1 className="text-2xl font-light tracking-wide text-[var(--foreground)] flex items-center gap-3">
+        <h1 className="text-2xl font-normal tracking-wide text-[var(--foreground)] flex items-center gap-3">
           <Flag size={20} className="text-[var(--gold)]" />
           Denúncias
         </h1>
@@ -113,7 +113,7 @@ export default function AdminDenunciasPage() {
       )}
 
       {!loading && !erro && denuncias.length === 0 && (
-        <div className="border border-[var(--border)] p-12 text-center">
+        <div className="cartao p-10 text-center">
           <ShieldCheck size={22} className="mx-auto text-[var(--gold)]/25 mb-4" />
           <p className="text-sm text-[var(--foreground)]">Nada nesta fila.</p>
         </div>
@@ -128,7 +128,7 @@ export default function AdminDenunciasPage() {
                   href={`/comprar/${d.cavaloId}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-base font-light text-[var(--foreground)] hover:text-[var(--gold)] transition-colors"
+                  className="text-base font-normal text-[var(--foreground)] hover:text-[var(--gold)] transition-colors"
                 >
                   {d.cavaloNome} ↗
                 </a>

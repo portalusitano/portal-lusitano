@@ -22,7 +22,7 @@ export default function StepLinhagem({
   const tr = useMemo(() => createTranslator(language), [language]);
 
   return (
-    <div className="bg-[var(--background-secondary)]/50 border border-[var(--border)] rounded-xl p-6">
+    <div className="bg-[var(--background-secondary)]/50 cartao p-6">
       <h2 className="text-xl font-serif mb-6 flex items-center gap-3">
         <span className="w-8 h-8 bg-[var(--gold)] rounded-full flex items-center justify-center text-black text-sm font-bold">
           3
@@ -49,7 +49,7 @@ export default function StepLinhagem({
                 minLength={2}
                 value={formData.pai_nome}
                 onChange={(e) => updateField("pai_nome", e.target.value)}
-                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+                className="campo"
               />
             </div>
             <div>
@@ -65,7 +65,7 @@ export default function StepLinhagem({
                 required
                 value={formData.pai_registo}
                 onChange={(e) => updateField("pai_registo", e.target.value)}
-                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+                className="campo"
               />
             </div>
           </div>
@@ -89,7 +89,7 @@ export default function StepLinhagem({
                 minLength={2}
                 value={formData.mae_nome}
                 onChange={(e) => updateField("mae_nome", e.target.value)}
-                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+                className="campo"
               />
             </div>
             <div>
@@ -105,7 +105,7 @@ export default function StepLinhagem({
                 required
                 value={formData.mae_registo}
                 onChange={(e) => updateField("mae_registo", e.target.value)}
-                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+                className="campo"
               />
             </div>
           </div>
@@ -113,16 +113,28 @@ export default function StepLinhagem({
 
         {/* Avós Paternos (3ª geração — lado do pai) */}
         <div>
-          <h3 className="text-sm font-medium text-[var(--foreground-muted)] mb-3">{tr("Avós Paternos (3ª geração — lado do pai)", "Paternal Grandparents (3rd generation — father's side)", "Abuelos Paternos (3ª generación — lado del padre)")}</h3>
+          <h3 className="text-sm font-medium text-[var(--foreground-muted)] mb-3">
+            {tr(
+              "Avós Paternos (3ª geração — lado do pai)",
+              "Paternal Grandparents (3rd generation — father's side)",
+              "Abuelos Paternos (3ª generación — lado del padre)"
+            )}
+          </h3>
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-3">
-              <p className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider">{tr("Avô Paterno (pai do pai)", "Paternal Grandfather (father's father)", "Abuelo Paterno (padre del padre)")}</p>
+              <p className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider">
+                {tr(
+                  "Avô Paterno (pai do pai)",
+                  "Paternal Grandfather (father's father)",
+                  "Abuelo Paterno (padre del padre)"
+                )}
+              </p>
               <input
                 id="avo_paterno_nome"
                 type="text"
                 value={formData.avo_paterno_nome}
                 onChange={(e) => updateField("avo_paterno_nome", e.target.value)}
-                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+                className="campo"
                 placeholder="Nome"
               />
               <input
@@ -130,18 +142,24 @@ export default function StepLinhagem({
                 type="text"
                 value={formData.avo_paterno_registo}
                 onChange={(e) => updateField("avo_paterno_registo", e.target.value)}
-                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+                className="campo"
                 placeholder="Nº Registo"
               />
             </div>
             <div className="space-y-3">
-              <p className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider">{tr("Avó Paterna (mãe do pai)", "Paternal Grandmother (father's mother)", "Abuela Paterna (madre del padre)")}</p>
+              <p className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider">
+                {tr(
+                  "Avó Paterna (mãe do pai)",
+                  "Paternal Grandmother (father's mother)",
+                  "Abuela Paterna (madre del padre)"
+                )}
+              </p>
               <input
                 id="avo_paterno_mae_nome"
                 type="text"
                 value={formData.avo_paterno_mae_nome}
                 onChange={(e) => updateField("avo_paterno_mae_nome", e.target.value)}
-                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+                className="campo"
                 placeholder="Nome"
               />
               <input
@@ -149,7 +167,7 @@ export default function StepLinhagem({
                 type="text"
                 value={formData.avo_paterno_mae_registo}
                 onChange={(e) => updateField("avo_paterno_mae_registo", e.target.value)}
-                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+                className="campo"
                 placeholder="Nº Registo"
               />
             </div>
@@ -158,16 +176,28 @@ export default function StepLinhagem({
 
         {/* Avós Maternos (3ª geração — lado da mãe) */}
         <div>
-          <h3 className="text-sm font-medium text-[var(--foreground-muted)] mb-3">{tr("Avós Maternos (3ª geração — lado da mãe)", "Maternal Grandparents (3rd generation — mother's side)", "Abuelos Maternos (3ª generación — lado de la madre)")}</h3>
+          <h3 className="text-sm font-medium text-[var(--foreground-muted)] mb-3">
+            {tr(
+              "Avós Maternos (3ª geração — lado da mãe)",
+              "Maternal Grandparents (3rd generation — mother's side)",
+              "Abuelos Maternos (3ª generación — lado de la madre)"
+            )}
+          </h3>
           <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-3">
-              <p className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider">{tr("Avô Materno (pai da mãe)", "Maternal Grandfather (mother's father)", "Abuelo Materno (padre de la madre)")}</p>
+              <p className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider">
+                {tr(
+                  "Avô Materno (pai da mãe)",
+                  "Maternal Grandfather (mother's father)",
+                  "Abuelo Materno (padre de la madre)"
+                )}
+              </p>
               <input
                 id="avo_materno_nome"
                 type="text"
                 value={formData.avo_materno_nome}
                 onChange={(e) => updateField("avo_materno_nome", e.target.value)}
-                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+                className="campo"
                 placeholder="Nome"
               />
               <input
@@ -175,18 +205,24 @@ export default function StepLinhagem({
                 type="text"
                 value={formData.avo_materno_registo}
                 onChange={(e) => updateField("avo_materno_registo", e.target.value)}
-                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+                className="campo"
                 placeholder="Nº Registo"
               />
             </div>
             <div className="space-y-3">
-              <p className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider">{tr("Avó Materna (mãe da mãe)", "Maternal Grandmother (mother's mother)", "Abuela Materna (madre de la madre)")}</p>
+              <p className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider">
+                {tr(
+                  "Avó Materna (mãe da mãe)",
+                  "Maternal Grandmother (mother's mother)",
+                  "Abuela Materna (madre de la madre)"
+                )}
+              </p>
               <input
                 id="avo_materno_mae_nome"
                 type="text"
                 value={formData.avo_materno_mae_nome}
                 onChange={(e) => updateField("avo_materno_mae_nome", e.target.value)}
-                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+                className="campo"
                 placeholder="Nome"
               />
               <input
@@ -194,7 +230,7 @@ export default function StepLinhagem({
                 type="text"
                 value={formData.avo_materno_mae_registo}
                 onChange={(e) => updateField("avo_materno_mae_registo", e.target.value)}
-                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+                className="campo"
                 placeholder="Nº Registo"
               />
             </div>
@@ -214,11 +250,13 @@ export default function StepLinhagem({
               id="linhagem_principal"
               value={formData.linhagem_principal}
               onChange={(e) => updateField("linhagem_principal", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
             >
               <option value="">{t.vender_cavalo.select}</option>
               {linhagensPrincipais.map((l) => (
-                <option key={l} value={l}>{l}</option>
+                <option key={l} value={l}>
+                  {l}
+                </option>
               ))}
             </select>
           </div>
@@ -234,7 +272,7 @@ export default function StepLinhagem({
               type="text"
               value={formData.coudelaria_origem}
               onChange={(e) => updateField("coudelaria_origem", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className="campo"
               placeholder={t.vender_cavalo.placeholder_stud_origin}
             />
           </div>
@@ -249,7 +287,7 @@ export default function StepLinhagem({
 
           <div className="space-y-4">
             {/* Livro Azul */}
-            <div className="bg-[var(--background-card)]/50 border border-[var(--border)] rounded-lg p-4">
+            <div className="bg-[var(--background-card)]/50 cartao p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">{t.vender_cavalo.blue_book} *</span>
                 {documentos.livroAzul && <CheckCircle size={18} className="text-green-400" />}
@@ -274,7 +312,7 @@ export default function StepLinhagem({
             </div>
 
             {/* Passaporte */}
-            <div className="bg-[var(--background-card)]/50 border border-[var(--border)] rounded-lg p-4">
+            <div className="bg-[var(--background-card)]/50 cartao p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">{t.vender_cavalo.equine_passport}</span>
                 {documentos.passaporte && <CheckCircle size={18} className="text-green-400" />}

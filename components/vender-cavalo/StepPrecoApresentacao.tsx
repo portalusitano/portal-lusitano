@@ -65,7 +65,7 @@ export default function StepPrecoApresentacao({
   const descReached = descLength >= descMin;
 
   return (
-    <div className="bg-[var(--background-secondary)]/50 border border-[var(--border)] rounded-xl p-6">
+    <div className="bg-[var(--background-secondary)]/50 cartao p-6">
       <h2 className="text-xl font-serif mb-6 flex items-center gap-3">
         <span className="w-8 h-8 bg-[var(--gold)] rounded-full flex items-center justify-center text-black text-sm font-bold">
           5
@@ -112,7 +112,7 @@ export default function StepPrecoApresentacao({
               required
               value={formData.regiao}
               onChange={(e) => updateField("regiao", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)] transition-colors"
+              className="campo"
             >
               <option value="">{t.vender_cavalo.select}</option>
               {regioesPT.map((r) => (
@@ -141,7 +141,7 @@ export default function StepPrecoApresentacao({
             minLength={3}
             value={formData.localizacao}
             onChange={(e) => updateField("localizacao", e.target.value)}
-            className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)] transition-colors"
+            className="campo"
             placeholder={t.vender_cavalo.placeholder_location}
           />
         </div>
@@ -341,7 +341,7 @@ export default function StepPrecoApresentacao({
               id="duracao_trial"
               value={formData.duracao_trial}
               onChange={(e) => updateField("duracao_trial", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)] transition-colors"
+              className="campo"
             >
               <option value="">{t.vender_cavalo.select}</option>
               {duracoesTrialOpcoes.map((d) => (
@@ -391,7 +391,7 @@ export default function StepPrecoApresentacao({
               id="disponibilidade_visita"
               value={formData.disponibilidade_visita}
               onChange={(e) => updateField("disponibilidade_visita", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)] transition-colors"
+              className="campo"
             >
               <option value="">{t.vender_cavalo.select}</option>
               {disponibilidades.map((d) => (
@@ -415,7 +415,7 @@ export default function StepPrecoApresentacao({
               id="motivo_venda"
               value={formData.motivo_venda}
               onChange={(e) => updateField("motivo_venda", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)] transition-colors"
+              className="campo"
             >
               <option value="">{t.vender_cavalo.select}</option>
               {(motivosVenda[language] || motivosVenda.pt).map((m) => (
@@ -446,7 +446,7 @@ export default function StepPrecoApresentacao({
             type="text"
             value={formData.equipamento_incluido}
             onChange={(e) => updateField("equipamento_incluido", e.target.value)}
-            className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)] transition-colors"
+            className="campo"
             placeholder="Ex: Sela Pessoa + 2 mantas + cabeçada de couro"
           />
         </div>
@@ -587,7 +587,7 @@ export default function StepPrecoApresentacao({
             minLength={100}
             value={formData.descricao}
             onChange={(e) => updateField("descricao", e.target.value)}
-            className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)] h-40 resize-none transition-colors"
+            className="campo h-40 resize-none transition-colors"
             placeholder={t.vender_cavalo.placeholder_description}
           />
           {/* Barra de progresso do texto */}
@@ -616,7 +616,7 @@ export default function StepPrecoApresentacao({
               type="url"
               value={formData.videos_url}
               onChange={(e) => updateField("videos_url", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)] transition-colors"
+              className="campo"
               placeholder="https://youtube.com/watch?v=..."
             />
           </div>
@@ -633,7 +633,7 @@ export default function StepPrecoApresentacao({
               type="url"
               value={formData.videos_url_2}
               onChange={(e) => updateField("videos_url_2", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)] transition-colors"
+              className="campo"
               placeholder="https://youtube.com/watch?v=..."
             />
           </div>

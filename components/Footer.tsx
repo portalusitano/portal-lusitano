@@ -166,7 +166,7 @@ export default memo(function Footer() {
               PORTAL
             </span>
             <span
-              className="block font-normal font-light tracking-[-0.01em] text-[var(--gold)]"
+              className="block font-normal font-normal tracking-[-0.01em] text-[var(--gold)]"
               style={{ fontSize: "clamp(2.2rem, 5.5vw, 4.5rem)" }}
             >
               Lusitano
@@ -196,7 +196,7 @@ export default memo(function Footer() {
           />
         </div>
 
-        <p className="text-[var(--foreground-muted)] text-xs sm:text-sm font-light max-w-sm mx-auto leading-relaxed mb-7">
+        <p className="text-[var(--foreground-muted)] text-xs sm:text-sm font-normal max-w-sm mx-auto leading-relaxed mb-7">
           {t.home.manifesto}
         </p>
 
@@ -264,7 +264,7 @@ export default memo(function Footer() {
                   <li key={item.href}>
                     <LocalizedLink
                       href={item.href}
-                      className="group flex items-center gap-2 text-[var(--foreground-muted)] hover:text-[var(--foreground)] text-[11px] sm:text-[12px] font-light tracking-[0.02em] transition-colors duration-200"
+                      className="group flex items-center gap-2 text-[var(--foreground-muted)] hover:text-[var(--foreground)] text-[11px] sm:text-[12px] font-normal tracking-[0.02em] transition-colors duration-200"
                     >
                       <span className="w-2 h-px bg-[var(--gold)] opacity-0 group-hover:opacity-100 flex-shrink-0 transition-opacity duration-200" />
                       {item.name}
@@ -290,7 +290,7 @@ export default memo(function Footer() {
               <p className="text-[var(--foreground)] text-xs font-medium tracking-wide">
                 {t.footer.sell_horse}
               </p>
-              <p className="text-[var(--foreground-muted)] text-[10px] font-light">
+              <p className="text-[var(--foreground-muted)] text-[10px] font-normal">
                 Publique o seu Lusitano e chegue a compradores em todo o país
               </p>
             </div>

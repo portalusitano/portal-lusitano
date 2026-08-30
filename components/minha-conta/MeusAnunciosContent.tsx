@@ -192,7 +192,7 @@ export default function MeusAnunciosContent() {
         </LocalizedLink>
 
         <header className="mb-12">
-          <h1 className="text-2xl sm:text-3xl font-light tracking-wide text-[var(--foreground)]">
+          <h1 className="titulo-gradiente text-[1.75rem] md:text-[2.5rem] font-normal leading-[120%] tracking-tighter">
             Os meus anúncios
           </h1>
           <p className="text-sm text-[var(--foreground-muted)] mt-3 max-w-xl">
@@ -209,7 +209,7 @@ export default function MeusAnunciosContent() {
               { label: "Visualizações", valor: resumo.totalVisualizacoes },
             ].map((stat) => (
               <div key={stat.label} className="bg-[var(--background)] p-5 text-center">
-                <p className="text-xl font-light text-[var(--gold)]">{stat.valor}</p>
+                <p className="text-xl font-normal text-[var(--gold)]">{stat.valor}</p>
                 <p className="rotulo mt-1.5">{stat.label}</p>
               </div>
             ))}
@@ -236,7 +236,7 @@ export default function MeusAnunciosContent() {
         )}
 
         {!loading && !erro && anuncios.length === 0 && (
-          <div className="border border-[var(--border)] p-12 text-center">
+          <div className="cartao p-10 text-center">
             <ImageIcon size={22} className="mx-auto text-[var(--gold)]/25 mb-4" />
             <p className="text-sm text-[var(--foreground)]">Ainda não tem anúncios publicados.</p>
             <p className="text-xs text-[var(--foreground-muted)] mt-2 max-w-sm mx-auto">
@@ -281,7 +281,7 @@ export default function MeusAnunciosContent() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <h2 className="text-base font-light text-[var(--foreground)] truncate">
+                          <h2 className="text-base font-normal text-[var(--foreground)] truncate">
                             {anuncio.nome}
                           </h2>
                           <p className="text-sm text-[var(--gold)] mt-1">

@@ -412,7 +412,7 @@ export default function AdvancedFilters({
           aria-modal="true"
           aria-label="Guardar preset de filtros"
         >
-          <div className="bg-[var(--background-card)] border border-[var(--border)] rounded-xl p-6 max-w-md w-full mx-4">
+          <div className="bg-[var(--background-card)] cartao p-6 max-w-md w-full mx-4">
             <h3 className="text-xl font-bold text-[var(--foreground)] mb-4">Guardar Filtros</h3>
             <input
               type="text"

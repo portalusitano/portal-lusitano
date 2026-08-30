@@ -32,7 +32,7 @@ const COUDELARIAS = [
   { nome: "Coudelaria do Vale", classe: "font-medium tracking-wide" },
   { nome: "Herdade da Ribeira", classe: "font-semibold tracking-tight" },
   { nome: "Monte Branco", classe: "font-mono uppercase tracking-[0.18em] text-base" },
-  { nome: "QUINTA DO FREIXO", classe: "font-light tracking-[0.12em]" },
+  { nome: "QUINTA DO FREIXO", classe: "font-normal tracking-[0.12em]" },
   { nome: "Casal dos Pinheiros", classe: "italic" },
   { nome: "ALENTEJO SUL", classe: "font-bold tracking-tighter" },
   { nome: "Torre da Azinheira", classe: "font-medium" },

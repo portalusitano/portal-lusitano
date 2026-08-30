@@ -4,7 +4,7 @@ export default function VendedorNaoEncontrado() {
   return (
     <main className="min-h-screen bg-[var(--background)] flex items-center justify-center px-6">
       <div className="text-center max-w-md">
-        <h1 className="text-2xl font-light text-[var(--foreground)]">Vendedor não encontrado</h1>
+        <h1 className="text-2xl font-normal text-[var(--foreground)]">Vendedor não encontrado</h1>
         <p className="text-sm text-[var(--foreground-muted)] mt-3">
           Este vendedor não tem anúncios publicados de momento.
         </p>

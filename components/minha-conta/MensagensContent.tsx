@@ -156,7 +156,7 @@ export default function MensagensContent() {
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-base font-light text-[var(--foreground)] truncate">
+              <p className="text-base font-normal text-[var(--foreground)] truncate">
                 {aberta.outraParte}
               </p>
               <LocalizedLink
@@ -241,7 +241,7 @@ export default function MensagensContent() {
         </LocalizedLink>
 
         <header className="mb-12">
-          <h1 className="text-2xl sm:text-3xl font-light tracking-wide text-[var(--foreground)]">
+          <h1 className="titulo-gradiente text-[1.75rem] md:text-[2.5rem] font-normal leading-[120%] tracking-tighter">
             As minhas mensagens
           </h1>
           <p className="text-sm text-[var(--foreground-muted)] mt-3 max-w-xl">
@@ -269,7 +269,7 @@ export default function MensagensContent() {
         )}
 
         {!loading && !erro && conversas.length === 0 && (
-          <div className="border border-[var(--border)] p-12 text-center">
+          <div className="cartao p-10 text-center">
             <MessagesSquare size={22} className="mx-auto text-[var(--gold)]/25 mb-4" />
             <p className="text-sm text-[var(--foreground)]">Ainda não tem mensagens.</p>
             <p className="text-xs text-[var(--foreground-muted)] mt-2 max-w-sm mx-auto">

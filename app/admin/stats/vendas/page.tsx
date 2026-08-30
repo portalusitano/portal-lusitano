@@ -53,7 +53,7 @@ export default async function AdminVendasPage({
                 <th className="py-6 px-6 text-right">Decisão Master</th>
               </tr>
             </thead>
-            <tbody className="text-sm font-light">
+            <tbody className="text-sm font-normal">
               {cavalos?.map((c) => (
                 <tr
                   key={c.id}
@@ -70,7 +70,7 @@ export default async function AdminVendasPage({
                       ID: {c.id.slice(0, 8)}
                     </span>
                   </td>
-                  <td className="py-8 px-6 text-zinc-400 font-light">{c.linhagem}</td>
+                  <td className="py-8 px-6 text-zinc-400 font-normal">{c.linhagem}</td>
                   <td className="py-8 px-6 font-serif text-[#C5A059] text-lg">
                     {Number(c.preco).toLocaleString("pt-PT")} €
                   </td>

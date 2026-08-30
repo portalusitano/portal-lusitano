@@ -5,7 +5,7 @@ export default async function PrivacidadePage() {
 
   return (
     <>
-      <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-32 pb-20 px-4 sm:px-6 font-light selection:bg-[var(--gold)] selection:text-black">
+      <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-32 pb-20 px-4 sm:px-6 font-normal selection:bg-[var(--gold)] selection:text-black">
         <div className="max-w-4xl mx-auto">
           <span className="text-[var(--gold)] text-[10px] sm:rotulo font-bold block mb-6 text-center">
             {t.privacy.security}
