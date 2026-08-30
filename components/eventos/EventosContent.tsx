@@ -27,7 +27,6 @@ import Pagination from "@/components/ui/Pagination";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
 import AnimatedCounter from "@/components/ui/AnimatedCounter";
 import HorizontalScrollGallery from "@/components/ui/HorizontalScrollGallery";
-import TextSplit from "@/components/TextSplit";
 import ParallaxSection from "@/components/ui/ParallaxSection";
 import MagneticButton from "@/components/ui/MagneticButton";
 import EventosCalendar from "@/components/eventos/EventosCalendar";
@@ -293,8 +292,12 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
           <p className="text-[10px] md:text-xs uppercase tracking-wider text-[var(--gold)]">
             {t.eventos.badge}
           </p>
-          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl text-[var(--gold)] leading-[0.9]">
-            <TextSplit text={t.eventos.title} baseDelay={0.15} wordDelay={0.06} />
+          {/* Sem `TextSplit`: o gradiente do título pinta-se na caixa do h1 e
+              corta-se ao texto, mas o TextSplit parte o texto em `inline-block`
+              que herdam o preenchimento transparente sem herdar o gradiente —
+              o título ficava invisível. A entrada da secção já anima isto. */}
+          <h1 className="titulo-gradiente text-4xl font-normal leading-[100%] tracking-[-0.01em] sm:text-5xl md:text-[4rem]">
+            {t.eventos.title}
           </h1>
           <div
             className="w-24 h-[1px] bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent mx-auto"
@@ -377,7 +380,7 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
       <div className="max-w-7xl mx-auto px-6 pb-20 pt-12">
         {/* ═══ VIEW TOGGLE ═══ */}
         <RevealOnScroll variant="fade-up" className="flex justify-center mb-10">
-          <div className="inline-flex bg-[var(--background-secondary)]/60 border border-[var(--border)] rounded-lg p-1 gap-1">
+          <div className="inline-flex gap-2">
             {[
               { key: "list" as const, icon: List, label: t.eventos.view_list },
               { key: "calendar" as const, icon: CalendarDays, label: t.eventos.view_calendar },
@@ -386,11 +389,7 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
               <button
                 key={key}
                 onClick={() => setActiveView(key)}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm rounded-md transition-all duration-300 ${
-                  activeView === key
-                    ? "bg-[var(--gold)] text-black font-medium shadow-[0_0_20px_rgb(var(--gold-rgb) / 0.2)]"
-                    : "text-[var(--foreground-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
-                }`}
+                className={`chip ${activeView === key ? "chip-activo" : ""}`}
               >
                 <Icon size={16} />
                 <span className="hidden sm:inline">{label}</span>
@@ -455,11 +454,7 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
               <button
                 key={tipo.value}
                 onClick={() => setSelectedTipo(tipo.value)}
-                className={`flex items-center gap-2 px-3 sm:px-4 py-2 border text-sm transition-all duration-300 ${
-                  selectedTipo === tipo.value
-                    ? "bg-[var(--gold)] text-black border-[var(--gold)] shadow-[0_0_15px_rgb(var(--gold-rgb) / 0.15)]"
-                    : "bg-[var(--background-secondary)]/50 text-[var(--foreground-secondary)] border-[var(--border)] hover:border-[var(--gold)]/50 hover:text-[var(--foreground)]"
-                }`}
+                className={`chip ${selectedTipo === tipo.value ? "chip-activo" : ""}`}
                 aria-pressed={selectedTipo === tipo.value}
               >
                 <span>{tipo.icon}</span>

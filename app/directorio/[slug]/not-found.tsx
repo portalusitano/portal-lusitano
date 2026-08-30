@@ -16,7 +16,7 @@ export default function NotFound() {
         </div>
 
         {/* Error Code */}
-        <h1 className="text-8xl text-[var(--gold)] mb-4">404</h1>
+        <h1 className="titulo-gradiente text-7xl font-normal tracking-tighter mb-4">404</h1>
 
         {/* Message */}
         <h2 className="text-3xl text-[var(--foreground)] mb-4">Coudelaria não encontrada</h2>
