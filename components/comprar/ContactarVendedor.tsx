@@ -75,7 +75,7 @@ export default function ContactarVendedor({ cavaloId, cavaloNome }: Props) {
     return (
       <button
         onClick={() => setAberto(true)}
-        className="flex w-full items-center justify-center gap-3 bg-[var(--gold)] text-black py-4 text-[12px] uppercase font-bold tracking-wide hover:bg-[var(--gold-hover)] transition-all duration-300 shadow-[0_0_30px_rgba(197,160,89,0.2)]"
+        className="flex w-full items-center justify-center gap-3 bg-[var(--gold)] text-black py-4 text-[12px] uppercase font-bold tracking-wide hover:bg-[var(--gold-hover)] transition-all duration-300 shadow-[0_0_30px_rgb(var(--gold-rgb) / 0.2)]"
       >
         <MessagesSquare size={16} aria-hidden="true" />
         Mensagem no portal

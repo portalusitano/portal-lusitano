@@ -104,7 +104,7 @@ function TierCard({
       onClick={onClick}
       className={`relative flex flex-col p-4 sm:p-5 rounded-xl border-2 transition-all duration-300 text-left cursor-pointer touch-manipulation ${
         isSelected
-          ? "border-[var(--gold)] bg-[var(--gold)]/10 shadow-[0_0_20px_rgba(197,160,89,0.15)]"
+          ? "border-[var(--gold)] bg-[var(--gold)]/10 shadow-[0_0_20px_rgb(var(--gold-rgb) / 0.15)]"
           : "border-[var(--border)] bg-[var(--background-secondary)]/50 hover:border-[var(--gold)]/40"
       }`}
     >

@@ -388,7 +388,7 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
                 onClick={() => setActiveView(key)}
                 className={`flex items-center gap-2 px-4 py-2.5 text-sm rounded-md transition-all duration-300 ${
                   activeView === key
-                    ? "bg-[var(--gold)] text-black font-medium shadow-[0_0_20px_rgba(197,160,89,0.2)]"
+                    ? "bg-[var(--gold)] text-black font-medium shadow-[0_0_20px_rgb(var(--gold-rgb) / 0.2)]"
                     : "text-[var(--foreground-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
                 }`}
               >
@@ -457,7 +457,7 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
                 onClick={() => setSelectedTipo(tipo.value)}
                 className={`flex items-center gap-2 px-3 sm:px-4 py-2 border text-sm transition-all duration-300 ${
                   selectedTipo === tipo.value
-                    ? "bg-[var(--gold)] text-black border-[var(--gold)] shadow-[0_0_15px_rgba(197,160,89,0.15)]"
+                    ? "bg-[var(--gold)] text-black border-[var(--gold)] shadow-[0_0_15px_rgb(var(--gold-rgb) / 0.15)]"
                     : "bg-[var(--background-secondary)]/50 text-[var(--foreground-secondary)] border-[var(--border)] hover:border-[var(--gold)]/50 hover:text-[var(--foreground)]"
                 }`}
                 aria-pressed={selectedTipo === tipo.value}

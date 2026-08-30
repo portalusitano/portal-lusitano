@@ -187,7 +187,7 @@ export default function EventosCalendar({
                     <span
                       className={`text-xs sm:text-sm ${
                         isToday
-                          ? "w-6 h-6 flex items-center justify-center rounded-full bg-[var(--gold)] text-black font-bold shadow-[0_0_12px_rgba(197,160,89,0.4)]"
+                          ? "w-6 h-6 flex items-center justify-center rounded-full bg-[var(--gold)] text-black font-bold shadow-[0_0_12px_rgb(var(--gold-rgb) / 0.4)]"
                           : "text-[var(--foreground-muted)]"
                       }`}
                     >

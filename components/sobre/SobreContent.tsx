@@ -260,7 +260,7 @@ export default function SobreContent() {
           className="absolute inset-0 pointer-events-none"
           style={{
             backgroundImage:
-              "linear-gradient(rgba(197,160,89,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(197,160,89,0.02) 1px, transparent 1px)",
+              "linear-gradient(rgb(var(--gold-rgb) / 0.02) 1px, transparent 1px), linear-gradient(90deg, rgb(var(--gold-rgb) / 0.02) 1px, transparent 1px)",
             backgroundSize: "64px 64px",
           }}
           aria-hidden
@@ -271,7 +271,7 @@ export default function SobreContent() {
           className="absolute inset-0 pointer-events-none"
           style={{
             backgroundImage:
-              "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(197,160,89,0.006) 2px, rgba(197,160,89,0.006) 4px)",
+              "repeating-linear-gradient(0deg, transparent, transparent 2px, rgb(var(--gold-rgb) / 0.006) 2px, rgb(var(--gold-rgb) / 0.006) 4px)",
           }}
           aria-hidden
         />
@@ -313,7 +313,11 @@ export default function SobreContent() {
           }}
         >
           <div className="flex items-center gap-3">
-            <div className="w-5 h-px" style={{ background: "rgba(197,160,89,0.5)" }} aria-hidden />
+            <div
+              className="w-5 h-px"
+              style={{ background: "rgb(var(--gold-rgb) / 0.5)" }}
+              aria-hidden
+            />
             <span className="text-[6px] font-mono uppercase tracking-wider text-white/30">
               Portal Lusitano
             </span>
@@ -333,7 +337,8 @@ export default function SobreContent() {
             <div
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[250px] pointer-events-none"
               style={{
-                background: "radial-gradient(ellipse, rgba(197,160,89,0.08) 0%, transparent 60%)",
+                background:
+                  "radial-gradient(ellipse, rgb(var(--gold-rgb) / 0.08) 0%, transparent 60%)",
               }}
               aria-hidden
             />
@@ -343,7 +348,7 @@ export default function SobreContent() {
                 alt="Portal Lusitano"
                 fill
                 sizes="140px"
-                className="object-contain drop-shadow-[0_0_40px_rgba(197,160,89,0.15)]"
+                className="object-contain drop-shadow-[0_0_40px_rgb(var(--gold-rgb) / 0.15)]"
                 priority
               />
             </div>
@@ -354,7 +359,7 @@ export default function SobreContent() {
             <div
               className="w-12 h-px"
               style={{
-                background: "linear-gradient(to right, transparent, rgba(197,160,89,0.55))",
+                background: "linear-gradient(to right, transparent, rgb(var(--gold-rgb) / 0.55))",
               }}
               aria-hidden
             />
@@ -363,7 +368,9 @@ export default function SobreContent() {
             </span>
             <div
               className="w-12 h-px"
-              style={{ background: "linear-gradient(to left, transparent, rgba(197,160,89,0.55))" }}
+              style={{
+                background: "linear-gradient(to left, transparent, rgb(var(--gold-rgb) / 0.55))",
+              }}
               aria-hidden
             />
           </div>
@@ -389,7 +396,7 @@ export default function SobreContent() {
               width: "clamp(60px, 12vw, 140px)",
               height: "1px",
               background:
-                "linear-gradient(to right, transparent, rgba(197,160,89,0.8), transparent)",
+                "linear-gradient(to right, transparent, rgb(var(--gold-rgb) / 0.8), transparent)",
             }}
             aria-hidden
           />
@@ -412,7 +419,7 @@ export default function SobreContent() {
               className="w-px"
               style={{
                 height: "48px",
-                background: "linear-gradient(to bottom, rgba(197,160,89,0.3), transparent)",
+                background: "linear-gradient(to bottom, rgb(var(--gold-rgb) / 0.3), transparent)",
               }}
             />
           </div>
@@ -449,7 +456,7 @@ export default function SobreContent() {
       <section
         data-revelar=""
         className="grid grid-cols-2 sm:grid-cols-4 gap-px"
-        style={{ background: "rgba(197,160,89,0.07)" }}
+        style={{ background: "rgb(var(--gold-rgb) / 0.07)" }}
       >
         {stats.map((stat, i) => (
           <RevealOnScroll key={stat.label} delay={i * 100} variant="fade-up">
@@ -462,7 +469,7 @@ export default function SobreContent() {
                 className="absolute top-0 left-0 right-0 h-[1px]"
                 style={{
                   background:
-                    "linear-gradient(90deg, rgba(197,160,89,0.5) 0%, rgba(197,160,89,0.1) 60%, transparent 100%)",
+                    "linear-gradient(90deg, rgb(var(--gold-rgb) / 0.5) 0%, rgb(var(--gold-rgb) / 0.1) 60%, transparent 100%)",
                 }}
                 aria-hidden
               />
@@ -474,7 +481,7 @@ export default function SobreContent() {
               {/* Hover fill */}
               <div
                 className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                style={{ background: "rgba(197,160,89,0.025)" }}
+                style={{ background: "rgb(var(--gold-rgb) / 0.025)" }}
               />
 
               {/* Animated number */}
@@ -495,7 +502,7 @@ export default function SobreContent() {
               <span
                 className="absolute bottom-1 right-3 select-none pointer-events-none"
                 aria-hidden
-                style={{ fontSize: "56px", color: "rgba(197,160,89,0.04)", lineHeight: 1 }}
+                style={{ fontSize: "56px", color: "rgb(var(--gold-rgb) / 0.04)", lineHeight: 1 }}
               >
                 {String(i + 1).padStart(2, "0")}
               </span>
@@ -517,7 +524,7 @@ export default function SobreContent() {
           style={{
             width: "800px",
             height: "500px",
-            background: "radial-gradient(ellipse, rgba(197,160,89,0.05) 0%, transparent 55%)",
+            background: "radial-gradient(ellipse, rgb(var(--gold-rgb) / 0.05) 0%, transparent 55%)",
           }}
           aria-hidden
         />
@@ -551,7 +558,7 @@ export default function SobreContent() {
               <div
                 className="w-10 h-px"
                 style={{
-                  background: "linear-gradient(to right, transparent, rgba(197,160,89,0.4))",
+                  background: "linear-gradient(to right, transparent, rgb(var(--gold-rgb) / 0.4))",
                 }}
               />
               <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--gold)]/50">
@@ -560,7 +567,7 @@ export default function SobreContent() {
               <div
                 className="w-10 h-px"
                 style={{
-                  background: "linear-gradient(to left, transparent, rgba(197,160,89,0.4))",
+                  background: "linear-gradient(to left, transparent, rgb(var(--gold-rgb) / 0.4))",
                 }}
               />
             </div>
@@ -574,7 +581,7 @@ export default function SobreContent() {
       <section
         data-revelar=""
         className="px-6 sm:px-10 lg:px-16 py-16 sm:py-28"
-        style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}
+        style={{ borderTop: "1px solid rgb(var(--gold-rgb) / 0.06)" }}
       >
         <div className="max-w-6xl mx-auto">
           <RevealOnScroll variant="fade-up">
@@ -584,7 +591,7 @@ export default function SobreContent() {
                 <div className="flex items-center gap-3 mb-4">
                   <div
                     className="w-6 h-px"
-                    style={{ background: "rgba(197,160,89,0.55)" }}
+                    style={{ background: "rgb(var(--gold-rgb) / 0.55)" }}
                     aria-hidden
                   />
                   <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--gold)]/60">
@@ -623,8 +630,8 @@ export default function SobreContent() {
                         <div
                           className="w-2 h-2 rounded-full flex-shrink-0"
                           style={{
-                            background: "rgba(197,160,89,0.5)",
-                            boxShadow: "0 0 12px rgba(197,160,89,0.2)",
+                            background: "rgb(var(--gold-rgb) / 0.5)",
+                            boxShadow: "0 0 12px rgb(var(--gold-rgb) / 0.2)",
                           }}
                         />
                         {i < 2 && (
@@ -632,7 +639,7 @@ export default function SobreContent() {
                             className="w-px flex-1 mt-2"
                             style={{
                               background:
-                                "linear-gradient(to bottom, rgba(197,160,89,0.2), transparent)",
+                                "linear-gradient(to bottom, rgb(var(--gold-rgb) / 0.2), transparent)",
                             }}
                           />
                         )}
@@ -650,8 +657,8 @@ export default function SobreContent() {
                 <div
                   className="p-8 sm:p-10 relative"
                   style={{
-                    border: "1px solid rgba(197,160,89,0.1)",
-                    background: "rgba(197,160,89,0.015)",
+                    border: "1px solid rgb(var(--gold-rgb) / 0.1)",
+                    background: "rgb(var(--gold-rgb) / 0.015)",
                   }}
                 >
                   {/* Corner ornaments */}
@@ -672,7 +679,7 @@ export default function SobreContent() {
                       <li key={p} className="flex items-center gap-4 group/item">
                         <div
                           className="w-6 h-6 flex items-center justify-center flex-shrink-0 group-hover/item:bg-[var(--gold)]/15 transition-colors duration-300"
-                          style={{ border: "1px solid rgba(197,160,89,0.2)" }}
+                          style={{ border: "1px solid rgb(var(--gold-rgb) / 0.2)" }}
                         >
                           <Check size={11} className="text-[var(--gold)]" />
                         </div>
@@ -736,11 +743,11 @@ export default function SobreContent() {
               )}
             </p>
             <div className="flex items-center justify-center gap-3 mt-6">
-              <div className="w-8 h-px" style={{ background: "rgba(197,160,89,0.5)" }} />
+              <div className="w-8 h-px" style={{ background: "rgb(var(--gold-rgb) / 0.5)" }} />
               <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--gold)]/60">
                 Est. MMXXIII
               </span>
-              <div className="w-8 h-px" style={{ background: "rgba(197,160,89,0.5)" }} />
+              <div className="w-8 h-px" style={{ background: "rgb(var(--gold-rgb) / 0.5)" }} />
             </div>
           </div>
         </RevealOnScroll>
@@ -748,12 +755,12 @@ export default function SobreContent() {
         {/* Gold horizontal lines */}
         <div
           className="absolute top-0 inset-x-0 h-px"
-          style={{ background: "rgba(197,160,89,0.1)" }}
+          style={{ background: "rgb(var(--gold-rgb) / 0.1)" }}
           aria-hidden
         />
         <div
           className="absolute bottom-0 inset-x-0 h-px"
-          style={{ background: "rgba(197,160,89,0.1)" }}
+          style={{ background: "rgb(var(--gold-rgb) / 0.1)" }}
           aria-hidden
         />
       </section>
@@ -764,7 +771,7 @@ export default function SobreContent() {
       <section
         data-revelar=""
         className="px-6 sm:px-10 lg:px-16 py-16 sm:py-28"
-        style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}
+        style={{ borderTop: "1px solid rgb(var(--gold-rgb) / 0.06)" }}
       >
         <div className="max-w-6xl mx-auto">
           <RevealOnScroll variant="fade-up" className="text-center mb-12 sm:mb-20">
@@ -772,7 +779,7 @@ export default function SobreContent() {
               <div
                 className="w-8 h-px"
                 style={{
-                  background: "linear-gradient(to right, transparent, rgba(197,160,89,0.5))",
+                  background: "linear-gradient(to right, transparent, rgb(var(--gold-rgb) / 0.5))",
                 }}
                 aria-hidden
               />
@@ -782,7 +789,7 @@ export default function SobreContent() {
               <div
                 className="w-8 h-px"
                 style={{
-                  background: "linear-gradient(to left, transparent, rgba(197,160,89,0.5))",
+                  background: "linear-gradient(to left, transparent, rgb(var(--gold-rgb) / 0.5))",
                 }}
                 aria-hidden
               />
@@ -794,7 +801,7 @@ export default function SobreContent() {
 
           <div
             className="grid sm:grid-cols-2 gap-px"
-            style={{ background: "rgba(197,160,89,0.06)" }}
+            style={{ background: "rgb(var(--gold-rgb) / 0.06)" }}
           >
             {values.map((value, i) => (
               <RevealOnScroll key={value.title} delay={i * 100} variant="fade-up">
@@ -805,7 +812,7 @@ export default function SobreContent() {
                   {/* Hover fill */}
                   <div
                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                    style={{ background: "rgba(197,160,89,0.02)" }}
+                    style={{ background: "rgb(var(--gold-rgb) / 0.02)" }}
                   />
 
                   {/* Gold sweep on hover */}
@@ -825,7 +832,7 @@ export default function SobreContent() {
                   {/* Icon */}
                   <div
                     className="w-12 h-12 flex items-center justify-center mb-6 relative z-10 group-hover:bg-[var(--gold)]/10 transition-colors duration-300"
-                    style={{ border: "1px solid rgba(197,160,89,0.15)" }}
+                    style={{ border: "1px solid rgb(var(--gold-rgb) / 0.15)" }}
                   >
                     <value.icon size={20} className="text-[var(--gold)]" />
                   </div>
@@ -844,7 +851,11 @@ export default function SobreContent() {
                   <span
                     className="absolute bottom-2 right-4 select-none pointer-events-none"
                     aria-hidden
-                    style={{ fontSize: "72px", color: "rgba(197,160,89,0.03)", lineHeight: 1 }}
+                    style={{
+                      fontSize: "72px",
+                      color: "rgb(var(--gold-rgb) / 0.03)",
+                      lineHeight: 1,
+                    }}
                   >
                     {String(i + 1).padStart(2, "0")}
                   </span>
@@ -861,7 +872,7 @@ export default function SobreContent() {
       <section
         data-revelar=""
         className="px-6 sm:px-10 lg:px-16 py-16 sm:py-28"
-        style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}
+        style={{ borderTop: "1px solid rgb(var(--gold-rgb) / 0.06)" }}
       >
         <div className="max-w-6xl mx-auto">
           <RevealOnScroll variant="fade-up" className="text-center mb-12 sm:mb-20">
@@ -869,7 +880,7 @@ export default function SobreContent() {
               <div
                 className="w-8 h-px"
                 style={{
-                  background: "linear-gradient(to right, transparent, rgba(197,160,89,0.5))",
+                  background: "linear-gradient(to right, transparent, rgb(var(--gold-rgb) / 0.5))",
                 }}
                 aria-hidden
               />
@@ -879,7 +890,7 @@ export default function SobreContent() {
               <div
                 className="w-8 h-px"
                 style={{
-                  background: "linear-gradient(to left, transparent, rgba(197,160,89,0.5))",
+                  background: "linear-gradient(to left, transparent, rgb(var(--gold-rgb) / 0.5))",
                 }}
                 aria-hidden
               />
@@ -891,7 +902,7 @@ export default function SobreContent() {
 
           <div
             className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px"
-            style={{ background: "rgba(197,160,89,0.06)" }}
+            style={{ background: "rgb(var(--gold-rgb) / 0.06)" }}
           >
             {features.map((feature, i) => (
               <RevealOnScroll key={feature.title} delay={i * 80} variant="fade-up">
@@ -903,7 +914,7 @@ export default function SobreContent() {
                   {/* Hover fill */}
                   <div
                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                    style={{ background: "rgba(197,160,89,0.02)" }}
+                    style={{ background: "rgb(var(--gold-rgb) / 0.02)" }}
                   />
 
                   {/* Gold sweep */}
@@ -915,7 +926,7 @@ export default function SobreContent() {
                   <div className="flex items-start justify-between mb-5 relative z-10">
                     <div
                       className="w-10 h-10 flex items-center justify-center group-hover:bg-[var(--gold)]/10 transition-colors duration-300"
-                      style={{ border: "1px solid rgba(197,160,89,0.12)" }}
+                      style={{ border: "1px solid rgb(var(--gold-rgb) / 0.12)" }}
                     >
                       <feature.icon
                         size={17}
@@ -949,7 +960,7 @@ export default function SobreContent() {
       <section
         data-revelar=""
         className="px-6 sm:px-10 lg:px-16 py-16 sm:py-28"
-        style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}
+        style={{ borderTop: "1px solid rgb(var(--gold-rgb) / 0.06)" }}
       >
         <div className="max-w-6xl mx-auto">
           <RevealOnScroll variant="fade-up" className="text-center mb-12 sm:mb-20">
@@ -957,7 +968,7 @@ export default function SobreContent() {
               <div
                 className="w-8 h-px"
                 style={{
-                  background: "linear-gradient(to right, transparent, rgba(197,160,89,0.5))",
+                  background: "linear-gradient(to right, transparent, rgb(var(--gold-rgb) / 0.5))",
                 }}
                 aria-hidden
               />
@@ -967,7 +978,7 @@ export default function SobreContent() {
               <div
                 className="w-8 h-px"
                 style={{
-                  background: "linear-gradient(to left, transparent, rgba(197,160,89,0.5))",
+                  background: "linear-gradient(to left, transparent, rgb(var(--gold-rgb) / 0.5))",
                 }}
                 aria-hidden
               />
@@ -979,7 +990,7 @@ export default function SobreContent() {
 
           <div
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-px"
-            style={{ background: "rgba(197,160,89,0.06)" }}
+            style={{ background: "rgb(var(--gold-rgb) / 0.06)" }}
           >
             {audience.map((a, i) => (
               <RevealOnScroll key={a.title} delay={i * 80} variant="fade-up">
@@ -990,7 +1001,7 @@ export default function SobreContent() {
                   {/* Hover fill */}
                   <div
                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                    style={{ background: "rgba(197,160,89,0.025)" }}
+                    style={{ background: "rgb(var(--gold-rgb) / 0.025)" }}
                   />
 
                   {/* Gold sweep */}
@@ -1001,7 +1012,7 @@ export default function SobreContent() {
 
                   <div
                     className="w-14 h-14 flex items-center justify-center mb-5 relative z-10 group-hover:bg-[var(--gold)]/10 transition-colors duration-300"
-                    style={{ border: "1px solid rgba(197,160,89,0.12)" }}
+                    style={{ border: "1px solid rgb(var(--gold-rgb) / 0.12)" }}
                   >
                     <a.icon
                       size={22}
@@ -1027,7 +1038,7 @@ export default function SobreContent() {
       <section
         data-revelar=""
         className="relative px-6 sm:px-10 lg:px-16 py-24 sm:py-40 overflow-hidden"
-        style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}
+        style={{ borderTop: "1px solid rgb(var(--gold-rgb) / 0.06)" }}
       >
         {/* Atmospheric glow */}
         <div
@@ -1035,7 +1046,7 @@ export default function SobreContent() {
           style={{
             width: "800px",
             height: "400px",
-            background: "radial-gradient(ellipse, rgba(197,160,89,0.05) 0%, transparent 55%)",
+            background: "radial-gradient(ellipse, rgb(var(--gold-rgb) / 0.05) 0%, transparent 55%)",
           }}
           aria-hidden
         />
@@ -1047,14 +1058,14 @@ export default function SobreContent() {
               <div
                 className="w-14 h-px"
                 style={{
-                  background: "linear-gradient(to right, transparent, rgba(197,160,89,0.4))",
+                  background: "linear-gradient(to right, transparent, rgb(var(--gold-rgb) / 0.4))",
                 }}
               />
               <Heart className="text-[var(--gold)]/30" size={18} />
               <div
                 className="w-14 h-px"
                 style={{
-                  background: "linear-gradient(to left, transparent, rgba(197,160,89,0.4))",
+                  background: "linear-gradient(to left, transparent, rgb(var(--gold-rgb) / 0.4))",
                 }}
               />
             </div>
@@ -1076,7 +1087,7 @@ export default function SobreContent() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-5 mb-8">
               <LocalizedLink
                 href="/registar"
-                className="ripple-btn inline-flex items-center gap-3 bg-[var(--gold)] text-black px-10 py-4.5 rotulo font-bold hover:bg-white transition-[background-color] duration-300 shadow-[0_8px_32px_rgba(197,160,89,0.25)] group/cta"
+                className="ripple-btn inline-flex items-center gap-3 bg-[var(--gold)] text-black px-10 py-4.5 rotulo font-bold hover:bg-white transition-[background-color] duration-300 shadow-[0_8px_32px_rgb(var(--gold-rgb) / 0.25)] group/cta"
               >
                 <Users size={14} aria-hidden />
                 {tr("Criar Conta Grátis", "Create Free Account", "Crear Cuenta Gratis")}
@@ -1116,17 +1127,21 @@ export default function SobreContent() {
  ══════════════════════════════════════════════════════════════════════════ */}
       <footer
         className="px-6 sm:px-10 lg:px-16 py-14 flex flex-col items-center text-center gap-5"
-        style={{ borderTop: "1px solid rgba(197,160,89,0.06)" }}
+        style={{ borderTop: "1px solid rgb(var(--gold-rgb) / 0.06)" }}
       >
         <div className="flex items-center gap-4" aria-hidden>
           <div
             className="w-8 h-px"
-            style={{ background: "linear-gradient(to right, transparent, rgba(197,160,89,0.3))" }}
+            style={{
+              background: "linear-gradient(to right, transparent, rgb(var(--gold-rgb) / 0.3))",
+            }}
           />
           <span className="text-[var(--gold)]/30 text-[10px]">&#9670;</span>
           <div
             className="w-8 h-px"
-            style={{ background: "linear-gradient(to left, transparent, rgba(197,160,89,0.3))" }}
+            style={{
+              background: "linear-gradient(to left, transparent, rgb(var(--gold-rgb) / 0.3))",
+            }}
           />
         </div>
         <span className="text-[6px] font-mono uppercase tracking-wider text-[var(--foreground-muted)]/25">

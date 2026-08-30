@@ -481,7 +481,7 @@ function CoudelariaCard({
     <AnimateOnScroll delay={index * 50}>
       <LocalizedLink
         href={`/directorio/${coudelaria.slug}`}
-        className="group block relative h-[280px] sm:h-[400px] overflow-hidden border border-[var(--border)] hover:border-[var(--gold)]/40 transition-all duration-300 hover:shadow-[0_8px_32px_rgba(197,160,89,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+        className="group block relative h-[280px] sm:h-[400px] overflow-hidden border border-[var(--border)] hover:border-[var(--gold)]/40 transition-all duration-300 hover:shadow-[0_8px_32px_rgb(var(--gold-rgb) / 0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
         aria-label={`${coudelaria.nome}, ${coudelaria.localizacao}`}
       >
         <Image

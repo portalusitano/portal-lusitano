@@ -66,6 +66,8 @@ html.dark {
   /* Um só acento em todo o site. Mudar aqui muda tudo. */
   --gold: #c6a15b;
   --gold-hover: #d4b273;
+  /* Canais em cru do acento, para brilhos e sombras com opacidade. */
+  --gold-rgb: 198 161 91;
   --ok: #34d399;
   --surface-hover: rgba(255, 255, 255, 0.04);
   --scrollbar-track: transparent;
@@ -97,6 +99,7 @@ html.light {
   --elevate-2: rgba(9, 9, 11, 0.06);
   --gold: #8a6d2f;
   --gold-hover: #a8873a;
+  --gold-rgb: 138 109 47;
   --ok: #059669;
   --surface-hover: rgba(9, 9, 11, 0.04);
   --scrollbar-track: transparent;
@@ -837,7 +840,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(197, 160, 89, 0.08), transparent);
+  background: linear-gradient(90deg, transparent, rgb(var(--gold-rgb) / 0.08), transparent);
   transform: translateX(-100%);
   transition: none;
 }
@@ -905,8 +908,8 @@ body {
   inset: 0;
   border-radius: inherit;
   box-shadow:
-    0 0 40px rgba(197, 160, 89, 0.25),
-    0 0 80px rgba(197, 160, 89, 0.1);
+    0 0 40px rgb(var(--gold-rgb) / 0.25),
+    0 0 80px rgb(var(--gold-rgb) / 0.1);
   opacity: 0;
   transition: opacity 0.5s ease;
   pointer-events: none;

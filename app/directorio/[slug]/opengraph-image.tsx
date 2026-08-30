@@ -89,9 +89,9 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             alignItems: "center",
             gap: "10px",
             padding: "8px 20px",
-            border: "1px solid rgba(197, 160, 89, 0.3)",
+            border: "1px solid rgb(var(--gold-rgb) / 0.3)",
             borderRadius: "8px",
-            backgroundColor: "rgba(197, 160, 89, 0.08)",
+            backgroundColor: "rgb(var(--gold-rgb) / 0.08)",
           }}
         >
           <span style={{ fontSize: 14, color: "#C5A059", letterSpacing: "0.05em" }}>
@@ -178,7 +178,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                   fontSize: 11,
                   color: "#C5A059",
                   padding: "4px 12px",
-                  border: "1px solid rgba(197, 160, 89, 0.25)",
+                  border: "1px solid rgb(var(--gold-rgb) / 0.25)",
                   borderRadius: "4px",
                 }}
               >

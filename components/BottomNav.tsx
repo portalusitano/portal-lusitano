@@ -131,7 +131,7 @@ export default memo(function BottomNav() {
               onClick={() => setIsMoreOpen(false)}
               className="flex flex-col gap-3 p-4 bg-gradient-to-br from-[var(--gold)]/15 via-[var(--gold)]/8 to-transparent border border-[var(--gold)]/30 rounded-2xl touch-manipulation active:scale-[0.98] transition-transform"
             >
-              <div className="w-10 h-10 bg-[var(--gold)] rounded-xl flex items-center justify-center shadow-[0_0_16px_rgba(197,160,89,0.3)]">
+              <div className="w-10 h-10 bg-[var(--gold)] rounded-xl flex items-center justify-center shadow-[0_0_16px_rgb(var(--gold-rgb) / 0.3)]">
                 <Euro size={18} className="text-black" strokeWidth={2.5} />
               </div>
               <div className="min-w-0">

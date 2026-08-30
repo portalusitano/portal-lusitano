@@ -104,7 +104,7 @@ export default memo(function Footer() {
         className="h-px w-full"
         style={{
           background:
-            "linear-gradient(to right, transparent, rgba(197,160,89,0.45) 50%, transparent)",
+            "linear-gradient(to right, transparent, rgb(var(--gold-rgb) / 0.45) 50%, transparent)",
         }}
         aria-hidden="true"
       />
@@ -145,14 +145,18 @@ export default memo(function Footer() {
         <div className="flex items-center justify-center gap-3 mb-7">
           <div
             className="h-px w-6 sm:w-16"
-            style={{ background: "linear-gradient(to right, transparent, rgba(197,160,89,0.5))" }}
+            style={{
+              background: "linear-gradient(to right, transparent, rgb(var(--gold-rgb) / 0.5))",
+            }}
           />
           <span className="text-[var(--gold)] text-[10px] uppercase tracking-wider">
             Est. MMXXIII · Portugal
           </span>
           <div
             className="h-px w-6 sm:w-16"
-            style={{ background: "linear-gradient(to left, transparent, rgba(197,160,89,0.5))" }}
+            style={{
+              background: "linear-gradient(to left, transparent, rgb(var(--gold-rgb) / 0.5))",
+            }}
           />
         </div>
 
@@ -178,7 +182,9 @@ export default memo(function Footer() {
         <div className="flex items-center justify-center gap-3 mt-5 mb-5">
           <div
             className="h-px w-8 sm:w-28"
-            style={{ background: "linear-gradient(to right, transparent, rgba(197,160,89,0.3))" }}
+            style={{
+              background: "linear-gradient(to right, transparent, rgb(var(--gold-rgb) / 0.3))",
+            }}
           />
           <svg
             width="5"
@@ -192,7 +198,9 @@ export default memo(function Footer() {
           </svg>
           <div
             className="h-px w-8 sm:w-28"
-            style={{ background: "linear-gradient(to left, transparent, rgba(197,160,89,0.3))" }}
+            style={{
+              background: "linear-gradient(to left, transparent, rgb(var(--gold-rgb) / 0.3))",
+            }}
           />
         </div>
 
