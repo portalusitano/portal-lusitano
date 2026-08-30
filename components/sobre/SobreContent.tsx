@@ -66,7 +66,7 @@ export default function SobreContent() {
         icon: Globe,
         title: tr("Acessibilidade", "Accessibility", "Accesibilidad"),
         desc: tr(
-          "Ferramentas gratuitas e conteúdo trilingue para que o conhecimento sobre o Lusitano chegue a todos.",
+          "Um classificados onde o anúncio diz o que é preciso saber e o negócio se fecha entre as duas partes.",
           "Free tools and trilingual content so that knowledge about the Lusitano reaches everyone.",
           "Herramientas gratuitas y contenido trilingüe para que el conocimiento sobre el Lusitano llegue a todos."
         ),
@@ -144,9 +144,9 @@ export default function SobreContent() {
         label: tr("Cavalos documentados", "Documented horses", "Caballos documentados"),
       },
       {
-        value: 4,
-        suffix: "",
-        label: tr("Ferramentas especializadas", "Specialist tools", "Herramientas especializadas"),
+        value: 0,
+        suffix: "%",
+        label: tr("Comissão sobre a venda", "Sale commission", "Comisión sobre la venta"),
       },
       { value: 3, suffix: "", label: tr("Línguas", "Languages", "Idiomas") },
       { value: 2023, suffix: "", label: tr("Ano de fundação", "Founded", "Año de fundación") },
@@ -158,7 +158,11 @@ export default function SobreContent() {
     () => [
       tr("Informação verificada", "Verified information", "Información verificada"),
       tr("Trilingue PT / EN / ES", "Trilingual PT / EN / ES", "Trilingüe PT / EN / ES"),
-      tr("Ferramentas gratuitas", "Free tools", "Herramientas gratuitas"),
+      tr(
+        "Contacto directo, sem comissões",
+        "Direct contact, no commissions",
+        "Contacto directo, sin comisiones"
+      ),
       tr("Comunidade aberta", "Open community", "Comunidad abierta"),
       tr("Sem anúncios invasivos", "No invasive ads", "Sin anuncios invasivos"),
     ],
@@ -171,9 +175,9 @@ export default function SobreContent() {
         icon: Search,
         title: tr("Compradores", "Buyers", "Compradores"),
         desc: tr(
-          "Ferramentas precisas para encontrar e avaliar o cavalo ideal.",
-          "Precise tools to find and evaluate the ideal horse.",
-          "Herramientas precisas para encontrar y evaluar el caballo ideal."
+          "Pesquisa com filtros, alertas para quando aparecer o cavalo certo, e contacto directo com quem vende.",
+          "Filtered search, alerts for when the right horse turns up, and direct contact with the seller.",
+          "Búsqueda con filtros, alertas para cuando aparezca el caballo adecuado, y contacto directo con quien vende."
         ),
       },
       {
@@ -218,235 +222,38 @@ export default function SobreContent() {
 
   return (
     <main className="min-h-screen bg-[var(--background)] overflow-x-hidden">
-      {/* ═══════════════════════════════════════════════════════════════════════
- HERO — cinematic full-viewport with background image
- ══════════════════════════════════════════════════════════════════════════ */}
+      {/* ── HERO ───────────────────────────────────────────────────────────
+          Era um herói cinematográfico de ecrã inteiro: fotografia, grelha
+          técnica, scan lines, cantos ornamentais, coordenadas e texto
+          vertical. Bonito e de outra família visual — o sistema faz a
+          profundidade com um gradiente radial e deixa o texto respirar. */}
       <section
         data-revelar=""
-        className="relative flex items-center justify-center overflow-hidden"
-        style={{ minHeight: "100svh" }}
+        className="relative overflow-hidden px-4 pt-28 pb-16 sm:px-6 md:pt-40 md:pb-24"
       >
-        {/* Background image */}
-        <Image
-          src="/images/sobre/hero/hero.png"
-          alt=""
-          fill
-          sizes="100vw"
-          className="object-cover object-[center_40%]"
-          priority
-          aria-hidden
-        />
-
-        {/* Dark cinematic overlays */}
         <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0.85) 100%)",
-          }}
-          aria-hidden
-        />
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(90deg, rgba(0,0,0,0.5) 0%, transparent 40%, rgba(0,0,0,0.4) 100%)",
-          }}
-          aria-hidden
-        />
-
-        {/* Gold tech grid */}
-        <div
-          className="absolute inset-0 pointer-events-none"
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
           style={{
             backgroundImage:
-              "linear-gradient(rgb(var(--gold-rgb) / 0.02) 1px, transparent 1px), linear-gradient(90deg, rgb(var(--gold-rgb) / 0.02) 1px, transparent 1px)",
-            backgroundSize: "64px 64px",
+              "radial-gradient(ellipse 60% 50% at 50% 40%, rgba(40,40,40,.75) 0%, rgba(20,20,20,.4) 38%, rgba(0,0,0,1) 100%)",
           }}
-          aria-hidden
         />
 
-        {/* Scan lines */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(0deg, transparent, transparent 2px, rgb(var(--gold-rgb) / 0.006) 2px, rgb(var(--gold-rgb) / 0.006) 4px)",
-          }}
-          aria-hidden
-        />
+        <div className="relative z-10 mx-auto max-w-4xl text-center">
+          <p className="rotulo-forte mb-6">{tr("Sobre nós", "About us", "Sobre nosotros")}</p>
 
-        {/* Vignette */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.5) 100%)",
-          }}
-          aria-hidden
-        />
-
-        {/* Corner ornaments */}
-        <div
-          className="absolute top-8 left-6 sm:left-10 lg:left-16 w-14 h-14 border-t border-l border-[var(--gold)]/15 pointer-events-none z-10"
-          aria-hidden
-        />
-        <div
-          className="absolute top-8 right-6 sm:right-10 lg:right-16 w-14 h-14 border-t border-r border-[var(--gold)]/15 pointer-events-none hidden sm:block z-10"
-          aria-hidden
-        />
-        <div
-          className="absolute bottom-8 left-6 sm:left-10 lg:left-16 w-14 h-14 border-b border-l border-[var(--gold)]/15 pointer-events-none hidden sm:block z-10"
-          aria-hidden
-        />
-        <div
-          className="absolute bottom-8 right-6 sm:right-10 lg:right-16 w-14 h-14 border-b border-r border-[var(--gold)]/15 pointer-events-none hidden sm:block z-10"
-          aria-hidden
-        />
-
-        {/* Top bar */}
-        <div
-          className="absolute top-0 inset-x-0 z-20 flex items-center justify-between px-6 sm:px-10 lg:px-16"
-          style={{
-            paddingTop: "max(env(safe-area-inset-top), 2rem)",
-            opacity: 0,
-            animation: "fadeSlideIn 0.6s ease-out 0.1s forwards",
-          }}
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className="w-5 h-px"
-              style={{ background: "rgb(var(--gold-rgb) / 0.5)" }}
-              aria-hidden
-            />
-            <span className="text-[6px] font-mono uppercase tracking-wider text-white/30">
-              Portal Lusitano
-            </span>
-          </div>
-          <span className="text-[6px] font-mono uppercase tracking-wider text-white/20 hidden sm:block">
-            Est. MMXXIII · Portugal
-          </span>
-        </div>
-
-        {/* Content */}
-        <div
-          className="relative z-10 text-center px-6 sm:px-10 max-w-4xl mx-auto"
-          style={{ opacity: 0, animation: "fadeSlideIn 0.9s ease-out 0.2s forwards" }}
-        >
-          {/* Logo with glow */}
-          <div className="mb-10 flex justify-center relative">
-            <div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[250px] pointer-events-none"
-              style={{
-                background:
-                  "radial-gradient(ellipse, rgb(var(--gold-rgb) / 0.08) 0%, transparent 60%)",
-              }}
-              aria-hidden
-            />
-            <div className="relative w-[110px] h-[110px] sm:w-[140px] sm:h-[140px]">
-              <Image
-                src="/logo.webp"
-                alt="Portal Lusitano"
-                fill
-                sizes="140px"
-                className="object-contain drop-shadow-[0_0_40px_rgb(var(--gold-rgb) / 0.15)]"
-                priority
-              />
-            </div>
-          </div>
-
-          {/* Label */}
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <div
-              className="w-12 h-px"
-              style={{
-                background: "linear-gradient(to right, transparent, rgb(var(--gold-rgb) / 0.55))",
-              }}
-              aria-hidden
-            />
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--gold)]/70">
-              {tr("Sobre Nós", "About Us", "Sobre Nosotros")}
-            </span>
-            <div
-              className="w-12 h-px"
-              style={{
-                background: "linear-gradient(to left, transparent, rgb(var(--gold-rgb) / 0.55))",
-              }}
-              aria-hidden
-            />
-          </div>
-
-          {/* Title */}
-          <h1
-            className="text-white leading-[0.88] mb-3"
-            style={{ fontSize: "clamp(2.8rem, 7vw, 5.5rem)", letterSpacing: "-0.01em" }}
-          >
-            {tr("A Nossa", "Our", "Nuestra")}
-          </h1>
-          <h1
-            className="font-normal text-[var(--gold)] leading-[0.88] mb-10"
-            style={{ fontSize: "clamp(3.2rem, 9vw, 7rem)", letterSpacing: "-0.01em" }}
-          >
-            {tr("Missão", "Mission", "Misión")}
+          <h1 className="titulo-gradiente mb-8 text-4xl font-normal leading-[100%] tracking-[-0.01em] sm:text-5xl md:text-[4rem]">
+            {tr("A nossa missão", "Our mission", "Nuestra misión")}
           </h1>
 
-          {/* Gold line */}
-          <div
-            className="mx-auto mb-8"
-            style={{
-              width: "clamp(60px, 12vw, 140px)",
-              height: "1px",
-              background:
-                "linear-gradient(to right, transparent, rgb(var(--gold-rgb) / 0.8), transparent)",
-            }}
-            aria-hidden
-          />
-
-          {/* Description */}
-          <p className="text-white/55 text-base sm:text-lg leading-[1.85] max-w-2xl mx-auto mb-12">
+          <p className="mx-auto max-w-2xl text-base leading-relaxed text-[var(--foreground-secondary)] sm:text-lg md:text-xl">
             {tr(
-              "O Portal Lusitano nasceu para elevar o Cavalo Lusitano ao palco global. Unimos tecnologia, investigação e paixão equestre numa plataforma sem precedentes.",
-              "Portal Lusitano was born to elevate the Lusitano Horse to the global stage. We unite technology, research and equestrian passion in an unprecedented platform.",
-              "Portal Lusitano nació para elevar el Caballo Lusitano al escenario global. Unimos tecnología, investigación y pasión ecuestre en una plataforma sin precedentes."
+              "O Portal Lusitano existe para pôr criadores e compradores em contacto directo, sem intermediários e sem comissões. Um anúncio com genealogia, fotografias e contacto — e mais nada pelo meio.",
+              "Portal Lusitano exists to put breeders and buyers in direct contact, with no middlemen and no commissions. A listing with pedigree, photographs and contact — and nothing else in between.",
+              "Portal Lusitano existe para poner en contacto directo a criadores y compradores, sin intermediarios ni comisiones. Un anuncio con genealogía, fotografías y contacto — y nada más en medio."
             )}
           </p>
-
-          {/* Scroll indicator */}
-          <div className="flex flex-col items-center gap-3" aria-hidden>
-            <span className="text-[5px] font-mono uppercase tracking-wider text-white/15">
-              Scroll
-            </span>
-            <div
-              className="w-px"
-              style={{
-                height: "48px",
-                background: "linear-gradient(to bottom, rgb(var(--gold-rgb) / 0.3), transparent)",
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Coordinates */}
-        <div
-          className="absolute bottom-5 right-6 sm:right-10 lg:right-16 hidden md:block z-20"
-          aria-hidden
-          style={{ opacity: 0, animation: "fadeSlideIn 0.5s ease-out 0.6s forwards" }}
-        >
-          <span className="text-[5.5px] font-mono tracking-wider text-white/12">
-            38.7° N · 9.1° W
-          </span>
-        </div>
-
-        {/* Vertical text */}
-        <div
-          className="absolute top-1/2 -translate-y-1/2 right-6 lg:right-10 z-10 hidden md:block"
-          aria-hidden
-        >
-          <span
-            className="text-[6px] font-mono uppercase tracking-wider text-white/8"
-            style={{ writingMode: "vertical-lr" }}
-          >
-            {tr("Sobre o Portal Lusitano", "About Portal Lusitano", "Sobre Portal Lusitano")}
-          </span>
         </div>
       </section>
 
