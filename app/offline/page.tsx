@@ -36,28 +36,26 @@ export default function OfflinePage() {
       {/* Linha decorativa */}
       <div className="w-px h-16 bg-gradient-to-b from-transparent via-[var(--gold)] to-transparent mb-10" />
 
-      <span className="text-[10px] uppercase tracking-[0.4em] text-[var(--gold)] mb-6 block">
-        {t.badge}
-      </span>
+      <span className="rotulo-forte mb-6 block">{t.badge}</span>
 
       <h1 className="text-2xl sm:text-4xl md:text-6xl font-serif text-[var(--foreground)] mb-6 leading-tight">
         {t.title}
       </h1>
 
-      <p className="text-[var(--foreground-secondary)] font-serif italic text-sm md:text-base max-w-sm leading-relaxed mb-12">
+      <p className="text-[var(--foreground-secondary)] font-normal text-sm md:text-base max-w-sm leading-relaxed mb-12">
         &ldquo;{t.description}&rdquo;
       </p>
 
       <div className="flex flex-col sm:flex-row gap-4">
         <button
           onClick={() => window.location.reload()}
-          className="px-8 py-3 text-[10px] uppercase tracking-widest bg-[var(--gold)] text-black hover:bg-white transition-colors font-bold"
+          className="px-8 py-3 text-[10px] uppercase tracking-wider bg-[var(--gold)] text-black hover:bg-white transition-colors font-bold"
         >
           {t.retry}
         </button>
         <LocalizedLink
           href="/"
-          className="px-8 py-3 text-[10px] uppercase tracking-widest border border-[var(--border)] text-[var(--foreground-secondary)] hover:text-[var(--foreground)] hover:border-[var(--border-hover)] transition-colors"
+          className="px-8 py-3 text-[10px] uppercase tracking-wider border border-[var(--border)] text-[var(--foreground-secondary)] hover:text-[var(--foreground)] hover:border-[var(--border-hover)] transition-colors"
         >
           {t.home}
         </LocalizedLink>
@@ -65,7 +63,7 @@ export default function OfflinePage() {
 
       <div className="mt-20 flex items-center gap-4">
         <div className="w-8 h-px bg-[var(--gold)]" />
-        <span className="text-[10px] sm:text-[9px] uppercase tracking-widest text-[var(--foreground-muted)]">
+        <span className="text-[10px] sm:text-[11px] uppercase tracking-wider text-[var(--foreground-muted)]">
           Portal Lusitano
         </span>
         <div className="w-8 h-px bg-[var(--gold)]" />

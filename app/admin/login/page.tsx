@@ -11,7 +11,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full bg-[var(--gold)] text-black font-bold uppercase text-xs tracking-[0.2em] py-4 hover:bg-white hover:shadow-[0_0_20px_rgba(197,160,89,0.3)] transition-all duration-500 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+      className="w-full bg-[var(--gold)] text-black font-bold uppercase text-xs tracking-wide py-4 hover:bg-white hover:shadow-[0_0_20px_rgba(197,160,89,0.3)] transition-all duration-500 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {pending ? "A entrar..." : "Entrar"}
     </button>
@@ -27,9 +27,7 @@ export default function AdminLoginPage() {
 
       <div className="relative z-20 w-full max-w-md bg-[var(--background-secondary)]/40 backdrop-blur-md border border-[var(--border)] p-10 md:p-14 shadow-2xl">
         <div className="text-center mb-12">
-          <span className="text-[var(--gold)] text-[9px] uppercase tracking-[0.4em] font-bold block mb-4">
-            Acesso Restrito
-          </span>
+          <span className="text-[var(--gold)] rotulo font-bold block mb-4">Acesso Restrito</span>
           <h1 className="text-4xl font-serif text-[var(--foreground)] tracking-tight">
             Administração
           </h1>
@@ -39,14 +37,14 @@ export default function AdminLoginPage() {
         <form action={formAction} className="space-y-6">
           {state?.error && (
             <div className="bg-red-900/20 border border-red-500/50 p-3 text-center">
-              <p className="text-red-400 text-[10px] uppercase tracking-widest font-bold">
+              <p className="text-red-400 text-[10px] uppercase tracking-wider font-bold">
                 {state.error}
               </p>
             </div>
           )}
 
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] font-bold">
+            <label className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] font-bold">
               Email
             </label>
             <input
@@ -60,7 +58,7 @@ export default function AdminLoginPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] font-bold">
+            <label className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] font-bold">
               Password
             </label>
             <input

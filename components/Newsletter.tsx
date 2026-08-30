@@ -95,7 +95,7 @@ export default function Newsletter() {
         <h2 className="text-3xl font-serif text-[var(--foreground)] mb-4">
           {tx(nl.title, language)} <span className="text-[var(--gold)]">Gazeta Lusitana</span>
         </h2>
-        <p className="text-[var(--foreground-muted)] mb-8 uppercase tracking-widest text-xs">
+        <p className="text-[var(--foreground-muted)] mb-8 uppercase tracking-wider text-xs">
           {tx(nl.subtitle, language)}
         </p>
 
@@ -131,7 +131,7 @@ export default function Newsletter() {
             <button
               type="submit"
               disabled={status === "loading"}
-              className="bg-[var(--gold)] text-black px-10 py-4 font-bold uppercase text-xs tracking-widest hover:bg-white transition"
+              className="bg-[var(--gold)] text-black px-10 py-4 font-bold uppercase text-xs tracking-wider hover:bg-white transition"
               aria-label={
                 status === "loading" ? tx(nl.ariaLoading, language) : tx(nl.ariaSubmit, language)
               }

@@ -258,7 +258,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
       {!encerrado && (
         <div className="lg:hidden fixed bottom-16 left-0 right-0 z-30 bg-[var(--background)]/95 backdrop-blur-md border-t border-[var(--border)] px-3 py-2.5 flex items-center gap-2">
           <div className="flex-1 min-w-0">
-            <p className="text-[9px] uppercase tracking-widest text-[var(--foreground-muted)] leading-none mb-0.5">
+            <p className="text-[11px] uppercase tracking-wider text-[var(--foreground-muted)] leading-none mb-0.5">
               Preço
             </p>
             <p className="preco text-base leading-none">
@@ -299,7 +299,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
             />
           ) : (
             <div className="w-full h-[55vw] lg:h-full flex items-center justify-center bg-[var(--background-secondary)]">
-              <span className="text-[var(--foreground-muted)] text-[10px] uppercase tracking-widest">
+              <span className="text-[var(--foreground-muted)] text-[10px] uppercase tracking-wider">
                 Sem Fotografia
               </span>
             </div>
@@ -322,7 +322,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                     className="text-[var(--gold)] mt-0.5 flex-shrink-0"
                   />
                   <div className="space-y-1">
-                    <p className="text-[11px] uppercase tracking-widest font-bold text-[var(--gold)]">
+                    <p className="text-[11px] uppercase tracking-wider font-bold text-[var(--gold)]">
                       {visibilidade === "vendido" ? "Cavalo vendido" : "Anúncio terminado"}
                     </p>
                     <p className="text-xs text-[var(--foreground-secondary)] leading-relaxed">

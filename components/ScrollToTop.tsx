@@ -52,7 +52,7 @@ export default function ScrollToTop() {
       </div>
 
       {/* Texto Lateral/Inferior Subtil */}
-      <span className="text-[8px] uppercase tracking-[0.3em] text-[var(--foreground-muted)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 font-bold">
+      <span className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 font-bold">
         Topo
       </span>
     </button>

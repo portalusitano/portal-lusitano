@@ -169,15 +169,22 @@ export default function CookieConsent() {
       style={{ willChange: "transform, opacity" }}
     >
       <div className="relative bg-[var(--background)] border-t border-l border-r border-[var(--border)] md:border shadow-[0_-8px_50px_rgba(0,0,0,0.7)] md:shadow-[0_12px_60px_rgba(0,0,0,0.8)]">
-
         {/* Gold accent top line */}
         <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent" />
 
         {/* SVG grain texture */}
-        <svg className="absolute inset-0 w-full h-full opacity-[0.025] pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+        <svg
+          className="absolute inset-0 w-full h-full opacity-[0.025] pointer-events-none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <defs>
             <filter id="cookie-noise">
-              <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+              <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.65"
+                numOctaves="3"
+                stitchTiles="stitch"
+              />
               <feColorMatrix type="saturate" values="0" />
             </filter>
           </defs>
@@ -185,7 +192,6 @@ export default function CookieConsent() {
         </svg>
 
         <div className="relative p-5 md:p-6">
-
           {/* Header */}
           <div className="mb-5">
             <div className="flex items-center gap-2 mb-3">
@@ -193,11 +199,21 @@ export default function CookieConsent() {
               <div className="flex items-center gap-1.5">
                 <div className="w-4 h-px bg-gradient-to-r from-transparent to-[var(--gold)]/60" />
                 <svg width="5" height="5" viewBox="0 0 5 5" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="0.5" y="0.5" width="4" height="4" transform="rotate(45 2.5 2.5)" fill="none" stroke="var(--gold)" strokeWidth="0.8" strokeOpacity="0.7"/>
+                  <rect
+                    x="0.5"
+                    y="0.5"
+                    width="4"
+                    height="4"
+                    transform="rotate(45 2.5 2.5)"
+                    fill="none"
+                    stroke="var(--gold)"
+                    strokeWidth="0.8"
+                    strokeOpacity="0.7"
+                  />
                 </svg>
                 <div className="w-4 h-px bg-gradient-to-l from-transparent to-[var(--gold)]/60" />
               </div>
-              <p className="text-[var(--gold)] text-[9px] uppercase tracking-[0.35em]">{t.label}</p>
+              <p className="text-[var(--gold)] rotulo">{t.label}</p>
             </div>
 
             <h3 className="font-serif text-[var(--foreground)] text-[1.15rem] leading-snug mb-2.5">
@@ -219,19 +235,39 @@ export default function CookieConsent() {
           {showDetails && (
             <div className="mb-4 border border-[var(--border)]">
               {[
-                { key: "essential", label: t.essential, desc: t.essential_desc, disabled: true, value: true },
-                { key: "analytics", label: t.analytics, desc: t.analytics_desc, disabled: false, value: preferences.analytics },
-                { key: "marketing", label: t.marketing, desc: t.marketing_desc, disabled: false, value: preferences.marketing },
+                {
+                  key: "essential",
+                  label: t.essential,
+                  desc: t.essential_desc,
+                  disabled: true,
+                  value: true,
+                },
+                {
+                  key: "analytics",
+                  label: t.analytics,
+                  desc: t.analytics_desc,
+                  disabled: false,
+                  value: preferences.analytics,
+                },
+                {
+                  key: "marketing",
+                  label: t.marketing,
+                  desc: t.marketing_desc,
+                  disabled: false,
+                  value: preferences.marketing,
+                },
               ].map(({ key, label, desc, disabled, value }, i, arr) => (
                 <div
                   key={key}
                   className={`flex items-center justify-between gap-4 px-4 py-3 ${i < arr.length - 1 ? "border-b border-[var(--border)]" : ""}`}
                 >
                   <div className="flex-1 min-w-0">
-                    <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--foreground)] font-medium block mb-0.5">
+                    <span className="rotulo text-[var(--foreground)] font-medium block mb-0.5">
                       {label}
                     </span>
-                    <span className="text-[10px] text-[var(--foreground-muted)] leading-snug block">{desc}</span>
+                    <span className="text-[10px] text-[var(--foreground-muted)] leading-snug block">
+                      {desc}
+                    </span>
                   </div>
                   <Toggle
                     checked={value}
@@ -239,7 +275,11 @@ export default function CookieConsent() {
                     onChange={
                       disabled
                         ? undefined
-                        : () => setPreferences((p) => ({ ...p, [key]: !p[key as keyof CookiePreferences] }))
+                        : () =>
+                            setPreferences((p) => ({
+                              ...p,
+                              [key]: !p[key as keyof CookiePreferences],
+                            }))
                     }
                   />
                 </div>
@@ -252,7 +292,7 @@ export default function CookieConsent() {
             {/* Primary CTA */}
             <button
               onClick={handleAcceptAll}
-              className="w-full py-3 bg-[var(--gold)] text-black text-[10px] uppercase tracking-[0.22em] font-bold hover:bg-white transition-colors duration-200 shimmer-gold"
+              className="w-full py-3 bg-[var(--gold)] text-black rotulo font-bold hover:bg-white transition-colors duration-200 shimmer-gold"
             >
               {t.accept_all}
             </button>
@@ -261,37 +301,35 @@ export default function CookieConsent() {
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setShowDetails((s) => !s)}
-                className="py-2.5 border border-[var(--border)] hover:border-[var(--gold)]/40 text-[var(--foreground-muted)] hover:text-[var(--foreground)] text-[9px] uppercase tracking-[0.18em] transition-colors duration-200"
+                className="py-2.5 border border-[var(--border)] hover:border-[var(--gold)]/40 text-[var(--foreground-muted)] hover:text-[var(--foreground)] rotulo transition-colors duration-200"
               >
                 {showDetails ? t.hide_details : t.customize}
               </button>
               <button
                 onClick={showDetails ? handleAcceptSelected : handleDecline}
-                className="py-2.5 border border-[var(--border)] hover:border-[var(--border-hover)] text-[var(--foreground-muted)] hover:text-[var(--foreground)] text-[9px] uppercase tracking-[0.18em] transition-colors duration-200"
+                className="py-2.5 border border-[var(--border)] hover:border-[var(--border-hover)] text-[var(--foreground-muted)] hover:text-[var(--foreground)] rotulo transition-colors duration-200"
               >
                 {showDetails ? t.accept_selected : t.decline}
               </button>
             </div>
           </div>
-
         </div>
 
         {/* Ornamental bottom-right corner */}
         <div className="absolute bottom-3 right-3 pointer-events-none opacity-[0.18]">
           <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 20 L20 20 L20 0" fill="none" stroke="var(--gold)" strokeWidth="1"/>
-            <path d="M0 15 L15 15 L15 0" fill="none" stroke="var(--gold)" strokeWidth="0.5"/>
+            <path d="M0 20 L20 20 L20 0" fill="none" stroke="var(--gold)" strokeWidth="1" />
+            <path d="M0 15 L15 15 L15 0" fill="none" stroke="var(--gold)" strokeWidth="0.5" />
           </svg>
         </div>
 
         {/* Ornamental top-left corner */}
         <div className="absolute top-3 left-3 pointer-events-none opacity-[0.18]">
           <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 0 L0 0 L0 20" fill="none" stroke="var(--gold)" strokeWidth="1"/>
-            <path d="M20 5 L5 5 L5 20" fill="none" stroke="var(--gold)" strokeWidth="0.5"/>
+            <path d="M20 0 L0 0 L0 20" fill="none" stroke="var(--gold)" strokeWidth="1" />
+            <path d="M20 5 L5 5 L5 20" fill="none" stroke="var(--gold)" strokeWidth="0.5" />
           </svg>
         </div>
-
       </div>
     </div>
   );

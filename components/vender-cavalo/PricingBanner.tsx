@@ -133,7 +133,7 @@ function TierCard({
         </span>
         <span className="font-semibold text-sm sm:text-base">{tier.name}</span>
         {tier.badge && (
-          <span className="px-1.5 py-0.5 bg-[var(--gold)]/20 text-[var(--gold)] text-[9px] font-bold uppercase tracking-wider rounded">
+          <span className="px-1.5 py-0.5 bg-[var(--gold)]/20 text-[var(--gold)] text-[11px] font-bold uppercase tracking-wider rounded">
             {tier.badge}
           </span>
         )}

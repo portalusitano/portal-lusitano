@@ -67,7 +67,7 @@ export default function Error({
 
         {/* Descrição */}
         <p
-          className="text-[var(--foreground-muted)] mb-8 font-serif italic opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
+          className="text-[var(--foreground-muted)] mb-8 font-normal opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
           style={{ animationDelay: "0.2s" }}
         >
           {t.error_page.apology}
@@ -90,7 +90,7 @@ export default function Error({
         >
           <button
             onClick={reset}
-            className="flex items-center gap-3 bg-[var(--gold)] text-black px-8 py-4 text-xs uppercase tracking-[0.2em] font-bold hover:bg-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+            className="flex items-center gap-3 bg-[var(--gold)] text-black px-8 py-4 text-xs uppercase tracking-wide font-bold hover:bg-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
             aria-label={t.error_page.try_again}
           >
             {t.error_page.try_again}
@@ -98,7 +98,7 @@ export default function Error({
 
           <LocalizedLink
             href="/"
-            className="flex items-center gap-3 border border-[var(--border-hover)] text-[var(--foreground)] px-8 py-4 text-xs uppercase tracking-[0.2em] hover:border-[var(--gold)] hover:text-[var(--gold)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+            className="flex items-center gap-3 border border-[var(--border-hover)] text-[var(--foreground)] px-8 py-4 text-xs uppercase tracking-wide hover:border-[var(--gold)] hover:text-[var(--gold)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
           >
             {t.error_page.back_home}
           </LocalizedLink>
@@ -125,7 +125,7 @@ export default function Error({
           aria-hidden="true"
         >
           <div className="w-12 h-[1px] bg-[var(--gold)]" />
-          <span className="text-[10px] sm:text-[8px] uppercase tracking-[0.3em] text-[var(--foreground-muted)]">
+          <span className="text-[10px] sm:text-[10px] uppercase tracking-wider text-[var(--foreground-muted)]">
             Portal Lusitano
           </span>
           <div className="w-12 h-[1px] bg-[var(--gold)]" />

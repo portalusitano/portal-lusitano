@@ -58,13 +58,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         {/* Logo */}
         <Link href="/" className="relative z-10 inline-flex flex-col gap-1 group w-fit">
-          <span className="text-2xl font-serif text-[var(--foreground)] tracking-widest group-hover:text-[var(--gold)] transition-colors duration-300">
+          <span className="text-2xl font-serif text-[var(--foreground)] tracking-wider group-hover:text-[var(--gold)] transition-colors duration-300">
             PORTAL LUSITANO
           </span>
           <div className="flex items-center gap-3">
-            <span className="text-[9px] uppercase tracking-[0.35em] text-[var(--foreground-muted)]">
-              EST. 2023
-            </span>
+            <span className="rotulo">EST. 2023</span>
             <div className="h-px flex-1 bg-gradient-to-r from-[var(--gold)]/30 to-transparent" />
           </div>
         </Link>
@@ -186,9 +184,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <span className="text-xl font-serif text-[var(--foreground)] tracking-wide group-hover:text-[var(--gold)] transition-colors">
             PORTAL LUSITANO
           </span>
-          <span className="text-[9px] uppercase tracking-[0.3em] text-[var(--foreground-muted)] mt-1">
-            EST. 2023
-          </span>
+          <span className="rotulo mt-1">EST. 2023</span>
         </Link>
 
         {/* Form card — glass-morphism */}

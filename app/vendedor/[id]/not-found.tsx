@@ -10,7 +10,7 @@ export default function VendedorNaoEncontrado() {
         </p>
         <LocalizedLink
           href="/comprar"
-          className="inline-block mt-8 px-6 py-3 border border-[var(--gold)]/40 text-[10px] uppercase tracking-[0.3em] text-[var(--gold)] hover:bg-[var(--gold)]/10 transition-colors"
+          className="inline-block mt-8 px-6 py-3 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors"
         >
           Ver cavalos à venda
         </LocalizedLink>

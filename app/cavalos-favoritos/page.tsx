@@ -64,7 +64,7 @@ export default function CavalosFavoritosPage() {
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-[var(--foreground)] mb-2 sm:mb-4">
               {txt.title}
             </h1>
-            <p className="text-[var(--foreground-secondary)] font-serif italic text-sm sm:text-base">
+            <p className="text-[var(--foreground-secondary)] font-normal text-sm sm:text-base">
               {txt.subtitle}
             </p>
 
@@ -75,7 +75,7 @@ export default function CavalosFavoritosPage() {
                 </span>
                 <button
                   onClick={clearFavorites}
-                  className="text-xs uppercase tracking-widest text-[var(--foreground-muted)] hover:text-red-500 transition-colors active:scale-95"
+                  className="text-xs uppercase tracking-wider text-[var(--foreground-muted)] hover:text-red-500 transition-colors active:scale-95"
                 >
                   {txt.clear_all}
                 </button>
@@ -97,7 +97,7 @@ export default function CavalosFavoritosPage() {
               </p>
               <LocalizedLink
                 href="/comprar"
-                className="inline-block bg-[var(--gold)] text-black px-6 sm:px-8 py-3 sm:py-4 text-xs uppercase tracking-[0.2em] font-bold hover:bg-[var(--gold-hover)] transition-colors active:scale-95"
+                className="inline-block bg-[var(--gold)] text-black px-6 sm:px-8 py-3 sm:py-4 text-xs uppercase tracking-wide font-bold hover:bg-[var(--gold-hover)] transition-colors active:scale-95"
               >
                 {txt.explore}
               </LocalizedLink>
@@ -202,7 +202,7 @@ export default function CavalosFavoritosPage() {
                       <div className="flex gap-2">
                         <LocalizedLink
                           href={`/comprar/${horse.id}`}
-                          className="flex-1 bg-[var(--gold)] text-black py-3 text-xs uppercase tracking-widest font-bold hover:bg-[var(--gold-hover)] transition-colors text-center active:scale-[0.98] touch-manipulation"
+                          className="flex-1 bg-[var(--gold)] text-black py-3 text-xs uppercase tracking-wider font-bold hover:bg-[var(--gold-hover)] transition-colors text-center active:scale-[0.98] touch-manipulation"
                         >
                           {txt.view}
                         </LocalizedLink>

@@ -113,9 +113,7 @@ export const MobileMenu = memo(function MobileMenu({
 
         {/* Lusitano Section Mobile - Grid Layout */}
         <div className="border-t border-[var(--border)] pt-4 mt-4">
-          <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--gold)] mb-3 block px-3 font-medium">
-            {t.nav.database}
-          </span>
+          <span className="rotulo-forte mb-3 block px-3 font-medium">{t.nav.database}</span>
           <div className="grid grid-cols-2 gap-2">
             {mobileDbItems.map((item) => (
               <LocalizedLink

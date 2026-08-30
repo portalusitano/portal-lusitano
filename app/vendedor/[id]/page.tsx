@@ -93,7 +93,7 @@ export default async function VendedorPage({ params }: { params: Promise<{ id: s
               <h1 className="text-2xl font-light tracking-wide text-[var(--foreground)] truncate">
                 {vendedor.nome}
               </h1>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-[10px] uppercase tracking-[0.2em] text-[var(--foreground-muted)]">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 rotulo">
                 <span>
                   {vendedor.anuncios.length}{" "}
                   {vendedor.anuncios.length === 1 ? "anúncio" : "anúncios"}
@@ -125,7 +125,7 @@ export default async function VendedorPage({ params }: { params: Promise<{ id: s
                   />
                 ) : null}
                 {a.status === LISTING_STATUS.RESERVADO && (
-                  <span className="absolute top-3 left-3 bg-amber-400/90 text-black px-2 py-1 text-[9px] uppercase tracking-[0.2em]">
+                  <span className="absolute top-3 left-3 bg-amber-400/90 text-black px-2 py-1 rotulo">
                     Reservado
                   </span>
                 )}
@@ -137,7 +137,7 @@ export default async function VendedorPage({ params }: { params: Promise<{ id: s
                 <p className="text-sm text-[var(--gold)] mt-1">
                   {formatarPreco(a.preco, a.precoSobConsulta)}
                 </p>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--foreground-muted)] mt-2">
+                <p className="rotulo mt-2">
                   {[a.idade ? `${a.idade} anos` : null, a.localizacao].filter(Boolean).join(" · ")}
                 </p>
               </div>
@@ -148,7 +148,7 @@ export default async function VendedorPage({ params }: { params: Promise<{ id: s
         <div className="mt-12 text-center">
           <LocalizedLink
             href="/comprar"
-            className="inline-block px-6 py-3 border border-[var(--gold)]/40 text-[10px] uppercase tracking-[0.3em] text-[var(--gold)] hover:bg-[var(--gold)]/10 transition-colors"
+            className="inline-block px-6 py-3 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors"
           >
             Ver todos os cavalos
           </LocalizedLink>

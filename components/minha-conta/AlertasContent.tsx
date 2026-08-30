@@ -174,9 +174,7 @@ export default function AlertasContent() {
 
   const campo = (chave: keyof Formulario, rotulo: string, tipo = "text") => (
     <label className="block">
-      <span className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)]">
-        {rotulo}
-      </span>
+      <span className="rotulo">{rotulo}</span>
       <input
         type={tipo}
         value={form[chave]}
@@ -191,7 +189,7 @@ export default function AlertasContent() {
       <div className="max-w-3xl mx-auto">
         <LocalizedLink
           href="/minha-conta"
-          className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[var(--foreground-muted)] hover:text-[var(--gold)] transition-colors mb-10"
+          className="inline-flex items-center gap-2 rotulo hover:text-[var(--gold)] transition-colors mb-10"
         >
           <ArrowLeft size={12} />A minha conta
         </LocalizedLink>
@@ -216,10 +214,7 @@ export default function AlertasContent() {
           <div className="border border-red-400/30 p-8 text-center">
             <AlertTriangle size={18} className="mx-auto text-red-400/70 mb-3" />
             <p className="text-sm text-[var(--foreground-muted)]">{erro}</p>
-            <button
-              onClick={carregar}
-              className="mt-5 text-[10px] uppercase tracking-[0.3em] text-[var(--gold)] hover:text-[var(--gold)]/70"
-            >
+            <button onClick={carregar} className="mt-5 rotulo-forte hover:text-[var(--gold)]/70">
               Tentar novamente
             </button>
           </div>
@@ -230,9 +225,7 @@ export default function AlertasContent() {
             {aCriar ? (
               <div className="border border-[var(--border)] p-6 space-y-5 mb-10">
                 <div className="flex items-center justify-between">
-                  <span className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)]">
-                    Nova pesquisa guardada
-                  </span>
+                  <span className="rotulo">Nova pesquisa guardada</span>
                   <button
                     onClick={() => setACriar(false)}
                     aria-label="Fechar"
@@ -246,9 +239,7 @@ export default function AlertasContent() {
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <label className="block">
-                    <span className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)]">
-                      Sexo
-                    </span>
+                    <span className="rotulo">Sexo</span>
                     <select
                       value={form.sexo}
                       onChange={(e) => setForm({ ...form, sexo: e.target.value })}
@@ -263,9 +254,7 @@ export default function AlertasContent() {
                   </label>
 
                   <label className="block">
-                    <span className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)]">
-                      Região
-                    </span>
+                    <span className="rotulo">Região</span>
                     <select
                       value={form.regiao}
                       onChange={(e) => setForm({ ...form, regiao: e.target.value })}
@@ -288,9 +277,7 @@ export default function AlertasContent() {
                 {campo("termo", "Palavra-chave (linhagem, nome…)")}
 
                 <label className="block">
-                  <span className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)]">
-                    Frequência
-                  </span>
+                  <span className="rotulo">Frequência</span>
                   <select
                     value={form.frequencia}
                     onChange={(e) => setForm({ ...form, frequencia: e.target.value })}
@@ -307,7 +294,7 @@ export default function AlertasContent() {
                 <button
                   onClick={criar}
                   disabled={aGuardar}
-                  className="inline-flex items-center gap-2 px-6 py-3 border border-[var(--gold)]/40 text-[10px] uppercase tracking-[0.25em] text-[var(--gold)] hover:bg-[var(--gold)]/10 transition-colors disabled:opacity-40"
+                  className="inline-flex items-center gap-2 px-6 py-3 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors disabled:opacity-40"
                 >
                   {aGuardar ? (
                     <Loader2 size={12} className="animate-spin" />
@@ -321,7 +308,7 @@ export default function AlertasContent() {
               alertas.length < maximo && (
                 <button
                   onClick={() => setACriar(true)}
-                  className="inline-flex items-center gap-2 px-6 py-3 border border-[var(--gold)]/40 text-[10px] uppercase tracking-[0.3em] text-[var(--gold)] hover:bg-[var(--gold)]/10 transition-colors mb-10"
+                  className="inline-flex items-center gap-2 px-6 py-3 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors mb-10"
                 >
                   <Plus size={12} />
                   Novo alerta
@@ -352,7 +339,7 @@ export default function AlertasContent() {
                         </p>
                       </div>
                       <span
-                        className={`shrink-0 border px-2.5 py-1 text-[9px] uppercase tracking-[0.2em] ${
+                        className={`shrink-0 border px-2.5 py-1 rotulo ${
                           a.ativo
                             ? "text-emerald-400/90 border-emerald-400/30"
                             : "text-[var(--foreground-muted)] border-[var(--border)]"
@@ -362,7 +349,7 @@ export default function AlertasContent() {
                       </span>
                     </div>
 
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--foreground-muted)] mt-3">
+                    <p className="rotulo mt-3">
                       {FREQUENCIAS.find((f) => f.id === a.frequencia)?.label || a.frequencia}
                       {a.ultimoEnvioAt
                         ? ` · último aviso em ${new Date(a.ultimoEnvioAt).toLocaleDateString("pt-PT")}`
@@ -373,14 +360,14 @@ export default function AlertasContent() {
                       <button
                         onClick={() => alternar(a)}
                         disabled={ocupado === a.id}
-                        className="px-4 py-2 border border-[var(--border)] text-[10px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] hover:text-[var(--gold)] hover:border-[var(--gold)]/40 transition-colors disabled:opacity-40"
+                        className="px-4 py-2 border border-[var(--border)] rotulo hover:text-[var(--gold)] hover:border-[var(--gold)]/40 transition-colors disabled:opacity-40"
                       >
                         {a.ativo ? "Pausar" : "Reactivar"}
                       </button>
                       <button
                         onClick={() => apagar(a.id)}
                         disabled={ocupado === a.id}
-                        className="inline-flex items-center gap-2 px-4 py-2 border border-[var(--border)] text-[10px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] hover:text-red-400 hover:border-red-400/40 transition-colors disabled:opacity-40"
+                        className="inline-flex items-center gap-2 px-4 py-2 border border-[var(--border)] rotulo hover:text-red-400 hover:border-red-400/40 transition-colors disabled:opacity-40"
                       >
                         {ocupado === a.id ? (
                           <Loader2 size={11} className="animate-spin" />

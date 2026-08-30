@@ -74,7 +74,7 @@ export default function PhotoGallery({ photos, alt, backHref, destaque }: PhotoG
 
           {/* Counter badge */}
           {photos.length > 1 && (
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 bg-black/50 backdrop-blur-sm px-3 py-1 text-white text-[10px] font-mono tracking-widest">
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 bg-black/50 backdrop-blur-sm px-3 py-1 text-white text-[10px] font-mono tracking-wider">
               {activeIndex + 1} / {photos.length}
             </div>
           )}
@@ -83,7 +83,7 @@ export default function PhotoGallery({ photos, alt, backHref, destaque }: PhotoG
           <div className="absolute top-4 left-4 z-10">
             <Link
               href={backHref}
-              className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-white/80 hover:text-white transition-colors bg-black/40 backdrop-blur-sm px-3 py-2"
+              className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-white/80 hover:text-white transition-colors bg-black/40 backdrop-blur-sm px-3 py-2"
               aria-label="Voltar ao marketplace"
             >
               <ArrowLeft size={12} aria-hidden="true" />
@@ -94,7 +94,7 @@ export default function PhotoGallery({ photos, alt, backHref, destaque }: PhotoG
           {/* Destaque badge */}
           {destaque && (
             <div className="absolute top-4 right-4 z-10">
-              <span className="bg-[var(--gold)] text-black text-[9px] uppercase tracking-[0.2em] font-bold px-3 py-1">
+              <span className="bg-[var(--gold)] text-black rotulo font-bold px-3 py-1">
                 Destaque
               </span>
             </div>
@@ -154,14 +154,20 @@ export default function PhotoGallery({ photos, alt, backHref, destaque }: PhotoG
           {photos.length > 1 && (
             <>
               <button
-                onClick={(e) => { e.stopPropagation(); prev(); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prev();
+                }}
                 className="absolute left-4 z-10 w-12 h-12 flex items-center justify-center text-white/70 hover:text-white transition-colors"
                 aria-label="Foto anterior"
               >
                 <ChevronLeft size={28} />
               </button>
               <button
-                onClick={(e) => { e.stopPropagation(); next(); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  next();
+                }}
                 className="absolute right-4 z-10 w-12 h-12 flex items-center justify-center text-white/70 hover:text-white transition-colors"
                 aria-label="Próxima foto"
               >
@@ -182,7 +188,7 @@ export default function PhotoGallery({ photos, alt, backHref, destaque }: PhotoG
           </div>
 
           {photos.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/50 text-xs font-mono tracking-widest">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/50 text-xs font-mono tracking-wider">
               {activeIndex + 1} / {photos.length}
             </div>
           )}

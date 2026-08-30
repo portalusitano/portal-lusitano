@@ -87,9 +87,7 @@ export default function GestorFotos({ anuncioId, fotos, onGuardado }: GestorFoto
   return (
     <div className="space-y-3">
       <div className="flex items-baseline justify-between gap-3">
-        <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--foreground-muted)]">
-          Fotografias
-        </p>
+        <p className="rotulo">Fotografias</p>
         <p className="text-[10px] text-[var(--foreground-muted)]">
           {lista.length} de {MAX_FOTOS}
         </p>
@@ -106,7 +104,7 @@ export default function GestorFotos({ anuncioId, fotos, onGuardado }: GestorFoto
             <Image src={url} alt="" fill sizes="120px" className="object-cover" />
 
             {indice === 0 && (
-              <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-[var(--gold)] text-black text-[8px] uppercase tracking-wider font-bold">
+              <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-[var(--gold)] text-black text-[10px] uppercase tracking-wider font-bold">
                 Capa
               </span>
             )}
@@ -144,7 +142,7 @@ export default function GestorFotos({ anuncioId, fotos, onGuardado }: GestorFoto
             className="aspect-square border border-dashed border-[var(--border)] flex flex-col items-center justify-center gap-1 text-[var(--foreground-muted)] hover:text-[var(--gold)] hover:border-[var(--gold)]/40 transition-colors disabled:opacity-40"
           >
             {aCarregar ? <Loader2 size={16} className="animate-spin" /> : <ImagePlus size={16} />}
-            <span className="text-[9px] uppercase tracking-wider">Adicionar</span>
+            <span className="text-[11px] uppercase tracking-wider">Adicionar</span>
           </button>
         )}
       </div>
@@ -169,7 +167,7 @@ export default function GestorFotos({ anuncioId, fotos, onGuardado }: GestorFoto
           type="button"
           onClick={guardar}
           disabled={ocupado || lista.length === 0}
-          className="inline-flex items-center gap-2 px-5 py-2.5 border border-[var(--gold)]/40 text-[10px] uppercase tracking-[0.25em] text-[var(--gold)] hover:bg-[var(--gold)]/10 transition-colors disabled:opacity-40"
+          className="inline-flex items-center gap-2 px-5 py-2.5 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors disabled:opacity-40"
         >
           {aGuardar ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
           Guardar fotografias

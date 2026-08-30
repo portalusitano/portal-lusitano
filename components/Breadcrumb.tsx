@@ -38,7 +38,7 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <ol className="flex flex-wrap items-center gap-1.5 text-xs uppercase tracking-widest">
+      <ol className="flex flex-wrap items-center gap-1.5 text-xs uppercase tracking-wider">
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
 

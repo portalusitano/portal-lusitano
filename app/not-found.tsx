@@ -38,7 +38,7 @@ export default function NotFound() {
 
         {/* Descricao */}
         <p
-          className="text-[var(--foreground-muted)] mb-12 font-serif italic opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
+          className="text-[var(--foreground-muted)] mb-12 font-normal opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
           style={{ animationDelay: "0.2s" }}
         >
           {t.not_found.description}
@@ -53,7 +53,7 @@ export default function NotFound() {
         >
           <LocalizedLink
             href="/"
-            className="flex items-center gap-3 bg-[var(--gold)] text-black px-8 py-4 text-xs uppercase tracking-[0.2em] font-bold hover:bg-white transition-colors"
+            className="flex items-center gap-3 bg-[var(--gold)] text-black px-8 py-4 text-xs uppercase tracking-wide font-bold hover:bg-white transition-colors"
           >
             <Home size={16} />
             {t.not_found.back_home}
@@ -61,7 +61,7 @@ export default function NotFound() {
 
           <LocalizedLink
             href="/comprar"
-            className="flex items-center gap-3 border border-[var(--border-hover)] text-[var(--foreground)] px-8 py-4 text-xs uppercase tracking-[0.2em] hover:border-[var(--gold)] hover:text-[var(--gold)] transition-colors"
+            className="flex items-center gap-3 border border-[var(--border-hover)] text-[var(--foreground)] px-8 py-4 text-xs uppercase tracking-wide hover:border-[var(--gold)] hover:text-[var(--gold)] transition-colors"
           >
             <Search size={16} />
             {t.not_found.explore_shop}
@@ -84,7 +84,7 @@ export default function NotFound() {
           style={{ animationDelay: "0.45s" }}
         >
           <div className="w-12 h-[1px] bg-[var(--gold)]" />
-          <span className="text-[10px] sm:text-[8px] uppercase tracking-[0.3em] text-[var(--foreground-muted)]">
+          <span className="text-[10px] sm:text-[10px] uppercase tracking-wider text-[var(--foreground-muted)]">
             Portal Lusitano
           </span>
           <div className="w-12 h-[1px] bg-[var(--gold)]" />

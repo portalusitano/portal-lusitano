@@ -13,14 +13,14 @@ const AncestorCard = ({ type, name, reg, isFemale = false }: AncestorCardProps) 
     hover:border-[var(--gold)] hover:bg-[var(--background-secondary)]
   `}
   >
-    <span className="text-[8px] uppercase tracking-widest text-[var(--foreground-muted)] block mb-1 group-hover:text-[var(--gold)] transition-colors">
+    <span className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] block mb-1 group-hover:text-[var(--gold)] transition-colors">
       {type}
     </span>
-    <p className="font-serif italic text-[var(--foreground)] text-sm whitespace-nowrap overflow-hidden text-ellipsis">
+    <p className="font-normal text-[var(--foreground)] text-sm whitespace-nowrap overflow-hidden text-ellipsis">
       {name || "Não registado"}
     </p>
     {/* Número de Registo Fictício para visual (podes adicionar na DB depois) */}
-    <p className="text-[7px] text-[var(--foreground-muted)] font-mono mt-1">{reg || "N/A"}</p>
+    <p className="text-[10px] text-[var(--foreground-muted)] font-mono mt-1">{reg || "N/A"}</p>
 
     {/* Ponto de Conexão Visual */}
     <div className="absolute -right-3 top-1/2 w-3 h-px bg-[var(--border)] group-hover:bg-[var(--gold)] transition-colors"></div>
@@ -42,12 +42,8 @@ export default function Pedigree({ cavalo }: PedigreeProps) {
         {/* COLUNA 1: O Cavalo (HERÓI) */}
         <div className="flex flex-col justify-center">
           <div className="border border-[var(--gold)] bg-[var(--gold)]/10 p-4 sm:p-6 min-w-[140px] sm:min-w-[200px] relative">
-            <span className="text-[var(--gold)] text-[9px] uppercase tracking-[0.4em] font-bold block mb-2">
-              O Exemplar
-            </span>
-            <h3 className="text-xl font-serif italic text-[var(--foreground)]">
-              {cavalo.nome_cavalo}
-            </h3>
+            <span className="text-[var(--gold)] rotulo font-bold block mb-2">O Exemplar</span>
+            <h3 className="text-xl font-normal text-[var(--foreground)]">{cavalo.nome_cavalo}</h3>
             <div className="absolute -left-3 top-1/2 w-3 h-px bg-[var(--gold)]"></div>
           </div>
         </div>

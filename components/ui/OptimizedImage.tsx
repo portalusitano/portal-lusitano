@@ -37,7 +37,7 @@ export default function OptimizedImage({
         className={`bg-[var(--background-secondary)] flex items-center justify-center ${containerClassName}`}
         style={!fill ? { width, height } : undefined}
       >
-        <span className="text-[var(--foreground-muted)] text-xs uppercase tracking-widest">
+        <span className="text-[var(--foreground-muted)] text-xs uppercase tracking-wider">
           Imagem indisponível
         </span>
       </div>

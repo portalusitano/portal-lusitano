@@ -186,7 +186,7 @@ export default function MeusAnunciosContent() {
       <div className="max-w-4xl mx-auto">
         <LocalizedLink
           href="/minha-conta"
-          className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[var(--foreground-muted)] hover:text-[var(--gold)] transition-colors mb-10"
+          className="inline-flex items-center gap-2 rotulo hover:text-[var(--gold)] transition-colors mb-10"
         >
           <ArrowLeft size={12} />A minha conta
         </LocalizedLink>
@@ -210,9 +210,7 @@ export default function MeusAnunciosContent() {
             ].map((stat) => (
               <div key={stat.label} className="bg-[var(--background)] p-5 text-center">
                 <p className="text-xl font-light text-[var(--gold)]">{stat.valor}</p>
-                <p className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] mt-1.5">
-                  {stat.label}
-                </p>
+                <p className="rotulo mt-1.5">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -230,7 +228,7 @@ export default function MeusAnunciosContent() {
             <p className="text-sm text-[var(--foreground-muted)]">{erro}</p>
             <button
               onClick={carregar}
-              className="mt-5 text-[10px] uppercase tracking-[0.3em] text-[var(--gold)] hover:text-[var(--gold)]/70 transition-colors"
+              className="mt-5 rotulo-forte hover:text-[var(--gold)]/70 transition-colors"
             >
               Tentar novamente
             </button>
@@ -246,7 +244,7 @@ export default function MeusAnunciosContent() {
             </p>
             <LocalizedLink
               href="/vender-cavalo"
-              className="inline-flex items-center gap-2 mt-7 px-6 py-3 border border-[var(--gold)]/40 text-[10px] uppercase tracking-[0.3em] text-[var(--gold)] hover:bg-[var(--gold)]/10 transition-colors"
+              className="inline-flex items-center gap-2 mt-7 px-6 py-3 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors"
             >
               <Plus size={12} />
               Publicar anúncio
@@ -296,7 +294,7 @@ export default function MeusAnunciosContent() {
                           </p>
                         </div>
                         <span
-                          className={`shrink-0 border px-2.5 py-1 text-[9px] uppercase tracking-[0.2em] ${
+                          className={`shrink-0 border px-2.5 py-1 rotulo ${
                             anuncio.expirado && anuncio.status !== LISTING_STATUS.VENDIDO
                               ? "text-red-400/80 border-red-400/30"
                               : STATUS_STYLES[anuncio.status] ||
@@ -309,7 +307,7 @@ export default function MeusAnunciosContent() {
                         </span>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 mt-3 text-[10px] uppercase tracking-[0.2em] text-[var(--foreground-muted)]">
+                      <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 mt-3 rotulo">
                         <span className="inline-flex items-center gap-1.5">
                           <Eye size={11} />
                           {anuncio.views}
@@ -352,9 +350,7 @@ export default function MeusAnunciosContent() {
                     <div className="mt-6 pt-6 border-t border-[var(--border)] space-y-4">
                       <div className="grid sm:grid-cols-2 gap-4">
                         <label className="block">
-                          <span className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)]">
-                            Preço (EUR)
-                          </span>
+                          <span className="rotulo">Preço (EUR)</span>
                           <input
                             type="number"
                             min="0"
@@ -364,9 +360,7 @@ export default function MeusAnunciosContent() {
                           />
                         </label>
                         <label className="block">
-                          <span className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)]">
-                            Localização
-                          </span>
+                          <span className="rotulo">Localização</span>
                           <input
                             type="text"
                             value={edicao.localizacao}
@@ -375,9 +369,7 @@ export default function MeusAnunciosContent() {
                           />
                         </label>
                         <label className="block">
-                          <span className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)]">
-                            Telefone
-                          </span>
+                          <span className="rotulo">Telefone</span>
                           <input
                             type="tel"
                             value={edicao.vendedor_telefone}
@@ -388,9 +380,7 @@ export default function MeusAnunciosContent() {
                           />
                         </label>
                         <label className="block">
-                          <span className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)]">
-                            WhatsApp
-                          </span>
+                          <span className="rotulo">WhatsApp</span>
                           <input
                             type="tel"
                             value={edicao.vendedor_whatsapp}
@@ -403,9 +393,7 @@ export default function MeusAnunciosContent() {
                       </div>
 
                       <label className="block">
-                        <span className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)]">
-                          Descrição
-                        </span>
+                        <span className="rotulo">Descrição</span>
                         <textarea
                           rows={5}
                           value={edicao.descricao}
@@ -448,7 +436,7 @@ export default function MeusAnunciosContent() {
                         <button
                           onClick={() => guardarEdicao(anuncio.id)}
                           disabled={bloqueado}
-                          className="inline-flex items-center gap-2 px-5 py-2.5 border border-[var(--gold)]/40 text-[10px] uppercase tracking-[0.25em] text-[var(--gold)] hover:bg-[var(--gold)]/10 transition-colors disabled:opacity-40"
+                          className="inline-flex items-center gap-2 px-5 py-2.5 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors disabled:opacity-40"
                         >
                           {bloqueado ? (
                             <Loader2 size={12} className="animate-spin" />
@@ -463,7 +451,7 @@ export default function MeusAnunciosContent() {
                             setEdicao(null);
                           }}
                           disabled={bloqueado}
-                          className="inline-flex items-center gap-2 px-5 py-2.5 border border-[var(--border)] text-[10px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors disabled:opacity-40"
+                          className="inline-flex items-center gap-2 px-5 py-2.5 border border-[var(--border)] rotulo hover:text-[var(--foreground)] transition-colors disabled:opacity-40"
                         >
                           <X size={12} />
                           Cancelar
@@ -475,7 +463,7 @@ export default function MeusAnunciosContent() {
                       {anuncio.publico && (
                         <LocalizedLink
                           href={`/comprar/${anuncio.id}`}
-                          className="px-4 py-2 border border-[var(--border)] text-[10px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] hover:text-[var(--gold)] hover:border-[var(--gold)]/40 transition-colors"
+                          className="px-4 py-2 border border-[var(--border)] rotulo hover:text-[var(--gold)] hover:border-[var(--gold)]/40 transition-colors"
                         >
                           Ver anúncio
                         </LocalizedLink>
@@ -484,7 +472,7 @@ export default function MeusAnunciosContent() {
                       <button
                         onClick={() => abrirEditor(anuncio)}
                         disabled={bloqueado}
-                        className="inline-flex items-center gap-2 px-4 py-2 border border-[var(--border)] text-[10px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] hover:text-[var(--gold)] hover:border-[var(--gold)]/40 transition-colors disabled:opacity-40"
+                        className="inline-flex items-center gap-2 px-4 py-2 border border-[var(--border)] rotulo hover:text-[var(--gold)] hover:border-[var(--gold)]/40 transition-colors disabled:opacity-40"
                       >
                         <Pencil size={11} />
                         Editar
@@ -500,7 +488,7 @@ export default function MeusAnunciosContent() {
                             )
                           }
                           disabled={bloqueado}
-                          className="px-4 py-2 border border-[var(--border)] text-[10px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] hover:text-amber-400 hover:border-amber-400/40 transition-colors disabled:opacity-40"
+                          className="px-4 py-2 border border-[var(--border)] rotulo hover:text-amber-400 hover:border-amber-400/40 transition-colors disabled:opacity-40"
                         >
                           Reservar
                         </button>
@@ -516,7 +504,7 @@ export default function MeusAnunciosContent() {
                             )
                           }
                           disabled={bloqueado}
-                          className="px-4 py-2 border border-[var(--border)] text-[10px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] hover:text-emerald-400 hover:border-emerald-400/40 transition-colors disabled:opacity-40"
+                          className="px-4 py-2 border border-[var(--border)] rotulo hover:text-emerald-400 hover:border-emerald-400/40 transition-colors disabled:opacity-40"
                         >
                           Disponível
                         </button>
@@ -533,7 +521,7 @@ export default function MeusAnunciosContent() {
                             )
                           }
                           disabled={bloqueado}
-                          className="px-4 py-2 border border-[var(--gold)]/40 text-[10px] uppercase tracking-[0.25em] text-[var(--gold)] hover:bg-[var(--gold)]/10 transition-colors disabled:opacity-40"
+                          className="px-4 py-2 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors disabled:opacity-40"
                         >
                           Marcar vendido
                         </button>
@@ -550,7 +538,7 @@ export default function MeusAnunciosContent() {
                             )
                           }
                           disabled={bloqueado}
-                          className="px-4 py-2 border border-[var(--border)] text-[10px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors disabled:opacity-40"
+                          className="px-4 py-2 border border-[var(--border)] rotulo hover:text-[var(--foreground)] transition-colors disabled:opacity-40"
                         >
                           Pausar
                         </button>
@@ -566,7 +554,7 @@ export default function MeusAnunciosContent() {
                             )
                           }
                           disabled={bloqueado}
-                          className="px-4 py-2 border border-[var(--border)] text-[10px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] hover:text-emerald-400 hover:border-emerald-400/40 transition-colors disabled:opacity-40"
+                          className="px-4 py-2 border border-[var(--border)] rotulo hover:text-emerald-400 hover:border-emerald-400/40 transition-colors disabled:opacity-40"
                         >
                           Republicar
                         </button>
@@ -577,7 +565,7 @@ export default function MeusAnunciosContent() {
                           <button
                             onClick={() => remover(anuncio.id)}
                             disabled={bloqueado}
-                            className="inline-flex items-center gap-2 px-4 py-2 border border-red-400/40 text-[10px] uppercase tracking-[0.25em] text-red-400 hover:bg-red-400/10 transition-colors disabled:opacity-40"
+                            className="inline-flex items-center gap-2 px-4 py-2 border border-red-400/40 rotulo text-red-400 hover:bg-red-400/10 transition-colors disabled:opacity-40"
                           >
                             {bloqueado ? (
                               <Loader2 size={11} className="animate-spin" />
@@ -589,7 +577,7 @@ export default function MeusAnunciosContent() {
                           <button
                             onClick={() => setAConfirmarRemocao(null)}
                             disabled={bloqueado}
-                            className="px-4 py-2 border border-[var(--border)] text-[10px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors disabled:opacity-40"
+                            className="px-4 py-2 border border-[var(--border)] rotulo hover:text-[var(--foreground)] transition-colors disabled:opacity-40"
                           >
                             Não
                           </button>
@@ -598,7 +586,7 @@ export default function MeusAnunciosContent() {
                         <button
                           onClick={() => setAConfirmarRemocao(anuncio.id)}
                           disabled={bloqueado}
-                          className="inline-flex items-center gap-2 px-4 py-2 border border-[var(--border)] text-[10px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] hover:text-red-400 hover:border-red-400/40 transition-colors disabled:opacity-40"
+                          className="inline-flex items-center gap-2 px-4 py-2 border border-[var(--border)] rotulo hover:text-red-400 hover:border-red-400/40 transition-colors disabled:opacity-40"
                         >
                           <Trash2 size={11} />
                           Remover
@@ -616,7 +604,7 @@ export default function MeusAnunciosContent() {
           <div className="mt-10 text-center">
             <LocalizedLink
               href="/vender-cavalo"
-              className="inline-flex items-center gap-2 px-6 py-3 border border-[var(--gold)]/40 text-[10px] uppercase tracking-[0.3em] text-[var(--gold)] hover:bg-[var(--gold)]/10 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors"
             >
               <Plus size={12} />
               Publicar novo anúncio

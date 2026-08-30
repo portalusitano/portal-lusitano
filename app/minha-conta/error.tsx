@@ -25,7 +25,7 @@ export default function MinhaContaError({
         <div className="flex flex-col gap-4">
           <button
             onClick={reset}
-            className="bg-[var(--gold)] text-black font-bold uppercase text-xs tracking-[0.2em] py-4 px-8 hover:bg-white transition-all"
+            className="bg-[var(--gold)] text-black font-bold uppercase text-xs tracking-wide py-4 px-8 hover:bg-white transition-all"
           >
             Tentar novamente
           </button>

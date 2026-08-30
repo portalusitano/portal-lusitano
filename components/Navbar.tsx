@@ -109,7 +109,7 @@ export default memo(function Navbar() {
             <span className="text-base md:text-lg font-semibold tracking-tight text-[var(--foreground-strong)] group-hover:text-[var(--gold)] transition-colors leading-none whitespace-nowrap">
               PORTAL LUSITANO
             </span>
-            <span className="text-[10px] md:text-[9px] uppercase tracking-[0.2em] md:tracking-[0.3em] text-[var(--foreground-muted)] mt-0.5 group-hover:text-[var(--gold)]/70 transition-colors leading-none">
+            <span className="text-[10px] md:rotulo md:tracking-wider text-[var(--foreground-muted)] mt-0.5 group-hover:text-[var(--gold)]/70 transition-colors leading-none">
               EST. 2023
             </span>
           </div>

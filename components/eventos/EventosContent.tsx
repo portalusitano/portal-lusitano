@@ -287,7 +287,7 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
 
         {/* Content */}
         <div className="relative z-10 max-w-4xl mx-auto space-y-6 pt-28 pb-12">
-          <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-[var(--gold)] opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
+          <p className="text-[10px] md:text-xs uppercase tracking-wider text-[var(--gold)] opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
             {t.eventos.badge}
           </p>
           <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-serif text-[var(--gold)] leading-[0.9]">
@@ -312,9 +312,7 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
           <div className="max-w-5xl mx-auto px-6">
             {/* Countdown */}
             <RevealOnScroll variant="fade-up" className="text-center mb-8">
-              <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--gold)] block mb-2">
-                {t.eventos.next_event}
-              </span>
+              <span className="rotulo-forte block mb-2">{t.eventos.next_event}</span>
               <h3
                 className="text-lg sm:text-xl font-serif text-[var(--foreground)] cursor-pointer hover:text-[var(--gold)] transition-colors"
                 onClick={() => setSelectedEvento(nextEvento)}
@@ -341,9 +339,7 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
                   <span className="text-2xl sm:text-3xl font-serif text-[var(--gold)]">
                     {String(unit.value).padStart(2, "0")}
                   </span>
-                  <span className="block text-[9px] uppercase tracking-[0.2em] text-[var(--foreground-muted)] mt-1">
-                    {unit.label}
-                  </span>
+                  <span className="block rotulo mt-1">{unit.label}</span>
                 </div>
               ))}
             </RevealOnScroll>
@@ -361,7 +357,7 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
                     <div className="text-3xl sm:text-4xl font-serif text-[var(--gold)] mb-1">
                       <AnimatedCounter end={stat.value} duration={2000 + i * 300} />
                     </div>
-                    <p className="text-[var(--foreground-muted)] text-[10px] sm:text-xs uppercase tracking-[0.2em]">
+                    <p className="text-[var(--foreground-muted)] text-[10px] sm:text-xs uppercase tracking-wide">
                       {stat.label}
                     </p>
                   </div>
@@ -401,7 +397,7 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
         {eventosDestaque.length > 0 && (
           <section className="mb-16">
             <RevealOnScroll variant="fade-up" className="text-center mb-10">
-              <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--gold)] block mb-3 glow-pulse inline-block px-3 py-1">
+              <span className="rotulo-forte block mb-3 glow-pulse inline-block px-3 py-1">
                 {t.eventos.featured_badge}
               </span>
               <h2 className="text-2xl sm:text-3xl font-serif text-gradient-gold inline-block">
@@ -680,7 +676,7 @@ function EventoCard({
           <span className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)]">
             {date.toLocaleDateString("pt-PT", { month: "short" })}
           </span>
-          <span className="text-[9px] text-[var(--foreground-muted)] mt-0.5">
+          <span className="text-[11px] text-[var(--foreground-muted)] mt-0.5">
             {date.getFullYear()}
           </span>
         </div>

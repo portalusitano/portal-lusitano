@@ -42,7 +42,7 @@ export default function VistosRecentemente({
       <div className="flex items-center justify-between gap-4 mb-6">
         <h2
           id="vistos-recentemente-heading"
-          className="flex items-center gap-2 text-[var(--gold)] uppercase tracking-[0.35em] text-[10px] font-bold"
+          className="flex items-center gap-2 text-[var(--gold)] uppercase tracking-wider text-[10px] font-bold"
         >
           <History size={13} aria-hidden="true" />
           Vistos recentemente
@@ -53,7 +53,7 @@ export default function VistosRecentemente({
             limparVistos();
             setVistos([]);
           }}
-          className="inline-flex items-center gap-1 text-[9px] uppercase tracking-widest text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+          className="inline-flex items-center gap-1 text-[11px] uppercase tracking-wider text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
         >
           <X size={11} aria-hidden="true" />
           Limpar

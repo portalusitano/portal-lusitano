@@ -90,9 +90,7 @@ const StatCard = memo(function StatCard({
       </div>
       <div className="pt-3 text-center">
         <div className="text-2xl font-serif text-[var(--foreground)]">{value}</div>
-        <div className="text-[9px] uppercase tracking-[0.15em] text-[var(--foreground-muted)] mt-1">
-          {label}
-        </div>
+        <div className="rotulo mt-1">{label}</div>
       </div>
     </div>
   );
@@ -267,9 +265,7 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
         <div className="max-w-7xl mx-auto px-6 text-center">
           <div className="inline-flex items-center gap-2 mb-4 px-5 py-2 bg-[var(--gold)]/10 border border-[var(--gold)]/30 rounded-full">
             <Compass className="text-[var(--gold)]" size={16} />
-            <span className="text-[10px] uppercase tracking-[0.3em] text-[var(--gold)]">
-              {t.mapa.badge}
-            </span>
+            <span className="rotulo-forte">{t.mapa.badge}</span>
           </div>
           <h1 className="text-2xl sm:text-4xl md:text-6xl font-serif mb-4 text-[var(--foreground)]">
             {t.mapa.title.split("Portugal")[0]}
@@ -357,7 +353,7 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
                   <div className="mb-4 p-4 bg-[var(--background-secondary)]/80 border border-[var(--gold)]/30 rounded-xl">
                     <div className="flex items-start justify-between">
                       <div>
-                        <span className="text-[9px] text-[var(--gold)] uppercase tracking-wider">
+                        <span className="text-[11px] text-[var(--gold)] uppercase tracking-wider">
                           {t.mapa.region}
                         </span>
                         <h2 className="text-xl font-serif text-[var(--foreground)]">

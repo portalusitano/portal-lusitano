@@ -139,7 +139,7 @@ function SubscriptionSection() {
       )}
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-[9px] uppercase tracking-[0.35em] text-[var(--foreground-muted)] flex items-center gap-2">
+          <h3 className="rotulo flex items-center gap-2">
             <Crown size={11} className="text-[var(--gold)]" />
             Ferramentas PRO
           </h3>
@@ -158,7 +158,7 @@ function SubscriptionSection() {
             <button
               onClick={handleManagePortal}
               disabled={portalLoading}
-              className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest text-[var(--gold)] hover:text-[#D4AF6A] transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-2 text-[10px] uppercase tracking-wider text-[var(--gold)] hover:text-[#D4AF6A] transition-colors disabled:opacity-50"
             >
               {portalLoading ? (
                 <Loader2 size={12} className="animate-spin" />
@@ -177,7 +177,7 @@ function SubscriptionSection() {
             <button
               onClick={handleSubscribe}
               disabled={portalLoading}
-              className="shimmer-gold inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#C5A059] to-[#B8956F] text-black text-[10px] uppercase tracking-widest font-bold hover:from-[#D4AF6A] hover:to-[#C5A059] transition-all disabled:opacity-50"
+              className="shimmer-gold inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#C5A059] to-[#B8956F] text-black text-[10px] uppercase tracking-wider font-bold hover:from-[#D4AF6A] hover:to-[#C5A059] transition-all disabled:opacity-50"
             >
               {portalLoading ? <Loader2 size={12} className="animate-spin" /> : <Crown size={12} />}
               Subscrever PRO
@@ -211,7 +211,7 @@ function RecentFavorites({ delay }: { delay: number }) {
       style={{ animationDelay: `${delay}ms`, transitionDelay: `${delay}ms` }}
       data-animate
     >
-      <h2 className="text-[9px] uppercase tracking-[0.4em] text-[var(--foreground-muted)] mb-4 flex items-center gap-3">
+      <h2 className="rotulo mb-4 flex items-center gap-3">
         Os meus Favoritos
         <span className="h-[1px] flex-1 bg-[var(--border)]" />
         <LocalizedLink
@@ -265,7 +265,7 @@ function RecentFavorites({ delay }: { delay: number }) {
                   <p className="text-[10px] uppercase tracking-wider text-white/80 truncate">
                     {nome}
                   </p>
-                  <p className="text-[8px] text-[var(--gold)]/60 uppercase tracking-widest mt-0.5">
+                  <p className="text-[10px] text-[var(--gold)]/60 uppercase tracking-wider mt-0.5">
                     {fav.item_type === "cavalo" ? "Cavalo" : "Coudelaria"}
                   </p>
                 </div>
@@ -369,13 +369,11 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                   {/* Vertical gold line */}
                   <div className="absolute left-0 top-[4px] bottom-[4px] w-[2px] bg-gradient-to-b from-transparent via-[var(--gold)]/50 to-transparent" />
 
-                  <span className="block text-[9px] uppercase tracking-[0.4em] text-[var(--gold)] mb-2">
-                    {t.account.private_area}
-                  </span>
+                  <span className="block rotulo-forte mb-2">{t.account.private_area}</span>
 
                   {/* Greeting with animated underline */}
                   <div className="relative inline-block">
-                    <h1 className="text-2xl sm:text-4xl font-serif italic text-[var(--foreground)] leading-none">
+                    <h1 className="text-2xl sm:text-4xl font-normal text-[var(--foreground)] leading-none">
                       {t.account.hello}, {customer.firstName || "Membro"}
                     </h1>
                     <span
@@ -395,7 +393,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
 
               {/* Logout */}
               <form action={logout}>
-                <button className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] hover:text-red-400 border border-[var(--border)] hover:border-red-900/60 px-5 py-2.5 transition-colors hover:bg-red-900/10">
+                <button className="inline-flex items-center gap-2 text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] hover:text-red-400 border border-[var(--border)] hover:border-red-900/60 px-5 py-2.5 transition-colors hover:bg-red-900/10">
                   <LogOut size={12} />
                   {t.account.logout}
                 </button>
@@ -410,7 +408,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
             data-animate
           >
             <div className="px-4 sm:px-7 py-3.5 sm:py-5 group hover:bg-[var(--gold)]/5 transition-colors">
-              <p className="text-[8px] uppercase tracking-[0.35em] text-[var(--foreground-muted)] mb-1">
+              <p className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] mb-1">
                 Plano
               </p>
               <p
@@ -420,7 +418,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
               </p>
             </div>
             <div className="px-4 sm:px-7 py-3.5 sm:py-5 hover:bg-[var(--gold)]/5 transition-colors">
-              <p className="text-[8px] uppercase tracking-[0.35em] text-[var(--foreground-muted)] mb-1">
+              <p className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] mb-1">
                 Email
               </p>
               <p className="text-sm text-[var(--foreground)] truncate font-light">
@@ -428,7 +426,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
               </p>
             </div>
             <div className="px-4 sm:px-7 py-3.5 sm:py-5 hover:bg-[var(--gold)]/5 transition-colors">
-              <p className="text-[8px] uppercase tracking-[0.35em] text-[var(--foreground-muted)] mb-1">
+              <p className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] mb-1">
                 Membro desde
               </p>
               <p className="text-sm text-[var(--foreground)] font-light capitalize">
@@ -450,16 +448,14 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
           >
             {/* Profile card */}
             <div className="border border-[var(--border)] bg-[var(--background-secondary)]/20 p-6 hover:border-[var(--gold)]/20 transition-colors">
-              <h3 className="text-[9px] uppercase tracking-[0.35em] text-[var(--foreground-muted)] mb-5">
-                {t.account.profile}
-              </h3>
+              <h3 className="rotulo mb-5">{t.account.profile}</h3>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <div className="w-7 h-7 rounded-full bg-[var(--gold)]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <Mail size={12} className="text-[var(--gold)]" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[9px] uppercase tracking-widest text-[var(--foreground-muted)] mb-0.5">
+                    <p className="text-[11px] uppercase tracking-wider text-[var(--foreground-muted)] mb-0.5">
                       {t.account.email}
                     </p>
                     <p className="text-sm text-[var(--foreground)] font-light truncate">
@@ -472,7 +468,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                     <CheckCircle size={12} className="text-emerald-400" />
                   </div>
                   <div>
-                    <p className="text-[9px] uppercase tracking-widest text-[var(--foreground-muted)] mb-0.5">
+                    <p className="text-[11px] uppercase tracking-wider text-[var(--foreground-muted)] mb-0.5">
                       {t.account.name}
                     </p>
                     <p className="text-sm text-[var(--foreground)] font-light">{fullName}</p>
@@ -489,7 +485,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
               href="/minha-conta/alertas"
               className="glow-pulse flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(197,160,89,0.1)] transition-all duration-200 group"
             >
-              <span className="flex items-center gap-3 text-[11px] uppercase tracking-widest text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
+              <span className="flex items-center gap-3 text-[11px] uppercase tracking-wider text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
                 <BellRing size={13} className="text-[var(--gold)]" />
                 Os meus Alertas
               </span>
@@ -503,7 +499,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
               href="/minha-conta/mensagens"
               className="glow-pulse flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(197,160,89,0.1)] transition-all duration-200 group"
             >
-              <span className="flex items-center gap-3 text-[11px] uppercase tracking-widest text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
+              <span className="flex items-center gap-3 text-[11px] uppercase tracking-wider text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
                 <MessagesSquare size={13} className="text-[var(--gold)]" />
                 As minhas Mensagens
               </span>
@@ -517,7 +513,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
               href="/minha-conta/anuncios"
               className="glow-pulse flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(197,160,89,0.1)] transition-all duration-200 group"
             >
-              <span className="flex items-center gap-3 text-[11px] uppercase tracking-widest text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
+              <span className="flex items-center gap-3 text-[11px] uppercase tracking-wider text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
                 <Tag size={13} className="text-[var(--gold)]" />
                 Os meus Anúncios
               </span>
@@ -531,7 +527,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
               href="/cavalos-favoritos"
               className="glow-pulse flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(197,160,89,0.1)] transition-all duration-200 group"
             >
-              <span className="flex items-center gap-3 text-[11px] uppercase tracking-widest text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
+              <span className="flex items-center gap-3 text-[11px] uppercase tracking-wider text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
                 <Heart size={13} className="text-[var(--gold)]" />
                 Os meus Favoritos
               </span>
@@ -552,7 +548,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
               style={{ transitionDelay: "440ms" }}
               data-animate
             >
-              <h2 className="text-[9px] uppercase tracking-[0.4em] text-[var(--foreground-muted)] mb-4 flex items-center gap-3">
+              <h2 className="rotulo mb-4 flex items-center gap-3">
                 Explorar Portal
                 <span className="h-[1px] flex-1 bg-[var(--border)]" />
               </h2>

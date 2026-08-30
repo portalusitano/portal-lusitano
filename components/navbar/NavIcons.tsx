@@ -66,7 +66,7 @@ export const NavIcons = memo(function NavIcons({
       {/* Idioma */}
       <button
         onClick={onLanguageToggle}
-        className="hidden lg:flex text-xs font-bold tracking-widest text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors border border-transparent hover:border-[var(--border)] px-2 py-1 rounded-sm"
+        className="hidden lg:flex text-xs font-bold tracking-wider text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors border border-transparent hover:border-[var(--border)] px-2 py-1 rounded-sm"
         aria-label={tr3(language, "Mudar idioma", "Change language", "Cambiar idioma")}
       >
         <span className={language === "pt" ? "text-[var(--gold)]" : ""}>PT</span>

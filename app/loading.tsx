@@ -16,9 +16,7 @@ export default function Loading() {
       </div>
 
       {/* Text */}
-      <p className="mt-8 text-[10px] uppercase tracking-[0.4em] text-[var(--foreground-muted)] animate-[pulse-opacity_2s_ease-in-out_infinite]">
-        A carregar...
-      </p>
+      <p className="mt-8 rotulo animate-[pulse-opacity_2s_ease-in-out_infinite]">A carregar...</p>
     </div>
   );
 }

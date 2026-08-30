@@ -51,7 +51,7 @@ export default function FormNavigation({ step, onPrev, onNext }: FormNavigationP
         )}
 
         <div className="flex-1 text-center">
-          <p className="text-[10px] uppercase tracking-widest text-[var(--foreground-muted)]">
+          <p className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)]">
             {t.vender_cavalo.step_counter
               .replace("{current}", String(step))
               .replace("{total}", String(TOTAL_STEPS))}

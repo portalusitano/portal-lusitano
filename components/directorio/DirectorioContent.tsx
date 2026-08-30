@@ -204,7 +204,7 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative">
           <AnimateOnScroll className="text-center">
-            <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-[var(--gold)] mb-5">
+            <span className="inline-flex items-center gap-2 text-xs uppercase tracking-wider text-[var(--gold)] mb-5">
               <span className="block w-8 h-px bg-[var(--gold)]/60" />
               {t.directorio.badge}
               <span className="block w-8 h-px bg-[var(--gold)]/60" />

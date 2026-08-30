@@ -149,7 +149,9 @@ function SectionTitle({ icon, title }: { icon?: React.ReactNode; title: string }
           {icon}
         </span>
       )}
-      <h2 className="text-lg sm:text-2xl font-serif text-[var(--foreground)] leading-tight min-w-0">{title}</h2>
+      <h2 className="text-lg sm:text-2xl font-serif text-[var(--foreground)] leading-tight min-w-0">
+        {title}
+      </h2>
     </div>
   );
 }
@@ -254,7 +256,10 @@ export default function CoudelariaDetail({
   return (
     <main className="min-h-screen bg-[var(--background)] [overflow-x:clip]">
       {/* ── Hero ── */}
-      <section className="relative h-[50vh] sm:h-[65vh] min-h-[340px] sm:min-h-[460px]" aria-label={coudelaria.nome}>
+      <section
+        className="relative h-[50vh] sm:h-[65vh] min-h-[340px] sm:min-h-[460px]"
+        aria-label={coudelaria.nome}
+      >
         {/* Background image */}
         <div className="absolute inset-0">
           <Image
@@ -307,7 +312,7 @@ export default function CoudelariaDetail({
           <div className="max-w-6xl mx-auto">
             <AnimateOnScroll>
               {coudelaria.ano_fundacao && (
-                <span className="text-[var(--gold)] text-xs uppercase tracking-[0.25em] mb-3 block">
+                <span className="text-[var(--gold)] text-xs uppercase tracking-wider mb-3 block">
                   {t.directorio.founded} {coudelaria.ano_fundacao}
                 </span>
               )}
@@ -383,7 +388,10 @@ export default function CoudelariaDetail({
                   <SectionTitle icon={<Calendar size={22} />} title={t.directorio.history} />
                   <div className="space-y-4">
                     {coudelaria.historia.split("\n\n").map((paragraph, i) => (
-                      <p key={i} className="text-[var(--foreground-secondary)] leading-relaxed break-words">
+                      <p
+                        key={i}
+                        className="text-[var(--foreground-secondary)] leading-relaxed break-words"
+                      >
                         {paragraph}
                       </p>
                     ))}
@@ -1044,10 +1052,12 @@ export default function CoudelariaDetail({
       {(coudelaria.telefone || coudelaria.email || coudelaria.website) && (
         <div className="lg:hidden fixed bottom-16 left-0 right-0 z-30 bg-[var(--background)]/95 backdrop-blur-md border-t border-[var(--border)] px-4 py-3 flex items-center gap-2">
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] leading-none mb-0.5 truncate">
+            <p className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] leading-none mb-0.5 truncate">
               {coudelaria.nome}
             </p>
-            <p className="text-xs text-[var(--foreground-secondary)] truncate">{coudelaria.localizacao}</p>
+            <p className="text-xs text-[var(--foreground-secondary)] truncate">
+              {coudelaria.localizacao}
+            </p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             {coudelaria.telefone && (

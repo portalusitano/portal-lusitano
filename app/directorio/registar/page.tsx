@@ -100,7 +100,7 @@ export default function RegistarCoudelariaPage() {
       <div className="max-w-4xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-12 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
-          <span className="text-xs uppercase tracking-[0.3em] text-[var(--gold)] block mb-4">
+          <span className="text-xs uppercase tracking-wider text-[var(--gold)] block mb-4">
             {t.registar_coudelaria.directory_label}
           </span>
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-serif text-[var(--foreground)] mb-4">

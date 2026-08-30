@@ -3,7 +3,13 @@
 import { useMemo, useState, useCallback } from "react";
 import { Euro, Camera, X, Upload, ImagePlus } from "lucide-react";
 import type { StepProps } from "@/components/vender-cavalo/types";
-import { disponibilidades, MIN_IMAGES, regioesPT, duracoesTrialOpcoes, motivosVenda } from "@/components/vender-cavalo/data";
+import {
+  disponibilidades,
+  MIN_IMAGES,
+  regioesPT,
+  duracoesTrialOpcoes,
+  motivosVenda,
+} from "@/components/vender-cavalo/data";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
 
@@ -110,7 +116,9 @@ export default function StepPrecoApresentacao({
             >
               <option value="">{t.vender_cavalo.select}</option>
               {regioesPT.map((r) => (
-                <option key={r} value={r}>{r}</option>
+                <option key={r} value={r}>
+                  {r}
+                </option>
               ))}
             </select>
           </div>
@@ -122,7 +130,9 @@ export default function StepPrecoApresentacao({
             className="block text-sm text-[var(--foreground-secondary)] mb-1"
           >
             {t.vender_cavalo.location} *
-            <span className="text-[var(--foreground-muted)] text-xs ml-1">(localidade ou coudelaria)</span>
+            <span className="text-[var(--foreground-muted)] text-xs ml-1">
+              (localidade ou coudelaria)
+            </span>
           </label>
           <input
             id="localizacao"
@@ -174,7 +184,13 @@ export default function StepPrecoApresentacao({
               onChange={(e) => updateField("transporte_incluido", e.target.checked)}
               className="w-5 h-5 accent-[var(--gold)]"
             />
-            <span className="text-sm">{tr("Transporte incluído no preço", "Transport included in price", "Transporte incluido en el precio")}</span>
+            <span className="text-sm">
+              {tr(
+                "Transporte incluído no preço",
+                "Transport included in price",
+                "Transporte incluido en el precio"
+              )}
+            </span>
           </label>
           <label
             htmlFor="trial_possivel"
@@ -187,7 +203,13 @@ export default function StepPrecoApresentacao({
               onChange={(e) => updateField("trial_possivel", e.target.checked)}
               className="w-5 h-5 accent-[var(--gold)]"
             />
-            <span className="text-sm">{tr("Trial / Período de prova possível", "Trial period possible", "Período de prueba posible")}</span>
+            <span className="text-sm">
+              {tr(
+                "Trial / Período de prova possível",
+                "Trial period possible",
+                "Período de prueba posible"
+              )}
+            </span>
           </label>
           <label
             htmlFor="financiamento_possivel"
@@ -200,7 +222,13 @@ export default function StepPrecoApresentacao({
               onChange={(e) => updateField("financiamento_possivel", e.target.checked)}
               className="w-5 h-5 accent-[var(--gold)]"
             />
-            <span className="text-sm">{tr("Financiamento / pagamento parcelado disponível", "Financing / instalment payment available", "Financiación / pago a plazos disponible")}</span>
+            <span className="text-sm">
+              {tr(
+                "Financiamento / pagamento parcelado disponível",
+                "Financing / instalment payment available",
+                "Financiación / pago a plazos disponible"
+              )}
+            </span>
           </label>
           <label
             htmlFor="exportacao_possivel"
@@ -213,7 +241,13 @@ export default function StepPrecoApresentacao({
               onChange={(e) => updateField("exportacao_possivel", e.target.checked)}
               className="w-5 h-5 accent-[var(--gold)]"
             />
-            <span className="text-sm">{tr("Exportação possível (documentação disponível)", "Export possible (documentation available)", "Exportación posible (documentación disponible)")}</span>
+            <span className="text-sm">
+              {tr(
+                "Exportação possível (documentação disponível)",
+                "Export possible (documentation available)",
+                "Exportación posible (documentación disponible)"
+              )}
+            </span>
           </label>
           <label
             htmlFor="acompanhamento_pos_venda"
@@ -226,7 +260,13 @@ export default function StepPrecoApresentacao({
               onChange={(e) => updateField("acompanhamento_pos_venda", e.target.checked)}
               className="w-5 h-5 accent-[var(--gold)]"
             />
-            <span className="text-sm">{tr("Acompanhamento pós-venda oferecido", "After-sales support offered", "Acompañamiento postventa ofrecido")}</span>
+            <span className="text-sm">
+              {tr(
+                "Acompanhamento pós-venda oferecido",
+                "After-sales support offered",
+                "Acompañamiento postventa ofrecido"
+              )}
+            </span>
           </label>
           <label
             htmlFor="internato_possivel"
@@ -239,7 +279,13 @@ export default function StepPrecoApresentacao({
               onChange={(e) => updateField("internato_possivel", e.target.checked)}
               className="w-5 h-5 accent-[var(--gold)]"
             />
-            <span className="text-sm">{tr("Internato possível (cavalo permanece na coudelaria durante adaptação)", "Livery possible (horse remains at the stud during negotiation)", "Internado posible (el caballo permanece en el criadero durante la negociación)")}</span>
+            <span className="text-sm">
+              {tr(
+                "Internato possível (cavalo permanece na coudelaria durante adaptação)",
+                "Livery possible (horse remains at the stud during negotiation)",
+                "Internado posible (el caballo permanece en el criadero durante la negociación)"
+              )}
+            </span>
           </label>
           <label
             htmlFor="aulas_incluidas"
@@ -252,7 +298,13 @@ export default function StepPrecoApresentacao({
               onChange={(e) => updateField("aulas_incluidas", e.target.checked)}
               className="w-5 h-5 accent-[var(--gold)]"
             />
-            <span className="text-sm">{tr("Aulas de equitação incluídas na venda", "Riding lessons included in the sale", "Clases de equitación incluidas en la venta")}</span>
+            <span className="text-sm">
+              {tr(
+                "Aulas de equitação incluídas na venda",
+                "Riding lessons included in the sale",
+                "Clases de equitación incluidas en la venta"
+              )}
+            </span>
           </label>
           {formData.sexo === "Garanhão" && (
             <label
@@ -266,7 +318,13 @@ export default function StepPrecoApresentacao({
                 onChange={(e) => updateField("disponivel_cobricao", e.target.checked)}
                 className="w-5 h-5 accent-[var(--gold)]"
               />
-              <span className="text-sm">{tr("Disponível para cobrição", "Available for covering", "Disponible para cubrición")}</span>
+              <span className="text-sm">
+                {tr(
+                  "Disponível para cobrição",
+                  "Available for covering",
+                  "Disponible para cubrición"
+                )}
+              </span>
             </label>
           )}
         </div>
@@ -287,7 +345,9 @@ export default function StepPrecoApresentacao({
             >
               <option value="">{t.vender_cavalo.select}</option>
               {duracoesTrialOpcoes.map((d) => (
-                <option key={d} value={d}>{d}</option>
+                <option key={d} value={d}>
+                  {d}
+                </option>
               ))}
             </select>
           </div>
@@ -347,7 +407,9 @@ export default function StepPrecoApresentacao({
               className="block text-sm text-[var(--foreground-secondary)] mb-1"
             >
               {tr("Motivo da Venda", "Reason for Sale", "Motivo de la Venta")}
-              <span className="text-[var(--foreground-muted)] text-xs ml-1">{tr("(opcional)", "(optional)", "(opcional)")}</span>
+              <span className="text-[var(--foreground-muted)] text-xs ml-1">
+                {tr("(opcional)", "(optional)", "(opcional)")}
+              </span>
             </label>
             <select
               id="motivo_venda"
@@ -357,7 +419,9 @@ export default function StepPrecoApresentacao({
             >
               <option value="">{t.vender_cavalo.select}</option>
               {(motivosVenda[language] || motivosVenda.pt).map((m) => (
-                <option key={m} value={m}>{m}</option>
+                <option key={m} value={m}>
+                  {m}
+                </option>
               ))}
             </select>
           </div>
@@ -368,8 +432,14 @@ export default function StepPrecoApresentacao({
             htmlFor="equipamento_incluido"
             className="block text-sm text-[var(--foreground-secondary)] mb-1"
           >
-            {tr("Equipamento Incluído na Venda", "Equipment Included in Sale", "Equipamiento Incluido en la Venta")}
-            <span className="text-[var(--foreground-muted)] text-xs ml-1">(sela, cabeçada, mantas, etc.)</span>
+            {tr(
+              "Equipamento Incluído na Venda",
+              "Equipment Included in Sale",
+              "Equipamiento Incluido en la Venta"
+            )}
+            <span className="text-[var(--foreground-muted)] text-xs ml-1">
+              (sela, cabeçada, mantas, etc.)
+            </span>
           </label>
           <input
             id="equipamento_incluido"
@@ -392,7 +462,13 @@ export default function StepPrecoApresentacao({
             onChange={(e) => updateField("aceita_visita_veterinario", e.target.checked)}
             className="w-5 h-5 accent-[var(--gold)]"
           />
-          <span className="text-sm">{tr("Aceita exame de pré-compra por veterinário do comprador", "Accepts pre-purchase exam by buyer's veterinarian", "Acepta examen de pre-compra por veterinario del comprador")}</span>
+          <span className="text-sm">
+            {tr(
+              "Aceita exame de pré-compra por veterinário do comprador",
+              "Accepts pre-purchase exam by buyer's veterinarian",
+              "Acepta examen de pre-compra por veterinario del comprador"
+            )}
+          </span>
         </label>
 
         {/* Fotos */}
@@ -443,7 +519,7 @@ export default function StepPrecoApresentacao({
                     <X size={12} />
                   </button>
                   {i === 0 && (
-                    <span className="absolute bottom-1 left-1 text-[8px] uppercase tracking-wider bg-black/60 text-[var(--gold)] px-1.5 py-0.5 rounded">
+                    <span className="absolute bottom-1 left-1 text-[10px] uppercase tracking-wider bg-black/60 text-[var(--gold)] px-1.5 py-0.5 rounded">
                       {t.vender_cavalo.photo_main}
                     </span>
                   )}

@@ -367,7 +367,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
                       mensagem-nova
                     </span>
                     <span
-                      className="ml-auto rounded border px-1.5 py-0.5 font-mono text-[9px] text-[var(--foreground-muted)]"
+                      className="ml-auto rounded border px-1.5 py-0.5 font-mono text-[11px] text-[var(--foreground-muted)]"
                       style={{ borderColor: "var(--border-soft)" }}
                     >
                       por ler
@@ -391,7 +391,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
                         className="rounded-lg border p-2"
                         style={{ borderColor: "var(--border-soft)" }}
                       >
-                        <p className="font-mono text-[9px] uppercase tracking-wider text-[var(--foreground-muted)]">
+                        <p className="font-mono text-[11px] uppercase tracking-wider text-[var(--foreground-muted)]">
                           {rot}
                         </p>
                         <p className="text-[11px] text-[var(--foreground-strong)]">{val}</p>

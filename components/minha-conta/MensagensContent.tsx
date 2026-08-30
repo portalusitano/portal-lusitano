@@ -133,7 +133,7 @@ export default function MensagensContent() {
               setAberta(null);
               setMensagens([]);
             }}
-            className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[var(--foreground-muted)] hover:text-[var(--gold)] transition-colors mb-8"
+            className="inline-flex items-center gap-2 rotulo hover:text-[var(--gold)] transition-colors mb-8"
           >
             <ArrowLeft size={12} />
             Todas as mensagens
@@ -166,7 +166,7 @@ export default function MensagensContent() {
                 {aberta.cavaloNome} →
               </LocalizedLink>
             </div>
-            <span className="shrink-0 text-[9px] uppercase tracking-[0.2em] text-[var(--foreground-muted)]">
+            <span className="shrink-0 rotulo">
               {aberta.papel === "comprador" ? "Compra" : "Venda"}
             </span>
           </header>
@@ -189,7 +189,7 @@ export default function MensagensContent() {
                     <p className="text-sm text-[var(--foreground)] whitespace-pre-wrap break-words">
                       {m.corpo}
                     </p>
-                    <p className="text-[9px] uppercase tracking-widest text-[var(--foreground-muted)] mt-2 text-right">
+                    <p className="text-[11px] uppercase tracking-wider text-[var(--foreground-muted)] mt-2 text-right">
                       {formatarData(m.createdAt)}
                     </p>
                   </div>
@@ -218,7 +218,7 @@ export default function MensagensContent() {
             <button
               onClick={enviar}
               disabled={aEnviar || rascunho.trim().length === 0}
-              className="inline-flex items-center gap-2 px-6 py-3 border border-[var(--gold)]/40 text-[10px] uppercase tracking-[0.25em] text-[var(--gold)] hover:bg-[var(--gold)]/10 transition-colors disabled:opacity-40"
+              className="inline-flex items-center gap-2 px-6 py-3 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors disabled:opacity-40"
             >
               {aEnviar ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
               Enviar
@@ -235,7 +235,7 @@ export default function MensagensContent() {
       <div className="max-w-3xl mx-auto">
         <LocalizedLink
           href="/minha-conta"
-          className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[var(--foreground-muted)] hover:text-[var(--gold)] transition-colors mb-10"
+          className="inline-flex items-center gap-2 rotulo hover:text-[var(--gold)] transition-colors mb-10"
         >
           <ArrowLeft size={12} />A minha conta
         </LocalizedLink>
@@ -261,7 +261,7 @@ export default function MensagensContent() {
             <p className="text-sm text-[var(--foreground-muted)]">{erro}</p>
             <button
               onClick={carregarConversas}
-              className="mt-5 text-[10px] uppercase tracking-[0.3em] text-[var(--gold)] hover:text-[var(--gold)]/70 transition-colors"
+              className="mt-5 rotulo-forte hover:text-[var(--gold)]/70 transition-colors"
             >
               Tentar novamente
             </button>
@@ -278,7 +278,7 @@ export default function MensagensContent() {
             </p>
             <LocalizedLink
               href="/comprar"
-              className="inline-block mt-7 px-6 py-3 border border-[var(--gold)]/40 text-[10px] uppercase tracking-[0.3em] text-[var(--gold)] hover:bg-[var(--gold)]/10 transition-colors"
+              className="inline-block mt-7 px-6 py-3 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors"
             >
               Ver cavalos à venda
             </LocalizedLink>
@@ -312,7 +312,7 @@ export default function MensagensContent() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-3">
                     <p className="text-sm text-[var(--foreground)] truncate">{c.outraParte}</p>
-                    <span className="shrink-0 text-[9px] uppercase tracking-widest text-[var(--foreground-muted)]">
+                    <span className="shrink-0 text-[11px] uppercase tracking-wider text-[var(--foreground-muted)]">
                       {formatarData(c.ultimaMensagemAt)}
                     </span>
                   </div>

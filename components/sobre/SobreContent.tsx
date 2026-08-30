@@ -313,11 +313,11 @@ export default function SobreContent() {
         >
           <div className="flex items-center gap-3">
             <div className="w-5 h-px" style={{ background: "rgba(197,160,89,0.5)" }} aria-hidden />
-            <span className="text-[6px] font-mono uppercase tracking-[0.7em] text-white/30">
+            <span className="text-[6px] font-mono uppercase tracking-wider text-white/30">
               Portal Lusitano
             </span>
           </div>
-          <span className="text-[6px] font-mono uppercase tracking-[0.5em] text-white/20 hidden sm:block">
+          <span className="text-[6px] font-mono uppercase tracking-wider text-white/20 hidden sm:block">
             Est. MMXXIII · Portugal
           </span>
         </div>
@@ -357,7 +357,7 @@ export default function SobreContent() {
               }}
               aria-hidden
             />
-            <span className="text-[8px] font-mono uppercase tracking-[0.7em] text-[var(--gold)]/70">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--gold)]/70">
               {tr("Sobre Nós", "About Us", "Sobre Nosotros")}
             </span>
             <div
@@ -375,7 +375,7 @@ export default function SobreContent() {
             {tr("A Nossa", "Our", "Nuestra")}
           </h1>
           <h1
-            className="font-serif italic text-[var(--gold)] leading-[0.88] mb-10"
+            className="font-normal text-[var(--gold)] leading-[0.88] mb-10"
             style={{ fontSize: "clamp(3.2rem, 9vw, 7rem)", letterSpacing: "-0.01em" }}
           >
             {tr("Missão", "Mission", "Misión")}
@@ -404,7 +404,7 @@ export default function SobreContent() {
 
           {/* Scroll indicator */}
           <div className="flex flex-col items-center gap-3" aria-hidden>
-            <span className="text-[5px] font-mono uppercase tracking-[0.65em] text-white/15">
+            <span className="text-[5px] font-mono uppercase tracking-wider text-white/15">
               Scroll
             </span>
             <div
@@ -423,7 +423,7 @@ export default function SobreContent() {
           aria-hidden
           style={{ opacity: 0, animation: "fadeSlideIn 0.5s ease-out 0.6s forwards" }}
         >
-          <span className="text-[5.5px] font-mono tracking-[0.35em] text-white/12">
+          <span className="text-[5.5px] font-mono tracking-wider text-white/12">
             38.7° N · 9.1° W
           </span>
         </div>
@@ -434,7 +434,7 @@ export default function SobreContent() {
           aria-hidden
         >
           <span
-            className="text-[6px] font-mono uppercase tracking-[0.8em] text-white/8"
+            className="text-[6px] font-mono uppercase tracking-wider text-white/8"
             style={{ writingMode: "vertical-lr" }}
           >
             {tr("Sobre o Portal Lusitano", "About Portal Lusitano", "Sobre Portal Lusitano")}
@@ -485,7 +485,7 @@ export default function SobreContent() {
                 />
               </div>
 
-              <p className="text-[7px] sm:text-[8px] font-mono uppercase tracking-[0.35em] text-[var(--foreground-muted)]/60 mt-3 relative z-10">
+              <p className="text-[10px] sm:text-[10px] font-mono uppercase tracking-wider text-[var(--foreground-muted)]/60 mt-3 relative z-10">
                 {stat.label}
               </p>
 
@@ -531,7 +531,7 @@ export default function SobreContent() {
 
             <blockquote className="relative z-10">
               <p
-                className="font-serif italic text-[var(--foreground)] leading-[1.35] max-w-3xl mx-auto"
+                className="font-normal text-[var(--foreground)] leading-[1.35] max-w-3xl mx-auto"
                 style={{ fontSize: "clamp(1.5rem, 4vw, 2.8rem)" }}
               >
                 {tr(
@@ -549,7 +549,7 @@ export default function SobreContent() {
                   background: "linear-gradient(to right, transparent, rgba(197,160,89,0.4))",
                 }}
               />
-              <span className="text-[8px] font-mono uppercase tracking-[0.5em] text-[var(--gold)]/50">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--gold)]/50">
                 Portal Lusitano
               </span>
               <div
@@ -581,7 +581,7 @@ export default function SobreContent() {
                     style={{ background: "rgba(197,160,89,0.55)" }}
                     aria-hidden
                   />
-                  <span className="text-[8px] font-mono uppercase tracking-[0.6em] text-[var(--gold)]/60">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--gold)]/60">
                     {tr("A Origem", "The Origin", "El Origen")}
                   </span>
                 </div>
@@ -658,7 +658,7 @@ export default function SobreContent() {
                     aria-hidden
                   />
 
-                  <p className="text-[8px] font-mono uppercase tracking-[0.5em] text-[var(--gold)]/70 mb-8">
+                  <p className="text-[10px] font-mono uppercase tracking-wider text-[var(--gold)]/70 mb-8">
                     {tr("Os Nossos Compromissos", "Our Commitments", "Nuestros Compromisos")}
                   </p>
                   <ul className="space-y-4">
@@ -720,7 +720,7 @@ export default function SobreContent() {
         >
           <div className="text-center px-6">
             <p
-              className="font-serif italic text-white/80 leading-[1.3] max-w-xl mx-auto"
+              className="font-normal text-white/80 leading-[1.3] max-w-xl mx-auto"
               style={{ fontSize: "clamp(1.3rem, 3.5vw, 2.2rem)" }}
             >
               {tr(
@@ -731,7 +731,7 @@ export default function SobreContent() {
             </p>
             <div className="flex items-center justify-center gap-3 mt-6">
               <div className="w-8 h-px" style={{ background: "rgba(197,160,89,0.5)" }} />
-              <span className="text-[7px] font-mono uppercase tracking-[0.5em] text-[var(--gold)]/60">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--gold)]/60">
                 Est. MMXXIII
               </span>
               <div className="w-8 h-px" style={{ background: "rgba(197,160,89,0.5)" }} />
@@ -769,7 +769,7 @@ export default function SobreContent() {
                 }}
                 aria-hidden
               />
-              <span className="text-[8px] font-mono uppercase tracking-[0.6em] text-[var(--gold)]/60">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--gold)]/60">
                 {tr("Valores", "Values", "Valores")}
               </span>
               <div
@@ -812,7 +812,7 @@ export default function SobreContent() {
 
                   {/* Ordinal */}
                   <span
-                    className="text-[9px] font-mono uppercase tracking-[0.4em] text-[var(--gold)]/30 mb-6 block relative z-10"
+                    className="text-[11px] font-mono uppercase tracking-wider text-[var(--gold)]/30 mb-6 block relative z-10"
                     aria-hidden
                   >
                     {String(i + 1).padStart(2, "0")}
@@ -868,7 +868,7 @@ export default function SobreContent() {
                 }}
                 aria-hidden
               />
-              <span className="text-[8px] font-mono uppercase tracking-[0.6em] text-[var(--gold)]/60">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--gold)]/60">
                 {tr("Plataforma", "Platform", "Plataforma")}
               </span>
               <div
@@ -958,7 +958,7 @@ export default function SobreContent() {
                 }}
                 aria-hidden
               />
-              <span className="text-[8px] font-mono uppercase tracking-[0.6em] text-[var(--gold)]/60">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--gold)]/60">
                 {tr("Audiência", "Audience", "Audiencia")}
               </span>
               <div
@@ -1075,7 +1075,7 @@ export default function SobreContent() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-5 mb-8">
               <LocalizedLink
                 href="/registar"
-                className="ripple-btn inline-flex items-center gap-3 bg-[var(--gold)] text-black px-10 py-4.5 text-[9px] uppercase tracking-[0.35em] font-bold hover:bg-white transition-[background-color] duration-300 shadow-[0_8px_32px_rgba(197,160,89,0.25)] group/cta"
+                className="ripple-btn inline-flex items-center gap-3 bg-[var(--gold)] text-black px-10 py-4.5 rotulo font-bold hover:bg-white transition-[background-color] duration-300 shadow-[0_8px_32px_rgba(197,160,89,0.25)] group/cta"
               >
                 <Users size={14} aria-hidden />
                 {tr("Criar Conta Grátis", "Create Free Account", "Crear Cuenta Gratis")}
@@ -1088,7 +1088,7 @@ export default function SobreContent() {
 
               <a
                 href={`mailto:${CONTACT_EMAIL}`}
-                className="inline-flex items-center gap-2 text-[var(--foreground-secondary)] hover:text-[var(--gold)] text-[8px] uppercase tracking-[0.3em] transition-colors duration-300 group/mail"
+                className="inline-flex items-center gap-2 text-[var(--foreground-secondary)] hover:text-[var(--gold)] text-[10px] uppercase tracking-wider transition-colors duration-300 group/mail"
               >
                 <Mail size={12} />
                 {tr("Contactar", "Contact", "Contactar")}
@@ -1099,7 +1099,7 @@ export default function SobreContent() {
               </a>
             </div>
 
-            <p className="text-[7px] font-mono uppercase tracking-[0.4em] text-[var(--foreground-muted)]/40">
+            <p className="text-[10px] font-mono uppercase tracking-wider text-[var(--foreground-muted)]/40">
               {tr(
                 "Sem cartão de crédito. Sem compromisso.",
                 "No credit card. No commitment.",
@@ -1122,13 +1122,13 @@ export default function SobreContent() {
             className="w-8 h-px"
             style={{ background: "linear-gradient(to right, transparent, rgba(197,160,89,0.3))" }}
           />
-          <span className="text-[var(--gold)]/30 text-[8px]">&#9670;</span>
+          <span className="text-[var(--gold)]/30 text-[10px]">&#9670;</span>
           <div
             className="w-8 h-px"
             style={{ background: "linear-gradient(to left, transparent, rgba(197,160,89,0.3))" }}
           />
         </div>
-        <span className="text-[6px] font-mono uppercase tracking-[0.6em] text-[var(--foreground-muted)]/25">
+        <span className="text-[6px] font-mono uppercase tracking-wider text-[var(--foreground-muted)]/25">
           38.7° N · 9.1° W — Portal Lusitano · Est. MMXXIII · Portugal
         </span>
       </footer>

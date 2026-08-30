@@ -49,7 +49,7 @@ export default function DenunciarAnuncio({ cavaloId }: { cavaloId: string }) {
 
   if (enviada) {
     return (
-      <p className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] pt-2">
+      <p className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] pt-2">
         <Check size={11} className="text-[var(--gold)]" />
         Denúncia registada. Obrigado.
       </p>
@@ -60,7 +60,7 @@ export default function DenunciarAnuncio({ cavaloId }: { cavaloId: string }) {
     return (
       <button
         onClick={() => setAberto(true)}
-        className="flex items-center justify-center gap-2 w-full text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] hover:text-red-400 transition-colors pt-2"
+        className="flex items-center justify-center gap-2 w-full text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] hover:text-red-400 transition-colors pt-2"
       >
         <Flag size={11} />
         Denunciar anúncio
@@ -70,9 +70,7 @@ export default function DenunciarAnuncio({ cavaloId }: { cavaloId: string }) {
 
   return (
     <div className="border border-[var(--border)] p-4 space-y-3 mt-2">
-      <p className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)]">
-        Denunciar anúncio
-      </p>
+      <p className="rotulo">Denunciar anúncio</p>
 
       <div className="space-y-1.5">
         {MOTIVOS_DENUNCIA.map((m) => (
@@ -103,14 +101,14 @@ export default function DenunciarAnuncio({ cavaloId }: { cavaloId: string }) {
         <button
           onClick={enviar}
           disabled={aEnviar}
-          className="inline-flex items-center gap-2 px-4 py-2 border border-red-400/40 text-[10px] uppercase tracking-[0.25em] text-red-400 hover:bg-red-400/10 transition-colors disabled:opacity-40"
+          className="inline-flex items-center gap-2 px-4 py-2 border border-red-400/40 rotulo text-red-400 hover:bg-red-400/10 transition-colors disabled:opacity-40"
         >
           {aEnviar ? <Loader2 size={11} className="animate-spin" /> : <Flag size={11} />}
           Enviar
         </button>
         <button
           onClick={() => setAberto(false)}
-          className="px-4 py-2 border border-[var(--border)] text-[10px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
+          className="px-4 py-2 border border-[var(--border)] rotulo hover:text-[var(--foreground)] transition-colors"
         >
           Cancelar
         </button>

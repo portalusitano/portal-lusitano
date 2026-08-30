@@ -23,16 +23,14 @@ export default async function AdminStatsPage({
     <>
       <main className="min-h-screen bg-black text-white pt-48 px-10 pb-20">
         <header className="mb-20 border-b border-[#C5A059]/30 pb-10">
-          <p className="text-[#C5A059] text-[10px] uppercase tracking-[0.5em] font-bold mb-4 italic">
-            Performance Portal Lusitano
-          </p>
-          <h1 className="text-6xl font-serif italic">Business Analytics</h1>
+          <p className="text-[#C5A059] rotulo font-bold mb-4 italic">Performance Portal Lusitano</p>
+          <h1 className="text-6xl font-normal">Business Analytics</h1>
         </header>
 
         {/* CARTÕES DE MÉTRICAS DE LUXO */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-20">
           <div className="bg-zinc-950 border border-zinc-900 p-10 group hover:border-[#C5A059]/50 transition-all duration-700">
-            <span className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold">
+            <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-bold">
               Valor em Carteira
             </span>
             <p className="text-5xl font-serif text-[#C5A059] mt-6 italic">
@@ -41,14 +39,14 @@ export default async function AdminStatsPage({
           </div>
 
           <div className="bg-zinc-950 border border-zinc-900 p-10 group hover:border-green-500/30 transition-all duration-700">
-            <span className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold">
+            <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-bold">
               Exemplares Ativos
             </span>
             <p className="text-5xl font-serif text-white mt-6 italic">{aprovados.length}</p>
           </div>
 
           <div className="bg-zinc-950 border border-zinc-900 p-10 group hover:border-blue-500/30 transition-all duration-700">
-            <span className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold">
+            <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-bold">
               Aguardam Curadoria
             </span>
             <p className="text-5xl font-serif text-white mt-6 italic">{pendentes.length}</p>
@@ -57,7 +55,7 @@ export default async function AdminStatsPage({
 
         {/* FEED RECENTE */}
         <div className="bg-zinc-950/50 border border-zinc-900 p-10">
-          <h3 className="font-serif italic text-2xl mb-8">Últimas Submissões</h3>
+          <h3 className="font-normal text-2xl mb-8">Últimas Submissões</h3>
           <div className="space-y-6">
             {pendentes.slice(0, 5).map((c) => (
               <div

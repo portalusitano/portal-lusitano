@@ -30,14 +30,14 @@ export default function NotFound() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
             href="/directorio"
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--gold)] text-black font-bold uppercase text-sm tracking-[0.2em] hover:bg-[var(--gold-hover)] transition-all"
+            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--gold)] text-black font-bold uppercase text-sm tracking-wide hover:bg-[var(--gold-hover)] transition-all"
           >
             <ArrowLeft size={18} />
             Ver Diretório
           </Link>
           <Link
             href="/"
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--background-secondary)] border border-[var(--gold)]/30 text-[var(--gold)] font-bold uppercase text-sm tracking-[0.2em] hover:bg-[var(--gold)] hover:text-black transition-all"
+            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--background-secondary)] border border-[var(--gold)]/30 text-[var(--gold)] font-bold uppercase text-sm tracking-wide hover:bg-[var(--gold)] hover:text-black transition-all"
           >
             Página Inicial
           </Link>

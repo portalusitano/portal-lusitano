@@ -67,7 +67,7 @@ function UnsubscribeContent() {
             )}
             <button
               onClick={handleUnsubscribe}
-              className="w-full bg-red-600 text-[var(--foreground)] font-bold uppercase text-xs tracking-[0.2em] py-4 hover:bg-red-700 transition-all"
+              className="w-full bg-red-600 text-[var(--foreground)] font-bold uppercase text-xs tracking-wide py-4 hover:bg-red-700 transition-all"
             >
               {t.unsubscribe_page.yes_cancel}
             </button>
@@ -98,7 +98,7 @@ function UnsubscribeContent() {
             </p>
             <LocalizedLink
               href="/"
-              className="inline-block bg-[var(--gold)] text-black font-bold uppercase text-xs tracking-[0.2em] py-4 px-8 hover:bg-white transition-all"
+              className="inline-block bg-[var(--gold)] text-black font-bold uppercase text-xs tracking-wide py-4 px-8 hover:bg-white transition-all"
             >
               {t.unsubscribe_page.back_to_portal}
             </LocalizedLink>
@@ -111,7 +111,7 @@ function UnsubscribeContent() {
             <p className="text-red-400 mb-6">{message}</p>
             <button
               onClick={() => setStatus("idle")}
-              className="inline-block bg-[var(--background-card)] text-[var(--foreground)] font-bold uppercase text-xs tracking-[0.2em] py-4 px-8 hover:bg-[var(--surface-hover)] transition-all"
+              className="inline-block bg-[var(--background-card)] text-[var(--foreground)] font-bold uppercase text-xs tracking-wide py-4 px-8 hover:bg-[var(--surface-hover)] transition-all"
             >
               {t.unsubscribe_page.try_again}
             </button>

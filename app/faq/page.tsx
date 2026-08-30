@@ -16,13 +16,13 @@ export default async function FAQPage() {
           <div className="w-16 h-16 bg-[var(--gold)]/10 rounded-full flex items-center justify-center mx-auto mb-6">
             <HelpCircle className="text-[var(--gold)]" size={32} />
           </div>
-          <span className="text-xs uppercase tracking-[0.3em] text-[var(--gold)] block mb-4">
+          <span className="text-xs uppercase tracking-wider text-[var(--gold)] block mb-4">
             {tr("Suporte", "Support", "Soporte")}
           </span>
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-serif text-[var(--foreground)] mb-4">
             {tr("Perguntas Frequentes", "Frequently Asked Questions", "Preguntas Frecuentes")}
           </h1>
-          <p className="text-[var(--foreground-secondary)] font-serif italic">
+          <p className="text-[var(--foreground-secondary)] font-normal">
             {tr(
               "Encontre respostas as duvidas mais comuns",
               "Find answers to the most common questions",
@@ -48,7 +48,7 @@ export default async function FAQPage() {
           </p>
           <a
             href={`mailto:${CONTACT_EMAIL}`}
-            className="inline-block text-[var(--gold)] hover:text-[var(--foreground)] transition-colors text-sm uppercase tracking-widest"
+            className="inline-block text-[var(--gold)] hover:text-[var(--foreground)] transition-colors text-sm uppercase tracking-wider"
           >
             {tr("Contacte-nos", "Contact us", "Contáctenos")} →
           </a>

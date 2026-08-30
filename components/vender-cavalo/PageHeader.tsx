@@ -24,7 +24,7 @@ export default function PageHeader() {
       </LocalizedLink>
 
       <div className="text-center">
-        <span className="text-[var(--gold)] uppercase tracking-[0.3em] text-[9px] sm:text-[10px] font-bold block mb-3">
+        <span className="text-[var(--gold)] uppercase tracking-wider text-[11px] sm:text-[10px] font-bold block mb-3">
           {t.vender_cavalo.marketplace_title}
         </span>
 
@@ -35,7 +35,7 @@ export default function PageHeader() {
           <div className="h-px w-12 bg-gradient-to-l from-transparent to-[var(--gold)]/60" />
         </div>
 
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif italic mb-4">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-normal mb-4">
           {t.vender_cavalo.page_title}
         </h1>
         <p className="text-[var(--foreground-secondary)] text-sm max-w-xl mx-auto mb-8">

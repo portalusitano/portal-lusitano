@@ -46,7 +46,7 @@ export const DesktopMenu = memo(function DesktopMenu({ t }: DesktopMenuProps) {
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
-            className={`text-[11px] uppercase tracking-[0.2em] transition-colors duration-300 relative group py-2 ${
+            className={`rotulo transition-colors duration-300 relative group py-2 ${
               active
                 ? "text-[var(--gold)]"
                 : "text-[var(--foreground-secondary)] hover:text-[var(--foreground)]"

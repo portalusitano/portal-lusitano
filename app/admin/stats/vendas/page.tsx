@@ -29,15 +29,13 @@ export default async function AdminVendasPage({
       <main className="min-h-screen bg-black text-white pt-48 px-10 pb-20">
         <header className="mb-16 border-b border-[#C5A059]/30 pb-8 flex justify-between items-end">
           <div>
-            <p className="text-[#C5A059] text-[10px] uppercase tracking-[0.4em] font-bold mb-2 italic">
-              Curadoria de Elite
-            </p>
-            <h1 className="text-5xl font-serif italic text-white">
+            <p className="text-[#C5A059] rotulo font-bold mb-2 italic">Curadoria de Elite</p>
+            <h1 className="text-5xl font-normal text-white">
               Gestão de Anúncios <span className="text-[#C5A059]">Marketplace</span>
             </h1>
           </div>
           <div className="text-right">
-            <span className="text-zinc-500 text-[10px] uppercase tracking-widest">
+            <span className="text-zinc-500 text-[10px] uppercase tracking-wider">
               Total de Pedidos: {cavalos?.length || 0}
             </span>
           </div>
@@ -46,7 +44,7 @@ export default async function AdminVendasPage({
         <div className="overflow-x-auto border border-zinc-900 bg-zinc-950/20 backdrop-blur-md">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="text-[#C5A059] text-[10px] uppercase tracking-[0.3em] font-bold border-b border-zinc-800">
+              <tr className="text-[#C5A059] rotulo font-bold border-b border-zinc-800">
                 <th className="py-6 px-6">Data</th>
                 <th className="py-6 px-6">Exemplar</th>
                 <th className="py-6 px-6">Linhagem</th>
@@ -68,7 +66,7 @@ export default async function AdminVendasPage({
                     <span className="font-serif text-xl text-white group-hover:text-[#C5A059] transition-colors">
                       {c.nome_cavalo}
                     </span>
-                    <span className="block text-[9px] text-zinc-600 uppercase mt-1">
+                    <span className="block text-[11px] text-zinc-600 uppercase mt-1">
                       ID: {c.id.slice(0, 8)}
                     </span>
                   </td>
@@ -78,7 +76,7 @@ export default async function AdminVendasPage({
                   </td>
                   <td className="py-8 px-6">
                     <span
-                      className={`px-4 py-1 rounded-full text-[8px] uppercase font-bold tracking-widest border ${
+                      className={`px-4 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider border ${
                         c.status === "aprovado"
                           ? "border-green-500/50 text-green-500 bg-green-500/5"
                           : c.status === "rejeitado"
@@ -99,7 +97,7 @@ export default async function AdminVendasPage({
                       >
                         <button
                           type="submit"
-                          className="text-zinc-500 hover:text-green-500 text-[9px] uppercase font-bold tracking-widest transition-all"
+                          className="text-zinc-500 hover:text-green-500 text-[11px] uppercase font-bold tracking-wider transition-all"
                         >
                           Aprovar
                         </button>
@@ -112,7 +110,7 @@ export default async function AdminVendasPage({
                       >
                         <button
                           type="submit"
-                          className="text-zinc-500 hover:text-red-500 text-[9px] uppercase font-bold tracking-widest transition-all"
+                          className="text-zinc-500 hover:text-red-500 text-[11px] uppercase font-bold tracking-wider transition-all"
                         >
                           Rejeitar
                         </button>

@@ -61,9 +61,7 @@ export default memo(function BottomNav() {
                   <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-[var(--gold)] rounded-full" />
                 )}
                 <tab.icon size={21} strokeWidth={active ? 2 : 1.5} />
-                <span className="text-[11px] uppercase tracking-[0.05em] font-medium leading-none">
-                  {tab.label}
-                </span>
+                <span className="rotulo font-medium leading-none">{tab.label}</span>
               </LocalizedLink>
             );
           })}
@@ -76,7 +74,7 @@ export default memo(function BottomNav() {
             aria-haspopup="dialog"
           >
             <MoreHorizontal size={21} strokeWidth={1.5} />
-            <span className="text-[11px] uppercase tracking-[0.05em] font-medium leading-none">
+            <span className="rotulo font-medium leading-none">
               {language === "pt" ? "Mais" : language === "es" ? "Más" : "More"}
             </span>
           </button>
@@ -110,10 +108,8 @@ export default memo(function BottomNav() {
         {/* Header — branding + close */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border)]/50">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.4em] text-[var(--gold)] font-semibold leading-none">
-              Portal Lusitano
-            </p>
-            <p className="text-[9px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] mt-0.5">
+            <p className="rotulo-forte font-semibold leading-none">Portal Lusitano</p>
+            <p className="rotulo mt-0.5">
               {language === "pt" ? "Est. 2023 · Portugal" : "Est. 2023 · Portugal"}
             </p>
           </div>
@@ -161,7 +157,7 @@ export default memo(function BottomNav() {
 
           {/* Explorar */}
           <section>
-            <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--gold)] mb-2 px-1 font-medium">
+            <p className="rotulo-forte mb-2 px-1 font-medium">
               {language === "pt" ? "Explorar" : language === "es" ? "Explorar" : "Explore"}
             </p>
             <div className="grid grid-cols-2 gap-1.5">
@@ -209,7 +205,7 @@ export default memo(function BottomNav() {
 
           {/* Conta */}
           <section>
-            <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--gold)] mb-2 px-1 font-medium">
+            <p className="rotulo-forte mb-2 px-1 font-medium">
               {language === "pt" ? "Conta" : language === "es" ? "Cuenta" : "Account"}
             </p>
             <div className="grid grid-cols-2 gap-1.5">

@@ -29,9 +29,7 @@ export default function HowItWorks() {
 
   return (
     <div className="max-w-3xl mx-auto mb-10">
-      <p className="text-center text-[9px] uppercase tracking-[0.35em] text-[var(--foreground-muted)] mb-6">
-        {t.vender_cavalo.hiw_label}
-      </p>
+      <p className="text-center rotulo mb-6">{t.vender_cavalo.hiw_label}</p>
       <div className="grid sm:grid-cols-3 gap-px bg-[var(--border)] border border-[var(--border)] rounded-xl overflow-hidden">
         {steps.map(({ number, icon: Icon, title, desc }) => (
           <div key={number} className="bg-[var(--background-secondary)]/60 p-5 flex flex-col gap-3">

@@ -92,11 +92,11 @@ export default function DepoimentosContent() {
               >
                 <div className="max-w-2xl flex-1">
                   {dep.cavalos_venda?.nome && (
-                    <p className="text-[#C5A059] text-xs uppercase font-bold mb-2 tracking-widest">
+                    <p className="text-[#C5A059] text-xs uppercase font-bold mb-2 tracking-wider">
                       Sobre: {dep.cavalos_venda.nome}
                     </p>
                   )}
-                  <p className="text-xl font-serif italic text-gray-300 mb-4">
+                  <p className="text-xl font-normal text-gray-300 mb-4">
                     {`\u201C${dep.mensagem}\u201D`}
                   </p>
                   <p className="text-xs uppercase tracking-tight text-gray-500">

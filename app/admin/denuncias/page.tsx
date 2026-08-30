@@ -88,7 +88,7 @@ export default function AdminDenunciasPage() {
           <button
             key={f.id}
             onClick={() => setFiltro(f.id)}
-            className={`px-4 py-2 text-[10px] uppercase tracking-[0.25em] border transition-colors ${
+            className={`px-4 py-2 rotulo border transition-colors ${
               filtro === f.id
                 ? "border-[var(--gold)]/50 text-[var(--gold)] bg-[var(--gold)]/5"
                 : "border-[var(--border)] text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
@@ -138,7 +138,7 @@ export default function AdminDenunciasPage() {
                   {d.cavaloStatus && ` · anúncio ${d.cavaloStatus}`}
                 </p>
               </div>
-              <span className="shrink-0 border border-red-400/30 text-red-400/90 px-2.5 py-1 text-[9px] uppercase tracking-[0.2em]">
+              <span className="shrink-0 border border-red-400/30 text-red-400/90 px-2.5 py-1 rotulo">
                 {d.motivoLabel}
               </span>
             </div>
@@ -149,7 +149,7 @@ export default function AdminDenunciasPage() {
               </p>
             )}
 
-            <p className="text-[10px] uppercase tracking-widest text-[var(--foreground-muted)] mt-4">
+            <p className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] mt-4">
               {new Date(d.createdAt).toLocaleString("pt-PT")} ·{" "}
               {d.anonima ? "anónima" : "com conta"} · {d.status}
             </p>
@@ -160,7 +160,7 @@ export default function AdminDenunciasPage() {
                   <button
                     onClick={() => decidir(d.id, "em_analise")}
                     disabled={ocupado === d.id}
-                    className="px-4 py-2 border border-[var(--border)] text-[10px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors disabled:opacity-40"
+                    className="px-4 py-2 border border-[var(--border)] rotulo hover:text-[var(--foreground)] transition-colors disabled:opacity-40"
                   >
                     Em análise
                   </button>
@@ -168,7 +168,7 @@ export default function AdminDenunciasPage() {
                 <button
                   onClick={() => decidir(d.id, "procedente", true)}
                   disabled={ocupado === d.id}
-                  className="inline-flex items-center gap-2 px-4 py-2 border border-red-400/40 text-[10px] uppercase tracking-[0.25em] text-red-400 hover:bg-red-400/10 transition-colors disabled:opacity-40"
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-red-400/40 rotulo text-red-400 hover:bg-red-400/10 transition-colors disabled:opacity-40"
                 >
                   {ocupado === d.id ? (
                     <Loader2 size={11} className="animate-spin" />
@@ -180,14 +180,14 @@ export default function AdminDenunciasPage() {
                 <button
                   onClick={() => decidir(d.id, "procedente", false)}
                   disabled={ocupado === d.id}
-                  className="px-4 py-2 border border-[var(--border)] text-[10px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors disabled:opacity-40"
+                  className="px-4 py-2 border border-[var(--border)] rotulo hover:text-[var(--foreground)] transition-colors disabled:opacity-40"
                 >
                   Procedente, manter
                 </button>
                 <button
                   onClick={() => decidir(d.id, "improcedente")}
                   disabled={ocupado === d.id}
-                  className="inline-flex items-center gap-2 px-4 py-2 border border-[var(--border)] text-[10px] uppercase tracking-[0.25em] text-[var(--foreground-muted)] hover:text-emerald-400 hover:border-emerald-400/40 transition-colors disabled:opacity-40"
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-[var(--border)] rotulo hover:text-emerald-400 hover:border-emerald-400/40 transition-colors disabled:opacity-40"
                 >
                   <ShieldCheck size={11} />
                   Improcedente

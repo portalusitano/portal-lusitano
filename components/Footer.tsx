@@ -147,7 +147,7 @@ export default memo(function Footer() {
             className="h-px w-6 sm:w-16"
             style={{ background: "linear-gradient(to right, transparent, rgba(197,160,89,0.5))" }}
           />
-          <span className="text-[var(--gold)] text-[8px] uppercase tracking-[0.5em]">
+          <span className="text-[var(--gold)] text-[10px] uppercase tracking-wider">
             Est. MMXXIII · Portugal
           </span>
           <div
@@ -166,7 +166,7 @@ export default memo(function Footer() {
               PORTAL
             </span>
             <span
-              className="block font-serif italic font-light tracking-[-0.01em] text-[var(--gold)]"
+              className="block font-normal font-light tracking-[-0.01em] text-[var(--gold)]"
               style={{ fontSize: "clamp(2.2rem, 5.5vw, 4.5rem)" }}
             >
               Lusitano
@@ -236,7 +236,7 @@ export default memo(function Footer() {
           {[0, 1].map((i) => (
             <span
               key={i}
-              className="text-[7px] sm:text-[8px] uppercase tracking-[0.45em] text-[var(--foreground-muted)]/30 flex-shrink-0 pr-0"
+              className="text-[10px] sm:text-[10px] uppercase tracking-wider text-[var(--foreground-muted)]/30 flex-shrink-0 pr-0"
             >
               {Array(6).fill(MARQUEE).join("")}
             </span>
@@ -255,7 +255,7 @@ export default memo(function Footer() {
             <nav key={col.label} aria-label={col.label}>
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-3 h-px bg-[var(--gold)]" />
-                <h3 className="text-[var(--gold)] text-[7px] sm:text-[8px] uppercase tracking-[0.4em] font-medium">
+                <h3 className="text-[var(--gold)] text-[10px] sm:text-[10px] uppercase tracking-wider font-medium">
                   {col.label}
                 </h3>
               </div>
@@ -309,7 +309,7 @@ export default memo(function Footer() {
                 <Fragment key={link.href}>
                   {i > 0 && (
                     <span
-                      className="text-[var(--foreground-muted)]/20 text-[8px] select-none"
+                      className="text-[var(--foreground-muted)]/20 text-[10px] select-none"
                       aria-hidden="true"
                     >
                       ·
@@ -319,7 +319,7 @@ export default memo(function Footer() {
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-[8px] uppercase tracking-[0.22em] text-[var(--foreground-muted)] hover:text-[var(--foreground-secondary)] transition-colors"
+                    className="flex items-center gap-1 text-[10px] uppercase tracking-[0.22em] text-[var(--foreground-muted)] hover:text-[var(--foreground-secondary)] transition-colors"
                   >
                     {link.label}
                     <ArrowUpRight size={8} />
@@ -329,7 +329,7 @@ export default memo(function Footer() {
                 <Fragment key={link.href}>
                   {i > 0 && (
                     <span
-                      className="text-[var(--foreground-muted)]/20 text-[8px] select-none"
+                      className="text-[var(--foreground-muted)]/20 text-[10px] select-none"
                       aria-hidden="true"
                     >
                       ·
@@ -337,7 +337,7 @@ export default memo(function Footer() {
                   )}
                   <LocalizedLink
                     href={link.href}
-                    className="text-[8px] uppercase tracking-[0.22em] text-[var(--foreground-muted)] hover:text-[var(--foreground-secondary)] transition-colors"
+                    className="text-[10px] uppercase tracking-[0.22em] text-[var(--foreground-muted)] hover:text-[var(--foreground-secondary)] transition-colors"
                   >
                     {link.label}
                   </LocalizedLink>
@@ -350,12 +350,12 @@ export default memo(function Footer() {
         {/* ── COPYRIGHT ─────────────────────────────── */}
         <div className="py-4 pb-16 lg:pb-12 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p
-            className="text-[var(--foreground-muted)] text-[8px] uppercase tracking-[0.25em]"
+            className="text-[var(--foreground-muted)] text-[10px] uppercase tracking-wider"
             suppressHydrationWarning
           >
             © {new Date().getFullYear()} Portal Lusitano · {t.footer.rights}
           </p>
-          <p className="text-[var(--foreground-muted)] text-[8px] tracking-wide">NIF 255669801</p>
+          <p className="text-[var(--foreground-muted)] text-[10px] tracking-wide">NIF 255669801</p>
         </div>
       </div>
 
