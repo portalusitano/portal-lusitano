@@ -122,7 +122,7 @@ export default function CoudelariasContent() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C5A059] mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--gold)] mx-auto"></div>
           <p className="text-gray-400 mt-4">A carregar coudelarias...</p>
         </div>
       </div>
@@ -142,23 +142,23 @@ export default function CoudelariasContent() {
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-4">
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-4">
             <div className="text-sm text-gray-400 mb-1">Total</div>
             <div className="text-2xl font-bold text-white">{stats.total}</div>
           </div>
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-4">
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-4">
             <div className="text-sm text-gray-400 mb-1">Pendentes</div>
             <div className="text-2xl font-bold text-yellow-400">{stats.pendente}</div>
           </div>
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-4">
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-4">
             <div className="text-sm text-gray-400 mb-1">Aprovadas</div>
             <div className="text-2xl font-bold text-green-400">{stats.aprovado}</div>
           </div>
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-4">
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-4">
             <div className="text-sm text-gray-400 mb-1">Destaque</div>
-            <div className="text-2xl font-bold text-[#C5A059]">{stats.destaque}</div>
+            <div className="text-2xl font-bold text-[var(--gold)]">{stats.destaque}</div>
           </div>
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-4">
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-4">
             <div className="text-sm text-gray-400 mb-1">Planos Pagos</div>
             <div className="text-2xl font-bold text-blue-400">
               {stats.bronze + stats.prata + stats.ouro}
@@ -168,7 +168,7 @@ export default function CoudelariasContent() {
       )}
 
       {/* Filters */}
-      <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-4 mb-6">
+      <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-4 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Search */}
           <div className="relative">
@@ -178,7 +178,7 @@ export default function CoudelariasContent() {
               placeholder="Pesquisar coudelarias..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-[#050505] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#C5A059]"
+              className="w-full pl-10 pr-4 py-2 bg-[var(--background)] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[var(--gold)]"
             />
           </div>
 
@@ -186,7 +186,7 @@ export default function CoudelariasContent() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 bg-[#050505] border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+            className="px-4 py-2 bg-[var(--background)] border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
           >
             <option value="all">Todos os Status</option>
             <option value="pendente">Pendente</option>
@@ -199,7 +199,7 @@ export default function CoudelariasContent() {
           <select
             value={planoFilter}
             onChange={(e) => setPlanoFilter(e.target.value)}
-            className="px-4 py-2 bg-[#050505] border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+            className="px-4 py-2 bg-[var(--background)] border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
           >
             <option value="all">Todos os Planos</option>
             <option value="gratis">Grátis</option>
@@ -211,9 +211,9 @@ export default function CoudelariasContent() {
       </div>
 
       {/* Table */}
-      <div className="bg-[#0A0A0A] border border-white/10 rounded-lg overflow-hidden">
+      <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg overflow-hidden">
         <table className="w-full">
-          <thead className="bg-[#050505] border-b border-white/10">
+          <thead className="bg-[var(--background)] border-b border-white/10">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">
                 Coudelaria
@@ -239,7 +239,7 @@ export default function CoudelariasContent() {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-white font-medium">{coudelaria.nome}</span>
-                      {coudelaria.destaque && <Star className="text-[#C5A059]" size={14} />}
+                      {coudelaria.destaque && <Star className="text-[var(--gold)]" size={14} />}
                     </div>
                     <div className="text-xs text-gray-400 mt-1">
                       {coudelaria.proprietario_nome || coudelaria.proprietario_email}
@@ -303,13 +303,13 @@ export default function CoudelariasContent() {
                       }
                       className={`p-2 rounded-lg transition-colors ${
                         coudelaria.destaque
-                          ? "bg-[#C5A059]/20 hover:bg-[#C5A059]/30"
+                          ? "bg-[var(--gold)]/20 hover:bg-[var(--gold)]/30"
                           : "hover:bg-white/10"
                       }`}
                       title={coudelaria.destaque ? "Remover destaque" : "Adicionar destaque"}
                     >
                       <Star
-                        className={coudelaria.destaque ? "text-[#C5A059]" : "text-gray-400"}
+                        className={coudelaria.destaque ? "text-[var(--gold)]" : "text-gray-400"}
                         size={16}
                       />
                     </button>

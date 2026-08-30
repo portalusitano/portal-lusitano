@@ -216,7 +216,7 @@ export default function MensagensContent() {
 
           <button
             onClick={fetchMessages}
-            className="flex items-center gap-2 bg-[#0A0A0A] hover:bg-[#1A1A1A] text-white px-4 py-2 rounded-lg border border-white/10 transition-colors"
+            className="flex items-center gap-2 bg-[var(--background-secondary)] hover:bg-[var(--background-elevated)] text-white px-4 py-2 rounded-lg border border-white/10 transition-colors"
           >
             <RefreshCw size={18} />
             Atualizar
@@ -226,7 +226,7 @@ export default function MensagensContent() {
         {/* Stats Cards */}
         {stats && (
           <div className="grid grid-cols-4 gap-4">
-            <div className="bg-[#0A0A0A] border border-white/10 p-4 rounded-xl">
+            <div className="bg-[var(--background-secondary)] border border-white/10 p-4 rounded-xl">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
                   <Mail className="text-blue-400" size={20} />
@@ -238,7 +238,7 @@ export default function MensagensContent() {
               </div>
             </div>
 
-            <div className="bg-[#0A0A0A] border border-orange-500/20 p-4 rounded-xl">
+            <div className="bg-[var(--background-secondary)] border border-orange-500/20 p-4 rounded-xl">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center">
                   <AlertCircle className="text-orange-400" size={20} />
@@ -250,7 +250,7 @@ export default function MensagensContent() {
               </div>
             </div>
 
-            <div className="bg-[#0A0A0A] border border-white/10 p-4 rounded-xl">
+            <div className="bg-[var(--background-secondary)] border border-white/10 p-4 rounded-xl">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
                   <CheckCircle2 className="text-green-400" size={20} />
@@ -262,7 +262,7 @@ export default function MensagensContent() {
               </div>
             </div>
 
-            <div className="bg-[#0A0A0A] border border-white/10 p-4 rounded-xl">
+            <div className="bg-[var(--background-secondary)] border border-white/10 p-4 rounded-xl">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
                   <Clock className="text-purple-400" size={20} />
@@ -281,7 +281,7 @@ export default function MensagensContent() {
       <div className="grid grid-cols-12 gap-6">
         {/* Coluna 1: Filtros */}
         <div className="col-span-2">
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-xl p-4 sticky top-6">
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-xl p-4 sticky top-6">
             <div className="flex items-center gap-2 mb-4">
               <Filter size={18} className="text-gray-400" />
               <h3 className="font-medium text-white">Filtros</h3>
@@ -313,8 +313,8 @@ export default function MensagensContent() {
                     onClick={() => setFilters({ ...filters, status: item.value })}
                     className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-between ${
                       filters.status === item.value
-                        ? "bg-[#C5A059] text-black"
-                        : "text-gray-400 hover:bg-[#1A1A1A]"
+                        ? "bg-[var(--gold)] text-black"
+                        : "text-gray-400 hover:bg-[var(--background-elevated)]"
                     }`}
                   >
                     <span>{item.label}</span>
@@ -341,8 +341,8 @@ export default function MensagensContent() {
                     onClick={() => setFilters({ ...filters, formType: item.value })}
                     className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                       filters.formType === item.value
-                        ? "bg-[#C5A059] text-black"
-                        : "text-gray-400 hover:bg-[#1A1A1A]"
+                        ? "bg-[var(--gold)] text-black"
+                        : "text-gray-400 hover:bg-[var(--background-elevated)]"
                     }`}
                   >
                     {item.label}
@@ -367,7 +367,7 @@ export default function MensagensContent() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Pesquisar por nome, email ou empresa..."
-                className="w-full bg-[#0A0A0A] border border-white/10 pl-10 pr-4 py-3 text-white rounded-lg focus:outline-none focus:border-[#C5A059] transition-colors placeholder-gray-500"
+                className="w-full bg-[var(--background-secondary)] border border-white/10 pl-10 pr-4 py-3 text-white rounded-lg focus:outline-none focus:border-[var(--gold)] transition-colors placeholder-gray-500"
               />
             </div>
           </div>
@@ -376,7 +376,7 @@ export default function MensagensContent() {
           <div className="space-y-2 max-h-[calc(100vh-400px)] overflow-y-auto">
             {loading ? (
               <div className="text-center py-20">
-                <RefreshCw className="animate-spin text-[#C5A059] mx-auto mb-4" size={32} />
+                <RefreshCw className="animate-spin text-[var(--gold)] mx-auto mb-4" size={32} />
                 <p className="text-gray-500">A carregar...</p>
               </div>
             ) : messages.length === 0 ? (
@@ -391,8 +391,8 @@ export default function MensagensContent() {
                   onClick={() => handleSelectMessage(message)}
                   className={`w-full text-left p-4 rounded-xl transition-all border ${
                     selectedMessage?.id === message.id
-                      ? "bg-[#C5A059]/20 border-[#C5A059]"
-                      : "bg-[#0A0A0A] border-white/5 hover:border-white/10 hover:bg-[#1A1A1A]"
+                      ? "bg-[var(--gold)]/20 border-[var(--gold)]"
+                      : "bg-[var(--background-secondary)] border-white/5 hover:border-white/10 hover:bg-[var(--background-elevated)]"
                   }`}
                 >
                   <div className="flex items-start gap-3">
@@ -443,7 +443,7 @@ export default function MensagensContent() {
         {/* Coluna 3: Detalhes */}
         <div className="col-span-6">
           {selectedMessage ? (
-            <div className="bg-[#0A0A0A] border border-white/10 rounded-xl p-6">
+            <div className="bg-[var(--background-secondary)] border border-white/10 rounded-xl p-6">
               {/* Header */}
               <div className="flex items-start justify-between mb-6 pb-6 border-b border-white/10">
                 <div className="flex-1">
@@ -525,7 +525,7 @@ export default function MensagensContent() {
                     );
                     setShowReplyModal(true);
                   }}
-                  className="flex items-center gap-2 bg-[#C5A059] hover:bg-[#d4b469] text-black px-4 py-2 rounded-lg font-medium transition-colors"
+                  className="flex items-center gap-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black px-4 py-2 rounded-lg font-medium transition-colors"
                 >
                   <Send size={16} />
                   Responder Email
@@ -556,7 +556,7 @@ export default function MensagensContent() {
               {(selectedMessage.responded_at ||
                 selectedMessage.payment_id ||
                 selectedMessage.cavalo_id) && (
-                <div className="bg-[#050505] border border-white/5 p-4 rounded-lg space-y-2 text-sm">
+                <div className="bg-[var(--background)] border border-white/5 p-4 rounded-lg space-y-2 text-sm">
                   {selectedMessage.responded_at && (
                     <div className="text-green-400">
                       ✅ Respondida em{" "}
@@ -584,7 +584,7 @@ export default function MensagensContent() {
               )}
             </div>
           ) : (
-            <div className="bg-[#0A0A0A] border border-white/10 rounded-xl p-20 text-center">
+            <div className="bg-[var(--background-secondary)] border border-white/10 rounded-xl p-20 text-center">
               <Mail className="text-gray-700 mx-auto mb-4" size={64} />
               <p className="text-gray-500 text-lg">Seleciona uma mensagem para ver detalhes</p>
             </div>
@@ -595,7 +595,7 @@ export default function MensagensContent() {
       {/* Modal de Resposta */}
       {showReplyModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-6 z-50">
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-xl max-w-2xl w-full p-6">
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-xl max-w-2xl w-full p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-white">Responder Email</h3>
               <button
@@ -613,7 +613,7 @@ export default function MensagensContent() {
                   type="text"
                   value={selectedMessage?.email || ""}
                   disabled
-                  className="w-full bg-[#050505] border border-white/10 px-4 py-2 text-gray-500 rounded-lg"
+                  className="w-full bg-[var(--background)] border border-white/10 px-4 py-2 text-gray-500 rounded-lg"
                 />
               </div>
 
@@ -623,7 +623,7 @@ export default function MensagensContent() {
                   type="text"
                   value={replySubject}
                   onChange={(e) => setReplySubject(e.target.value)}
-                  className="w-full bg-[#050505] border border-white/10 px-4 py-3 text-white rounded-lg focus:outline-none focus:border-[#C5A059] transition-colors"
+                  className="w-full bg-[var(--background)] border border-white/10 px-4 py-3 text-white rounded-lg focus:outline-none focus:border-[var(--gold)] transition-colors"
                   placeholder="Assunto do email"
                 />
               </div>
@@ -634,7 +634,7 @@ export default function MensagensContent() {
                   value={replyMessage}
                   onChange={(e) => setReplyMessage(e.target.value)}
                   rows={10}
-                  className="w-full bg-[#050505] border border-white/10 px-4 py-3 text-white rounded-lg focus:outline-none focus:border-[#C5A059] transition-colors resize-none"
+                  className="w-full bg-[var(--background)] border border-white/10 px-4 py-3 text-white rounded-lg focus:outline-none focus:border-[var(--gold)] transition-colors resize-none"
                   placeholder="Escreva a sua mensagem aqui..."
                 />
               </div>
@@ -649,7 +649,7 @@ export default function MensagensContent() {
                 <button
                   onClick={handleSendReply}
                   disabled={sending || !replySubject || !replyMessage}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#C5A059] hover:bg-[#d4b469] text-black rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-4 py-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {sending ? (
                     <>

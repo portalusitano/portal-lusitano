@@ -65,7 +65,7 @@ export default function BulkActions({
   if (items.length === 0) return null;
 
   return (
-    <div className="sticky top-0 z-10 bg-gradient-to-r from-[#0A0A0A] to-[#0F0F0F] border-b border-white/10 shadow-xl">
+    <div className="sticky top-0 z-10 bg-gradient-to-r from-[var(--background-secondary)] to-[var(--background-elevated)] border-b border-white/10 shadow-xl">
       <div className="flex items-center gap-4 px-6 py-4">
         {/* Select All Checkbox */}
         <button
@@ -74,10 +74,10 @@ export default function BulkActions({
           title={allSelected ? "Desselecionar tudo" : "Selecionar tudo"}
         >
           {allSelected ? (
-            <CheckSquare className="w-5 h-5 text-[#C5A059]" />
+            <CheckSquare className="w-5 h-5 text-[var(--gold)]" />
           ) : someSelected ? (
-            <div className="w-5 h-5 border-2 border-[#C5A059] rounded flex items-center justify-center">
-              <div className="w-2.5 h-2.5 bg-[#C5A059] rounded-sm"></div>
+            <div className="w-5 h-5 border-2 border-[var(--gold)] rounded flex items-center justify-center">
+              <div className="w-2.5 h-2.5 bg-[var(--gold)] rounded-sm"></div>
             </div>
           ) : (
             <Square className="w-5 h-5 text-gray-400 group-hover:text-white" />
@@ -135,8 +135,8 @@ export default function BulkActions({
       {/* Processing Overlay */}
       {isProcessing && (
         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-xl px-6 py-4 flex items-center gap-3">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#C5A059]"></div>
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-xl px-6 py-4 flex items-center gap-3">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[var(--gold)]"></div>
             <span className="text-white font-medium">A processar...</span>
           </div>
         </div>
@@ -215,7 +215,7 @@ export const commonBulkActions = {
     id: "addTag",
     label: "Adicionar Tag",
     icon: Tag,
-    color: "bg-[#C5A059] hover:bg-[#d4b469] text-black",
+    color: "bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black",
     action: onAddTag,
   }),
 };

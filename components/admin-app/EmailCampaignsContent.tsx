@@ -250,7 +250,7 @@ export default function EmailCampaignsContent() {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C5A059] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--gold)] mx-auto mb-4"></div>
           <p className="text-gray-400">A carregar campanhas...</p>
         </div>
       </div>
@@ -267,7 +267,7 @@ export default function EmailCampaignsContent() {
         </div>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#C5A059] hover:bg-[#B59049] text-black font-semibold rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--gold)] hover:bg-[var(--gold)] text-black font-semibold rounded-lg transition-colors"
         >
           <Plus className="w-5 h-5" />
           Nova Campanha
@@ -276,10 +276,10 @@ export default function EmailCampaignsContent() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-[#0A0A0A] border border-gray-800 rounded-lg p-4">
+        <div className="bg-[var(--background-secondary)] border border-gray-800 rounded-lg p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[#C5A059]/20 flex items-center justify-center">
-              <Mail className="w-5 h-5 text-[#C5A059]" />
+            <div className="w-10 h-10 rounded-lg bg-[var(--gold)]/20 flex items-center justify-center">
+              <Mail className="w-5 h-5 text-[var(--gold)]" />
             </div>
             <div>
               <p className="text-sm text-gray-400">Total</p>
@@ -288,7 +288,7 @@ export default function EmailCampaignsContent() {
           </div>
         </div>
 
-        <div className="bg-[#0A0A0A] border border-gray-800 rounded-lg p-4">
+        <div className="bg-[var(--background-secondary)] border border-gray-800 rounded-lg p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
               <CheckCircle className="w-5 h-5 text-green-400" />
@@ -302,7 +302,7 @@ export default function EmailCampaignsContent() {
           </div>
         </div>
 
-        <div className="bg-[#0A0A0A] border border-gray-800 rounded-lg p-4">
+        <div className="bg-[var(--background-secondary)] border border-gray-800 rounded-lg p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
               <Clock className="w-5 h-5 text-blue-400" />
@@ -316,7 +316,7 @@ export default function EmailCampaignsContent() {
           </div>
         </div>
 
-        <div className="bg-[#0A0A0A] border border-gray-800 rounded-lg p-4">
+        <div className="bg-[var(--background-secondary)] border border-gray-800 rounded-lg p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
               <XCircle className="w-5 h-5 text-red-400" />
@@ -332,7 +332,7 @@ export default function EmailCampaignsContent() {
       </div>
 
       {/* Campaigns List */}
-      <div className="bg-[#0A0A0A] border border-gray-800 rounded-lg overflow-hidden">
+      <div className="bg-[var(--background-secondary)] border border-gray-800 rounded-lg overflow-hidden">
         {campaigns.length === 0 ? (
           <div className="text-center py-12">
             <Mail className="w-16 h-16 text-gray-600 mx-auto mb-4" />
@@ -340,7 +340,7 @@ export default function EmailCampaignsContent() {
             <p className="text-gray-500 mb-6">Crie a sua primeira campanha de email para começar</p>
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="px-4 py-2 bg-[#C5A059] hover:bg-[#B59049] text-black font-semibold rounded-lg transition-colors"
+              className="px-4 py-2 bg-[var(--gold)] hover:bg-[var(--gold)] text-black font-semibold rounded-lg transition-colors"
             >
               Criar Campanha
             </button>
@@ -441,7 +441,7 @@ export default function EmailCampaignsContent() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => openPreview(campaign)}
-                          className="p-2 text-gray-400 hover:text-[#C5A059] hover:bg-[#C5A059]/10 rounded-lg transition-colors"
+                          className="p-2 text-gray-400 hover:text-[var(--gold)] hover:bg-[var(--gold)]/10 rounded-lg transition-colors"
                           title="Ver preview"
                         >
                           <Eye className="w-4 h-4" />
@@ -466,8 +466,8 @@ export default function EmailCampaignsContent() {
       {/* Create Campaign Modal */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0A0A0A] border border-gray-800 rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-[#0A0A0A] border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+          <div className="bg-[var(--background-secondary)] border border-gray-800 rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-[var(--background-secondary)] border-b border-gray-800 px-6 py-4 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-white">Nova Campanha</h2>
               <button
                 onClick={() => {
@@ -491,7 +491,7 @@ export default function EmailCampaignsContent() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
-                  className="w-full px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#C5A059]"
+                  className="w-full px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[var(--gold)]"
                   placeholder="Ex: Newsletter Maio 2024"
                 />
               </div>
@@ -506,7 +506,7 @@ export default function EmailCampaignsContent() {
                   value={formData.subject}
                   onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                   required
-                  className="w-full px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#C5A059]"
+                  className="w-full px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[var(--gold)]"
                   placeholder="Ex: Novidades do Portal Lusitano"
                 />
               </div>
@@ -521,7 +521,7 @@ export default function EmailCampaignsContent() {
                   onChange={(e) => setFormData({ ...formData, html_content: e.target.value })}
                   required
                   rows={10}
-                  className="w-full px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#C5A059] font-mono text-sm"
+                  className="w-full px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[var(--gold)] font-mono text-sm"
                   placeholder="<html>&#10;  <body>&#10;    <h1>Olá!</h1>&#10;    <p>Conteúdo do email...</p>&#10;  </body>&#10;</html>"
                 />
                 <p className="mt-2 text-xs text-gray-500">
@@ -540,7 +540,7 @@ export default function EmailCampaignsContent() {
                     onClick={() => setFormData({ ...formData, recipient_type: "all_leads" })}
                     className={`px-4 py-3 rounded-lg border-2 transition-colors ${
                       formData.recipient_type === "all_leads"
-                        ? "border-[#C5A059] bg-[#C5A059]/10 text-[#C5A059]"
+                        ? "border-[var(--gold)] bg-[var(--gold)]/10 text-[var(--gold)]"
                         : "border-gray-700 bg-black/50 text-gray-400 hover:border-gray-600"
                     }`}
                   >
@@ -552,7 +552,7 @@ export default function EmailCampaignsContent() {
                     onClick={() => setFormData({ ...formData, recipient_type: "customers" })}
                     className={`px-4 py-3 rounded-lg border-2 transition-colors ${
                       formData.recipient_type === "customers"
-                        ? "border-[#C5A059] bg-[#C5A059]/10 text-[#C5A059]"
+                        ? "border-[var(--gold)] bg-[var(--gold)]/10 text-[var(--gold)]"
                         : "border-gray-700 bg-black/50 text-gray-400 hover:border-gray-600"
                     }`}
                   >
@@ -564,7 +564,7 @@ export default function EmailCampaignsContent() {
                     onClick={() => setFormData({ ...formData, recipient_type: "custom" })}
                     className={`px-4 py-3 rounded-lg border-2 transition-colors ${
                       formData.recipient_type === "custom"
-                        ? "border-[#C5A059] bg-[#C5A059]/10 text-[#C5A059]"
+                        ? "border-[var(--gold)] bg-[var(--gold)]/10 text-[var(--gold)]"
                         : "border-gray-700 bg-black/50 text-gray-400 hover:border-gray-600"
                     }`}
                   >
@@ -584,7 +584,7 @@ export default function EmailCampaignsContent() {
                     value={formData.custom_emails}
                     onChange={(e) => setFormData({ ...formData, custom_emails: e.target.value })}
                     rows={3}
-                    className="w-full px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#C5A059]"
+                    className="w-full px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[var(--gold)]"
                     placeholder="email1@example.com, email2@example.com"
                   />
                 </div>
@@ -602,7 +602,7 @@ export default function EmailCampaignsContent() {
                       name="send_option"
                       checked={formData.send_immediately}
                       onChange={() => setFormData({ ...formData, send_immediately: true })}
-                      className="w-4 h-4 text-[#C5A059] focus:ring-[#C5A059]"
+                      className="w-4 h-4 text-[var(--gold)] focus:ring-[var(--gold)]"
                     />
                     <span className="text-white">Enviar imediatamente</span>
                   </label>
@@ -612,7 +612,7 @@ export default function EmailCampaignsContent() {
                       name="send_option"
                       checked={!formData.send_immediately}
                       onChange={() => setFormData({ ...formData, send_immediately: false })}
-                      className="w-4 h-4 text-[#C5A059] focus:ring-[#C5A059]"
+                      className="w-4 h-4 text-[var(--gold)] focus:ring-[var(--gold)]"
                     />
                     <span className="text-white">Agendar envio</span>
                   </label>
@@ -629,7 +629,7 @@ export default function EmailCampaignsContent() {
                     type="datetime-local"
                     value={formData.schedule_at}
                     onChange={(e) => setFormData({ ...formData, schedule_at: e.target.value })}
-                    className="w-full px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                    className="w-full px-4 py-3 bg-black/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
                   />
                 </div>
               )}
@@ -649,7 +649,7 @@ export default function EmailCampaignsContent() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 px-4 py-3 bg-[#C5A059] hover:bg-[#B59049] text-black font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-3 bg-[var(--gold)] hover:bg-[var(--gold)] text-black font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
                     <>
@@ -672,8 +672,8 @@ export default function EmailCampaignsContent() {
       {/* Preview Modal */}
       {isPreviewModalOpen && previewCampaign && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0A0A0A] border border-gray-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="bg-[#0A0A0A] border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+          <div className="bg-[var(--background-secondary)] border border-gray-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="bg-[var(--background-secondary)] border-b border-gray-800 px-6 py-4 flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-white">{previewCampaign.name}</h2>
                 <p className="text-sm text-gray-400 mt-1">Assunto: {previewCampaign.subject}</p>
@@ -700,7 +700,7 @@ export default function EmailCampaignsContent() {
               </div>
             </div>
 
-            <div className="bg-[#0A0A0A] border-t border-gray-800 px-6 py-4">
+            <div className="bg-[var(--background-secondary)] border-t border-gray-800 px-6 py-4">
               <button
                 onClick={() => {
                   setIsPreviewModalOpen(false);

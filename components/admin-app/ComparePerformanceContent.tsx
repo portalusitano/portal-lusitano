@@ -49,7 +49,7 @@ export default function ComparePerformanceContent() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
-          <BarChart3 className="w-8 h-8 text-[#C5A059]" />
+          <BarChart3 className="w-8 h-8 text-[var(--gold)]" />
           Comparação de Performance
         </h1>
         <p className="text-gray-400">Compare métricas de cavalos ou eventos lado a lado</p>
@@ -61,7 +61,7 @@ export default function ComparePerformanceContent() {
           onClick={() => setSelectedType("cavalo")}
           className={`px-6 py-3 rounded-lg font-semibold transition-all ${
             selectedType === "cavalo"
-              ? "bg-[#C5A059] text-black"
+              ? "bg-[var(--gold)] text-black"
               : "bg-white/5 text-white hover:bg-white/10"
           }`}
         >
@@ -71,7 +71,7 @@ export default function ComparePerformanceContent() {
           onClick={() => setSelectedType("evento")}
           className={`px-6 py-3 rounded-lg font-semibold transition-all ${
             selectedType === "evento"
-              ? "bg-[#C5A059] text-black"
+              ? "bg-[var(--gold)] text-black"
               : "bg-white/5 text-white hover:bg-white/10"
           }`}
         >
@@ -86,7 +86,7 @@ export default function ComparePerformanceContent() {
         </h3>
         {loading ? (
           <div className="text-center py-8">
-            <div className="animate-spin w-10 h-10 border-4 border-[#C5A059] border-t-transparent rounded-full mx-auto mb-4" />
+            <div className="animate-spin w-10 h-10 border-4 border-[var(--gold)] border-t-transparent rounded-full mx-auto mb-4" />
             <p className="text-gray-400">A carregar {selectedType}s...</p>
           </div>
         ) : (
@@ -98,7 +98,7 @@ export default function ComparePerformanceContent() {
                 disabled={selectedItems.length >= 4 && !selectedItems.includes(item.id)}
                 className={`p-4 rounded-lg border-2 text-left transition-all ${
                   selectedItems.includes(item.id)
-                    ? "bg-[#C5A059]/20 border-[#C5A059]"
+                    ? "bg-[var(--gold)]/20 border-[var(--gold)]"
                     : "bg-white/5 border-white/10 hover:border-white/20"
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
               >

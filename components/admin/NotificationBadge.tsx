@@ -94,13 +94,13 @@ export default function NotificationBadge({ refreshInterval = 30000 }: Notificat
       <Link
         href="/admin/mensagens"
         className={`relative p-2 rounded-lg transition-all block ${
-          isAnimating ? "bg-[#C5A059] scale-110" : "bg-white/5 hover:bg-white/10"
+          isAnimating ? "bg-[var(--gold)] scale-110" : "bg-white/5 hover:bg-white/10"
         }`}
       >
         <Bell
           size={20}
           className={`${
-            newMessagesCount > 0 ? "text-[#C5A059]" : "text-gray-400"
+            newMessagesCount > 0 ? "text-[var(--gold)]" : "text-gray-400"
           } ${isAnimating ? "animate-bounce" : ""}`}
         />
 
@@ -113,7 +113,7 @@ export default function NotificationBadge({ refreshInterval = 30000 }: Notificat
 
       {pushEnabled && (
         <div
-          className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0A0A0A]"
+          className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[var(--background-secondary)]"
           title="Push notifications ativadas"
         />
       )}

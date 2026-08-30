@@ -232,7 +232,7 @@ export default function CRMPipelineContent() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
-            <Users className="w-8 h-8 text-[#C5A059]" />
+            <Users className="w-8 h-8 text-[var(--gold)]" />
             Pipeline CRM
           </h1>
           <p className="text-gray-400">Gestão visual do funil de vendas</p>
@@ -240,7 +240,7 @@ export default function CRMPipelineContent() {
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#C5A059] hover:bg-[#d4b469] text-black font-semibold rounded-lg transition-all"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black font-semibold rounded-lg transition-all"
         >
           <Plus className="w-5 h-5" />
           Novo Lead
@@ -336,7 +336,7 @@ export default function CRMPipelineContent() {
       {/* Add Lead Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1A1A1A] border border-white/10 rounded-xl max-w-md w-full p-6">
+          <div className="bg-[var(--background-elevated)] border border-white/10 rounded-xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-white">Novo Lead</h3>
               <button
@@ -352,7 +352,7 @@ export default function CRMPipelineContent() {
                 <label className="block text-sm font-medium text-gray-300 mb-2">Nome</label>
                 <input
                   type="text"
-                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#C5A059]"
+                  className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[var(--gold)]"
                   placeholder="Nome completo"
                 />
               </div>
@@ -394,7 +394,7 @@ export default function CRMPipelineContent() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-[#C5A059] hover:bg-[#d4b469] text-black font-semibold rounded-lg transition-all"
+                  className="flex-1 px-4 py-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black font-semibold rounded-lg transition-all"
                 >
                   Criar Lead
                 </button>

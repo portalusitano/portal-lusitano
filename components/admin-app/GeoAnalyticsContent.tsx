@@ -78,7 +78,7 @@ export default function GeoAnalyticsContent() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
-          <MapPin className="w-8 h-8 text-[#C5A059]" />
+          <MapPin className="w-8 h-8 text-[var(--gold)]" />
           Análise Geográfica
         </h1>
         <p className="text-gray-400">Visualize a distribuição de dados por distrito de Portugal</p>
@@ -98,7 +98,7 @@ export default function GeoAnalyticsContent() {
                 relative p-6 rounded-xl border-2 transition-all text-left
                 ${
                   isActive
-                    ? "bg-gradient-to-br from-[#C5A059]/20 to-[#C5A059]/10 border-[#C5A059]"
+                    ? "bg-gradient-to-br from-[var(--gold)]/20 to-[var(--gold)]/10 border-[var(--gold)]"
                     : "bg-gradient-to-br from-white/5 to-white/10 border-white/10 hover:border-white/20"
                 }
               `}
@@ -107,7 +107,7 @@ export default function GeoAnalyticsContent() {
                 <div
                   className={`
                   w-12 h-12 rounded-lg flex items-center justify-center
-                  ${isActive ? "bg-[#C5A059]" : "bg-white/10"}
+                  ${isActive ? "bg-[var(--gold)]" : "bg-white/10"}
                 `}
                 >
                   <Icon className={`w-6 h-6 ${isActive ? "text-black" : "text-gray-400"}`} />
@@ -117,7 +117,7 @@ export default function GeoAnalyticsContent() {
                     {m.label}
                   </h3>
                   {!loading && isActive && (
-                    <p className="text-2xl font-bold text-[#C5A059] mt-1">
+                    <p className="text-2xl font-bold text-[var(--gold)] mt-1">
                       {total.toLocaleString("pt-PT")}
                     </p>
                   )}
@@ -127,7 +127,7 @@ export default function GeoAnalyticsContent() {
 
               {/* Indicador ativo */}
               {isActive && (
-                <div className="absolute top-2 right-2 w-3 h-3 bg-[#C5A059] rounded-full animate-pulse" />
+                <div className="absolute top-2 right-2 w-3 h-3 bg-[var(--gold)] rounded-full animate-pulse" />
               )}
             </button>
           );
@@ -137,7 +137,7 @@ export default function GeoAnalyticsContent() {
       {/* Heatmap */}
       {loading ? (
         <div className="bg-gradient-to-br from-white/5 to-white/10 border border-white/10 rounded-xl p-12 text-center">
-          <div className="animate-spin w-12 h-12 border-4 border-[#C5A059] border-t-transparent rounded-full mx-auto mb-4" />
+          <div className="animate-spin w-12 h-12 border-4 border-[var(--gold)] border-t-transparent rounded-full mx-auto mb-4" />
           <p className="text-gray-400">A carregar dados geográficos...</p>
         </div>
       ) : (

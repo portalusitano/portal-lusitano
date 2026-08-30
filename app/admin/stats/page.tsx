@@ -22,18 +22,20 @@ export default async function AdminStatsPage({
   return (
     <>
       <main className="min-h-screen bg-black text-white pt-48 px-10 pb-20">
-        <header className="mb-20 border-b border-[#C5A059]/30 pb-10">
-          <p className="text-[#C5A059] rotulo font-bold mb-4 italic">Performance Portal Lusitano</p>
+        <header className="mb-20 border-b border-[var(--gold)]/30 pb-10">
+          <p className="text-[var(--gold)] rotulo font-bold mb-4 italic">
+            Performance Portal Lusitano
+          </p>
           <h1 className="text-6xl font-normal">Business Analytics</h1>
         </header>
 
         {/* CARTÕES DE MÉTRICAS DE LUXO */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-20">
-          <div className="bg-zinc-950 border border-zinc-900 p-10 group hover:border-[#C5A059]/50 transition-all duration-700">
+          <div className="bg-zinc-950 border border-zinc-900 p-10 group hover:border-[var(--gold)]/50 transition-all duration-700">
             <span className="text-zinc-500 text-[10px] uppercase tracking-wider font-bold">
               Valor em Carteira
             </span>
-            <p className="text-5xl text-[#C5A059] mt-6 italic">
+            <p className="text-5xl text-[var(--gold)] mt-6 italic">
               {valorTotal.toLocaleString("pt-PT")} €
             </p>
           </div>
@@ -68,7 +70,7 @@ export default async function AdminStatsPage({
                     {c.linhagem}
                   </p>
                 </div>
-                <p className="text-[#C5A059]">{Number(c.preco).toLocaleString("pt-PT")} €</p>
+                <p className="text-[var(--gold)]">{Number(c.preco).toLocaleString("pt-PT")} €</p>
               </div>
             ))}
           </div>

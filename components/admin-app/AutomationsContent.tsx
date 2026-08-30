@@ -384,7 +384,7 @@ export default function AutomationsContent() {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#C5A059] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[var(--gold)] mx-auto mb-4"></div>
           <p className="text-gray-400">A carregar automações...</p>
         </div>
       </div>
@@ -392,12 +392,12 @@ export default function AutomationsContent() {
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-br from-[#050505] via-[#0A0A0A] to-[#050505] p-6">
+    <div className="h-full overflow-y-auto bg-gradient-to-br from-[var(--background)] via-[var(--background-secondary)] to-[var(--background)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold text-white mb-1 flex items-center gap-3">
-            <Zap className="w-8 h-8 text-[#C5A059]" />
+            <Zap className="w-8 h-8 text-[var(--gold)]" />
             Automações
           </h1>
           <p className="text-gray-400">Configure triggers e ações automáticas</p>
@@ -408,7 +408,7 @@ export default function AutomationsContent() {
             resetForm();
             setShowCreateModal(true);
           }}
-          className="flex items-center gap-2 px-4 py-2 bg-[#C5A059] hover:bg-[#d4b469] text-black font-semibold rounded-lg transition-all"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black font-semibold rounded-lg transition-all"
         >
           <Plus className="w-5 h-5" />
           Nova Automação
@@ -446,7 +446,7 @@ export default function AutomationsContent() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Pesquisar automações..."
-              className="w-full bg-black/30 border border-white/10 pl-10 pr-4 py-2 text-white rounded-lg focus:outline-none focus:border-[#C5A059]"
+              className="w-full bg-black/30 border border-white/10 pl-10 pr-4 py-2 text-white rounded-lg focus:outline-none focus:border-[var(--gold)]"
             />
           </div>
 
@@ -454,7 +454,7 @@ export default function AutomationsContent() {
           <select
             value={filterEnabled}
             onChange={(e) => setFilterEnabled(e.target.value as "all" | "true" | "false")}
-            className="bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[#C5A059]"
+            className="bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[var(--gold)]"
           >
             <option value="all">Todas</option>
             <option value="true">Apenas Ativas</option>
@@ -465,7 +465,7 @@ export default function AutomationsContent() {
           <select
             value={filterTrigger}
             onChange={(e) => setFilterTrigger(e.target.value)}
-            className="bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[#C5A059]"
+            className="bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[var(--gold)]"
           >
             <option value="all">Todos os Triggers</option>
             {TRIGGER_TYPES.map((t) => (
@@ -479,7 +479,7 @@ export default function AutomationsContent() {
           <select
             value={filterAction}
             onChange={(e) => setFilterAction(e.target.value)}
-            className="bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[#C5A059]"
+            className="bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[var(--gold)]"
           >
             <option value="all">Todas as Ações</option>
             {ACTION_TYPES.map((a) => (
@@ -672,7 +672,7 @@ function AutomationCard({
 
           <button
             onClick={() => onExecute(automation)}
-            className="p-2 bg-[#C5A059]/20 text-[#C5A059] hover:bg-[#C5A059]/30 rounded-lg transition-all"
+            className="p-2 bg-[var(--gold)]/20 text-[var(--gold)] hover:bg-[var(--gold)]/30 rounded-lg transition-all"
             title="Executar agora"
           >
             <Play className="w-4 h-4" />
@@ -728,7 +728,7 @@ function AutomationCard({
         </div>
         <div>
           <p className="text-xs text-gray-400">Taxa</p>
-          <p className="text-lg font-bold text-[#C5A059]">{successRate}%</p>
+          <p className="text-lg font-bold text-[var(--gold)]">{successRate}%</p>
         </div>
       </div>
 
@@ -789,7 +789,7 @@ interface AutomationModalProps {
 function AutomationModal({ title, formData, setFormData, onSave, onClose }: AutomationModalProps) {
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-6">
-      <div className="bg-[#0A0A0A] border border-white/10 rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-[var(--background-secondary)] border border-white/10 rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <h2 className="text-2xl font-bold text-white">{title}</h2>
@@ -809,7 +809,7 @@ function AutomationModal({ title, formData, setFormData, onSave, onClose }: Auto
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[#C5A059]"
+              className="w-full bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[var(--gold)]"
               placeholder="Ex: Boas-vindas a novos leads"
             />
           </div>
@@ -820,7 +820,7 @@ function AutomationModal({ title, formData, setFormData, onSave, onClose }: Auto
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[#C5A059]"
+              className="w-full bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[var(--gold)]"
               rows={3}
               placeholder="Descrição da automação..."
             />
@@ -834,7 +834,7 @@ function AutomationModal({ title, formData, setFormData, onSave, onClose }: Auto
             <select
               value={formData.trigger_type}
               onChange={(e) => setFormData({ ...formData, trigger_type: e.target.value })}
-              className="w-full bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[#C5A059]"
+              className="w-full bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[var(--gold)]"
             >
               {TRIGGER_TYPES.map((t) => (
                 <option key={t.value} value={t.value}>
@@ -852,7 +852,7 @@ function AutomationModal({ title, formData, setFormData, onSave, onClose }: Auto
             <textarea
               value={formData.trigger_conditions}
               onChange={(e) => setFormData({ ...formData, trigger_conditions: e.target.value })}
-              className="w-full bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[#C5A059] font-mono text-sm"
+              className="w-full bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[var(--gold)] font-mono text-sm"
               rows={4}
               placeholder='{"amount_min": 50}'
             />
@@ -866,7 +866,7 @@ function AutomationModal({ title, formData, setFormData, onSave, onClose }: Auto
             <select
               value={formData.action_type}
               onChange={(e) => setFormData({ ...formData, action_type: e.target.value })}
-              className="w-full bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[#C5A059]"
+              className="w-full bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[var(--gold)]"
             >
               {ACTION_TYPES.map((a) => (
                 <option key={a.value} value={a.value}>
@@ -884,7 +884,7 @@ function AutomationModal({ title, formData, setFormData, onSave, onClose }: Auto
             <textarea
               value={formData.action_config}
               onChange={(e) => setFormData({ ...formData, action_config: e.target.value })}
-              className="w-full bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[#C5A059] font-mono text-sm"
+              className="w-full bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[var(--gold)] font-mono text-sm"
               rows={6}
               placeholder='{"to": "email@example.com", "subject": "Assunto"}'
             />
@@ -908,7 +908,7 @@ function AutomationModal({ title, formData, setFormData, onSave, onClose }: Auto
               onChange={(e) =>
                 setFormData({ ...formData, delay_minutes: parseInt(e.target.value) || 0 })
               }
-              className="w-full bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[#C5A059]"
+              className="w-full bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[var(--gold)]"
               min="0"
             />
             <p className="text-xs text-gray-500 mt-1">
@@ -923,7 +923,7 @@ function AutomationModal({ title, formData, setFormData, onSave, onClose }: Auto
               id="enabled"
               checked={formData.enabled}
               onChange={(e) => setFormData({ ...formData, enabled: e.target.checked })}
-              className="w-5 h-5 bg-black/30 border border-white/10 rounded focus:ring-[#C5A059]"
+              className="w-5 h-5 bg-black/30 border border-white/10 rounded focus:ring-[var(--gold)]"
             />
             <label htmlFor="enabled" className="text-sm text-gray-300">
               Ativar automação imediatamente
@@ -941,7 +941,7 @@ function AutomationModal({ title, formData, setFormData, onSave, onClose }: Auto
           </button>
           <button
             onClick={onSave}
-            className="px-4 py-2 bg-[#C5A059] hover:bg-[#d4b469] text-black font-semibold rounded-lg transition-all flex items-center gap-2"
+            className="px-4 py-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black font-semibold rounded-lg transition-all flex items-center gap-2"
           >
             <Save className="w-4 h-4" />
             Guardar
@@ -984,7 +984,7 @@ function LogsModal({ automation, onClose }: LogsModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-6">
-      <div className="bg-[#0A0A0A] border border-white/10 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-[var(--background-secondary)] border border-white/10 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div>
@@ -1000,7 +1000,7 @@ function LogsModal({ automation, onClose }: LogsModalProps) {
         <div className="p-6">
           {loading ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C5A059] mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--gold)] mx-auto mb-4"></div>
               <p className="text-gray-400">A carregar logs...</p>
             </div>
           ) : logs.length === 0 ? (

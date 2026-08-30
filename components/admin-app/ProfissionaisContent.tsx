@@ -169,19 +169,19 @@ export default function ProfissionaisContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C5A059]"></div>
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--gold)]"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] p-6">
+    <div className="min-h-screen bg-[var(--background)] p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <Award className="text-[#C5A059]" size={32} />
+            <Award className="text-[var(--gold)]" size={32} />
             <div>
               <h1 className="text-3xl font-bold text-white">Gestão de Profissionais</h1>
               <p className="text-gray-400">Gerir profissionais, planos e aprovações</p>
@@ -206,7 +206,7 @@ export default function ProfissionaisContent() {
             </div>
             <div className="bg-white/5 border border-white/10 rounded-lg p-4">
               <div className="text-sm text-gray-400 mb-1">Destaque</div>
-              <div className="text-2xl font-bold text-[#C5A059]">{stats.destaque}</div>
+              <div className="text-2xl font-bold text-[var(--gold)]">{stats.destaque}</div>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-lg p-4">
               <div className="text-sm text-gray-400 mb-1">Planos Ativos</div>
@@ -230,7 +230,7 @@ export default function ProfissionaisContent() {
                 placeholder="Pesquisar profissionais..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#C5A059]"
+                className="w-full pl-10 pr-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[var(--gold)]"
               />
             </div>
 
@@ -238,7 +238,7 @@ export default function ProfissionaisContent() {
             <select
               value={tipoFilter}
               onChange={(e) => setTipoFilter(e.target.value)}
-              className="px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+              className="px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
             >
               <option value="all">Todos os Tipos</option>
               <option value="veterinario">Veterinário</option>
@@ -251,7 +251,7 @@ export default function ProfissionaisContent() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+              className="px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
             >
               <option value="all">Todos os Status</option>
               <option value="pendente">Pendente</option>
@@ -264,7 +264,7 @@ export default function ProfissionaisContent() {
             <select
               value={planoFilter}
               onChange={(e) => setPlanoFilter(e.target.value)}
-              className="px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+              className="px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
             >
               <option value="all">Todos os Planos</option>
               <option value="gratis">Grátis</option>
@@ -316,7 +316,7 @@ export default function ProfissionaisContent() {
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-white font-medium">{prof.nome}</span>
-                          {prof.destaque && <Star className="text-[#C5A059]" size={14} />}
+                          {prof.destaque && <Star className="text-[var(--gold)]" size={14} />}
                         </div>
                         {prof.especialidade && (
                           <div className="text-xs text-gray-400 mt-1">{prof.especialidade}</div>
@@ -403,13 +403,13 @@ export default function ProfissionaisContent() {
                         }
                         className={`p-2 rounded-lg transition-colors ${
                           prof.destaque
-                            ? "bg-[#C5A059]/20 hover:bg-[#C5A059]/30"
+                            ? "bg-[var(--gold)]/20 hover:bg-[var(--gold)]/30"
                             : "hover:bg-white/10"
                         }`}
                         title={prof.destaque ? "Remover destaque" : "Adicionar destaque"}
                       >
                         <Star
-                          className={prof.destaque ? "text-[#C5A059]" : "text-gray-400"}
+                          className={prof.destaque ? "text-[var(--gold)]" : "text-gray-400"}
                           size={16}
                         />
                       </button>
@@ -456,7 +456,7 @@ export default function ProfissionaisContent() {
       {/* Modal de Detalhes */}
       {selectedProfissional && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-white">Detalhes do Profissional</h3>
               <button
@@ -521,7 +521,7 @@ export default function ProfissionaisContent() {
                     href={selectedProfissional.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#C5A059] hover:underline flex items-center gap-2"
+                    className="text-[var(--gold)] hover:underline flex items-center gap-2"
                   >
                     {selectedProfissional.website}
                     <Globe size={14} />

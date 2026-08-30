@@ -201,7 +201,7 @@ export default function ForecastingContent() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
-          <Activity className="w-8 h-8 text-[#C5A059]" />
+          <Activity className="w-8 h-8 text-[var(--gold)]" />
           Previsões & Forecasting
         </h1>
         <p className="text-gray-400">
@@ -218,7 +218,7 @@ export default function ForecastingContent() {
             <select
               value={metric}
               onChange={(e) => setMetric(e.target.value as MetricType)}
-              className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#C5A059]"
+              className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--gold)]"
             >
               <option value="revenue">Receita (€)</option>
               <option value="leads">Leads</option>
@@ -232,7 +232,7 @@ export default function ForecastingContent() {
             <select
               value={daysBack}
               onChange={(e) => setDaysBack(parseInt(e.target.value))}
-              className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#C5A059]"
+              className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--gold)]"
             >
               <option value="7">7 dias</option>
               <option value="14">14 dias</option>
@@ -248,7 +248,7 @@ export default function ForecastingContent() {
             <select
               value={daysAhead}
               onChange={(e) => setDaysAhead(parseInt(e.target.value))}
-              className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#C5A059]"
+              className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--gold)]"
             >
               <option value="3">3 dias</option>
               <option value="7">7 dias</option>
@@ -261,7 +261,7 @@ export default function ForecastingContent() {
 
       {loading ? (
         <div className="bg-gradient-to-br from-white/5 to-white/10 border border-white/10 rounded-xl p-12 text-center">
-          <div className="animate-spin w-12 h-12 border-4 border-[#C5A059] border-t-transparent rounded-full mx-auto mb-4" />
+          <div className="animate-spin w-12 h-12 border-4 border-[var(--gold)] border-t-transparent rounded-full mx-auto mb-4" />
           <p className="text-gray-400">A calcular previsões...</p>
         </div>
       ) : (
@@ -307,9 +307,9 @@ export default function ForecastingContent() {
               <div className="bg-gradient-to-br from-white/5 to-white/10 border border-white/10 rounded-xl p-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-gray-400 text-sm">Previsão Total</span>
-                  <Target className="w-5 h-5 text-[#C5A059]" />
+                  <Target className="w-5 h-5 text-[var(--gold)]" />
                 </div>
-                <p className="text-3xl font-bold text-[#C5A059]">
+                <p className="text-3xl font-bold text-[var(--gold)]">
                   {config.unit}
                   {metrics.total_forecast.toLocaleString("pt-PT", {
                     maximumFractionDigits: 0,
@@ -339,12 +339,12 @@ export default function ForecastingContent() {
 
             <div className="flex items-center justify-center gap-8 mt-6">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-1 bg-[#C5A059] rounded" />
+                <div className="w-4 h-1 bg-[var(--gold)] rounded" />
                 <span className="text-sm text-gray-400">Histórico</span>
               </div>
               <div className="flex items-center gap-2">
                 <div
-                  className="w-4 h-1 bg-[#C5A059] opacity-70 rounded"
+                  className="w-4 h-1 bg-[var(--gold)] opacity-70 rounded"
                   style={{ borderTop: "2px dashed #C5A059" }}
                 />
                 <span className="text-sm text-gray-400">Previsão</span>

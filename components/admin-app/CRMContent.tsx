@@ -230,20 +230,20 @@ export default function CRMContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C5A059]"></div>
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--gold)]"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] p-6">
+    <div className="min-h-screen bg-[var(--background)] p-6">
       <div className="max-w-[1800px] mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <TrendingUp className="text-[#C5A059]" size={32} />
+              <TrendingUp className="text-[var(--gold)]" size={32} />
               <div>
                 <h1 className="text-3xl font-bold text-white">CRM - Pipeline de Vendas</h1>
                 <p className="text-gray-400">Gestão visual de leads e oportunidades</p>
@@ -251,7 +251,7 @@ export default function CRMContent() {
             </div>
             <button
               onClick={() => openModal()}
-              className="flex items-center gap-2 px-4 py-2 bg-[#C5A059] hover:bg-[#d4b469] text-black font-semibold rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black font-semibold rounded-lg transition-colors"
             >
               <Plus size={16} />
               Novo Lead
@@ -263,7 +263,7 @@ export default function CRMContent() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white/5 border border-white/10 rounded-lg p-6">
             <div className="flex items-center gap-3 mb-2">
-              <User className="text-[#C5A059]" size={24} />
+              <User className="text-[var(--gold)]" size={24} />
               <h3 className="text-sm font-medium text-gray-400">Total Leads</h3>
             </div>
             <p className="text-3xl font-bold text-white">{stats?.total || 0}</p>
@@ -384,7 +384,7 @@ export default function CRMContent() {
                       )}
 
                       <div className="flex items-center justify-between pt-2 border-t border-white/10">
-                        <span className="text-sm font-semibold text-[#C5A059]">
+                        <span className="text-sm font-semibold text-[var(--gold)]">
                           {formatCurrency(lead.estimated_value || 0)}
                         </span>
                         <span className="text-xs text-gray-500">{lead.probability}% prob.</span>
@@ -401,7 +401,7 @@ export default function CRMContent() {
       {/* Modal de Criar/Editar Lead */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-lg max-w-2xl w-full p-6 my-8">
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg max-w-2xl w-full p-6 my-8">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-white">
                 {editingLead ? "Editar Lead" : "Novo Lead"}
@@ -423,7 +423,7 @@ export default function CRMContent() {
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                    className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
                   />
                 </div>
 
@@ -434,7 +434,7 @@ export default function CRMContent() {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                    className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
                   />
                 </div>
               </div>
@@ -446,7 +446,7 @@ export default function CRMContent() {
                     type="text"
                     value={formData.telefone}
                     onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
-                    className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                    className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
                   />
                 </div>
 
@@ -456,7 +456,7 @@ export default function CRMContent() {
                     type="text"
                     value={formData.company}
                     onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                    className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                    className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
                   />
                 </div>
               </div>
@@ -468,7 +468,7 @@ export default function CRMContent() {
                 <textarea
                   value={formData.interests}
                   onChange={(e) => setFormData({ ...formData, interests: e.target.value })}
-                  className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059] resize-none"
+                  className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)] resize-none"
                   rows={2}
                 />
               </div>
@@ -482,7 +482,7 @@ export default function CRMContent() {
                     type="number"
                     value={formData.estimated_value}
                     onChange={(e) => setFormData({ ...formData, estimated_value: e.target.value })}
-                    className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                    className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
                   />
                 </div>
 
@@ -496,7 +496,7 @@ export default function CRMContent() {
                     max="100"
                     value={formData.probability}
                     onChange={(e) => setFormData({ ...formData, probability: e.target.value })}
-                    className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                    className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
                   />
                 </div>
 
@@ -505,7 +505,7 @@ export default function CRMContent() {
                   <select
                     value={formData.source_type}
                     onChange={(e) => setFormData({ ...formData, source_type: e.target.value })}
-                    className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                    className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
                   >
                     <option value="">Selecione...</option>
                     <option value="vender_cavalo">Vender Cavalo</option>
@@ -524,7 +524,7 @@ export default function CRMContent() {
                   type="datetime-local"
                   value={formData.next_follow_up}
                   onChange={(e) => setFormData({ ...formData, next_follow_up: e.target.value })}
-                  className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                  className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
                 />
               </div>
 
@@ -533,7 +533,7 @@ export default function CRMContent() {
                 <textarea
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059] resize-none"
+                  className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)] resize-none"
                   rows={3}
                 />
               </div>
@@ -548,7 +548,7 @@ export default function CRMContent() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-[#C5A059] hover:bg-[#d4b469] text-black font-semibold rounded-lg transition-colors"
+                  className="flex-1 px-4 py-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black font-semibold rounded-lg transition-colors"
                 >
                   {editingLead ? "Guardar" : "Criar Lead"}
                 </button>

@@ -180,7 +180,7 @@ export default function UsersContent() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
-            <Users className="w-8 h-8 text-[#C5A059]" />
+            <Users className="w-8 h-8 text-[var(--gold)]" />
             Gestão de Utilizadores
           </h1>
           <p className="text-gray-400">Total de {total} utilizadores admin</p>
@@ -188,7 +188,7 @@ export default function UsersContent() {
 
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 px-4 py-2 bg-[#C5A059] hover:bg-[#d4b469] text-black font-semibold rounded-lg transition-all"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black font-semibold rounded-lg transition-all"
         >
           <Plus className="w-4 h-4" />
           Adicionar Utilizador
@@ -206,7 +206,7 @@ export default function UsersContent() {
               placeholder="Pesquisar por email ou nome..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-black/20 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-[#C5A059]"
+              className="w-full bg-black/20 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-[var(--gold)]"
             />
           </div>
 
@@ -214,7 +214,7 @@ export default function UsersContent() {
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            className="bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#C5A059]"
+            className="bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--gold)]"
           >
             <option value="all">Todos os roles</option>
             <option value="admin">Admin</option>
@@ -225,7 +225,7 @@ export default function UsersContent() {
           <select
             value={ativoFilter}
             onChange={(e) => setAtivoFilter(e.target.value)}
-            className="bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#C5A059]"
+            className="bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--gold)]"
           >
             <option value="all">Todos os estados</option>
             <option value="true">Apenas Ativos</option>
@@ -237,7 +237,7 @@ export default function UsersContent() {
       {/* Lista de Utilizadores */}
       {loading ? (
         <div className="bg-gradient-to-br from-white/5 to-white/10 border border-white/10 rounded-xl p-12 text-center">
-          <div className="animate-spin w-10 h-10 border-4 border-[#C5A059] border-t-transparent rounded-full mx-auto mb-4" />
+          <div className="animate-spin w-10 h-10 border-4 border-[var(--gold)] border-t-transparent rounded-full mx-auto mb-4" />
           <p className="text-gray-400">A carregar utilizadores...</p>
         </div>
       ) : filteredUsers.length === 0 ? (
@@ -286,7 +286,7 @@ export default function UsersContent() {
                     <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
                       <span>
                         Role:{" "}
-                        <span className="text-[#C5A059]">
+                        <span className="text-[var(--gold)]">
                           {user.role === "super_admin" ? "Super Admin" : "Admin"}
                         </span>
                       </span>
@@ -338,7 +338,7 @@ export default function UsersContent() {
       {/* Modal Criar/Editar */}
       {showModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-xl max-w-md w-full p-6">
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-white">
                 {editingUser ? "Editar Utilizador" : "Novo Utilizador"}
@@ -361,7 +361,7 @@ export default function UsersContent() {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   disabled={!!editingUser}
                   required
-                  className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#C5A059] disabled:opacity-50"
+                  className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--gold)] disabled:opacity-50"
                 />
               </div>
 
@@ -372,7 +372,7 @@ export default function UsersContent() {
                   type="text"
                   value={formData.nome}
                   onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                  className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#C5A059]"
+                  className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--gold)]"
                 />
               </div>
 
@@ -387,7 +387,7 @@ export default function UsersContent() {
                       role: e.target.value as "admin" | "super_admin",
                     })
                   }
-                  className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#C5A059]"
+                  className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--gold)]"
                 >
                   <option value="admin">Admin</option>
                   <option value="super_admin">Super Admin</option>
@@ -405,7 +405,7 @@ export default function UsersContent() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-[#C5A059] hover:bg-[#d4b469] text-black font-semibold rounded-lg transition-all"
+                  className="flex-1 px-4 py-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black font-semibold rounded-lg transition-all"
                 >
                   {editingUser ? "Atualizar" : "Criar"}
                 </button>

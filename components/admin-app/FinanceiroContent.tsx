@@ -205,7 +205,7 @@ export default function FinanceiroContent() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C5A059]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--gold)]"></div>
       </div>
     );
   }
@@ -218,11 +218,11 @@ export default function FinanceiroContent() {
       </div>
 
       {/* Relatórios PDF */}
-      <div className="bg-gradient-to-r from-[#C5A059]/10 to-[#C5A059]/5 border border-[#C5A059]/20 rounded-lg p-6 mb-8">
+      <div className="bg-gradient-to-r from-[var(--gold)]/10 to-[var(--gold)]/5 border border-[var(--gold)]/20 rounded-lg p-6 mb-8">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-              <FileText className="text-[#C5A059]" size={20} />
+              <FileText className="text-[var(--gold)]" size={20} />
               Relatórios Mensais em PDF
             </h3>
             <p className="text-sm text-gray-400 mt-1">
@@ -239,7 +239,7 @@ export default function FinanceiroContent() {
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-              className="w-full px-4 py-2.5 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[#C5A059]"
+              className="w-full px-4 py-2.5 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--gold)]"
             >
               <option value="1">Janeiro</option>
               <option value="2">Fevereiro</option>
@@ -263,7 +263,7 @@ export default function FinanceiroContent() {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-              className="w-full px-4 py-2.5 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[#C5A059]"
+              className="w-full px-4 py-2.5 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--gold)]"
             >
               {Array.from({ length: 5 }, (_, i) => {
                 const year = new Date().getFullYear() - i;
@@ -279,7 +279,7 @@ export default function FinanceiroContent() {
           <button
             onClick={generatePDFReport}
             disabled={isGeneratingPDF}
-            className="flex-1 flex items-center justify-center gap-2 px-6 py-2.5 bg-[#C5A059] hover:bg-[#d4b469] text-black font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 flex items-center justify-center gap-2 px-6 py-2.5 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isGeneratingPDF ? (
               <>
@@ -295,7 +295,7 @@ export default function FinanceiroContent() {
           </button>
         </div>
 
-        <div className="mt-4 pt-4 border-t border-[#C5A059]/20">
+        <div className="mt-4 pt-4 border-t border-[var(--gold)]/20">
           <p className="text-xs text-gray-500">
             📊 O relatório inclui: Resumo Executivo, Receitas por Produto, Top 5 Cavalos Mais
             Vistos, Análise de Leads e ROI
@@ -306,10 +306,10 @@ export default function FinanceiroContent() {
       {/* Overview Cards */}
       {overviewData && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-medium text-gray-400">Receita Total</h3>
-              <DollarSign className="text-[#C5A059]" size={20} />
+              <DollarSign className="text-[var(--gold)]" size={20} />
             </div>
             <p className="text-3xl font-bold text-white">
               €
@@ -321,7 +321,7 @@ export default function FinanceiroContent() {
             <p className="text-xs text-gray-500 mt-1">Desde o início</p>
           </div>
 
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-medium text-gray-400">Este Mês</h3>
               <TrendingUp className="text-green-500" size={20} />
@@ -341,10 +341,10 @@ export default function FinanceiroContent() {
             </p>
           </div>
 
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-medium text-gray-400">MRR</h3>
-              <Repeat className="text-[#C5A059]" size={20} />
+              <Repeat className="text-[var(--gold)]" size={20} />
             </div>
             <p className="text-3xl font-bold text-white">
               €
@@ -356,10 +356,10 @@ export default function FinanceiroContent() {
             <p className="text-xs text-gray-500 mt-1">Receita recorrente mensal</p>
           </div>
 
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-medium text-gray-400">Transações</h3>
-              <ShoppingCart className="text-[#C5A059]" size={20} />
+              <ShoppingCart className="text-[var(--gold)]" size={20} />
             </div>
             <p className="text-3xl font-bold text-white">
               {overviewData.overview.totalTransactions}
@@ -374,7 +374,7 @@ export default function FinanceiroContent() {
       {/* Charts */}
       {chartData && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-white mb-4">
               Receita Diária (Últimos 30 Dias)
             </h3>
@@ -385,7 +385,7 @@ export default function FinanceiroContent() {
                 return (
                   <div key={index} className="group relative flex-1" style={{ height: "100%" }}>
                     <div
-                      className="absolute bottom-0 w-full bg-[#C5A059] rounded-t transition-all hover:bg-[#d4b469] cursor-pointer"
+                      className="absolute bottom-0 w-full bg-[var(--gold)] rounded-t transition-all hover:bg-[var(--gold-hover)] cursor-pointer"
                       style={{ height: `${height}%` }}
                     >
                       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
@@ -399,7 +399,7 @@ export default function FinanceiroContent() {
             </div>
           </div>
 
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-white mb-4">Receita por Produto</h3>
             <div className="space-y-4">
               {chartData.revenueByProduct.map((product, index) => {
@@ -436,12 +436,12 @@ export default function FinanceiroContent() {
       )}
 
       {/* Transactions Table */}
-      <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+      <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-white">Transações</h3>
           <button
             onClick={exportCSV}
-            className="flex items-center gap-2 px-4 py-2 bg-[#C5A059] hover:bg-[#d4b469] text-black font-medium rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black font-medium rounded-lg transition-colors"
           >
             <Download size={16} />
             Exportar CSV
@@ -452,7 +452,7 @@ export default function FinanceiroContent() {
           <select
             value={filters.product_type}
             onChange={(e) => handleFilterChange("product_type", e.target.value)}
-            className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[#C5A059]"
+            className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--gold)]"
           >
             <option value="all">Todos os produtos</option>
             <option value="cavalo_anuncio">Anúncios de Cavalos</option>
@@ -463,7 +463,7 @@ export default function FinanceiroContent() {
           <select
             value={filters.status}
             onChange={(e) => handleFilterChange("status", e.target.value)}
-            className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[#C5A059]"
+            className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--gold)]"
           >
             <option value="all">Todos os status</option>
             <option value="succeeded">Sucesso</option>
@@ -475,14 +475,14 @@ export default function FinanceiroContent() {
             type="date"
             value={filters.start_date}
             onChange={(e) => handleFilterChange("start_date", e.target.value)}
-            className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[#C5A059]"
+            className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--gold)]"
           />
 
           <input
             type="date"
             value={filters.end_date}
             onChange={(e) => handleFilterChange("end_date", e.target.value)}
-            className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[#C5A059]"
+            className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--gold)]"
           />
 
           <div className="relative">
@@ -491,7 +491,7 @@ export default function FinanceiroContent() {
               placeholder="Pesquisar email..."
               value={filters.search}
               onChange={(e) => handleFilterChange("search", e.target.value)}
-              className="w-full px-3 py-2 pl-9 bg-black/30 border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#C5A059]"
+              className="w-full px-3 py-2 pl-9 bg-black/30 border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[var(--gold)]"
             />
             <Search
               className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
@@ -596,7 +596,7 @@ export default function FinanceiroContent() {
                         onClick={() => changePage(pageNum)}
                         className={`px-4 py-2 rounded-lg transition-colors ${
                           currentPage === pageNum
-                            ? "bg-[#C5A059] text-black font-semibold"
+                            ? "bg-[var(--gold)] text-black font-semibold"
                             : "bg-white/5 hover:bg-white/10 text-white border border-white/10"
                         }`}
                       >

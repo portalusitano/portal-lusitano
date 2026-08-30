@@ -57,19 +57,19 @@ export default function DepoimentosContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C5A059]"></div>
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--gold)]"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] p-6">
+    <div className="min-h-screen bg-[var(--background)] p-6">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <Star className="text-[#C5A059]" size={32} />
+            <Star className="text-[var(--gold)]" size={32} />
             <div>
               <h1 className="text-3xl font-bold text-white">Curadoria de Testemunhos</h1>
               <p className="text-gray-400">Aprovar ou rejeitar depoimentos sobre cavalos</p>
@@ -92,7 +92,7 @@ export default function DepoimentosContent() {
               >
                 <div className="max-w-2xl flex-1">
                   {dep.cavalos_venda?.nome && (
-                    <p className="text-[#C5A059] text-xs uppercase font-bold mb-2 tracking-wider">
+                    <p className="text-[var(--gold)] text-xs uppercase font-bold mb-2 tracking-wider">
                       Sobre: {dep.cavalos_venda.nome}
                     </p>
                   )}

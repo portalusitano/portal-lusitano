@@ -120,14 +120,14 @@ export default function CoudelariasPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
         <div className="text-white">A carregar...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] p-6">
+    <div className="min-h-screen bg-[var(--background)] p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -157,7 +157,7 @@ export default function CoudelariasPage() {
             </div>
             <div className="bg-white/5 border border-white/10 rounded-lg p-4">
               <div className="text-sm text-gray-400 mb-1">Destaque</div>
-              <div className="text-2xl font-bold text-[#C5A059]">{stats.destaque}</div>
+              <div className="text-2xl font-bold text-[var(--gold)]">{stats.destaque}</div>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-lg p-4">
               <div className="text-sm text-gray-400 mb-1">Planos Pagos</div>
@@ -179,7 +179,7 @@ export default function CoudelariasPage() {
                 placeholder="Pesquisar coudelarias..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#C5A059]"
+                className="w-full pl-10 pr-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[var(--gold)]"
               />
             </div>
 
@@ -187,7 +187,7 @@ export default function CoudelariasPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+              className="px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
             >
               <option value="all">Todos os Status</option>
               <option value="pendente">Pendente</option>
@@ -200,7 +200,7 @@ export default function CoudelariasPage() {
             <select
               value={planoFilter}
               onChange={(e) => setPlanoFilter(e.target.value)}
-              className="px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+              className="px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
             >
               <option value="all">Todos os Planos</option>
               <option value="gratis">Grátis</option>
@@ -240,7 +240,7 @@ export default function CoudelariasPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-white font-medium">{coudelaria.nome}</span>
-                        {coudelaria.destaque && <Star className="text-[#C5A059]" size={14} />}
+                        {coudelaria.destaque && <Star className="text-[var(--gold)]" size={14} />}
                       </div>
                       <div className="text-xs text-gray-400 mt-1">
                         {coudelaria.proprietario_nome || coudelaria.proprietario_email}
@@ -304,13 +304,13 @@ export default function CoudelariasPage() {
                         }
                         className={`p-2 rounded-lg transition-colors ${
                           coudelaria.destaque
-                            ? "bg-[#C5A059]/20 hover:bg-[#C5A059]/30"
+                            ? "bg-[var(--gold)]/20 hover:bg-[var(--gold)]/30"
                             : "hover:bg-white/10"
                         }`}
                         title={coudelaria.destaque ? "Remover destaque" : "Adicionar destaque"}
                       >
                         <Star
-                          className={coudelaria.destaque ? "text-[#C5A059]" : "text-gray-400"}
+                          className={coudelaria.destaque ? "text-[var(--gold)]" : "text-gray-400"}
                           size={16}
                         />
                       </button>

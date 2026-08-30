@@ -289,7 +289,7 @@ export default function CRMAdvancedContent({ leads }: CRMAdvancedContentProps) {
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-          <BarChart3 className="w-7 h-7 text-[#C5A059]" />
+          <BarChart3 className="w-7 h-7 text-[var(--gold)]" />
           CRM Avancado
         </h2>
         <p className="text-gray-400 mt-1">Lead scoring, segmentacao e follow-ups</p>
@@ -322,8 +322,8 @@ export default function CRMAdvancedContent({ leads }: CRMAdvancedContentProps) {
           title="Score Medio"
           value={`${averageScore}/100`}
           subtitle="Todos os leads activos"
-          icon={<Star className="w-5 h-5 text-[#C5A059]" />}
-          borderColor="border-[#C5A059]/20"
+          icon={<Star className="w-5 h-5 text-[var(--gold)]" />}
+          borderColor="border-[var(--gold)]/20"
         />
       </div>
 
@@ -332,7 +332,7 @@ export default function CRMAdvancedContent({ leads }: CRMAdvancedContentProps) {
         {/* RFM Segments */}
         <div className="bg-white/5 border border-white/10 rounded-xl p-6">
           <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
-            <Users className="w-5 h-5 text-[#C5A059]" />
+            <Users className="w-5 h-5 text-[var(--gold)]" />
             Segmentacao RFM
           </h3>
           <div className="space-y-3">
@@ -396,7 +396,7 @@ export default function CRMAdvancedContent({ leads }: CRMAdvancedContentProps) {
         {/* Stage Conversion Metrics */}
         <div className="bg-white/5 border border-white/10 rounded-xl p-6">
           <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-[#C5A059]" />
+            <TrendingUp className="w-5 h-5 text-[var(--gold)]" />
             Metricas de Conversao
           </h3>
 
@@ -427,7 +427,7 @@ export default function CRMAdvancedContent({ leads }: CRMAdvancedContentProps) {
                   <div className="flex-1 mx-3">
                     <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-[#C5A059] rounded-full transition-all duration-500"
+                        className="h-full bg-[var(--gold)] rounded-full transition-all duration-500"
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -447,7 +447,7 @@ export default function CRMAdvancedContent({ leads }: CRMAdvancedContentProps) {
         {/* Top leads */}
         <div className="bg-white/5 border border-white/10 rounded-xl p-6">
           <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
-            <Target className="w-5 h-5 text-[#C5A059]" />
+            <Target className="w-5 h-5 text-[var(--gold)]" />
             Top Leads por Score
           </h3>
 

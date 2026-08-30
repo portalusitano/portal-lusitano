@@ -211,7 +211,7 @@ export default function MensagensPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#050505] pt-32 pb-20">
+    <main className="min-h-screen bg-[var(--background)] pt-32 pb-20">
       <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header com Stats */}
         <div className="mb-8">
@@ -320,7 +320,7 @@ export default function MensagensPage() {
                       onClick={() => setFilters({ ...filters, status: item.value })}
                       className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-between ${
                         filters.status === item.value
-                          ? "bg-[#C5A059] text-black"
+                          ? "bg-[var(--gold)] text-black"
                           : "text-zinc-400 hover:bg-zinc-800"
                       }`}
                     >
@@ -348,7 +348,7 @@ export default function MensagensPage() {
                       onClick={() => setFilters({ ...filters, formType: item.value })}
                       className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                         filters.formType === item.value
-                          ? "bg-[#C5A059] text-black"
+                          ? "bg-[var(--gold)] text-black"
                           : "text-zinc-400 hover:bg-zinc-800"
                       }`}
                     >
@@ -376,7 +376,7 @@ export default function MensagensPage() {
                       onClick={() => setFilters({ ...filters, priority: item.value })}
                       className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                         filters.priority === item.value
-                          ? "bg-[#C5A059] text-black"
+                          ? "bg-[var(--gold)] text-black"
                           : "text-zinc-400 hover:bg-zinc-800"
                       }`}
                     >
@@ -402,7 +402,7 @@ export default function MensagensPage() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Pesquisar por nome, email ou empresa..."
-                  className="w-full bg-zinc-900/50 border border-white/10 pl-10 pr-4 py-3 text-white rounded-lg focus:outline-none focus:border-[#C5A059] transition-colors"
+                  className="w-full bg-zinc-900/50 border border-white/10 pl-10 pr-4 py-3 text-white rounded-lg focus:outline-none focus:border-[var(--gold)] transition-colors"
                 />
               </div>
             </div>
@@ -411,7 +411,7 @@ export default function MensagensPage() {
             <div className="space-y-2 max-h-[calc(100vh-400px)] overflow-y-auto">
               {loading ? (
                 <div className="text-center py-20">
-                  <RefreshCw className="animate-spin text-[#C5A059] mx-auto mb-4" size={32} />
+                  <RefreshCw className="animate-spin text-[var(--gold)] mx-auto mb-4" size={32} />
                   <p className="text-zinc-500">A carregar...</p>
                 </div>
               ) : messages.length === 0 ? (
@@ -426,7 +426,7 @@ export default function MensagensPage() {
                     onClick={() => handleSelectMessage(message)}
                     className={`w-full text-left p-4 rounded-xl transition-all border ${
                       selectedMessage?.id === message.id
-                        ? "bg-[#C5A059]/20 border-[#C5A059]"
+                        ? "bg-[var(--gold)]/20 border-[var(--gold)]"
                         : "bg-zinc-900/30 border-white/5 hover:border-white/10 hover:bg-zinc-900/50"
                     }`}
                   >
@@ -560,7 +560,7 @@ export default function MensagensPage() {
                       );
                       setShowReplyModal(true);
                     }}
-                    className="flex items-center gap-2 bg-[#C5A059] hover:bg-[#B39049] text-black px-4 py-2 rounded-lg font-medium transition-colors"
+                    className="flex items-center gap-2 bg-[var(--gold)] hover:bg-[var(--gold)] text-black px-4 py-2 rounded-lg font-medium transition-colors"
                   >
                     <Send size={16} />
                     Responder Email
@@ -670,7 +670,7 @@ export default function MensagensPage() {
                     type="text"
                     value={replySubject}
                     onChange={(e) => setReplySubject(e.target.value)}
-                    className="w-full bg-zinc-800 border border-white/10 px-4 py-3 text-white rounded-lg focus:outline-none focus:border-[#C5A059] transition-colors"
+                    className="w-full bg-zinc-800 border border-white/10 px-4 py-3 text-white rounded-lg focus:outline-none focus:border-[var(--gold)] transition-colors"
                     placeholder="Assunto do email"
                   />
                 </div>
@@ -681,7 +681,7 @@ export default function MensagensPage() {
                     value={replyMessage}
                     onChange={(e) => setReplyMessage(e.target.value)}
                     rows={10}
-                    className="w-full bg-zinc-800 border border-white/10 px-4 py-3 text-white rounded-lg focus:outline-none focus:border-[#C5A059] transition-colors resize-none"
+                    className="w-full bg-zinc-800 border border-white/10 px-4 py-3 text-white rounded-lg focus:outline-none focus:border-[var(--gold)] transition-colors resize-none"
                     placeholder="Escreva a sua mensagem aqui..."
                   />
                 </div>
@@ -696,7 +696,7 @@ export default function MensagensPage() {
                   <button
                     onClick={handleSendReply}
                     disabled={sending || !replySubject || !replyMessage}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#C5A059] hover:bg-[#B39049] text-black rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-4 py-2 bg-[var(--gold)] hover:bg-[var(--gold)] text-black rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {sending ? (
                       <>

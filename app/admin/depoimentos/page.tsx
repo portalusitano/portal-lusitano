@@ -18,7 +18,7 @@ export default async function AdminDepoimentosPage({
       <main className="min-h-screen bg-black text-white pt-48 px-10">
         <header className="mb-16 border-b border-zinc-900 pb-8">
           <h1 className="text-4xl font-normal">
-            Curadoria de <span className="text-[#C5A059]">Testemunhos</span>
+            Curadoria de <span className="text-[var(--gold)]">Testemunhos</span>
           </h1>
         </header>
 
@@ -29,7 +29,7 @@ export default async function AdminDepoimentosPage({
               className="bg-zinc-950 border border-zinc-900 p-8 flex justify-between items-center"
             >
               <div className="max-w-2xl">
-                <p className="text-[#C5A059] text-[11px] uppercase font-bold mb-2 tracking-wider">
+                <p className="text-[var(--gold)] text-[11px] uppercase font-bold mb-2 tracking-wider">
                   Sobre: {dep.cavalos_venda?.nome}
                 </p>
                 <p className="text-xl font-normal text-zinc-300 mb-4">

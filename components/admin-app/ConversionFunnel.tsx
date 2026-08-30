@@ -66,7 +66,9 @@ export default function ConversionFunnel({
           <h2 className="text-2xl font-bold text-white mb-1">{title}</h2>
           <p className="text-gray-400 text-sm">
             Taxa de conversão geral:{" "}
-            <span className="text-[#C5A059] font-semibold">{overallConversion.toFixed(1)}%</span>
+            <span className="text-[var(--gold)] font-semibold">
+              {overallConversion.toFixed(1)}%
+            </span>
           </p>
         </div>
       </div>
@@ -211,7 +213,7 @@ export default function ConversionFunnel({
           </div>
           <div className="bg-black/20 rounded-lg px-4 py-3">
             <p className="text-xs text-gray-400 mb-1">Conversão Final</p>
-            <p className="text-lg font-bold text-[#C5A059]">{overallConversion.toFixed(1)}%</p>
+            <p className="text-lg font-bold text-[var(--gold)]">{overallConversion.toFixed(1)}%</p>
           </div>
         </div>
       </div>

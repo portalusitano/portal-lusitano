@@ -144,7 +144,7 @@ export default function ChatContent() {
     return parts.map((part, i) => {
       if (/^@\S+@\S+\.\S+$/.test(part)) {
         return (
-          <span key={i} className="bg-[#C5A059]/20 text-[#C5A059] px-1 rounded">
+          <span key={i} className="bg-[var(--gold)]/20 text-[var(--gold)] px-1 rounded">
             {part}
           </span>
         );
@@ -159,7 +159,7 @@ export default function ChatContent() {
       <div className="bg-gradient-to-r from-white/5 to-white/10 border-b border-white/10 p-4 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <Hash className="w-5 h-5 text-[#C5A059]" />
+            <Hash className="w-5 h-5 text-[var(--gold)]" />
             Chat Interno
           </h1>
           <p className="text-sm text-gray-400">Equipa Portal Lusitano</p>
@@ -176,10 +176,10 @@ export default function ChatContent() {
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-br from-[#050505] via-[#0A0A0A] to-[#050505]">
+      <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-br from-[var(--background)] via-[var(--background-secondary)] to-[var(--background)]">
         {loading ? (
           <div className="text-center py-8">
-            <div className="animate-spin w-8 h-8 border-4 border-[#C5A059] border-t-transparent rounded-full mx-auto mb-3" />
+            <div className="animate-spin w-8 h-8 border-4 border-[var(--gold)] border-t-transparent rounded-full mx-auto mb-3" />
             <p className="text-gray-400 text-sm">A carregar mensagens...</p>
           </div>
         ) : messages.length === 0 ? (
@@ -202,7 +202,7 @@ export default function ChatContent() {
                 {showAvatar && (
                   <div
                     className={`w-8 h-8 rounded-full ${
-                      isOwn ? "bg-[#C5A059]" : "bg-gradient-to-br from-blue-500 to-purple-500"
+                      isOwn ? "bg-[var(--gold)]" : "bg-gradient-to-br from-blue-500 to-purple-500"
                     } flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}
                   >
                     {getInitials(msg.sender_email)}
@@ -222,7 +222,7 @@ export default function ChatContent() {
                   <div
                     className={`inline-block max-w-lg rounded-lg px-4 py-2 ${
                       isOwn
-                        ? "bg-[#C5A059] text-black"
+                        ? "bg-[var(--gold)] text-black"
                         : "bg-white/5 border border-white/10 text-white"
                     }`}
                   >
@@ -279,7 +279,7 @@ export default function ChatContent() {
           <button
             onClick={sendMessage}
             disabled={!newMessage.trim()}
-            className="p-2 bg-[#C5A059] hover:bg-[#d4b469] rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-5 h-5 text-black" />
           </button>

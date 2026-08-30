@@ -185,9 +185,9 @@ export default function AdminDashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C5A059] mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--gold)] mx-auto"></div>
           <p className="text-gray-400 mt-4">A carregar dashboard...</p>
         </div>
       </div>
@@ -195,9 +195,9 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505]">
+    <div className="min-h-screen bg-[var(--background)]">
       {/* Header */}
-      <div className="border-b border-white/10 bg-[#0A0A0A]">
+      <div className="border-b border-white/10 bg-[var(--background-secondary)]">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
@@ -240,7 +240,7 @@ export default function AdminDashboard() {
                   <p className="text-sm text-gray-300 font-mono mb-2">📋 Siga estes passos:</p>
                   <ol className="text-sm text-gray-400 space-y-1 ml-4 list-decimal">
                     <li>
-                      Abra o ficheiro <code className="text-[#C5A059]">INSTALAR_ADMIN.md</code>
+                      Abra o ficheiro <code className="text-[var(--gold)]">INSTALAR_ADMIN.md</code>
                     </li>
                     <li>Siga as instruções para executar o SQL no Supabase</li>
                     <li>Recarregue esta página (F5)</li>
@@ -268,7 +268,7 @@ export default function AdminDashboard() {
               <h2 className="text-2xl font-bold text-white">💰 Financeiro</h2>
               <Link
                 href="/admin/financeiro"
-                className="text-[#C5A059] hover:text-[#d4b469] text-sm font-medium transition-colors"
+                className="text-[var(--gold)] hover:text-[var(--gold-hover)] text-sm font-medium transition-colors"
               >
                 Ver Dashboard Completo →
               </Link>
@@ -276,10 +276,10 @@ export default function AdminDashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
               {/* Receita Total */}
-              <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6 hover:border-[#C5A059]/30 transition-colors">
+              <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6 hover:border-[var(--gold)]/30 transition-colors">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-medium text-gray-400">Receita Total</h3>
-                  <DollarSign className="text-[#C5A059]" size={20} />
+                  <DollarSign className="text-[var(--gold)]" size={20} />
                 </div>
                 <p className="text-3xl font-bold text-white">
                   {formatCurrency(financial.totalRevenue)}
@@ -288,7 +288,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Receita Este Mês */}
-              <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6 hover:border-green-500/30 transition-colors">
+              <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6 hover:border-green-500/30 transition-colors">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-medium text-gray-400">Este Mês</h3>
                   <TrendingUp className="text-green-500" size={20} />
@@ -307,20 +307,20 @@ export default function AdminDashboard() {
               </div>
 
               {/* MRR */}
-              <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6 hover:border-[#C5A059]/30 transition-colors">
+              <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6 hover:border-[var(--gold)]/30 transition-colors">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-medium text-gray-400">MRR</h3>
-                  <Repeat className="text-[#C5A059]" size={20} />
+                  <Repeat className="text-[var(--gold)]" size={20} />
                 </div>
                 <p className="text-3xl font-bold text-white">{formatCurrency(financial.mrr)}</p>
                 <p className="text-xs text-gray-500 mt-1">Receita recorrente</p>
               </div>
 
               {/* Transações */}
-              <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6 hover:border-[#C5A059]/30 transition-colors">
+              <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6 hover:border-[var(--gold)]/30 transition-colors">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-medium text-gray-400">Transações</h3>
-                  <ShoppingCart className="text-[#C5A059]" size={20} />
+                  <ShoppingCart className="text-[var(--gold)]" size={20} />
                 </div>
                 <p className="text-3xl font-bold text-white">{financial.totalTransactions}</p>
                 <p className="text-xs text-gray-500 mt-1">
@@ -338,7 +338,7 @@ export default function AdminDashboard() {
               <h2 className="text-2xl font-bold text-white">📨 Mensagens & Contactos</h2>
               <Link
                 href="/admin/mensagens"
-                className="text-[#C5A059] hover:text-[#d4b469] text-sm font-medium transition-colors"
+                className="text-[var(--gold)] hover:text-[var(--gold-hover)] text-sm font-medium transition-colors"
               >
                 Ver Inbox Completo →
               </Link>
@@ -346,9 +346,9 @@ export default function AdminDashboard() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
               {/* Stats de Mensagens */}
-              <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+              <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <Mail className="text-[#C5A059]" size={24} />
+                  <Mail className="text-[var(--gold)]" size={24} />
                   <h3 className="text-lg font-semibold text-white">Status das Mensagens</h3>
                 </div>
                 <div className="space-y-3">
@@ -376,7 +376,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Mensagens Recentes */}
-              <div className="lg:col-span-2 bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+              <div className="lg:col-span-2 bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-white mb-4">Mensagens Recentes</h3>
                 <div className="space-y-3">
                   {recentMessages.length > 0 ? (
@@ -421,7 +421,7 @@ export default function AdminDashboard() {
               <h2 className="text-2xl font-bold text-white">📊 Analytics & Performance</h2>
               <Link
                 href="/admin/analytics"
-                className="text-[#C5A059] hover:text-[#d4b469] text-sm font-medium transition-colors"
+                className="text-[var(--gold)] hover:text-[var(--gold-hover)] text-sm font-medium transition-colors"
               >
                 Ver Analytics Completo →
               </Link>
@@ -429,7 +429,7 @@ export default function AdminDashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
               {/* Views Totais */}
-              <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6 hover:border-blue-500/30 transition-colors">
+              <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6 hover:border-blue-500/30 transition-colors">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-medium text-gray-400">Total Views</h3>
                   <Eye className="text-blue-500" size={20} />
@@ -444,7 +444,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Leads */}
-              <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6 hover:border-green-500/30 transition-colors">
+              <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6 hover:border-green-500/30 transition-colors">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-medium text-gray-400">Leads (Ebook)</h3>
                   <Users className="text-green-500" size={20} />
@@ -454,7 +454,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Reviews */}
-              <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6 hover:border-yellow-500/30 transition-colors">
+              <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6 hover:border-yellow-500/30 transition-colors">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-medium text-gray-400">Reviews</h3>
                   <Star className="text-yellow-500" size={20} />
@@ -466,7 +466,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* Eventos */}
-              <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6 hover:border-purple-500/30 transition-colors">
+              <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6 hover:border-purple-500/30 transition-colors">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-medium text-gray-400">Eventos</h3>
                   <Calendar className="text-purple-500" size={20} />
@@ -533,15 +533,15 @@ export default function AdminDashboard() {
         )}
 
         {/* DASHBOARDS ESPECIALIZADOS */}
-        <div className="bg-gradient-to-br from-[#C5A059]/10 to-[#C5A059]/5 border border-[#C5A059]/20 rounded-lg p-6">
+        <div className="bg-gradient-to-br from-[var(--gold)]/10 to-[var(--gold)]/5 border border-[var(--gold)]/20 rounded-lg p-6">
           <h2 className="text-2xl font-bold text-white mb-4">🚀 Dashboards Especializados</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <Link
               href="/admin/financeiro"
-              className="bg-[#0A0A0A] border border-white/10 hover:border-[#C5A059]/50 rounded-lg p-6 transition-all hover:scale-105"
+              className="bg-[var(--background-secondary)] border border-white/10 hover:border-[var(--gold)]/50 rounded-lg p-6 transition-all hover:scale-105"
             >
               <div className="flex items-center gap-3 mb-3">
-                <DollarSign className="text-[#C5A059]" size={28} />
+                <DollarSign className="text-[var(--gold)]" size={28} />
                 <h3 className="text-lg font-bold text-white">Dashboard Financeiro</h3>
               </div>
               <p className="text-sm text-gray-400">
@@ -551,7 +551,7 @@ export default function AdminDashboard() {
 
             <Link
               href="/admin/mensagens"
-              className="bg-[#0A0A0A] border border-white/10 hover:border-blue-500/50 rounded-lg p-6 transition-all hover:scale-105"
+              className="bg-[var(--background-secondary)] border border-white/10 hover:border-blue-500/50 rounded-lg p-6 transition-all hover:scale-105"
             >
               <div className="flex items-center gap-3 mb-3">
                 <Mail className="text-blue-500" size={28} />
@@ -564,7 +564,7 @@ export default function AdminDashboard() {
 
             <Link
               href="/admin/analytics"
-              className="bg-[#0A0A0A] border border-white/10 hover:border-green-500/50 rounded-lg p-6 transition-all hover:scale-105"
+              className="bg-[var(--background-secondary)] border border-white/10 hover:border-green-500/50 rounded-lg p-6 transition-all hover:scale-105"
             >
               <div className="flex items-center gap-3 mb-3">
                 <BarChart2 className="text-green-500" size={28} />
@@ -577,7 +577,7 @@ export default function AdminDashboard() {
 
             <Link
               href="/admin/calendario"
-              className="bg-[#0A0A0A] border border-white/10 hover:border-purple-500/50 rounded-lg p-6 transition-all hover:scale-105"
+              className="bg-[var(--background-secondary)] border border-white/10 hover:border-purple-500/50 rounded-lg p-6 transition-all hover:scale-105"
             >
               <div className="flex items-center gap-3 mb-3">
                 <Calendar className="text-purple-500" size={28} />
@@ -590,7 +590,7 @@ export default function AdminDashboard() {
 
             <Link
               href="/admin/crm"
-              className="bg-[#0A0A0A] border border-white/10 hover:border-orange-500/50 rounded-lg p-6 transition-all hover:scale-105"
+              className="bg-[var(--background-secondary)] border border-white/10 hover:border-orange-500/50 rounded-lg p-6 transition-all hover:scale-105"
             >
               <div className="flex items-center gap-3 mb-3">
                 <TrendingUp className="text-orange-500" size={28} />

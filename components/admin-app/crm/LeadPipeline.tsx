@@ -75,7 +75,7 @@ export default function LeadPipeline({
         return (
           <div
             key={stage.key}
-            className={`bg-[#0A0A0A] border border-${stage.color}-500/20 rounded-lg min-h-[600px]`}
+            className={`bg-[var(--background-secondary)] border border-${stage.color}-500/20 rounded-lg min-h-[600px]`}
             onDragOver={handleDragOver}
             onDrop={() => onDrop(stage.key)}
           >
@@ -162,7 +162,7 @@ export default function LeadPipeline({
                     )}
 
                     <div className="flex items-center justify-between pt-2 border-t border-white/10">
-                      <span className="text-sm font-semibold text-[#C5A059]">
+                      <span className="text-sm font-semibold text-[var(--gold)]">
                         {formatCurrency(lead.estimated_value || 0)}
                       </span>
                       <div className="flex items-center gap-2">

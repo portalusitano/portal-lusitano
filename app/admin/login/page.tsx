@@ -11,7 +11,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full bg-[var(--gold)] text-black font-bold uppercase text-xs tracking-wide py-4 hover:bg-white hover:shadow-[0_0_20px_rgba(197,160,89,0.3)] transition-all duration-500 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+      className="w-full bg-[var(--gold)] text-black font-bold uppercase text-xs tracking-wide py-4 hover:bg-white hover:shadow-[0_0_20px_rgb(var(--gold-rgb) / 0.3)] transition-all duration-500 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {pending ? "A entrar..." : "Entrar"}
     </button>

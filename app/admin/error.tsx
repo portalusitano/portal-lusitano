@@ -27,7 +27,7 @@ export default function AdminError({
         <div className="flex gap-3 justify-center">
           <button
             onClick={reset}
-            className="bg-[#C5A059] text-black font-medium text-sm py-2 px-6 hover:bg-[#D4B068] transition-all rounded"
+            className="bg-[var(--gold)] text-black font-medium text-sm py-2 px-6 hover:bg-[var(--gold-hover)] transition-all rounded"
           >
             Tentar novamente
           </button>

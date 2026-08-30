@@ -53,12 +53,12 @@ export default function TransactionsTable({
   onPageChange,
 }: TransactionsTableProps) {
   return (
-    <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+    <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-white">Transações</h3>
         <button
           onClick={onExportCSV}
-          className="flex items-center gap-2 px-4 py-2 bg-[#C5A059] hover:bg-[#d4b469] text-black font-medium rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black font-medium rounded-lg transition-colors"
         >
           <Download size={16} />
           Exportar CSV
@@ -71,7 +71,7 @@ export default function TransactionsTable({
         <select
           value={filters.product_type}
           onChange={(e) => onFilterChange("product_type", e.target.value)}
-          className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[#C5A059]"
+          className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--gold)]"
         >
           <option value="all">Todos os produtos</option>
           <option value="cavalo_anuncio">Anúncios de Cavalos</option>
@@ -83,7 +83,7 @@ export default function TransactionsTable({
         <select
           value={filters.status}
           onChange={(e) => onFilterChange("status", e.target.value)}
-          className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[#C5A059]"
+          className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--gold)]"
         >
           <option value="all">Todos os status</option>
           <option value="succeeded">Sucesso</option>
@@ -96,7 +96,7 @@ export default function TransactionsTable({
           type="date"
           value={filters.start_date}
           onChange={(e) => onFilterChange("start_date", e.target.value)}
-          className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[#C5A059]"
+          className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--gold)]"
         />
 
         {/* Data Fim */}
@@ -104,7 +104,7 @@ export default function TransactionsTable({
           type="date"
           value={filters.end_date}
           onChange={(e) => onFilterChange("end_date", e.target.value)}
-          className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[#C5A059]"
+          className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--gold)]"
         />
 
         {/* Pesquisa */}
@@ -114,7 +114,7 @@ export default function TransactionsTable({
             placeholder="Pesquisar email..."
             value={filters.search}
             onChange={(e) => onFilterChange("search", e.target.value)}
-            className="w-full px-3 py-2 pl-9 bg-black/30 border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#C5A059]"
+            className="w-full px-3 py-2 pl-9 bg-black/30 border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[var(--gold)]"
           />
           <Search
             className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
@@ -215,7 +215,7 @@ export default function TransactionsTable({
                     onClick={() => onPageChange(pageNum)}
                     className={`px-4 py-2 rounded-lg transition-colors ${
                       currentPage === pageNum
-                        ? "bg-[#C5A059] text-black font-semibold"
+                        ? "bg-[var(--gold)] text-black font-semibold"
                         : "bg-white/5 hover:bg-white/10 text-white border border-white/10"
                     }`}
                   >
