@@ -1170,502 +1170,516 @@ body {
   --raio-sm: 8px;
   --raio-lg: 24px;
 }
+/* As classes de componente vivem na camada `components` de propósito: as
+ * utilidades do Tailwind estão numa camada posterior, por isso um `pl-11`
+ * ou um `h-12` numa página ganham sempre à classe. Fora da camada, o
+ * `padding` do `.campo` calava o `pl-11` e o ícone da pesquisa aterrava
+ * por cima do texto. */
+@layer components {
+  /* --- Tipografia ---------------------------------------------------------- */
 
-/* --- Tipografia ---------------------------------------------------------- */
+  /* Etiqueta acima de um valor ou de um grupo. Substitui os `text-[9px]
+     uppercase tracking-[0.3em]` espalhados pelo site. */
+  .rotulo {
+    font-size: 0.6875rem; /* 11px */
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    color: var(--foreground-muted);
+  }
 
-/* Etiqueta acima de um valor ou de um grupo. Substitui os `text-[9px]
-   uppercase tracking-[0.3em]` espalhados pelo site. */
-.rotulo {
-  font-size: 0.6875rem; /* 11px */
-  line-height: 1.2;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 600;
-  color: var(--foreground-muted);
-}
+  .rotulo-forte {
+    font-size: 0.6875rem;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    color: var(--gold);
+  }
 
-.rotulo-forte {
-  font-size: 0.6875rem;
-  line-height: 1.2;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 600;
-  color: var(--gold);
-}
+  /* Título de secção dentro de uma página. */
+  .titulo-seccao {
+    font-size: 0.9375rem; /* 15px */
+    line-height: 1.3;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--foreground);
+  }
 
-/* Título de secção dentro de uma página. */
-.titulo-seccao {
-  font-size: 0.9375rem; /* 15px */
-  line-height: 1.3;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: var(--foreground);
-}
-
-/* Título de página. */
-.titulo-pagina {
-  font-size: 1.5rem; /* 24px */
-  line-height: 1.2;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--foreground);
-}
-
-@media (min-width: 640px) {
+  /* Título de página. */
   .titulo-pagina {
-    font-size: 1.75rem; /* 28px */
+    font-size: 1.5rem; /* 24px */
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--foreground);
   }
-}
 
-/* Texto de apoio: metadados de um anúncio, contagens, datas. */
-.meta {
-  font-size: 0.75rem; /* 12px */
-  line-height: 1.4;
-  color: var(--foreground-muted);
-}
+  @media (min-width: 640px) {
+    .titulo-pagina {
+      font-size: 1.75rem; /* 28px */
+    }
+  }
 
-/* Preços. `tabular-nums` alinha as colunas de dígitos entre cartões, que é o
-   que permite comparar preços de relance numa grelha. */
-.preco {
-  font-variant-numeric: tabular-nums;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  color: var(--gold);
-}
+  /* Texto de apoio: metadados de um anúncio, contagens, datas. */
+  .meta {
+    font-size: 0.75rem; /* 12px */
+    line-height: 1.4;
+    color: var(--foreground-muted);
+  }
 
-/* --- Superfícies --------------------------------------------------------- */
+  /* Preços. `tabular-nums` alinha as colunas de dígitos entre cartões, que é o
+     que permite comparar preços de relance numa grelha. */
+  .preco {
+    font-variant-numeric: tabular-nums;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    color: var(--gold);
+  }
 
-.cartao {
-  background: var(--background-card);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--raio-lg);
-  overflow: hidden;
-}
+  /* --- Superfícies --------------------------------------------------------- */
 
-.cartao-interactivo {
-  transition:
-    border-color 0.2s ease,
-    transform 0.2s ease;
-}
+  .cartao {
+    background: var(--background-card);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--raio-lg);
+    overflow: hidden;
+  }
 
-.cartao-interactivo:hover {
-  border-color: var(--border);
-}
+  .cartao-interactivo {
+    transition:
+      border-color 0.2s ease,
+      transform 0.2s ease;
+  }
 
-@media (prefers-reduced-motion: no-preference) {
   .cartao-interactivo:hover {
-    transform: translateY(-2px);
+    border-color: var(--border);
   }
-}
 
-/* --- Botões -------------------------------------------------------------- */
+  @media (prefers-reduced-motion: no-preference) {
+    .cartao-interactivo:hover {
+      transform: translateY(-2px);
+    }
+  }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1rem;
-  border-radius: var(--raio);
-  border: 1px solid transparent;
-  font-size: 0.8125rem; /* 13px */
-  font-weight: 600;
-  line-height: 1;
-  white-space: nowrap;
-  cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
-}
+  /* --- Botões -------------------------------------------------------------- */
 
-.btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-/* Alvo de toque de 44px em ecrãs sem rato, sem inchar o botão no desktop. */
-@media (pointer: coarse) {
   .btn {
-    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    border-radius: var(--raio);
+    border: 1px solid transparent;
+    font-size: 0.8125rem; /* 13px */
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease;
   }
-}
 
-/* Branco, não dourado. O acento é do tamanho de um ícone; usá-lo em cada
-   botão gastava-o e deixava de assinalar seja o que for. */
-.btn-primario {
-  background: var(--foreground-strong);
-  color: #000;
-  font-weight: 600;
-}
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
 
-.btn-primario:hover:not(:disabled) {
-  background: #e4e4e7;
-}
+  /* Alvo de toque de 44px em ecrãs sem rato, sem inchar o botão no desktop. */
+  @media (pointer: coarse) {
+    .btn {
+      min-height: 44px;
+    }
+  }
 
-html.light .btn-primario {
-  background: #0a0a0a;
-  color: #fff;
-}
+  /* Branco, não dourado. O acento é do tamanho de um ícone; usá-lo em cada
+     botão gastava-o e deixava de assinalar seja o que for. */
+  .btn-primario {
+    background: var(--foreground-strong);
+    color: #000;
+    font-weight: 600;
+  }
 
-html.light .btn-primario:hover:not(:disabled) {
-  background: #27272a;
-}
+  .btn-primario:hover:not(:disabled) {
+    background: #e4e4e7;
+  }
 
-/* Para a única acção que merece o acento: publicar um anúncio. */
-.btn-acento {
-  background: var(--gold);
-  color: #000;
-  font-weight: 600;
-}
+  html.light .btn-primario {
+    background: #0a0a0a;
+    color: #fff;
+  }
 
-.btn-acento:hover:not(:disabled) {
-  background: var(--gold-hover);
-}
+  html.light .btn-primario:hover:not(:disabled) {
+    background: #27272a;
+  }
 
-.btn-secundario {
-  background: transparent;
-  border-color: var(--border-soft);
-  color: var(--foreground-secondary);
-}
+  /* Para a única acção que merece o acento: publicar um anúncio. */
+  .btn-acento {
+    background: var(--gold);
+    color: #000;
+    font-weight: 600;
+  }
 
-.btn-secundario:hover:not(:disabled) {
-  border-color: var(--border);
-  color: var(--foreground-strong);
-}
+  .btn-acento:hover:not(:disabled) {
+    background: var(--gold-hover);
+  }
 
-.btn-subtil {
-  background: transparent;
-  color: var(--foreground-secondary);
-}
+  .btn-secundario {
+    background: transparent;
+    border-color: var(--border-soft);
+    color: var(--foreground-secondary);
+  }
 
-.btn-subtil:hover:not(:disabled) {
-  color: var(--foreground);
-  background: var(--surface-hover);
-}
+  .btn-secundario:hover:not(:disabled) {
+    border-color: var(--border);
+    color: var(--foreground-strong);
+  }
 
-.btn-sm {
-  padding: 0.375rem 0.625rem;
-  font-size: 0.75rem;
-}
+  .btn-subtil {
+    background: transparent;
+    color: var(--foreground-secondary);
+  }
 
-/* --- Campos de formulário ------------------------------------------------ */
+  .btn-subtil:hover:not(:disabled) {
+    color: var(--foreground);
+    background: var(--surface-hover);
+  }
 
-.campo {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  background: var(--background-elevated);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--raio);
-  color: var(--foreground);
-  font-size: 0.875rem; /* 14px — abaixo disto o iOS faz zoom ao focar */
-  line-height: 1.4;
-  transition: border-color 0.15s ease;
-}
+  .btn-sm {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.75rem;
+  }
 
-.campo::placeholder {
-  color: var(--foreground-muted);
-}
+  /* --- Campos de formulário ------------------------------------------------ */
 
-.campo:hover {
-  border-color: var(--border-hover);
-}
+  .campo {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--background-elevated);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--raio);
+    color: var(--foreground);
+    font-size: 0.875rem; /* 14px — abaixo disto o iOS faz zoom ao focar */
+    line-height: 1.4;
+    transition: border-color 0.15s ease;
+  }
 
-.campo:focus {
-  border-color: var(--border);
-  outline: none;
-}
+  .campo::placeholder {
+    color: var(--foreground-muted);
+  }
 
-/* --- Fichas e distintivos ------------------------------------------------ */
+  .campo:hover {
+    border-color: var(--border-hover);
+  }
 
-/* Pastilha de filtro, clicável. */
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.75rem;
-  border: 1px solid var(--border-soft);
-  border-radius: 999px;
-  background: var(--elevate-1);
-  color: var(--foreground-secondary);
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1.3;
-  white-space: nowrap;
-  cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    color 0.15s ease;
-}
+  .campo:focus {
+    border-color: var(--border);
+    outline: none;
+  }
 
-.chip:hover {
-  border-color: var(--border);
-  color: var(--foreground-strong);
-}
+  /* --- Fichas e distintivos ------------------------------------------------ */
 
-.chip-activo {
-  border-color: var(--gold);
-  background: color-mix(in srgb, var(--gold) 12%, transparent);
-  color: var(--gold);
-}
+  /* Pastilha de filtro, clicável. */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--border-soft);
+    border-radius: 999px;
+    background: var(--elevate-1);
+    color: var(--foreground-secondary);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.3;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      border-color 0.15s ease,
+      color 0.15s ease;
+  }
 
-/* Distintivo informativo, não clicável. */
-.selo {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.125rem 0.375rem;
-  border-radius: var(--raio-sm);
-  font-size: 0.625rem; /* 10px — só para uma ou duas palavras sobre a foto */
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  line-height: 1.4;
-}
+  .chip:hover {
+    border-color: var(--border);
+    color: var(--foreground-strong);
+  }
 
-.selo-destaque {
-  background: var(--gold);
-  color: #000;
-}
+  .chip-activo {
+    border-color: var(--gold);
+    background: color-mix(in srgb, var(--gold) 12%, transparent);
+    color: var(--gold);
+  }
 
-.selo-novo {
-  background: var(--ok);
-  color: #000;
-}
+  /* Distintivo informativo, não clicável. */
+  .selo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: var(--raio-sm);
+    font-size: 0.625rem; /* 10px — só para uma ou duas palavras sobre a foto */
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1.4;
+  }
 
-.selo-neutro {
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
-}
+  .selo-destaque {
+    background: var(--gold);
+    color: #000;
+  }
 
-/* ===========================================================================
- * PRIMITIVAS VISUAIS
- * ===========================================================================
- * As três receitas que dão identidade ao site. Vivem aqui e não nas páginas
- * para que um cartão seja o mesmo cartão em todo o lado.
- * ========================================================================= */
+  .selo-novo {
+    background: var(--ok);
+    color: #000;
+  }
 
-/* --- Título com gradiente ------------------------------------------------ */
-/* O branco puro no topo a esbater para 75% dá volume ao texto grande sem
-   precisar de sombra. Só vale a pena em títulos: em corpo de texto o
-   degradê corta a legibilidade. */
-.titulo-gradiente {
-  background: linear-gradient(180deg, var(--foreground-strong), var(--foreground-secondary));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
+  .selo-neutro {
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
 
-/* --- Separador com brilho ------------------------------------------------ */
-/* A costura entre secções: um risco de luz que nasce no centro e desvanece,
-   mais um halo largo por baixo. É o que faz as secções encaixarem umas nas
-   outras em vez de ficarem empilhadas. */
-.separador-brilho {
-  position: relative;
-}
+  /* ===========================================================================
+   * PRIMITIVAS VISUAIS
+   * ===========================================================================
+   * As três receitas que dão identidade ao site. Vivem aqui e não nas páginas
+   * para que um cartão seja o mesmo cartão em todo o lado.
+   * ========================================================================= */
 
-.separador-brilho::before {
-  content: "";
-  position: absolute;
-  top: -1px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 300px;
-  max-width: 100%;
-  height: 1px;
-  background: radial-gradient(ellipse at center, var(--elevate-2) 0%, transparent 70%);
-  pointer-events: none;
-}
+  /* --- Título com gradiente ------------------------------------------------ */
+  /* O branco puro no topo a esbater para 75% dá volume ao texto grande sem
+     precisar de sombra. Só vale a pena em títulos: em corpo de texto o
+     degradê corta a legibilidade. */
+  .titulo-gradiente {
+    background: linear-gradient(180deg, var(--foreground-strong), var(--foreground-secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
 
-.separador-brilho::after {
-  content: "";
-  position: absolute;
-  top: -1px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 400px;
-  max-width: 100%;
-  height: 200px;
-  pointer-events: none;
-  background: radial-gradient(ellipse at center top, var(--elevate-1) 0%, transparent 70%);
-}
+  /* --- Separador com brilho ------------------------------------------------ */
+  /* A costura entre secções: um risco de luz que nasce no centro e desvanece,
+     mais um halo largo por baixo. É o que faz as secções encaixarem umas nas
+     outras em vez de ficarem empilhadas. */
+  .separador-brilho {
+    position: relative;
+  }
 
-/* --- Cartão assinatura --------------------------------------------------- */
-/* Sem borda em baixo e com um gradiente a dissolver as laterais no fundo: o
-   cartão parece emergir do preto em vez de estar colado a ele. O risco de luz
-   de 150px no topo é o que o separa do fundo sem uma caixa desenhada. */
-.cartao-seco {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  border-radius: 24px;
-  border: 1px solid var(--border);
-  border-bottom: 0;
-  overflow: hidden;
-}
+  .separador-brilho::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    max-width: 100%;
+    height: 1px;
+    background: radial-gradient(ellipse at center, var(--elevate-2) 0%, transparent 70%);
+    pointer-events: none;
+  }
 
-.cartao-seco__costura {
-  pointer-events: none;
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  height: 1px;
-  width: 150px;
-  max-width: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(143, 143, 143, 0.67) 50%,
-    transparent 100%
-  );
-}
+  .separador-brilho::after {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 400px;
+    max-width: 100%;
+    height: 200px;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center top, var(--elevate-1) 0%, transparent 70%);
+  }
 
-.cartao-seco__esbatido {
-  pointer-events: none;
-  position: absolute;
-  left: -2px;
-  top: -2px;
-  height: calc(100% + 4px);
-  width: calc(100% + 4px);
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    var(--background) 60%,
-    var(--background) 100%
-  );
-}
+  /* --- Cartão assinatura --------------------------------------------------- */
+  /* Sem borda em baixo e com um gradiente a dissolver as laterais no fundo: o
+     cartão parece emergir do preto em vez de estar colado a ele. O risco de luz
+     de 150px no topo é o que o separa do fundo sem uma caixa desenhada. */
+  .cartao-seco {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border-radius: 24px;
+    border: 1px solid var(--border);
+    border-bottom: 0;
+    overflow: hidden;
+  }
 
-/* --- Botão de vidro ------------------------------------------------------ */
-.botao-vidro {
-  border: 2px solid var(--elevate-1);
-  -webkit-backdrop-filter: blur(25px);
-  backdrop-filter: blur(25px);
-  background-origin: border-box;
-  background-image: linear-gradient(104deg, rgba(253, 253, 253, 0.05) 5%, rgba(240, 240, 228, 0.1));
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s var(--ease-inout);
-}
+  .cartao-seco__costura {
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: 1px;
+    width: 150px;
+    max-width: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(143, 143, 143, 0.67) 50%,
+      transparent 100%
+    );
+  }
 
-.botao-vidro:hover {
-  background-image: linear-gradient(104deg, rgba(253, 253, 253, 0.1) 5%, rgba(240, 240, 228, 0.15));
-  border-color: var(--elevate-2);
-}
+  .cartao-seco__esbatido {
+    pointer-events: none;
+    position: absolute;
+    left: -2px;
+    top: -2px;
+    height: calc(100% + 4px);
+    width: calc(100% + 4px);
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      var(--background) 60%,
+      var(--background) 100%
+    );
+  }
 
-/* --- Previews em HTML dentro dos cartões --------------------------------- */
-/* Tabelas verdadeiras a 10–11px em vez de capturas de ecrã: pesam zero, ficam
-   nítidas em qualquer ecrã e o conteúdo actualiza-se sozinho. */
-.linha-ui {
-  display: grid;
-  align-items: center;
-  border-bottom: 1px solid var(--border-soft);
-  padding: 10px 0;
-}
+  /* --- Botão de vidro ------------------------------------------------------ */
+  .botao-vidro {
+    border: 2px solid var(--elevate-1);
+    -webkit-backdrop-filter: blur(25px);
+    backdrop-filter: blur(25px);
+    background-origin: border-box;
+    background-image: linear-gradient(
+      104deg,
+      rgba(253, 253, 253, 0.05) 5%,
+      rgba(240, 240, 228, 0.1)
+    );
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s var(--ease-inout);
+  }
 
-.cabeca-ui {
-  display: grid;
-  align-items: center;
-  border-bottom: 1px solid var(--border);
-  padding: 8px 0;
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--foreground-secondary);
-}
+  .botao-vidro:hover {
+    background-image: linear-gradient(
+      104deg,
+      rgba(253, 253, 253, 0.1) 5%,
+      rgba(240, 240, 228, 0.15)
+    );
+    border-color: var(--elevate-2);
+  }
 
-.ponto {
-  width: 6px;
-  height: 6px;
-  border-radius: 9999px;
-  display: inline-block;
-  flex-shrink: 0;
-}
+  /* --- Previews em HTML dentro dos cartões --------------------------------- */
+  /* Tabelas verdadeiras a 10–11px em vez de capturas de ecrã: pesam zero, ficam
+     nítidas em qualquer ecrã e o conteúdo actualiza-se sozinho. */
+  .linha-ui {
+    display: grid;
+    align-items: center;
+    border-bottom: 1px solid var(--border-soft);
+    padding: 10px 0;
+  }
 
-/* --- Entrada ao entrar no ecrã ------------------------------------------- */
-/* O estado inicial só se aplica havendo JS, para a página nunca ficar em
-   branco se o script falhar. */
-.js [data-revelar] {
-  opacity: 0;
-  transform: translateY(var(--ry, 24px));
-  transition:
-    opacity var(--rd, 500ms) var(--ease) var(--rdelay, 0ms),
-    transform var(--rd, 500ms) var(--ease) var(--rdelay, 0ms);
-  will-change: opacity, transform;
-}
+  .cabeca-ui {
+    display: grid;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 0;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--foreground-secondary);
+  }
 
-.js [data-revelar].dentro {
-  opacity: 1;
-  transform: none;
-}
+  .ponto {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    display: inline-block;
+    flex-shrink: 0;
+  }
 
-@keyframes descer-cabecalho {
-  from {
+  /* --- Entrada ao entrar no ecrã ------------------------------------------- */
+  /* O estado inicial só se aplica havendo JS, para a página nunca ficar em
+     branco se o script falhar. */
+  .js [data-revelar] {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(var(--ry, 24px));
+    transition:
+      opacity var(--rd, 500ms) var(--ease) var(--rdelay, 0ms),
+      transform var(--rd, 500ms) var(--ease) var(--rdelay, 0ms);
+    will-change: opacity, transform;
   }
-  to {
+
+  .js [data-revelar].dentro {
     opacity: 1;
     transform: none;
   }
-}
 
-@keyframes crescer {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.anim-cabecalho {
-  animation: descer-cabecalho 0.5s var(--ease-out);
-}
-
-.anim-crescer {
-  animation: crescer 0.2s var(--ease-out);
-  transform-origin: top center;
-}
-
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) transparent;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .js [data-revelar] {
-    opacity: 1 !important;
-    transform: none !important;
+  @keyframes descer-cabecalho {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 
-  .anim-cabecalho,
+  @keyframes crescer {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .anim-cabecalho {
+    animation: descer-cabecalho 0.5s var(--ease-out);
+  }
+
   .anim-crescer {
-    animation: none;
+    animation: crescer 0.2s var(--ease-out);
+    transform-origin: top center;
   }
-}
 
-/* --- Ponto a pulsar ------------------------------------------------------ */
-/* O único ciclo infinito do site inteiro. Um site com vários fica inquieto;
-   com um só, esse um quer dizer "isto está vivo agora". */
-@keyframes pulsar-ponto {
-  75%,
-  100% {
-    transform: scale(2);
-    opacity: 0;
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
   }
-}
 
-.anim-pulsar {
-  animation: pulsar-ponto 1s var(--ease-out) infinite;
-}
+  @media (prefers-reduced-motion: reduce) {
+    .js [data-revelar] {
+      opacity: 1 !important;
+      transform: none !important;
+    }
 
-@media (prefers-reduced-motion: reduce) {
+    .anim-cabecalho,
+    .anim-crescer {
+      animation: none;
+    }
+  }
+
+  /* --- Ponto a pulsar ------------------------------------------------------ */
+  /* O único ciclo infinito do site inteiro. Um site com vários fica inquieto;
+     com um só, esse um quer dizer "isto está vivo agora". */
+  @keyframes pulsar-ponto {
+    75%,
+    100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+
   .anim-pulsar {
-    animation: none;
+    animation: pulsar-ponto 1s var(--ease-out) infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .anim-pulsar {
+      animation: none;
+    }
   }
 }

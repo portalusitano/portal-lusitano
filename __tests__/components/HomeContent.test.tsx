@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import type { SellerListing } from "@/lib/marketplace-listings";
 
 const push = vi.fn();
@@ -126,7 +126,11 @@ describe("HomeContent", () => {
     render(
       <HomeContent destaques={[]} recentes={[anuncio({ status: "reservado" })]} totalAtivos={1} />
     );
-    expect(screen.getByText("Reservado")).toBeInTheDocument();
+    // Procurado dentro do cartão do anúncio: a secção que explica a
+    // plataforma tem uma tabela de exemplo onde "Reservado" também aparece.
+    const cartao = screen.getByText("Imperador do Lagar").closest("a");
+    expect(cartao).not.toBeNull();
+    expect(within(cartao as HTMLElement).getByText("Reservado")).toBeInTheDocument();
   });
 
   it("liga cada cartão à ficha do anúncio", () => {
