@@ -42,14 +42,22 @@ export const NavIcons = memo(function NavIcons({
       {/* Idioma */}
       <button
         onClick={onLanguageToggle}
-        className="hidden lg:flex text-xs font-bold tracking-wider text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors border border-transparent hover:border-[var(--border)] px-2 py-1 rounded-sm"
+        className="rotulo hidden rounded-full border border-transparent px-2.5 py-1 transition-colors hover:border-[var(--border-soft)] lg:flex"
         aria-label={tr3(language, "Mudar idioma", "Change language", "Cambiar idioma")}
       >
-        <span className={language === "pt" ? "text-[var(--gold)]" : ""}>PT</span>
-        <span className="mx-1 opacity-30 text-[var(--foreground-muted)]">|</span>
-        <span className={language === "en" ? "text-[var(--gold)]" : ""}>EN</span>
-        <span className="mx-1 opacity-30 text-[var(--foreground-muted)]">|</span>
-        <span className={language === "es" ? "text-[var(--gold)]" : ""}>ES</span>
+        {/* O idioma activo distingue-se por ser o único aceso, não por ser
+            dourado. O acento é do tamanho de um ícone, e aqui não assinala
+            nada que o contraste não assinale melhor. */}
+        {(["pt", "en", "es"] as const).map((codigo, i) => (
+          <span key={codigo}>
+            {i > 0 && <span className="mx-1 opacity-25">|</span>}
+            <span
+              className={language === codigo ? "text-[var(--foreground-strong)]" : "opacity-55"}
+            >
+              {codigo.toUpperCase()}
+            </span>
+          </span>
+        ))}
       </button>
 
       {/* Favoritos — hidden on mobile (accessible via BottomNav) */}

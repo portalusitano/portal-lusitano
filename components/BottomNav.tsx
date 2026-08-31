@@ -108,7 +108,7 @@ export default memo(function BottomNav() {
         {/* Header — branding + close */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border)]/50">
           <div>
-            <p className="rotulo-forte font-semibold leading-none">Portal Lusitano</p>
+            <p className="rotulo leading-none">Portal Lusitano</p>
             <p className="rotulo mt-0.5">
               {language === "pt" ? "Est. 2023 · Portugal" : "Est. 2023 · Portugal"}
             </p>
@@ -129,11 +129,8 @@ export default memo(function BottomNav() {
             <LocalizedLink
               href="/vender-cavalo"
               onClick={() => setIsMoreOpen(false)}
-              className="flex flex-col gap-3 p-4 bg-gradient-to-br from-[var(--gold)]/15 via-[var(--gold)]/8 to-transparent border border-[var(--gold)]/30 rounded-2xl touch-manipulation active:scale-[0.98] transition-transform"
+              className="cartao flex touch-manipulation flex-col gap-3 p-4 transition-transform active:scale-[0.98]"
             >
-              <div className="w-10 h-10 bg-[var(--gold)] rounded-xl flex items-center justify-center shadow-[0_0_16px_rgb(var(--gold-rgb) / 0.3)]">
-                <Euro size={18} className="text-black" strokeWidth={2.5} />
-              </div>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-[var(--foreground)] leading-tight">
                   {language === "pt"
@@ -157,7 +154,7 @@ export default memo(function BottomNav() {
 
           {/* Explorar */}
           <section>
-            <p className="rotulo-forte mb-2 px-1 font-medium">
+            <p className="rotulo mb-2 px-1">
               {language === "pt" ? "Explorar" : language === "es" ? "Explorar" : "Explore"}
             </p>
             <div className="grid grid-cols-2 gap-1.5">
@@ -194,9 +191,13 @@ export default memo(function BottomNav() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsMoreOpen(false)}
-                  className="flex items-center gap-3 py-3 px-3 text-sm text-[var(--foreground-secondary)] hover:text-[var(--gold)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] rounded-xl transition-colors touch-manipulation active:scale-[0.97]"
+                  className="flex items-center gap-3 py-3 px-3 text-sm text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] rounded-xl transition-colors touch-manipulation active:scale-[0.97]"
                 >
-                  <item.icon size={17} className="text-[var(--gold)]/70" />
+                  <item.icon
+                    size={17}
+                    className="text-[var(--foreground-muted)]"
+                    aria-hidden="true"
+                  />
                   <span className="truncate">{item.label}</span>
                 </LocalizedLink>
               ))}
@@ -205,16 +206,16 @@ export default memo(function BottomNav() {
 
           {/* Conta */}
           <section>
-            <p className="rotulo-forte mb-2 px-1 font-medium">
+            <p className="rotulo mb-2 px-1">
               {language === "pt" ? "Conta" : language === "es" ? "Cuenta" : "Account"}
             </p>
             <div className="grid grid-cols-2 gap-1.5">
               <LocalizedLink
                 href="/minha-conta"
                 onClick={() => setIsMoreOpen(false)}
-                className="flex items-center gap-3 py-3 px-3 text-sm text-[var(--foreground-secondary)] hover:text-[var(--gold)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] rounded-xl transition-colors touch-manipulation active:scale-[0.97]"
+                className="flex items-center gap-3 py-3 px-3 text-sm text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] rounded-xl transition-colors touch-manipulation active:scale-[0.97]"
               >
-                <User size={17} className="text-[var(--gold)]/70" />
+                <User size={17} className="text-[var(--foreground-muted)]" aria-hidden="true" />
                 <span className="truncate">{t.nav.my_account}</span>
               </LocalizedLink>
             </div>

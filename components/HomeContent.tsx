@@ -229,12 +229,12 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
                       aEscrever === null ? "Linhagem, coudelaria, disciplina ou nome" : aEscrever
                     }
                     aria-label="Procurar cavalos"
-                    className="campo h-12 pl-11 text-base sm:h-14 sm:text-lg"
+                    className="campo h-11 pl-11 text-sm sm:h-12 sm:text-base"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="btn btn-primario h-12 shrink-0 px-6 sm:h-14 sm:text-base"
+                  className="btn btn-primario h-11 shrink-0 px-6 text-sm sm:h-12"
                 >
                   Procurar
                 </button>

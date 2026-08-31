@@ -1361,6 +1361,14 @@ body {
     color: #000;
   }
 
+  /* Branco, para o distintivo que aparece em quase todos os cartões de uma
+     grelha. O dourado num selo é para o que é raro; repetido vinte vezes
+     numa página deixa de assinalar nada. */
+  .selo-forte {
+    background: var(--foreground-strong);
+    color: #000;
+  }
+
   .selo-neutro {
     background: rgba(0, 0, 0, 0.6);
     color: #fff;
@@ -1917,10 +1925,13 @@ body {
  * ========================================================================= */
 
 @layer components {
+  /* Entra de baixo e um pouco da esquerda. Só com opacidade e Y a linha
+     aparecia sem se perceber de onde; o desvio lateral é o que a faz ler
+     como uma linha a ser posta na tabela. */
   @keyframes ui-entrar {
     from {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translate(-10px, 14px);
     }
     to {
       opacity: 1;
@@ -1937,44 +1948,44 @@ body {
   .js [data-revelar].dentro .cabeca-ui,
   .js [data-revelar].dentro .linha-ui,
   .js [data-revelar].dentro .bloco-ui {
-    animation: ui-entrar 520ms var(--ease-out) both;
+    animation: ui-entrar 620ms var(--ease-out) both;
   }
 
   .js [data-revelar].dentro .cabeca-ui {
     animation-delay: 200ms;
   }
 
-  /* 70ms por linha. Cinco linhas fecham em meio segundo depois da cabeça —
-     tempo de se ver a tabela a encher sem se ficar à espera dela. */
+  /* 85ms por linha, a contar de 300ms. Cinco linhas fecham antes dos 650ms
+     — dá para ver a tabela a encher sem se ficar à espera dela. */
   .js [data-revelar].dentro .linha-ui:nth-child(2),
   .js [data-revelar].dentro .bloco-ui:nth-child(1) {
-    animation-delay: 290ms;
+    animation-delay: 300ms;
   }
   .js [data-revelar].dentro .linha-ui:nth-child(3),
   .js [data-revelar].dentro .bloco-ui:nth-child(2) {
-    animation-delay: 360ms;
+    animation-delay: 385ms;
   }
   .js [data-revelar].dentro .linha-ui:nth-child(4),
   .js [data-revelar].dentro .bloco-ui:nth-child(3) {
-    animation-delay: 430ms;
+    animation-delay: 470ms;
   }
   .js [data-revelar].dentro .linha-ui:nth-child(5),
   .js [data-revelar].dentro .bloco-ui:nth-child(4) {
-    animation-delay: 500ms;
+    animation-delay: 555ms;
   }
   .js [data-revelar].dentro .linha-ui:nth-child(6),
   .js [data-revelar].dentro .bloco-ui:nth-child(5) {
-    animation-delay: 570ms;
+    animation-delay: 640ms;
   }
   .js [data-revelar].dentro .linha-ui:nth-child(7),
   .js [data-revelar].dentro .bloco-ui:nth-child(6) {
-    animation-delay: 640ms;
+    animation-delay: 725ms;
   }
   .js [data-revelar].dentro .linha-ui:nth-child(8) {
-    animation-delay: 710ms;
+    animation-delay: 810ms;
   }
   .js [data-revelar].dentro .linha-ui:nth-child(9) {
-    animation-delay: 780ms;
+    animation-delay: 895ms;
   }
 }
 

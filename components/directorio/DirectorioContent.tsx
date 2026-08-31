@@ -25,7 +25,7 @@ const LeafletMap = dynamic(() => import("@/components/LeafletMap"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center bg-[var(--background-secondary)]/80">
-      <Map className="text-[var(--gold)] animate-pulse" size={28} />
+      <Map className="text-[var(--foreground-muted)]" size={28} aria-hidden="true" />
     </div>
   ),
 });
@@ -200,18 +200,21 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
         className="relative pt-20 sm:pt-32 pb-16 overflow-hidden"
         aria-label="Cabeçalho do directório"
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-[var(--gold)]/5 to-transparent pointer-events-none" />
-        {/* Decorative line */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-gradient-to-b from-[var(--gold)]/60 to-transparent" />
+        {/* O mesmo halo da página inicial: luz que vem de cima e se dissolve,
+            em vez do véu dourado e do risco vertical que aqui estavam. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage:
+              "radial-gradient(ellipse 70% 50% at 50% 0%, var(--elevate-1), transparent 70%)",
+          }}
+        />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative">
           <AnimateOnScroll className="text-center">
-            <span className="inline-flex items-center gap-2 text-xs uppercase tracking-wider text-[var(--gold)] mb-5">
-              <span className="block w-8 h-px bg-[var(--gold)]/60" />
-              {t.directorio.badge}
-              <span className="block w-8 h-px bg-[var(--gold)]/60" />
-            </span>
-            <h1 className="text-2xl sm:text-4xl md:text-6xl text-[var(--foreground)] mb-5">
+            <span className="rotulo mb-5 block">{t.directorio.badge}</span>
+            <h1 className="titulo-gradiente mb-5 text-[2rem] font-normal leading-[120%] tracking-tighter md:text-[3.5rem]">
               {t.directorio.title}
             </h1>
             <p className="text-[var(--foreground-secondary)] max-w-2xl mx-auto text-lg leading-relaxed">
@@ -231,10 +234,10 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
             ].map(({ value, label }) => (
               <div
                 key={label}
-                className="text-center p-4 bg-[var(--surface-hover)] border border-[var(--border)] hover:border-[var(--gold)]/30 transition-colors"
+                className="cartao p-4 text-center transition-colors hover:border-[var(--border-hover)]"
               >
-                <div className="text-3xl text-[var(--gold)]">{value}</div>
-                <div className="text-sm text-[var(--foreground-muted)] mt-1">{label}</div>
+                <div className="text-3xl tabular-nums text-[var(--foreground-strong)]">{value}</div>
+                <div className="meta mt-1">{label}</div>
               </div>
             ))}
           </AnimateOnScroll>
@@ -244,30 +247,22 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-20">
         {/* ── CTA Banner ── */}
         <AnimateOnScroll delay={150}>
-          <div className="mb-12 p-6 sm:p-8 bg-gradient-to-r from-[var(--gold)]/10 via-[var(--gold)]/5 to-transparent border border-[var(--gold)]/20 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--gold)]/10 blur-3xl pointer-events-none" />
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-6 relative">
-              <div className="flex items-center gap-5">
-                <div
-                  className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[var(--gold)] to-[#E8D5A3] flex items-center justify-center flex-shrink-0"
-                  aria-hidden="true"
-                >
-                  <Crown className="text-black" size={28} />
-                </div>
-                <div>
-                  <h2 className="text-lg sm:text-xl text-[var(--foreground)] mb-1">
-                    {t.directorio.has_stud}
-                  </h2>
-                  <p className="text-[var(--foreground-secondary)] text-sm sm:text-base">
-                    {t.directorio.register_cta}
-                  </p>
-                </div>
+          {/* A coroa dourada num quadrado de 64px e o botão dourado de
+              largura inteira gastavam o acento duas vezes na mesma faixa. O
+              que a faixa precisa é de se ler, e isso faz-se com uma
+              superfície elevada e um botão branco. */}
+          <div className="cartao mb-12 p-6 sm:p-8">
+            <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+              <div>
+                <h2 className="titulo-seccao mb-1">{t.directorio.has_stud}</h2>
+                <p className="text-sm text-[var(--foreground-secondary)]">
+                  {t.directorio.register_cta}
+                </p>
               </div>
               <LocalizedLink
                 href="/directorio/registar"
-                className="inline-flex items-center gap-2 bg-[var(--gold)] text-black px-6 sm:px-8 py-3 sm:py-4 text-sm font-bold uppercase tracking-wider hover:bg-[var(--gold-hover)] active:scale-95 transition-all whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+                className="btn btn-primario shrink-0 rounded-full px-6"
               >
-                <Plus size={16} aria-hidden="true" />
                 {t.directorio.register_btn}
               </LocalizedLink>
             </div>
@@ -284,7 +279,7 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
             {/* Search bar */}
             <div className="relative group">
               <Search
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] group-focus-within:text-[var(--gold)] transition-colors pointer-events-none"
+                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]"
                 size={18}
                 aria-hidden="true"
               />
@@ -294,13 +289,13 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 aria-label={t.directorio.search_placeholder}
-                className="w-full bg-[var(--background-secondary)]/60 border border-[var(--border)] pl-11 pr-11 py-4 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none focus:bg-[var(--background-secondary)] transition-all"
+                className="campo h-14 pl-11 pr-11 text-base"
               />
               {searchTerm && (
                 <button
                   onClick={clearSearch}
                   aria-label={t.directorio.search_clear}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] hover:text-[var(--gold)] transition-colors p-0.5 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-[var(--foreground-muted)] transition-colors hover:text-[var(--foreground-strong)]"
                 >
                   <X size={16} aria-hidden="true" />
                 </button>
@@ -321,11 +316,7 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
                     key={regiao}
                     onClick={() => setSelectedRegiao(value)}
                     aria-pressed={isActive}
-                    className={`px-4 py-2 text-sm font-medium border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--background)] ${
-                      isActive
-                        ? "bg-[var(--gold)] border-[var(--gold)] text-black"
-                        : "bg-transparent border-[var(--border)] text-[var(--foreground-secondary)] hover:border-[var(--gold)]/50 hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)]"
-                    }`}
+                    className={`chip ${isActive ? "chip-activo" : ""}`}
                   >
                     {regiao}
                     {isActive && i !== 0 && (
@@ -346,10 +337,7 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
                       : t.directorio.coudelarias_plural
                   }`}
                 </p>
-                <button
-                  onClick={clearAll}
-                  className="text-sm text-[var(--gold)] hover:text-[var(--gold-hover)] hover:underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
-                >
+                <button onClick={clearAll} className="btn btn-subtil text-sm">
                   {t.directorio.clear_filters}
                 </button>
               </div>
@@ -362,7 +350,7 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
           <div className="mb-10">
             <button
               onClick={() => setShowMap((v) => !v)}
-              className="inline-flex items-center gap-2 text-sm font-medium text-[var(--foreground-secondary)] hover:text-[var(--gold)] border border-[var(--border)] hover:border-[var(--gold)]/50 px-4 py-2.5 transition-all"
+              className="btn btn-secundario gap-2 rounded-full"
             >
               <Map size={16} />
               {showMap ? "Ocultar Mapa" : "Ver no Mapa"}
@@ -372,7 +360,7 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
             </button>
             {showMap && (
               <div
-                className="mt-4 relative z-0 border border-[var(--border)] overflow-hidden"
+                className="relative z-0 mt-4 overflow-hidden rounded-2xl border border-[var(--border-soft)]"
                 style={{ height: 450 }}
               >
                 <LeafletMap
@@ -393,16 +381,12 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
             <section data-revelar="" suppressHydrationWarning aria-label={t.directorio.coudelarias}>
               <AnimateOnScroll>
                 <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center gap-3">
-                    <span className="w-px h-6 bg-[var(--gold)]" aria-hidden="true" />
-                    <Crown className="text-[var(--gold)]" size={20} aria-hidden="true" />
-                    <h2 className="text-2xl text-[var(--foreground)]">
-                      {t.directorio.coudelarias}
-                      <span className="text-[var(--foreground-muted)] text-base font-normal ml-3">
-                        ({deferredFiltered.length})
-                      </span>
-                    </h2>
-                  </div>
+                  <h2 className="titulo-seccao text-2xl">
+                    {t.directorio.coudelarias}
+                    <span className="ml-3 text-base font-normal tabular-nums text-[var(--foreground-muted)]">
+                      ({deferredFiltered.length})
+                    </span>
+                  </h2>
                 </div>
               </AnimateOnScroll>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -434,10 +418,7 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
                   {t.directorio.no_results_hint}
                 </p>
                 {hasActiveFilters && (
-                  <button
-                    onClick={clearAll}
-                    className="mt-6 inline-flex items-center gap-2 text-sm text-[var(--gold)] border border-[var(--gold)]/30 px-5 py-2.5 hover:bg-[var(--gold)]/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
-                  >
+                  <button onClick={clearAll} className="btn btn-secundario mt-6 gap-2 rounded-full">
                     <X size={14} aria-hidden="true" />
                     {t.directorio.clear_filters}
                   </button>
@@ -482,7 +463,7 @@ function CoudelariaCard({
     <AnimateOnScroll delay={index * 50}>
       <LocalizedLink
         href={`/directorio/${coudelaria.slug}`}
-        className="group block relative h-[280px] sm:h-[400px] overflow-hidden border border-[var(--border)] hover:border-[var(--gold)]/40 transition-all duration-300 hover:shadow-[0_8px_32px_rgb(var(--gold-rgb) / 0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+        className="group relative block h-[280px] overflow-hidden rounded-2xl border border-[var(--border-soft)] transition-colors duration-300 hover:border-[var(--border-hover)] sm:h-[400px]"
         aria-label={`${coudelaria.nome}, ${coudelaria.localizacao}`}
       >
         <Image
@@ -495,43 +476,46 @@ function CoudelariaCard({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
         {/* Overlay  on hover */}
-        <div className="absolute inset-0 bg-[var(--gold)]/0 group-hover:bg-[var(--gold)]/5 transition-colors duration-300" />
 
         {/* Top badges */}
         <div className="absolute top-4 left-4 right-4 flex items-start justify-between">
           <div className="flex items-center gap-2">
             {coudelaria.destaque && (
-              <span className="flex items-center gap-1.5 bg-gradient-to-r from-[var(--gold)] to-[#E8D5A3] text-black px-3 py-1.5 text-xs font-bold uppercase tracking-wide">
+              <span className="selo selo-forte">
                 <Star size={12} aria-hidden="true" />
                 {t.directorio.highlight}
               </span>
             )}
             {coudelaria.ano_fundacao && (
-              <span className="bg-black/70 backdrop-blur-sm text-white/90 px-2.5 py-1.5 text-xs font-medium">
+              <span className="selo selo-neutro">
                 {t.directorio.since} {coudelaria.ano_fundacao}
               </span>
             )}
           </div>
-          <span className="flex items-center gap-1 bg-black/60 backdrop-blur-sm text-white/80 px-2.5 py-1.5 text-xs border border-white/10">
-            <CheckCircle size={10} className="text-green-400" aria-hidden="true" />
+          <span className="selo selo-neutro">
+            <CheckCircle size={10} style={{ color: "var(--ok)" }} aria-hidden="true" />
             {t.directorio.verified}
           </span>
         </div>
 
         {/* Content (bottom overlay) */}
         <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
-          <h3 className="text-base sm:text-2xl text-white mb-1.5 sm:mb-2 group-hover:text-[var(--gold)] transition-colors duration-300 line-clamp-1 sm:line-clamp-none">
+          <h3 className="mb-1.5 line-clamp-1 text-base text-[var(--foreground-strong)] transition-colors duration-300 sm:mb-2 sm:line-clamp-none sm:text-2xl">
             {coudelaria.nome}
           </h3>
 
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-white/70 text-xs sm:text-sm mb-2 sm:mb-3">
             <span className="flex items-center gap-1">
-              <MapPin size={11} className="text-[var(--gold)] flex-shrink-0" aria-hidden="true" />
+              <MapPin
+                size={11}
+                className="flex-shrink-0 text-[var(--foreground-muted)]"
+                aria-hidden="true"
+              />
               {coudelaria.localizacao}, {coudelaria.regiao}
             </span>
             {coudelaria.num_cavalos && (
               <span className="hidden sm:flex items-center gap-1.5">
-                <Users size={13} className="text-[var(--gold)]" aria-hidden="true" />
+                <Users size={13} className="text-[var(--foreground-muted)]" aria-hidden="true" />
                 {coudelaria.num_cavalos} {t.directorio.horses}
               </span>
             )}
@@ -560,7 +544,7 @@ function CoudelariaCard({
             </div>
           )}
 
-          <div className="flex items-center gap-1.5 text-[var(--gold)] text-xs sm:text-sm font-medium">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-[var(--foreground-strong)] sm:text-sm">
             {t.directorio.view_stud || t.directorio.view_details}
             <ArrowRight
               size={13}
