@@ -63,6 +63,25 @@ export default memo(function Navbar() {
     return () => largo.removeEventListener("change", aoMudar);
   }, []);
 
+  // Com o menu aberto, a barra sai também da árvore de acessibilidade.
+  //
+  // Sem isto ficava invisível e sem eventos mas continuava a ser lida: o seu
+  // botão passa a chamar-se «Fechar menu» quando o menu abre, e um leitor de
+  // ecrã anunciava dois botões com esse nome — o do painel, que funciona, e
+  // este, que não se consegue activar.
+  //
+  // O atributo é posto por referência e não como prop no JSX. Como prop,
+  // `inert={…}` fazia o build emitir uma referência a um chunk que não
+  // chegava a existir, e a página deixava de hidratar por completo — nada
+  // no site respondia a um clique. Verificado nos dois sentidos.
+  const barraRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const barra = barraRef.current;
+    if (!barra) return;
+    if (isMobileOpen) barra.setAttribute("inert", "");
+    else barra.removeAttribute("inert");
+  }, [isMobileOpen]);
+
   // Detect scroll for better mobile UX (RAF-throttled, only updates on change)
   const scrolledRef = useRef(false);
   useEffect(() => {
@@ -89,6 +108,7 @@ export default memo(function Navbar() {
     // scroll: ganha um véu escuro com desfoque e uma hairline em vez de ter
     // fundo sólido desde o início, para o topo da página respirar.
     <nav
+      ref={barraRef}
       id="main-navigation"
       role="navigation"
       aria-label={
