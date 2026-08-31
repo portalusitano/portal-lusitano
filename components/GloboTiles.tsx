@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { Map as MapaGL, Marker } from "maplibre-gl";
+import { Map as MapaGL, Marker, setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { resolverCoordenadas, type CoudelariaNoMapa } from "@/lib/coordenadas-coudelarias";
 
@@ -25,6 +25,19 @@ import { resolverCoordenadas, type CoudelariaNoMapa } from "@/lib/coordenadas-co
  */
 
 const CENTRO_PT: [number, number] = [-8.2, 39.5];
+
+/*
+ * O worker é servido de `public/`, não do pacote.
+ *
+ * O MapLibre monta-lhe o URL com `new URL("./maplibre-gl-worker.mjs",
+ * import.meta.url)`. Empacotado pelo Turbopack, esse caminho fica ao lado
+ * do chunk — onde o ficheiro não existe. Dava 404, o worker nunca
+ * arrancava, e como é ele que decifra os tiles, o mapa ficava um rectângulo
+ * preto sem um único erro visível: a consola ficava limpa, o estilo dizia-se
+ * carregado, as camadas estavam lá com as cores certas, e não se desenhava
+ * nada. O ficheiro é posto em `public/` pelo `prebuild`.
+ */
+setWorkerUrl("/maplibre-gl-worker.mjs");
 const ESTILO = "https://tiles.openfreemap.org/styles/positron";
 
 type Props = {
@@ -35,37 +48,56 @@ type Props = {
   aoFalhar?: () => void;
 };
 
-/** Repinta o estilo claro do OpenFreeMap na paleta do portal. */
+/*
+ * Repinta o estilo claro do OpenFreeMap na paleta do portal.
+ *
+ * A primeira versão desta função pintava a terra a 4,5% de branco e as
+ * fronteiras a 10% — sobre preto puro, isso é preto. O globo saía uma bola
+ * escura com um aro de atmosfera e mais nada. As cores daqui são opacas de
+ * propósito: a terra tem de se distinguir do mar a olho, e o mar do espaço.
+ */
+const PALETA = {
+  espaco: "#05070c",
+  mar: "#070b12",
+  terra: "#151b26",
+  terraAlta: "#1b2230",
+  fronteira: "rgba(214,235,253,0.34)",
+  traco: "rgba(214,235,253,0.10)",
+};
+
 function repintar(mapa: MapaGL) {
   const estilo = getComputedStyle(document.documentElement);
-  const token = (nome: string, omissao: string) => estilo.getPropertyValue(nome).trim() || omissao;
-  const fundo = token("--background", "#000000");
-  const tenue = token("--foreground-muted", "#8a8a8a");
+  const tenue = estilo.getPropertyValue("--foreground-muted").trim() || "#8a8a8a";
 
   for (const camada of mapa.getStyle().layers ?? []) {
     const id = camada.id;
     try {
       switch (camada.type) {
         case "background":
-          mapa.setPaintProperty(id, "background-color", fundo);
+          mapa.setPaintProperty(id, "background-color", PALETA.espaco);
           break;
         case "fill":
           mapa.setPaintProperty(
             id,
             "fill-color",
-            /water|ocean|sea|river/i.test(id) ? "#04070c" : "rgba(255,255,255,0.045)"
+            /water|ocean|sea|river|lake/i.test(id)
+              ? PALETA.mar
+              : /building|landuse|park|wood|forest/i.test(id)
+                ? PALETA.terraAlta
+                : PALETA.terra
           );
+          mapa.setPaintProperty(id, "fill-opacity", 1);
           break;
         case "line":
           mapa.setPaintProperty(
             id,
             "line-color",
-            /bound|admin|border/i.test(id) ? "rgba(214,235,253,0.26)" : "rgba(214,235,253,0.10)"
+            /bound|admin|border/i.test(id) ? PALETA.fronteira : PALETA.traco
           );
           break;
         case "symbol":
           mapa.setPaintProperty(id, "text-color", tenue);
-          mapa.setPaintProperty(id, "text-halo-color", fundo);
+          mapa.setPaintProperty(id, "text-halo-color", PALETA.espaco);
           mapa.setPaintProperty(id, "text-halo-width", 1.2);
           break;
         default:

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
+    "prebuild": "node scripts/copiar-worker-maplibre.mjs",
     "build": "next build",
     "start": "next start",
     "images:refresh": "node -e \"const{rmSync,existsSync}=require('fs');const p='.next/cache/images';if(existsSync(p)){rmSync(p,{recursive:true,force:true});console.log('✓ Cache de imagens limpa. Reinicia o servidor para aplicar.')}else{console.log('Nenhum cache para limpar.')}\"",
