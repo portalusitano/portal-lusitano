@@ -157,7 +157,7 @@ describe("GET /api/search", () => {
     expect(horseResult.image).toBe("https://example.com/horse.jpg");
   });
 
-  it("should return event and stud results from supabase", async () => {
+  it("should return stud results from supabase", async () => {
     vi.resetModules();
 
     vi.doMock("@/lib/supabase-admin", () => {
@@ -174,17 +174,6 @@ describe("GET /api/search", () => {
       return {
         supabase: {
           from: vi.fn().mockImplementation((table: string) => {
-            if (table === "eventos") {
-              return createChainWithData([
-                {
-                  id: "ev1",
-                  titulo: "Feira do Cavalo",
-                  descricao: "Grande evento",
-                  slug: "feira-cavalo",
-                  imagem: "https://example.com/event.jpg",
-                },
-              ]);
-            }
             if (table === "coudelarias") {
               return createChainWithData([
                 {
@@ -209,11 +198,9 @@ describe("GET /api/search", () => {
 
     expect(response.status).toBe(200);
 
-    const eventResult = data.results.find((r: { type: string }) => r.type === "event");
-    expect(eventResult).toBeDefined();
-    expect(eventResult.id).toBe("event-ev1");
-    expect(eventResult.title).toBe("Feira do Cavalo");
-    expect(eventResult.url).toBe("/eventos/feira-cavalo");
+    // A secção de eventos saiu do site: a pesquisa não pode voltar a
+    // devolver fichas que já não têm página onde aterrar.
+    expect(data.results.find((r: { type: string }) => r.type === "event")).toBeUndefined();
 
     const studResult = data.results.find((r: { type: string }) => r.type === "stud");
     expect(studResult).toBeDefined();

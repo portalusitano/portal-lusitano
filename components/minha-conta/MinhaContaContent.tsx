@@ -312,7 +312,6 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
     { href: "/vender-cavalo", icon: Tag, label: "Vender" },
     { href: "/cavalos-favoritos", icon: Heart, label: "Favoritos" },
     { href: "/directorio", icon: Building2, label: "Coudelarias" },
-    { href: "/eventos", icon: Calendar, label: "Eventos" },
     { href: "/mapa", icon: GitBranch, label: "Mapa" },
   ];
 

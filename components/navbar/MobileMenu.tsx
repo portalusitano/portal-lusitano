@@ -147,7 +147,6 @@ export const MobileMenu = memo(function MobileMenu({
         { href: "/mapa", label: tr3(language, "Mapa", "Map", "Mapa") },
       ],
     },
-    { href: "/eventos", label: tr3(language, "Eventos", "Events", "Eventos") },
     {
       href: "/cavalos-favoritos",
       label: tr3(language, "Cavalos favoritos", "Saved horses", "Caballos favoritos"),

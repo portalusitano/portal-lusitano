@@ -6,7 +6,7 @@ import { sanitizeSearchInput } from "@/lib/sanitize";
 
 interface SearchResult {
   id: string;
-  type: "horse" | "product" | "article" | "event" | "stud" | "page";
+  type: "horse" | "product" | "article" | "stud" | "page";
   title: string;
   description?: string;
   url: string;
@@ -35,12 +35,11 @@ const STATIC_PAGES: Array<{ title_pt: string; title_en: string; url: string; key
       keywords: ["coudelarias", "studs", "criadores", "directorio", "directory"],
     },
     {
-      title_pt: "Eventos",
-      title_en: "Events",
-      url: "/eventos",
-      keywords: ["eventos", "events", "concursos", "feiras", "leiloes"],
+      title_pt: "Mapa",
+      title_en: "Map",
+      url: "/mapa",
+      keywords: ["mapa", "map", "localização"],
     },
-    { title_pt: "Mapa", title_en: "Map", url: "/mapa", keywords: ["mapa", "map", "localização"] },
   ];
 
 export async function GET(request: NextRequest) {
@@ -67,25 +66,16 @@ export async function GET(request: NextRequest) {
     // Pesquisar em paralelo: Supabase tables + páginas estáticas
     // Só pesquisa nas tabelas relevantes se não houver filtro de tipo, ou se o filtro corresponder
     const searchHorses = !typeFilter || typeFilter === "horse";
-    const searchEvents = !typeFilter || typeFilter === "event";
     const searchStuds = !typeFilter || typeFilter === "stud";
     const perTypeLimit = typeFilter ? limit : 5;
 
-    const [cavalosRes, eventosRes, coudelariasRes] = await Promise.allSettled([
+    const [cavalosRes, coudelariasRes] = await Promise.allSettled([
       searchHorses
         ? supabase
             .from("cavalos_venda")
             .select("id, nome, descricao, imagens, slug")
             .eq("status", "active")
             .or(`nome.ilike.%${safeQ}%,descricao.ilike.%${safeQ}%`)
-            .limit(perTypeLimit)
-        : Promise.resolve({ data: null }),
-      searchEvents
-        ? supabase
-            .from("eventos")
-            .select("id, titulo, descricao, slug, imagem")
-            .eq("status", "active")
-            .or(`titulo.ilike.%${safeQ}%,descricao.ilike.%${safeQ}%`)
             .limit(perTypeLimit)
         : Promise.resolve({ data: null }),
       searchStuds
@@ -113,18 +103,6 @@ export async function GET(request: NextRequest) {
     }
 
     // Eventos
-    if (eventosRes.status === "fulfilled" && eventosRes.value.data) {
-      for (const e of eventosRes.value.data) {
-        results.push({
-          id: `event-${e.id}`,
-          type: "event",
-          title: e.titulo,
-          description: e.descricao?.substring(0, 100),
-          url: `/eventos/${e.slug || e.id}`,
-          image: e.imagem,
-        });
-      }
-    }
 
     // Coudelarias
     if (coudelariasRes.status === "fulfilled" && coudelariasRes.value.data) {

@@ -51,11 +51,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.8,
     }),
-    withAlternates("/eventos", {
-      lastModified: currentDate,
-      changeFrequency: "daily",
-      priority: 0.7,
-    }),
     withAlternates("/mapa", {
       lastModified: currentDate,
       changeFrequency: "weekly",
@@ -83,14 +78,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }),
   ];
 
-  const [cavalosResult, coudelariasResult, eventosResult] = await Promise.allSettled([
+  const [cavalosResult, coudelariasResult] = await Promise.allSettled([
     supabase
       .from("cavalos_venda")
       .select("id, updated_at, created_at")
       .in("status", [LISTING_STATUS.ACTIVE, LISTING_STATUS.RESERVADO])
       .or(filtroNaoExpirado()),
     supabase.from("coudelarias").select("slug, updated_at"),
-    supabase.from("eventos").select("slug, updated_at").eq("status", "active"),
   ]);
 
   let cavalosPages: MetadataRoute.Sitemap = [];
@@ -121,20 +115,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     logger.error("Erro ao buscar coudelarias para sitemap:", coudelariasResult.reason);
   }
 
-  let eventosPages: MetadataRoute.Sitemap = [];
-  if (eventosResult.status === "fulfilled" && eventosResult.value.data) {
-    eventosPages = eventosResult.value.data
-      .filter((e) => e.slug)
-      .map((e) =>
-        withAlternates(`/eventos/${e.slug}`, {
-          lastModified: e.updated_at || currentDate,
-          changeFrequency: "weekly",
-          priority: 0.5,
-        })
-      );
-  } else if (eventosResult.status === "rejected") {
-    logger.error("Erro ao buscar eventos para sitemap:", eventosResult.reason);
-  }
-
-  return [...staticPages, ...cavalosPages, ...coudelariasPages, ...eventosPages];
+  return [...staticPages, ...cavalosPages, ...coudelariasPages];
 }
