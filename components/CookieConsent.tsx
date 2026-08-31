@@ -157,6 +157,7 @@ export default function CookieConsent() {
 
   return (
     <div
+      id="aviso-cookies"
       role="dialog"
       aria-label={
         language === "en"
@@ -165,33 +166,47 @@ export default function CookieConsent() {
             ? "Consentimiento de cookies"
             : "Consentimento de cookies"
       }
-      className="fixed bottom-0 left-0 right-0 md:left-auto md:right-6 md:bottom-6 z-[9998] md:w-[360px] pb-[72px] md:pb-0 opacity-0 animate-[slideUp_0.5s_cubic-bezier(0.22,1,0.36,1)_forwards]"
-      style={{ willChange: "transform, opacity" }}
+      // Barra larga em baixo em vez de cartão a um canto: o texto tem espaço
+      // para se ler numa ou duas linhas e as acções ficam à direita, onde a
+      // mão já está. Em ecrã pequeno empilha.
+      className="fixed inset-x-3 bottom-3 z-[9998] mx-auto max-w-6xl opacity-0 animate-[slideUp_0.4s_cubic-bezier(0.22,1,0.36,1)_forwards] lg:inset-x-6 lg:bottom-6"
+      style={{ willChange: "transform, opacity", marginBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div className="cartao relative rounded-b-none md:rounded-[24px] shadow-[0_12px_60px_rgba(0,0,0,0.8)]">
-        <div className="relative p-5 md:p-6">
-          {/* Header */}
-          <div className="mb-5">
-            <div className="flex items-center gap-2 mb-3">
-              <p className="rotulo-forte">{t.label}</p>
-            </div>
+      <div className="rounded-[28px] border border-[var(--border-soft)] bg-black/80 p-4 shadow-[0_12px_60px_rgba(0,0,0,0.7)] backdrop-blur-xl sm:p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-8">
+          <p className="flex-1 text-sm leading-relaxed text-[var(--foreground-secondary)]">
+            {t.description}{" "}
+            <LocalizedLink
+              href="/privacidade"
+              className="text-[var(--foreground-strong)] underline underline-offset-2 decoration-[var(--border)] hover:decoration-[var(--border-hover)]"
+            >
+              {t.policy}
+            </LocalizedLink>
+            .
+          </p>
 
-            <h3 className="titulo-seccao text-base mb-2">{t.title}</h3>
-            <p className="meta leading-relaxed">
-              {t.description}{" "}
-              <LocalizedLink
-                href="/privacidade"
-                className="text-[var(--gold)] hover:underline underline-offset-2"
-              >
-                {t.policy}
-              </LocalizedLink>
-              .
-            </p>
+          <div className="flex shrink-0 gap-2.5">
+            <button
+              onClick={() => setShowDetails((v) => !v)}
+              className="btn btn-secundario flex-1 rounded-full lg:flex-none"
+              aria-expanded={showDetails}
+            >
+              {showDetails ? t.hide_details : t.customize}
+            </button>
+            <button
+              onClick={handleAcceptAll}
+              className="btn btn-pilula flex-1 text-sm lg:flex-none"
+            >
+              {t.accept_all}
+            </button>
           </div>
+        </div>
 
-          {/* Expandable details */}
-          {showDetails && (
-            <div className="mb-4 border border-[var(--border)]">
+        {/* Preferências. Só aparecem a pedido — a barra fica de uma linha para
+            quem só quer aceitar e seguir. */}
+        {showDetails && (
+          <div className="anim-crescer mt-4 border-t border-[var(--border-soft)] pt-4">
+            <div className="grid gap-3 sm:grid-cols-3">
               {[
                 {
                   key: "essential",
@@ -214,18 +229,16 @@ export default function CookieConsent() {
                   disabled: false,
                   value: preferences.marketing,
                 },
-              ].map(({ key, label, desc, disabled, value }, i, arr) => (
+              ].map(({ key, label, desc, disabled, value }) => (
                 <div
                   key={key}
-                  className={`flex items-center justify-between gap-4 px-4 py-3 ${i < arr.length - 1 ? "border-b border-[var(--border)]" : ""}`}
+                  className="flex items-start justify-between gap-3 rounded-2xl border border-[var(--border-soft)] p-3"
                 >
-                  <div className="flex-1 min-w-0">
-                    <span className="rotulo text-[var(--foreground)] font-medium block mb-0.5">
+                  <div className="min-w-0">
+                    <span className="block text-sm font-medium text-[var(--foreground)]">
                       {label}
                     </span>
-                    <span className="text-[10px] text-[var(--foreground-muted)] leading-snug block">
-                      {desc}
-                    </span>
+                    <span className="meta mt-0.5 block leading-snug">{desc}</span>
                   </div>
                   <Toggle
                     checked={value}
@@ -234,38 +247,26 @@ export default function CookieConsent() {
                       disabled
                         ? undefined
                         : () =>
-                            setPreferences((p) => ({
-                              ...p,
-                              [key]: !p[key as keyof CookiePreferences],
+                            setPreferences((pref) => ({
+                              ...pref,
+                              [key]: !pref[key as keyof CookiePreferences],
                             }))
                     }
                   />
                 </div>
               ))}
             </div>
-          )}
 
-          {/* Action buttons */}
-          <div className="space-y-2">
-            {/* Primary CTA */}
-            <button onClick={handleAcceptAll} className="btn btn-primario w-full">
-              {t.accept_all}
-            </button>
-
-            {/* Secondary row */}
-            <div className="grid grid-cols-2 gap-2">
-              <button onClick={() => setShowDetails((s) => !s)} className="btn btn-secundario">
-                {showDetails ? t.hide_details : t.customize}
+            <div className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:justify-end">
+              <button onClick={handleDecline} className="btn btn-secundario rounded-full">
+                {t.decline}
               </button>
-              <button
-                onClick={showDetails ? handleAcceptSelected : handleDecline}
-                className="btn btn-secundario"
-              >
-                {showDetails ? t.accept_selected : t.decline}
+              <button onClick={handleAcceptSelected} className="btn btn-pilula text-sm">
+                {t.accept_selected}
               </button>
             </div>
           </div>
-        </div>{" "}
+        )}
       </div>
     </div>
   );
