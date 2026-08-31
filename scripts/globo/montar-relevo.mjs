@@ -18,7 +18,8 @@
 import sharp from "/home/user/portal-lusitano/node_modules/sharp/lib/index.js";
 import fs from "node:fs";
 
-const S = "/tmp/claude-0/-home-user-portal-lusitano/1a569864-0d71-5ca8-a39f-0ce2fe065479/scratchpad";
+const S =
+  "/tmp/claude-0/-home-user-portal-lusitano/1a569864-0d71-5ca8-a39f-0ce2fe065479/scratchpad";
 const DIR = `${S}/dem`;
 const Z = 9;
 const TILE = 256;
@@ -136,7 +137,10 @@ for (let j = 0; j < ALT; j++) {
        O intervalo vazio entre 0 e 16 existe por causa da compressão com
        perdas — sem ele, a costa (terra a 0 m) ficava com o mesmo valor que
        o mar, e o teste de água não tinha por onde os separar. */
-    saida[k + 2] = h <= 0 ? 0 : Math.max(24, Math.min(255, Math.round(24 + (Math.min(h, ALT_MAX) / ALT_MAX) * 231)));
+    saida[k + 2] =
+      h <= 0
+        ? 0
+        : Math.max(24, Math.min(255, Math.round(24 + (Math.min(h, ALT_MAX) / ALT_MAX) * 231)));
   }
 }
 

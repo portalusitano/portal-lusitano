@@ -5,7 +5,8 @@ import { promisify } from "node:util";
 import fs from "node:fs";
 
 const execFileP = promisify(execFile);
-const S = "/tmp/claude-0/-home-user-portal-lusitano/1a569864-0d71-5ca8-a39f-0ce2fe065479/scratchpad";
+const S =
+  "/tmp/claude-0/-home-user-portal-lusitano/1a569864-0d71-5ca8-a39f-0ce2fe065479/scratchpad";
 const DIR = `${S}/dem`;
 fs.mkdirSync(DIR, { recursive: true });
 
@@ -40,7 +41,9 @@ async function um({ x, y }) {
   const url = `https://elevation-tiles-prod.s3.amazonaws.com/terrarium/${Z}/${x}/${y}.png`;
   for (let tent = 0; tent < 4; tent++) {
     try {
-      await execFileP("curl", ["-sS", "-f", "-o", dest, "--max-time", "90", url], { maxBuffer: 1 << 24 });
+      await execFileP("curl", ["-sS", "-f", "-o", dest, "--max-time", "90", url], {
+        maxBuffer: 1 << 24,
+      });
       if (fs.statSync(dest).size > 1000) {
         feitos++;
         if (feitos % 25 === 0) console.log(`  ${feitos}/${lista.length}`);
