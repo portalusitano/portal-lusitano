@@ -27,7 +27,7 @@ export interface FormStepContextValue {
   currentStep: number;
   totalSteps: number;
   isCalculating: boolean;
-   
+
   data: Record<string, unknown>;
 
   goToStep: (step: number, allowJump?: boolean) => void;
