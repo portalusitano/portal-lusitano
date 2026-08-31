@@ -3,18 +3,28 @@ import LocalizedLink from "@/components/LocalizedLink";
 import { Search, Heart, User, Plus, MessagesSquare } from "lucide-react";
 import { useHorseFavorites } from "@/context/HorseFavoritesContext";
 import { useMensagensPorLer } from "@/context/MensagensContext";
+import { BotaoIdioma } from "./BotaoIdioma";
 
 interface NavIconsProps {
   language: string;
-  t: { cart: string };
+  t: {
+    nav: {
+      change_language: string;
+      horse_favorites: string;
+      messages: string;
+      unread: string;
+      my_account: string;
+      post_listing: string;
+      menu: string;
+      open_menu: string;
+      close_menu: string;
+    };
+    common: { search: string };
+  };
   isMobileOpen: boolean;
   onSearchClick: () => void;
   onLanguageToggle: () => void;
   onMobileToggle: () => void;
-}
-
-function tr3(lang: string, pt: string, en: string, es: string) {
-  return lang === "pt" ? pt : lang === "es" ? es : en;
 }
 
 export const NavIcons = memo(function NavIcons({
@@ -34,43 +44,24 @@ export const NavIcons = memo(function NavIcons({
       <button
         onClick={onSearchClick}
         className="hidden lg:flex text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors p-2 min-w-[44px] min-h-[44px] items-center justify-center active:scale-95 touch-manipulation"
-        aria-label={tr3(language, "Pesquisar", "Search", "Buscar")}
+        aria-label={t.common.search}
       >
         <Search size={20} strokeWidth={1.5} />
       </button>
 
       {/* Idioma */}
-      <button
-        onClick={onLanguageToggle}
-        className="rotulo hidden rounded-full border border-transparent px-2.5 py-1 transition-colors hover:border-[var(--border-soft)] lg:flex"
-        aria-label={tr3(language, "Mudar idioma", "Change language", "Cambiar idioma")}
-      >
-        {/* O idioma activo distingue-se por ser o único aceso, não por ser
-            dourado. O acento é do tamanho de um ícone, e aqui não assinala
-            nada que o contraste não assinale melhor. */}
-        {(["pt", "en", "es"] as const).map((codigo, i) => (
-          <span key={codigo}>
-            {i > 0 && <span className="mx-1 opacity-25">|</span>}
-            <span
-              className={language === codigo ? "text-[var(--foreground-strong)]" : "opacity-55"}
-            >
-              {codigo.toUpperCase()}
-            </span>
-          </span>
-        ))}
-      </button>
+      <BotaoIdioma
+        language={language}
+        rotulo={t.nav.change_language}
+        onToggle={onLanguageToggle}
+        className="hidden lg:flex"
+      />
 
       {/* Favoritos — escondido em telemóvel; lá vive no menu de ecrã inteiro. */}
       <LocalizedLink
         href="/cavalos-favoritos"
         className="hidden sm:flex text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors p-2 min-w-[44px] min-h-[44px] items-center justify-center relative active:scale-95 touch-manipulation"
-        aria-label={
-          language === "pt"
-            ? "Cavalos Favoritos"
-            : language === "es"
-              ? "Caballos Favoritos"
-              : "Favorite Horses"
-        }
+        aria-label={t.nav.horse_favorites}
       >
         <Heart size={20} strokeWidth={1.5} />
         {favoritesCount > 0 && (
@@ -86,12 +77,7 @@ export const NavIcons = memo(function NavIcons({
         <LocalizedLink
           href="/minha-conta/mensagens"
           className="hidden sm:flex text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors p-2 min-w-[44px] min-h-[44px] items-center justify-center relative active:scale-95 touch-manipulation"
-          aria-label={tr3(
-            language,
-            `Mensagens (${porLer} por ler)`,
-            `Messages (${porLer} unread)`,
-            `Mensajes (${porLer} sin leer)`
-          )}
+          aria-label={`${t.nav.messages} (${porLer} ${t.nav.unread})`}
         >
           <MessagesSquare size={20} strokeWidth={1.5} />
           <span
@@ -107,7 +93,7 @@ export const NavIcons = memo(function NavIcons({
       <LocalizedLink
         href="/minha-conta"
         className="hidden md:flex text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors p-2 min-w-[44px] min-h-[44px] items-center justify-center active:scale-95 touch-manipulation"
-        aria-label={tr3(language, "Minha conta", "My account", "Mi cuenta")}
+        aria-label={t.nav.my_account}
       >
         <User size={20} strokeWidth={1.5} />
       </LocalizedLink>
@@ -118,8 +104,8 @@ export const NavIcons = memo(function NavIcons({
         href="/vender-cavalo"
         className="btn btn-acento btn-sm hidden sm:inline-flex active:scale-95 touch-manipulation"
       >
-        <Plus size={14} strokeWidth={2} />
-        {tr3(language, "Publicar anúncio", "Post listing", "Publicar anuncio")}
+        <Plus size={14} strokeWidth={2} aria-hidden="true" />
+        {t.nav.post_listing}
       </LocalizedLink>
 
       {/* Menu em ecrã pequeno: pastilha com a palavra, não um ícone de três
@@ -127,15 +113,11 @@ export const NavIcons = memo(function NavIcons({
       <button
         className="btn btn-pilula lg:hidden active:scale-95 touch-manipulation"
         onClick={onMobileToggle}
-        aria-label={
-          isMobileOpen
-            ? tr3(language, "Fechar menu", "Close menu", "Cerrar menú")
-            : tr3(language, "Abrir menu", "Open menu", "Abrir menú")
-        }
+        aria-label={isMobileOpen ? t.nav.close_menu : t.nav.open_menu}
         aria-expanded={isMobileOpen}
         aria-controls="mobile-menu"
       >
-        {tr3(language, "Menu", "Menu", "Menú")}
+        {t.nav.menu}
       </button>
     </div>
   );

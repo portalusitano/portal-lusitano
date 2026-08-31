@@ -37,7 +37,22 @@
     "notable_lusitanos": "Lusitanos Notables",
     "notable_lusitanos_desc": "Galería de honor",
     "profile_analysis": "Análisis de Perfil",
-    "profile_analysis_desc": "Descubra su perfil ecuestre"
+    "profile_analysis_desc": "Descubra su perfil ecuestre",
+    "main_navigation": "Navegación principal",
+    "change_language": "Cambiar idioma",
+    "menu": "Menú",
+    "open_menu": "Abrir menú",
+    "close_menu": "Cerrar menú",
+    "messages": "Mensajes",
+    "unread": "sin leer",
+    "post_listing": "Publicar anuncio",
+    "directory": "Directorio",
+    "all_horses": "Todos los caballos",
+    "foals": "Potros hasta 3 años",
+    "working_equitation": "Doma de trabajo",
+    "broodmares": "Yeguas de vientre",
+    "skip_to_content": "Saltar al contenido principal",
+    "skip_to_navigation": "Saltar a la navegación"
   },
   "cart": "Bolsa",
   "home": {
@@ -1359,7 +1374,8 @@
     "min_chars": "Escriba al menos 2 caracteres",
     "recent_searches": "Busquedas recientes",
     "navigate": "navegar",
-    "open": "abrir"
+    "open": "abrir",
+    "aria_label": "Buscar en el sitio"
   },
   "pro_upgrade_card": {
     "title": "Herramientas PRO",
@@ -1503,8 +1519,8 @@
   "footer": {
     "rights": "Todos los derechos reservados",
     "privacy": "Privacidad",
-    "terms": "Terminos",
-    "navigation": "Navegacion",
+    "terms": "Términos",
+    "navigation": "Navegación",
     "lusitano": "Lusitano",
     "tools": "Herramientas",
     "buy_horse": "Comprar Caballo",
@@ -1526,7 +1542,34 @@
     "returns": "Devoluciones",
     "contact": "Contacto",
     "pricing": "Precios",
-    "ebook_subtitle": "Guía completa de la raza Lusitana · Descarga gratuita"
+    "ebook_subtitle": "Guía completa de la raza Lusitana · Descarga gratuita",
+    "portal": "Portal",
+    "favorite_horses": "Caballos favoritos",
+    "search_alerts": "Alertas de búsqueda",
+    "my_listings": "Mis anuncios",
+    "my_messages": "Mis mensajes",
+    "map": "Mapa",
+    "sell_horse_subtitle": "Publique su Lusitano y llegue a compradores de todo el país",
+    "cookie_settings": "Ajustes de cookies"
+  },
+  "cookies": {
+    "aria_label": "Consentimiento de cookies",
+    "title": "Cookies en este sitio",
+    "description": "Las cookies esenciales hacen funcionar el sitio y están siempre activas. Las demás solo se usan si las autoriza.",
+    "policy": "Política de Privacidad",
+    "accept_all": "Aceptar todas",
+    "reject_all": "Rechazar todas",
+    "accept_selected": "Guardar elección",
+    "customize": "Elegir",
+    "hide_details": "Ocultar opciones",
+    "essential": "Esenciales",
+    "essential_desc": "Sesión, idioma y la propia elección de cookies. Siempre activas.",
+    "analytics": "Analíticas",
+    "analytics_desc": "Google Analytics — uso anónimo del sitio.",
+    "marketing": "Marketing",
+    "marketing_desc": "Google AdSense y Meta Pixel — anuncios relevantes.",
+    "always_on": "Siempre activas",
+    "reopen_hint": "Puede cambiar de opinión en cualquier momento desde el pie de página."
   },
   "success_pages": {
     "payment_confirmed": "¡Pago Confirmado!",

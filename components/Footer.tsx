@@ -7,6 +7,19 @@ import { usePathname } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import { eRotaDeEntrada } from "@/lib/rotas-de-entrada";
 import { CONTACT_EMAIL, SOCIAL_LINKS } from "@/lib/constants";
+import { abrirConsentimento } from "@/lib/consentimento";
+
+/**
+ * A linha legal, toda com a mesma caixa.
+ *
+ * As externas eram `flex`, as internas ficavam em linha e o botão era
+ * `inline-block`: em telemóvel a regra de 44px do `globals.css` só pegava
+ * nalgumas, e a linha, ao dobrar, saía aos degraus com cada entrada a uma
+ * altura diferente. Uma caixa só para as três resolve a altura e o
+ * alinhamento ao mesmo tempo.
+ */
+const LINHA_LEGAL =
+  "rotulo inline-flex items-center transition-colors hover:text-[var(--foreground-secondary)]";
 
 export default memo(function Footer() {
   const { t } = useLanguage();
@@ -16,29 +29,29 @@ export default memo(function Footer() {
   const col1 = useMemo(
     () => [
       { name: t.footer.buy_horse, href: "/comprar" },
-      { name: "Cavalos favoritos", href: "/cavalos-favoritos" },
-      { name: "Alertas de pesquisa", href: "/minha-conta/alertas" },
+      { name: t.footer.favorite_horses, href: "/cavalos-favoritos" },
+      { name: t.footer.search_alerts, href: "/minha-conta/alertas" },
     ],
-    [t.footer.buy_horse]
+    [t.footer.buy_horse, t.footer.favorite_horses, t.footer.search_alerts]
   );
 
   // Vender
   const col2 = useMemo(
     () => [
       { name: t.footer.sell_horse, href: "/vender-cavalo" },
-      { name: "Os meus anúncios", href: "/minha-conta/anuncios" },
-      { name: "As minhas mensagens", href: "/minha-conta/mensagens" },
+      { name: t.footer.my_listings, href: "/minha-conta/anuncios" },
+      { name: t.footer.my_messages, href: "/minha-conta/mensagens" },
     ],
-    [t.footer.sell_horse]
+    [t.footer.sell_horse, t.footer.my_listings, t.footer.my_messages]
   );
 
   // Descobrir
   const col3 = useMemo(
     () => [
       { name: t.footer.studs, href: "/directorio" },
-      { name: t.nav.map || "Mapa", href: "/mapa" },
+      { name: t.footer.map, href: "/mapa" },
     ],
-    [t.footer.studs, t.nav.map]
+    [t.footer.studs, t.footer.map]
   );
 
   // Portal
@@ -51,18 +64,39 @@ export default memo(function Footer() {
     [t.nav.home, t.footer.contact, t.footer.returns]
   );
 
+  // A última entrada não é uma página: reabre o pedido de consentimento.
+  // Retirar o consentimento tem de ser tão fácil como tê-lo dado, e depois de
+  // respondido o painel não volta sozinho — sem esta porta não havia volta.
   const legalLinks = useMemo(
     () => [
-      { label: t.footer.complaints_book, href: "https://www.livroreclamacoes.pt", external: true },
       {
+        key: "reclamacoes",
+        label: t.footer.complaints_book,
+        href: "https://www.livroreclamacoes.pt",
+        tipo: "externo" as const,
+      },
+      {
+        key: "litigios",
         label: t.footer.dispute_resolution,
         href: "https://ec.europa.eu/consumers/odr",
-        external: true,
+        tipo: "externo" as const,
       },
-      { label: t.footer.privacy, href: "/privacidade", external: false },
-      { label: t.footer.terms, href: "/termos", external: false },
+      {
+        key: "privacidade",
+        label: t.footer.privacy,
+        href: "/privacidade",
+        tipo: "interno" as const,
+      },
+      { key: "termos", label: t.footer.terms, href: "/termos", tipo: "interno" as const },
+      { key: "cookies", label: t.footer.cookie_settings, tipo: "accao" as const },
     ],
-    [t.footer.complaints_book, t.footer.dispute_resolution, t.footer.privacy, t.footer.terms]
+    [
+      t.footer.complaints_book,
+      t.footer.dispute_resolution,
+      t.footer.privacy,
+      t.footer.terms,
+      t.footer.cookie_settings,
+    ]
   );
 
   const socials = [
@@ -75,7 +109,7 @@ export default memo(function Footer() {
     { label: t.footer.navigation, items: col1 },
     { label: t.footer.lusitano, items: col2 },
     { label: t.footer.tools, items: col3 },
-    { label: "Portal", items: col4 },
+    { label: t.footer.portal, items: col4 },
   ];
 
   // Ver a nota no Navbar: nas páginas de entrada o ecrã é só o painel.
@@ -102,9 +136,16 @@ export default memo(function Footer() {
               <ul className="space-y-1.5">
                 {col.items.map((item) => (
                   <li key={item.href}>
+                    {/* `inline-flex` e não `inline`: a regra de 44px que o
+                        `globals.css` tem para telemóvel é um `min-height`, e
+                        um `min-height` não faz nada a um elemento em linha.
+                        Medidos: 16px de altura em 390px de largura — onze
+                        alvos de toque abaixo do mínimo, e a regra do sistema
+                        calada sem dar sinal. Com o elemento a ser caixa, é a
+                        própria regra que passa a valer, sem número novo. */}
                     <LocalizedLink
                       href={item.href}
-                      className="meta transition-colors duration-200 hover:text-[var(--foreground-strong)]"
+                      className="meta inline-flex items-center transition-colors duration-200 hover:text-[var(--foreground-strong)]"
                     >
                       {item.name}
                     </LocalizedLink>
@@ -123,9 +164,7 @@ export default memo(function Footer() {
         >
           <div className="min-w-0">
             <p className="text-sm text-[var(--foreground-strong)]">{t.footer.sell_horse}</p>
-            <p className="meta mt-0.5">
-              Publique o seu Lusitano e chegue a compradores em todo o país
-            </p>
+            <p className="meta mt-0.5">{t.footer.sell_horse_subtitle}</p>
           </div>
           <ArrowRight
             size={16}
@@ -137,46 +176,37 @@ export default memo(function Footer() {
         {/* ── LEGAL ─────────────────────────────────── */}
         <div className="py-3.5" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-            {legalLinks.map((link, i) =>
-              link.external ? (
-                <Fragment key={link.href}>
-                  {i > 0 && (
-                    <span
-                      className="text-[var(--foreground-muted)]/20 text-[10px] select-none"
-                      aria-hidden="true"
-                    >
-                      ·
-                    </span>
-                  )}
+            {legalLinks.map((link, i) => (
+              <Fragment key={link.key}>
+                {i > 0 && (
+                  <span
+                    className="text-[var(--foreground-muted)]/20 text-[10px] select-none"
+                    aria-hidden="true"
+                  >
+                    ·
+                  </span>
+                )}
+                {link.tipo === "externo" ? (
                   <a
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 rotulo hover:text-[var(--foreground-secondary)] transition-colors"
+                    className={LINHA_LEGAL + " gap-1"}
                   >
                     {link.label}
-                    <ArrowUpRight size={8} />
+                    <ArrowUpRight size={8} aria-hidden="true" />
                   </a>
-                </Fragment>
-              ) : (
-                <Fragment key={link.href}>
-                  {i > 0 && (
-                    <span
-                      className="text-[var(--foreground-muted)]/20 text-[10px] select-none"
-                      aria-hidden="true"
-                    >
-                      ·
-                    </span>
-                  )}
-                  <LocalizedLink
-                    href={link.href}
-                    className="rotulo hover:text-[var(--foreground-secondary)] transition-colors"
-                  >
+                ) : link.tipo === "interno" ? (
+                  <LocalizedLink href={link.href} className={LINHA_LEGAL}>
                     {link.label}
                   </LocalizedLink>
-                </Fragment>
-              )
-            )}
+                ) : (
+                  <button type="button" onClick={abrirConsentimento} className={LINHA_LEGAL}>
+                    {link.label}
+                  </button>
+                )}
+              </Fragment>
+            ))}
           </div>
         </div>
 

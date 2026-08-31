@@ -5,16 +5,15 @@ import { createPortal } from "react-dom";
 import LocalizedLink from "@/components/LocalizedLink";
 import { ArrowLeft, ArrowRight, ArrowUpRight, ChevronRight, X } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useLanguage } from "@/context/LanguageContext";
+import { SOCIAL_LINKS } from "@/lib/constants";
+import { BotaoIdioma } from "./BotaoIdioma";
 
 interface MobileMenuProps {
   isOpen: boolean;
   language: string;
   onLanguageToggle: () => void;
   onClose: () => void;
-}
-
-function tr3(lang: string, pt: string, en: string, es: string) {
-  return lang === "pt" ? pt : lang === "es" ? es : en;
 }
 
 interface Ligacao {
@@ -32,10 +31,17 @@ type Destino = Ligacao | Grupo;
 
 const ehGrupo = (d: Destino): d is Grupo => "filhos" in d;
 
-/** As redes onde o portal está. Ícones, sem rótulo — a linha lê-se de relance. */
+/**
+ * As redes onde o portal está. Nomes próprios — não passam pelo dicionário.
+ *
+ * Vêm de `SOCIAL_LINKS`, que é o que o rodapé e o JSON-LD já usam. Estavam
+ * aqui escritas à mão, e não batiam certo: um Instagram com outro nome de
+ * utilizador (`portal.lusitano` em vez de `portal_lusitano`) e um Facebook
+ * que mais nenhum sítio do site conhece.
+ */
 const REDES = [
-  { nome: "Instagram", href: "https://www.instagram.com/portal.lusitano/" },
-  { nome: "Facebook", href: "https://www.facebook.com/portallusitano" },
+  { nome: "Instagram", href: SOCIAL_LINKS.instagram },
+  { nome: "TikTok", href: SOCIAL_LINKS.tiktok },
 ];
 
 /**
@@ -58,6 +64,7 @@ export const MobileMenu = memo(function MobileMenu({
   onClose,
 }: MobileMenuProps) {
   const pathname = usePathname();
+  const { t } = useLanguage();
   // O painel fica montado enquanto a animação de saída corre; quem o desmonta
   // é o fim dessa animação, não um temporizador que tem de adivinhar a
   // duração. O estado é ajustado durante o render — a forma que o React
@@ -116,42 +123,27 @@ export const MobileMenu = memo(function MobileMenu({
   // existiam, arrumadas por baixo do nome que as cobre a todas — é o que dá
   // ao menu um segundo nível onde entrar.
   const destinos: Destino[] = [
-    { href: "/", label: tr3(language, "Início", "Home", "Inicio") },
+    { href: "/", label: t.nav.home },
     {
       id: "comprar",
-      label: tr3(language, "Comprar cavalo", "Buy a horse", "Comprar caballo"),
+      label: t.nav.buy_horse,
       filhos: [
-        {
-          href: "/comprar",
-          label: tr3(language, "Todos os cavalos", "All horses", "Todos los caballos"),
-        },
-        {
-          href: "/comprar?idadeMax=3",
-          label: tr3(language, "Poldros até 3 anos", "Foals up to 3", "Potros hasta 3 años"),
-        },
-        {
-          href: "/comprar?disciplina=Trabalho",
-          label: tr3(language, "Equitação de trabalho", "Working equitation", "Doma de trabajo"),
-        },
-        {
-          href: "/comprar?sexo=femea",
-          label: tr3(language, "Éguas de ventre", "Broodmares", "Yeguas de vientre"),
-        },
+        { href: "/comprar", label: t.nav.all_horses },
+        { href: "/comprar?idadeMax=3", label: t.nav.foals },
+        { href: "/comprar?disciplina=Trabalho", label: t.nav.working_equitation },
+        { href: "/comprar?sexo=femea", label: t.nav.broodmares },
       ],
     },
     {
       id: "coudelarias",
-      label: tr3(language, "Coudelarias", "Studs", "Cuadras"),
+      label: t.nav.studs,
       filhos: [
-        { href: "/directorio", label: tr3(language, "Directório", "Directory", "Directorio") },
-        { href: "/mapa", label: tr3(language, "Mapa", "Map", "Mapa") },
+        { href: "/directorio", label: t.nav.directory },
+        { href: "/mapa", label: t.nav.map },
       ],
     },
-    {
-      href: "/cavalos-favoritos",
-      label: tr3(language, "Cavalos favoritos", "Saved horses", "Caballos favoritos"),
-    },
-    { href: "/minha-conta", label: tr3(language, "A minha conta", "My account", "Mi cuenta") },
+    { href: "/cavalos-favoritos", label: t.nav.horse_favorites },
+    { href: "/minha-conta", label: t.nav.my_account },
   ];
 
   const naRota = (href: string) => {
@@ -172,7 +164,7 @@ export const MobileMenu = memo(function MobileMenu({
       id="mobile-menu"
       role="dialog"
       aria-modal="true"
-      aria-label={tr3(language, "Menu", "Menu", "Menú")}
+      aria-label={t.nav.menu}
       data-a-fechar={aFechar ? "true" : "false"}
       onAnimationEnd={(e) => {
         if (!aFechar || e.target !== e.currentTarget) return;
@@ -196,11 +188,11 @@ export const MobileMenu = memo(function MobileMenu({
 
         <button
           onClick={onClose}
-          aria-label={tr3(language, "Fechar menu", "Close menu", "Cerrar menú")}
+          aria-label={t.nav.close_menu}
           className="btn btn-pilula touch-manipulation gap-2 active:scale-95"
         >
           <X size={18} aria-hidden="true" />
-          {tr3(language, "Fechar", "Close", "Cerrar")}
+          {t.common.close}
         </button>
       </div>
 
@@ -253,27 +245,32 @@ export const MobileMenu = memo(function MobileMenu({
               onClick={onClose}
               className="btn btn-pilula gap-2.5 text-base"
             >
-              {tr3(language, "Publicar anúncio", "Post a listing", "Publicar anuncio")}
+              {t.nav.post_listing}
               <ArrowRight size={17} aria-hidden="true" />
             </LocalizedLink>
           </div>
 
           <div className="flex-1" />
 
-          {/* Rodapé do painel: idioma e redes. */}
+          {/* Rodapé do painel: idioma e redes. As três siglas, como na barra:
+              o botão de duas línguas que aqui estava oferecia português a
+              quem lia em inglês e levava-o a espanhol. */}
           <div className="mt-12 border-t border-[var(--border-soft)] pt-6">
-            <button onClick={onLanguageToggle} className="btn btn-subtil px-0 text-sm">
-              {language === "pt" ? "Switch to English" : "Mudar para português"}
-            </button>
+            <BotaoIdioma
+              language={language}
+              rotulo={t.nav.change_language}
+              onToggle={onLanguageToggle}
+              className="-ml-2.5 inline-flex min-h-[44px] items-center"
+            />
 
-            <div className="mt-5 flex items-center gap-5">
+            <div className="mt-3 flex items-center gap-5">
               {REDES.map((r) => (
                 <a
                   key={r.nome}
                   href={r.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="meta inline-flex items-center gap-1 transition-colors hover:text-[var(--foreground-strong)]"
+                  className="meta inline-flex min-h-[44px] items-center gap-1 transition-colors hover:text-[var(--foreground-strong)]"
                 >
                   {r.nome}
                   <ArrowUpRight size={13} aria-hidden="true" />
@@ -300,7 +297,7 @@ export const MobileMenu = memo(function MobileMenu({
               className="btn btn-subtil mt-8 gap-2 px-0 text-sm"
             >
               <ArrowLeft size={16} aria-hidden="true" />
-              {tr3(language, "Voltar", "Back", "Volver")}
+              {t.common.back}
             </button>
 
             <p className="rotulo mt-6">{g.label}</p>

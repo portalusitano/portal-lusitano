@@ -26,41 +26,14 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/",
 }));
 
-vi.mock("@/context/LanguageContext", () => ({
-  useLanguage: () => ({
-    language: "pt",
-    t: {
-      nav: {
-        home: "Inicio",
-        shop: "Loja",
-        journal: "Jornal",
-        about: "Sobre",
-      },
-      home: {
-        manifesto: "Nao criamos apenas vestuario. Criamos simbolos de pertenca.",
-      },
-      footer: {
-        rights: "Todos os direitos reservados",
-        privacy: "Privacidade",
-        terms: "Termos",
-        navigation: "Navegação",
-        lusitano: "Lusitano",
-        tools: "Ferramentas",
-        buy_horse: "Comprar Cavalo",
-        studs: "Coudelarias",
-        events: "Eventos",
-        lineages: "Linhagens",
-        notable: "Lusitanos Notáveis",
-        calculator: "Calculadora de Valor",
-        comparator: "Comparador",
-        compatibility: "Compatibilidade",
-        profile_analysis: "Análise de Perfil",
-        about: "Sobre Nós",
-        ebook: "Ebook Grátis",
-      },
-    },
-  }),
-}));
+// O dicionário a sério, e não um punhado de chaves escritas à mão: com o
+// subconjunto, uma chave nova no rodapé devolvia `undefined` aqui e o teste
+// só reprovava se por acaso a afirmasse. É a mesma classe de defeito que
+// punha metade do rodapé em inglês e metade em português.
+vi.mock("@/context/LanguageContext", async () => {
+  const pt = (await import("@/locales/pt.json")).default;
+  return { useLanguage: () => ({ language: "pt", t: pt }) };
+});
 
 // Ícones derivados dos que o componente importa: uma lista escrita à mão
 // parte sempre que o componente troca de ícone, o que não é regressão.

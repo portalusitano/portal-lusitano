@@ -116,13 +116,7 @@ export default memo(function Navbar() {
       ref={barraRef}
       id="main-navigation"
       role="navigation"
-      aria-label={
-        language === "pt"
-          ? "Navegação principal"
-          : language === "es"
-            ? "Navegación principal"
-            : "Main navigation"
-      }
+      aria-label={t.nav.main_navigation}
       // Com o menu aberto a barra sai de cena. O painel é translúcido, por
       // isso a barra ficava a atravessá-lo desfocada por trás da marca que o
       // próprio painel já mostra — a mesma palavra duas vezes, uma delas

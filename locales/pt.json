@@ -1,6 +1,6 @@
 {
   "nav": {
-    "home": "Inicio",
+    "home": "Início",
     "shop": "Loja",
     "about": "Sobre",
     "journal": "Jornal",
@@ -37,7 +37,22 @@
     "notable_lusitanos": "Lusitanos Notáveis",
     "notable_lusitanos_desc": "Galeria de honra",
     "profile_analysis": "Análise de Perfil",
-    "profile_analysis_desc": "Descubra o seu perfil equestre"
+    "profile_analysis_desc": "Descubra o seu perfil equestre",
+    "main_navigation": "Navegação principal",
+    "change_language": "Mudar idioma",
+    "menu": "Menu",
+    "open_menu": "Abrir menu",
+    "close_menu": "Fechar menu",
+    "messages": "Mensagens",
+    "unread": "por ler",
+    "post_listing": "Publicar anúncio",
+    "directory": "Directório",
+    "all_horses": "Todos os cavalos",
+    "foals": "Poldros até 3 anos",
+    "working_equitation": "Equitação de trabalho",
+    "broodmares": "Éguas de ventre",
+    "skip_to_content": "Saltar para o conteúdo principal",
+    "skip_to_navigation": "Saltar para a navegação"
   },
   "cart": "Saco",
   "home": {
@@ -1359,7 +1374,8 @@
     "min_chars": "Digite pelo menos 2 caracteres",
     "recent_searches": "Pesquisas recentes",
     "navigate": "navegar",
-    "open": "abrir"
+    "open": "abrir",
+    "aria_label": "Pesquisar no site"
   },
   "pro_upgrade_card": {
     "title": "Ferramentas PRO",
@@ -1526,7 +1542,34 @@
     "returns": "Devoluções",
     "contact": "Contacto",
     "pricing": "Preços",
-    "ebook_subtitle": "Guia completo da raça Lusitana · Download gratuito"
+    "ebook_subtitle": "Guia completo da raça Lusitana · Download gratuito",
+    "portal": "Portal",
+    "favorite_horses": "Cavalos favoritos",
+    "search_alerts": "Alertas de pesquisa",
+    "my_listings": "Os meus anúncios",
+    "my_messages": "As minhas mensagens",
+    "map": "Mapa",
+    "sell_horse_subtitle": "Publique o seu Lusitano e chegue a compradores em todo o país",
+    "cookie_settings": "Definições de cookies"
+  },
+  "cookies": {
+    "aria_label": "Consentimento de cookies",
+    "title": "Cookies neste site",
+    "description": "Os cookies essenciais fazem o site funcionar e estão sempre activos. Os restantes só são usados se os autorizar.",
+    "policy": "Política de Privacidade",
+    "accept_all": "Aceitar todos",
+    "reject_all": "Recusar todos",
+    "accept_selected": "Guardar escolha",
+    "customize": "Escolher",
+    "hide_details": "Ocultar escolhas",
+    "essential": "Essenciais",
+    "essential_desc": "Sessão, idioma e a própria escolha de cookies. Sempre activos.",
+    "analytics": "Analíticos",
+    "analytics_desc": "Google Analytics — uso anónimo do site.",
+    "marketing": "Marketing",
+    "marketing_desc": "Google AdSense e Meta Pixel — anúncios relevantes.",
+    "always_on": "Sempre activos",
+    "reopen_hint": "Pode mudar de ideias a qualquer momento no rodapé."
   },
   "success_pages": {
     "payment_confirmed": "Pagamento Confirmado!",

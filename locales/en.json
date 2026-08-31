@@ -37,7 +37,22 @@
     "notable_lusitanos": "Notable Lusitanos",
     "notable_lusitanos_desc": "Hall of honour",
     "profile_analysis": "Profile Analysis",
-    "profile_analysis_desc": "Discover your equestrian profile"
+    "profile_analysis_desc": "Discover your equestrian profile",
+    "main_navigation": "Main navigation",
+    "change_language": "Change language",
+    "menu": "Menu",
+    "open_menu": "Open menu",
+    "close_menu": "Close menu",
+    "messages": "Messages",
+    "unread": "unread",
+    "post_listing": "Post a listing",
+    "directory": "Directory",
+    "all_horses": "All horses",
+    "foals": "Foals up to 3 years",
+    "working_equitation": "Working equitation",
+    "broodmares": "Broodmares",
+    "skip_to_content": "Skip to main content",
+    "skip_to_navigation": "Skip to navigation"
   },
   "cart": "Bag",
   "home": {
@@ -1359,7 +1374,8 @@
     "min_chars": "Type at least 2 characters",
     "recent_searches": "Recent searches",
     "navigate": "navigate",
-    "open": "open"
+    "open": "open",
+    "aria_label": "Search the site"
   },
   "pro_upgrade_card": {
     "title": "PRO Tools",
@@ -1526,7 +1542,34 @@
     "returns": "Returns",
     "contact": "Contact",
     "pricing": "Pricing",
-    "ebook_subtitle": "Complete Lusitano breed guide · Free download"
+    "ebook_subtitle": "Complete Lusitano breed guide · Free download",
+    "portal": "Portal",
+    "favorite_horses": "Saved horses",
+    "search_alerts": "Search alerts",
+    "my_listings": "My listings",
+    "my_messages": "My messages",
+    "map": "Map",
+    "sell_horse_subtitle": "List your Lusitano and reach buyers across the country",
+    "cookie_settings": "Cookie settings"
+  },
+  "cookies": {
+    "aria_label": "Cookie consent",
+    "title": "Cookies on this site",
+    "description": "Essential cookies keep the site working and are always on. The rest are only used if you allow them.",
+    "policy": "Privacy Policy",
+    "accept_all": "Accept all",
+    "reject_all": "Reject all",
+    "accept_selected": "Save choice",
+    "customize": "Choose",
+    "hide_details": "Hide choices",
+    "essential": "Essential",
+    "essential_desc": "Session, language and this cookie choice itself. Always on.",
+    "analytics": "Analytics",
+    "analytics_desc": "Google Analytics — anonymous site usage.",
+    "marketing": "Marketing",
+    "marketing_desc": "Google AdSense and Meta Pixel — relevant ads.",
+    "always_on": "Always on",
+    "reopen_hint": "You can change your mind at any time from the footer."
   },
   "success_pages": {
     "payment_confirmed": "Payment Confirmed!",
