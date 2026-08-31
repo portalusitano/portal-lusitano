@@ -144,7 +144,7 @@ export default function GloboTiles({ coudelarias, flyTo, onMarkerClick, aoFalhar
          coisa a interrompia, o que ficava no ecrã era o planeta inteiro com
          as vinte e nove coudelarias sobrepostas num ponto. */
       center: CENTRO_PT,
-      zoom: 3.4,
+      zoom: 4.2,
       attributionControl: { compact: true },
     });
     mapa.current = m;
@@ -153,20 +153,28 @@ export default function GloboTiles({ coudelarias, flyTo, onMarkerClick, aoFalhar
 
     m.on("style.load", () => {
       m.setProjection({ type: "globe" });
+      /* A atmosfera dá o aro de luz que faz o globo ler-se como globo, mas
+         puxava o mapa todo para azul-marinho — e o site é preto com um toque
+         frio nas hairlines, não azul. Fica só no horizonte, e desaparece
+         mal se entra em Portugal. */
       m.setSky({
-        "sky-color": token(),
-        "sky-horizon-blend": 0.55,
-        "horizon-color": "#101a2b",
-        "horizon-fog-blend": 0.6,
-        "fog-color": "#05070c",
-        "fog-ground-blend": 0.4,
-        "atmosphere-blend": ["interpolate", ["linear"], ["zoom"], 0, 0.85, 5, 0.2, 7, 0],
+        "sky-color": PALETA.espaco,
+        "sky-horizon-blend": 0.5,
+        "horizon-color": "#0b1220",
+        "horizon-fog-blend": 0.5,
+        "fog-color": PALETA.espaco,
+        "fog-ground-blend": 0.2,
+        "atmosphere-blend": ["interpolate", ["linear"], ["zoom"], 0, 0.8, 3, 0.25, 4.5, 0],
       });
       repintar(m);
 
       /* Fecha sobre a Península, uma vez. A referência rodava para sempre;
          um ciclo infinito a mais não se paga com «fica giro». */
-      m.easeTo({ center: CENTRO_PT, zoom: 5.4, duration: parado ? 0 : 1800, essential: true });
+      /* 6,8 é o zoom a que Portugal enche a altura do quadro: a 256·2^z/360
+         dá ~91px por grau, e o país tem 5,5 graus de norte a sul. Mais longe
+         e as coudelarias voltam a ser um borrão; mais perto e perde-se o
+         país de vista. */
+      m.easeTo({ center: CENTRO_PT, zoom: 6.8, duration: parado ? 0 : 1800, essential: true });
     });
 
     m.on("error", (e: { error?: { message?: string } }) => {
@@ -197,9 +205,12 @@ export default function GloboTiles({ coudelarias, flyTo, onMarkerClick, aoFalhar
     if (!m) return;
     for (const marca of marcas.current) marca.remove();
 
-    marcas.current = pontos.map(({ c, coords }) => {
+    marcas.current = pontos.map(({ c, coords }, indice) => {
       const el = document.createElement("div");
       el.className = "alfinete";
+      // Entram escalonados, uma vez. Trinta pontos a acender ao mesmo tempo
+      // leem-se como um erro de render; a cair um a um leem-se como dados.
+      el.style.setProperty("--entrada", `${Math.min(indice * 45, 900)}ms`);
       if (c.destaque) el.dataset.destaque = "";
       el.setAttribute("role", "button");
       el.setAttribute("tabindex", "0");

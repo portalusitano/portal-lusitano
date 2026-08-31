@@ -85,13 +85,13 @@ const StatCard = memo(function StatCard({
   value: number;
 }) {
   return (
-    <div className="cartao flex items-center gap-3 px-5 py-3 transition-colors hover:border-[var(--border-hover)]">
+    <div className="flex items-center gap-3 px-6 py-3.5">
       <Icon size={15} className="shrink-0 text-[var(--foreground-muted)]" aria-hidden="true" />
       <div className="text-left">
         <div className="text-xl leading-none tabular-nums text-[var(--foreground-strong)]">
           {value}
         </div>
-        <div className="meta mt-1">{label}</div>
+        <div className="rotulo mt-1.5">{label}</div>
       </div>
     </div>
   );
@@ -281,7 +281,9 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
           <p className="text-[var(--foreground-secondary)] max-w-xl mx-auto mb-8">
             {t.mapa.subtitle}
           </p>
-          <div className="flex flex-wrap justify-center gap-3">
+          {/* Três cartões soltos leem-se como três coisas; divididos por uma
+              hairline, leem-se como um instrumento só — que é o que são. */}
+          <div className="cartao mx-auto inline-flex divide-x divide-[var(--border-soft)] overflow-hidden">
             <StatCard icon={MapPin} label={t.mapa.stat_studs} value={stats.total} />
             <StatCard icon={Map} label={t.mapa.stat_regions} value={stats.regioes} />
             <StatCard icon={Crown} label={t.mapa.stat_horses} value={stats.destaque} />
@@ -328,7 +330,11 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
           <div className="grid lg:grid-cols-12 gap-6">
             {/* Globo */}
             <div className="lg:col-span-8">
-              <div className="relative z-0 h-[400px] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--background)] sm:h-[500px] lg:h-[600px]">
+              <div className="relative z-0 h-[400px] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--background)] sm:h-[520px] lg:h-[640px]">
+                {/* A mesma costura de luz dos cartões assinatura: liga o mapa
+                    ao resto do site em vez de o deixar como um rectângulo
+                    colado à página. */}
+                <div className="cartao-seco__costura z-10" />
                 <GloboMapa
                   coudelarias={searchQuery ? filteredCoudelarias : coudelarias}
                   flyTo={flyTo}
@@ -347,10 +353,9 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
                         <span className="rotulo">{t.mapa.region}</span>
                         <h2 className="text-xl text-[var(--foreground)]">{selectedRegiao}</h2>
                         <p className="text-[var(--foreground-secondary)] text-sm">
-                          <span className="font-bold tabular-nums text-[var(--foreground-strong)]">
+                          <span className="font-medium tabular-nums text-[var(--foreground-strong)]">
                             {coudelariasPorRegiao[selectedRegiao]?.length || 0}
-                          </span>
-                          {""}
+                          </span>{" "}
                           {t.mapa.studs_count}
                         </p>
                       </div>
@@ -389,36 +394,51 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
                       {t.mapa.select_region_hint}
                     </p>
                   </div>
-                  <div className="space-y-2">
+                  {/* Seis cartões com um ícone de 36px cada eram seis
+                      superfícies para cinco nomes de região. Passa a ser um
+                      cartão só com linhas divididas por hairline, e a
+                      contagem em mono alinha em coluna — que é o que permite
+                      comparar as regiões de relance. */}
+                  <div className="cartao divide-y divide-[var(--border-soft)]">
                     {Object.entries(coudelariasPorRegiao)
                       .sort((a, b) => b[1].length - a[1].length)
-                      .map(([regiao, list]) => (
+                      .map(([regiao, list], i) => (
                         <button
                           key={regiao}
                           onClick={() => handleSelectRegiao(regiao)}
-                          className="w-full p-3 cartao transition-colors hover:border-[var(--border-hover)] text-left"
+                          className="group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--elevate-1)]"
+                          style={{
+                            animation: `fadeSlideIn 480ms var(--ease-out) ${i * 70}ms both`,
+                          }}
                         >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 bg-[var(--elevate-1)] rounded-lg flex items-center justify-center">
-                                <MapPin
-                                  className="text-[var(--foreground-muted)]"
-                                  size={16}
-                                  aria-hidden="true"
-                                />
-                              </div>
-                              <div>
-                                <h3 className="text-[var(--foreground)] text-sm">{regiao}</h3>
-                                <p className="text-[var(--foreground-muted)] text-[10px]">
-                                  {list.length} {t.mapa.studs_count}
-                                </p>
-                              </div>
-                            </div>
-                            <ChevronRight className="text-[var(--foreground-muted)]" size={16} />
-                          </div>
+                          <MapPin
+                            className="shrink-0 text-[var(--foreground-muted)]"
+                            size={14}
+                            aria-hidden="true"
+                          />
+                          <span className="flex-1 truncate text-sm text-[var(--foreground)]">
+                            {regiao}
+                          </span>
+                          <span className="font-mono text-xs tabular-nums text-[var(--foreground-muted)]">
+                            {list.length}
+                          </span>
+                          <ChevronRight
+                            className="shrink-0 text-[var(--foreground-muted)] transition-colors group-hover:text-[var(--foreground-strong)]"
+                            size={14}
+                          />
                         </button>
                       ))}
                   </div>
+
+                  {/* Debaixo da lista sobrava meia página vazia. Uma saída
+                      para o directório é o que faz falta a quem chegou aqui
+                      e não quer escolher por região. */}
+                  <LocalizedLink
+                    href="/directorio"
+                    className="btn btn-subtil btn-sm mt-4 w-full rounded-xl"
+                  >
+                    Ver todas as coudelarias
+                  </LocalizedLink>
                 </div>
               )}
             </div>
@@ -427,10 +447,9 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
           <div>
             {searchQuery && (
               <p className="mb-4 text-[var(--foreground-secondary)] text-sm">
-                <span className="font-bold tabular-nums text-[var(--foreground-strong)]">
+                <span className="font-medium tabular-nums text-[var(--foreground-strong)]">
                   {filteredCoudelarias.length}
-                </span>
-                {""}
+                </span>{" "}
                 resultados
               </p>
             )}

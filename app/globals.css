@@ -2210,6 +2210,7 @@ body {
     position: relative;
     width: 10px;
     height: 10px;
+    animation: alfinete-cair 460ms var(--ease-out) var(--entrada, 0ms) both;
     border-radius: 50%;
     background: var(--foreground-strong);
     box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12);
@@ -2238,6 +2239,17 @@ body {
 
   /* A legenda vive dentro do alfinete: assim viaja com ele quando o globo
      roda, sem uma linha de JavaScript a persegui-lo. */
+  @keyframes alfinete-cair {
+    from {
+      opacity: 0;
+      transform: translateY(-10px) scale(0.4);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
   .alfinete__rotulo {
     position: absolute;
     bottom: calc(100% + 10px);
@@ -2286,6 +2298,28 @@ body {
 
   .globo-tiles .maplibregl-canvas:focus {
     outline: none;
+  }
+
+  /* O mapa entra quando tem o que mostrar, em vez de aparecer um rectângulo
+     preto e encher-se depois. */
+  .globo-tiles .maplibregl-canvas-container {
+    animation: entrar-mapa 700ms var(--ease-out) both;
+  }
+
+  @keyframes entrar-mapa {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .alfinete,
+    .globo-tiles .maplibregl-canvas-container {
+      animation: none;
+    }
   }
 }
 

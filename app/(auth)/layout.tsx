@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import RodapeEntrada from "@/components/auth/RodapeEntrada";
 import "./auth.css";
 
 export const metadata: Metadata = {
@@ -54,18 +55,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <div className="relative z-10 px-6 py-8 sm:px-8">{children}</div>
         </div>
 
-        <div className="animate-auth-fadeInUp auth-stagger-4 mt-8 flex justify-center">
-          <Link href="/" className="btn btn-subtil btn-sm rounded-full">
-            ← Voltar ao portal
-          </Link>
-        </div>
-
-        <blockquote className="animate-auth-fadeInUp auth-stagger-6 mt-14 text-center">
-          <p className="text-sm italic leading-relaxed text-[var(--foreground-muted)]">
-            &ldquo;A equitação é a arte de esconder a arte.&rdquo;
-          </p>
-          <footer className="rotulo mt-2 block">Mestre Nuno Oliveira</footer>
-        </blockquote>
+        <RodapeEntrada />
       </div>
     </div>
   );

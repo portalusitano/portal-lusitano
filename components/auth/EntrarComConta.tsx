@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
+import { useLanguage } from "@/context/LanguageContext";
+import { createTranslator } from "@/lib/tr";
 
 /*
  * Entrar com uma conta que já se tem.
@@ -55,26 +57,56 @@ const LOGOS: Record<Fornecedor, { nome: string; icone: React.ReactNode }> = {
 export default function EntrarComConta({ regressarA = "/" }: { regressarA?: string }) {
   const [aCarregar, setACarregar] = useState<Fornecedor | null>(null);
   const [erro, setErro] = useState("");
+  const { language } = useLanguage();
+  const tr = createTranslator(language);
 
   const entrar = async (fornecedor: Fornecedor) => {
     setErro("");
     setACarregar(fornecedor);
+
+    /* Rede de segurança: se ao fim de oito segundos ainda cá estamos, a
+       saída não aconteceu. Sem isto o botão ficava a girar para sempre —
+       era o que acontecia com o fornecedor por ligar, porque o Supabase
+       devolve a resposta sem URL e sem erro, e nada mais acontece. */
+    const desistir = window.setTimeout(() => {
+      setACarregar(null);
+      setErro(
+        tr(
+          "A janela de autenticação não abriu. Tente outra vez.",
+          "The sign-in window did not open. Please try again.",
+          "La ventana de autenticación no se abrió. Inténtelo de nuevo."
+        )
+      );
+    }, 8000);
+
     try {
       const supabase = createSupabaseBrowserClient();
       const destino = new URL("/auth/callback", window.location.origin);
       destino.searchParams.set("next", regressarA);
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: fornecedor,
         options: { redirectTo: destino.toString() },
       });
       if (error) throw error;
-      // Em caso de sucesso o browser sai daqui; não há nada a repor.
+      // Sem URL não há para onde ir: é o fornecedor que não está ligado.
+      if (!data?.url) throw new Error("provider is not enabled");
+      // Com URL, o browser sai daqui — não há nada a repor.
     } catch (e) {
+      clearTimeout(desistir);
       setACarregar(null);
+      const porLigar = e instanceof Error && /provider is not enabled|not enabled/i.test(e.message);
       setErro(
-        e instanceof Error && /provider is not enabled/i.test(e.message)
-          ? `A entrada com ${LOGOS[fornecedor].nome} ainda não está activa.`
-          : "Não foi possível abrir a janela de autenticação. Tente outra vez."
+        porLigar
+          ? tr(
+              `A entrada com ${LOGOS[fornecedor].nome} ainda não está activa.`,
+              `Signing in with ${LOGOS[fornecedor].nome} is not enabled yet.`,
+              `El acceso con ${LOGOS[fornecedor].nome} aún no está activo.`
+            )
+          : tr(
+              "Não foi possível abrir a janela de autenticação. Tente outra vez.",
+              "Could not open the sign-in window. Please try again.",
+              "No se pudo abrir la ventana de autenticación. Inténtelo de nuevo."
+            )
       );
     }
   };
@@ -95,14 +127,14 @@ export default function EntrarComConta({ regressarA = "/" }: { regressarA?: stri
             type="button"
             onClick={() => entrar(f)}
             disabled={aCarregar !== null}
-            className="btn btn-secundario w-full gap-2.5 rounded-xl py-3 disabled:cursor-not-allowed"
+            className="btn btn-secundario w-full gap-2.5 rounded-xl py-3 text-[var(--foreground-strong)] disabled:cursor-not-allowed"
           >
             {aCarregar === f ? (
               <Loader2 size={16} className="animate-spin" aria-hidden="true" />
             ) : (
               LOGOS[f].icone
             )}
-            Continuar com {LOGOS[f].nome}
+            {tr("Continuar com", "Continue with", "Continuar con")} {LOGOS[f].nome}
           </button>
         ))}
       </div>
@@ -110,7 +142,7 @@ export default function EntrarComConta({ regressarA = "/" }: { regressarA?: stri
       {/* A costura entre as duas maneiras de entrar. */}
       <div className="my-6 flex items-center gap-3">
         <span className="h-px flex-1 bg-[var(--border-soft)]" />
-        <span className="rotulo">ou</span>
+        <span className="rotulo">{tr("ou", "or", "o")}</span>
         <span className="h-px flex-1 bg-[var(--border-soft)]" />
       </div>
     </div>
