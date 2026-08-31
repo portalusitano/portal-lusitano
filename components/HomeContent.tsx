@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import LocalizedLink from "@/components/LocalizedLink";
@@ -270,9 +270,27 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
     parado: campoActivo || termo.length > 0,
   });
 
+  /* O campo de pesquisa é **não controlado**, de propósito.
+     Controlado (`value={termo}`), quem escrevesse antes de a hidratação
+     acontecer via o texto desaparecer-lhe à frente: o React repõe o `value`
+     das props ao pegar no campo, e o termo ia com ele. A submissão seguia
+     para o marketplace sem filtro nenhum e sem sinal do que se perdera. Em
+     WebKit isto acontecia com facilidade suficiente para falhar no CI.
+     Agora quem manda é o campo; o estado só serve para saber se a máquina
+     de escrever se deve calar. */
+  const campo = useRef<HTMLInputElement>(null);
+
+  // E se alguém escreveu antes de nós chegarmos, adoptamos o que lá está.
+  useEffect(() => {
+    const jaEscrito = campo.current?.value ?? "";
+    if (!jaEscrito) return;
+    const id = setTimeout(() => setTermo(jaEscrito), 0);
+    return () => clearTimeout(id);
+  }, []);
+
   const pesquisar = (e: React.FormEvent) => {
     e.preventDefault();
-    const q = termo.trim();
+    const q = (campo.current?.value ?? termo).trim();
     router.push(q ? `/comprar?search=${encodeURIComponent(q)}` : "/comprar");
   };
 
@@ -317,7 +335,12 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
           </Revelar>
 
           <Revelar duracao={600} atraso={200}>
-            <form onSubmit={pesquisar} className="mx-auto w-full max-w-xl px-2 sm:px-0">
+            <form
+              onSubmit={pesquisar}
+              action="/comprar"
+              method="get"
+              className="mx-auto w-full max-w-xl px-2 sm:px-0"
+            >
               <div className="flex flex-col gap-2 sm:flex-row">
                 <div className="relative flex-1">
                   <Search
@@ -326,8 +349,10 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
                     className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]"
                   />
                   <input
+                    ref={campo}
                     type="search"
-                    value={termo}
+                    name="search"
+                    defaultValue=""
                     onChange={(e) => setTermo(e.target.value)}
                     onFocus={() => setCampoActivo(true)}
                     onBlur={() => setCampoActivo(false)}
