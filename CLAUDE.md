@@ -22,6 +22,7 @@ Tokens em `app/globals.css`. Nunca escrever cores literais numa página.
 | Elevação   | `--elevate-1`, `--elevate-2`                                                                                   |
 | Acento     | `--gold` — **um só em todo o site**                                                                            |
 | Estado bom | `--ok`                                                                                                         |
+| Estado mau | `--erro`                                                                                                       |
 
 As hairlines levam um toque de azul (`rgba(214,235,253,·)`) de propósito: luz
 fria sobre preto lê-se como vidro, branco puro lê-se como uma caixa desenhada.
@@ -51,6 +52,15 @@ classe no sistema — acrescenta-se lá.
 `.btn-sm`. `.campo` para entradas. `.chip` / `.chip-activo` para filtros.
 `.selo` + `.selo-destaque` / `.selo-novo` / `.selo-neutro` / `.selo-forte` para
 distintivos sobre fotografia. `.cartao` para superfícies simples.
+
+**Não se usa `<select>` nativo.** A lista aberta é pintada pelo widget do
+sistema — barra azul, tipo de letra do sistema, cantos direitos — e não há CSS
+que lhe chegue. Usa-se `<Seleccao>` (`components/ui/Seleccao.tsx`), que tem a
+mesma API (`value`, `onChange` com `e.target.value`, filhos `<option>`) e
+desenha a lista em `.seleccao__lista`: vidro sobre preto, hairline fria,
+escolha a branco. Guarda cá dentro um `<select>` a sério — é ele que submete o
+formulário e que faz a validação do `required` —, e é a esse que a escolha
+dispara um `change` verdadeiro.
 
 **Estado escolhido é branco, não dourado.** Vale para o filtro activo
 (`.chip-activo`), para as caixas de selecção e interruptores, para o botão por
@@ -124,7 +134,13 @@ As durações e as curvas são medidas, não inventadas. Vivem em tokens no
   Se o script falhar, a cortina já saiu do ecrã à mesma — nunca fica um
   rectângulo opaco por cima do site. Entre rotas não corre: quem assinala
   essas é a barra de progresso.
-- Dropdowns: `.anim-crescer`, 200ms, origem no topo.
+- Dropdowns: `.anim-crescer`, 200ms, origem no topo. A `.seleccao__lista`
+  usa a mesma animação, com a origem em baixo quando abre para cima.
+- Painéis que se escrevem (`<PainelEscrito>`): o texto vai no HTML e o
+  componente só o esconde e o repõe, letra a letra, ao entrar no ecrã. Sem
+  JavaScript o painel lê-se na mesma. Dentro deles a cascata `ui-entrar`
+  fica desligada — duas ideias de entrada ao mesmo tempo leem-se como
+  confusão.
 - Botões de contorno invertem no hover — fundo cheio, texto preto, 200ms.
   Mudar só a cor da borda quase não se via sobre preto.
 - **Dois ciclos infinitos em todo o site**, e não mais: o ponto verde da
@@ -135,6 +151,8 @@ As durações e as curvas são medidas, não inventadas. Vivem em tokens no
   razão escrita.
   Os esqueletos de carregamento usam `animate-pulse` do Tailwind: são a
   excepção aceite, porque só existem enquanto o conteúdo não chegou.
+  O globo do mapa também não faz excepção: roda de oeste até Portugal e
+  aproxima-se da Península num movimento só, que corre uma vez e pára.
 - Entrada anterior (`fadeSlideIn`) ainda em várias páginas: mesma família de
   movimento, alinhada na distância. Diferença que fica: dispara ao carregar,
   não ao entrar no ecrã. Em código novo usar `Revelar`/`data-revelar`.

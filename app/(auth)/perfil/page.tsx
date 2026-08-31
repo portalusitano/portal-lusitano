@@ -192,7 +192,7 @@ function PerfilContent() {
         {/* Sign Out */}
         <button
           onClick={handleSignOut}
-          className="w-full py-3 bg-[var(--background-secondary)] border border-[var(--border)] rounded-xl text-[var(--foreground-secondary)] text-sm font-medium hover:text-red-400 hover:border-red-500/30 transition-all flex items-center justify-center gap-2"
+          className="w-full py-3 bg-[var(--background-secondary)] border border-[var(--border)] rounded-xl text-[var(--foreground-secondary)] text-sm font-medium hover:text-[var(--erro)] hover:border-[var(--erro)] transition-all flex items-center justify-center gap-2"
         >
           <LogOut size={16} />
           {t.profile.sign_out}

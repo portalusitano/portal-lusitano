@@ -3,11 +3,14 @@
 import { memo, useMemo, Fragment } from "react";
 import LocalizedLink from "@/components/LocalizedLink";
 import { ArrowUpRight, ArrowRight } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
+import { eRotaDeEntrada } from "@/lib/rotas-de-entrada";
 import { CONTACT_EMAIL, SOCIAL_LINKS } from "@/lib/constants";
 
 export default memo(function Footer() {
   const { t } = useLanguage();
+  const pathname = usePathname();
 
   // Comprar
   const col1 = useMemo(
@@ -74,6 +77,9 @@ export default memo(function Footer() {
     { label: t.footer.tools, items: col3 },
     { label: "Portal", items: col4 },
   ];
+
+  // Ver a nota no Navbar: nas páginas de entrada o ecrã é só o painel.
+  if (eRotaDeEntrada(pathname)) return null;
 
   return (
     <footer className="bg-[var(--background)] relative overflow-hidden">

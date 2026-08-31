@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
 import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { usePathname } from "next/navigation";
+import { eRotaDeEntrada } from "@/lib/rotas-de-entrada";
 import { DesktopMenu } from "./navbar/DesktopMenu";
 import { NavIcons } from "./navbar/NavIcons";
 import { MobileMenu } from "./navbar/MobileMenu";
@@ -102,6 +103,10 @@ export default memo(function Navbar() {
       cancelAnimationFrame(rafId);
     };
   }, []);
+
+  // As páginas de entrada são um ecrã só, com a marca ao centro. Com esta
+  // barra por cima ficavam duas marcas no mesmo ecrã.
+  if (eRotaDeEntrada(pathname)) return null;
 
   return (
     // A barra entra a descer uma vez, ao carregar. Depois disso só reage ao

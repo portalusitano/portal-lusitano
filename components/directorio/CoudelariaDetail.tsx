@@ -40,10 +40,10 @@ import Seleccao from "@/components/ui/Seleccao";
 
 // ─── Dynamic Map ───────────────────────────────────────────────────────────────
 
-const LeafletMap = dynamic(() => import("@/components/LeafletMap"), {
+const GloboMapa = dynamic(() => import("@/components/GloboMapa"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-[var(--background-secondary)]/80">
+    <div className="flex h-full w-full items-center justify-center">
       <Loader2 className="text-[var(--foreground-muted)]" size={28} />
     </div>
   ),
@@ -1052,7 +1052,7 @@ export default function CoudelariaDetail({
               <AnimateOnScroll delay={250}>
                 <div className="relative z-0 bg-[var(--background-secondary)]/60 border border-[var(--border)] overflow-hidden">
                   <div style={{ height: 280 }}>
-                    <LeafletMap
+                    <GloboMapa
                       coudelarias={[
                         {
                           id: coudelaria.id,

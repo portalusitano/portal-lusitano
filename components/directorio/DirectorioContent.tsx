@@ -21,10 +21,10 @@ import Pagination from "@/components/ui/Pagination";
 import { AnimateOnScroll } from "@/components/AnimateOnScroll";
 import { useLanguage } from "@/context/LanguageContext";
 
-const LeafletMap = dynamic(() => import("@/components/LeafletMap"), {
+const GloboMapa = dynamic(() => import("@/components/GloboMapa"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-[var(--background-secondary)]/80">
+    <div className="flex h-full w-full items-center justify-center">
       <Map className="text-[var(--foreground-muted)]" size={28} aria-hidden="true" />
     </div>
   ),
@@ -363,7 +363,7 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
                 className="relative z-0 mt-4 overflow-hidden rounded-2xl border border-[var(--border-soft)]"
                 style={{ height: 450 }}
               >
-                <LeafletMap
+                <GloboMapa
                   coudelarias={mapCoudelarias}
                   flyTo={flyTo}
                   onMarkerClick={(c) => {

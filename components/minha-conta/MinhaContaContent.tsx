@@ -172,7 +172,8 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
 
   const initials =
     [customer.firstName?.[0], customer.lastName?.[0]].filter(Boolean).join("").toUpperCase() || "M";
-  const fullName = [customer.firstName, customer.lastName].filter(Boolean).join("") || "Membro";
+  // Juntava-se sem espaço: «AnaFerreira».
+  const fullName = [customer.firstName, customer.lastName].filter(Boolean).join(" ") || "Membro";
   const memberSince = customer.createdAt
     ? new Date(customer.createdAt).toLocaleDateString(locale, { month: "long", year: "numeric" })
     : "—";

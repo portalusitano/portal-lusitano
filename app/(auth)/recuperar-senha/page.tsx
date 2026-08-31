@@ -78,7 +78,11 @@ export default function RecuperarSenhaPage() {
       {error && (
         <div
           role="alert"
-          className="mb-5 flex items-start gap-2.5 p-3.5 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-400"
+          className="mb-5 flex items-start gap-2.5 rounded-lg border p-3.5 text-sm text-[var(--erro)]"
+          style={{
+            background: "rgb(var(--erro-rgb) / 0.1)",
+            borderColor: "rgb(var(--erro-rgb) / 0.3)",
+          }}
         >
           <AlertCircle size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
           <span>{error}</span>
@@ -118,22 +122,14 @@ export default function RecuperarSenhaPage() {
               aria-label={t.auth.email}
               aria-describedby={error ? "recovery-email-error" : undefined}
               aria-invalid={!!error}
-              className={[
-                "w-full bg-[var(--background-card)] border rounded-lg pl-10 pr-4 py-3",
-                "text-[var(--foreground)] placeholder:text-[var(--foreground-muted)]",
-                "outline-none transition-colors",
-                "focus:border-[var(--border-hover)] focus:ring-1 focus:ring-[var(--border-hover)]",
-                error
-                  ? "border-red-500/60 focus:border-red-500/60 focus:ring-red-500/20"
-                  : "border-[var(--border)]",
-              ].join("")}
+              className={`campo pl-10 ${error ? "border-[var(--erro)]" : ""}`}
             />
           </div>
           {error && (
             <p
               id="recovery-email-error"
               role="alert"
-              className="mt-1.5 flex items-center gap-1.5 text-xs text-red-400"
+              className="mt-1.5 flex items-center gap-1.5 text-xs text-[var(--erro)]"
             >
               <AlertCircle size={12} aria-hidden="true" />
               {error}

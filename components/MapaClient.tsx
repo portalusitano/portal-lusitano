@@ -22,11 +22,11 @@ import {
 import LocalizedLink from "@/components/LocalizedLink";
 import Image from "next/image";
 
-// Leaflet carregado só no cliente (sem SSR)
-const LeafletMap = dynamic(() => import("@/components/LeafletMap"), {
+// O globo desenha-se em canvas e mede o elemento onde está: só no cliente.
+const GloboMapa = dynamic(() => import("@/components/GloboMapa"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-[var(--background-secondary)]/80 rounded-2xl">
+    <div className="flex h-full w-full items-center justify-center">
       <Compass className="text-[var(--foreground-muted)]" size={32} aria-hidden="true" />
     </div>
   ),
@@ -70,27 +70,28 @@ const placeholderImages = [
 ];
 
 // Stat Card
+/* As bolhas de gradiente verde e roxa que aqui estavam eram as únicas duas
+   cores do site fora do sistema, e ainda por cima flutuavam por cima do
+   canto do cartão. O número é que é o dado: fica ele em primeiro, com
+   `tabular-nums` para alinhar entre os três, e o ícone reduz-se a uma marca
+   ténue à esquerda. */
 const StatCard = memo(function StatCard({
   icon: Icon,
   label,
   value,
-  color,
 }: {
   icon: React.ElementType;
   label: string;
   value: number;
-  color: string;
 }) {
   return (
-    <div className="relative px-5 py-4 bg-[var(--background-secondary)]/80 backdrop-blur-sm border border-[var(--border)] hover:border-[var(--border-hover)] transition-colors">
-      <div
-        className={`absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-gradient-to-r ${color} flex items-center justify-center shadow-lg`}
-      >
-        <Icon size={16} className="text-black" />
-      </div>
-      <div className="pt-3 text-center">
-        <div className="text-2xl text-[var(--foreground)]">{value}</div>
-        <div className="rotulo mt-1">{label}</div>
+    <div className="cartao flex items-center gap-3 px-5 py-3 transition-colors hover:border-[var(--border-hover)]">
+      <Icon size={15} className="shrink-0 text-[var(--foreground-muted)]" aria-hidden="true" />
+      <div className="text-left">
+        <div className="text-xl leading-none tabular-nums text-[var(--foreground-strong)]">
+          {value}
+        </div>
+        <div className="meta mt-1">{label}</div>
       </div>
     </div>
   );
@@ -281,24 +282,9 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
             {t.mapa.subtitle}
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <StatCard
-              icon={MapPin}
-              label={t.mapa.stat_studs}
-              value={stats.total}
-              color="from-[var(--elevate-2)] to-[var(--elevate-1)]"
-            />
-            <StatCard
-              icon={Map}
-              label={t.mapa.stat_regions}
-              value={stats.regioes}
-              color="from-emerald-500 to-emerald-300"
-            />
-            <StatCard
-              icon={Crown}
-              label={t.mapa.stat_horses}
-              value={stats.destaque}
-              color="from-purple-500 to-purple-300"
-            />
+            <StatCard icon={MapPin} label={t.mapa.stat_studs} value={stats.total} />
+            <StatCard icon={Map} label={t.mapa.stat_regions} value={stats.regioes} />
+            <StatCard icon={Crown} label={t.mapa.stat_horses} value={stats.destaque} />
           </div>
         </div>
       </section>
@@ -340,10 +326,10 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
 
         {viewMode === "map" ? (
           <div className="grid lg:grid-cols-12 gap-6">
-            {/* Mapa Leaflet */}
+            {/* Globo */}
             <div className="lg:col-span-8">
-              <div className="relative z-0 border border-[var(--border)] rounded-2xl overflow-hidden h-[400px] sm:h-[500px] lg:h-[600px]">
-                <LeafletMap
+              <div className="relative z-0 h-[400px] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--background)] sm:h-[500px] lg:h-[600px]">
+                <GloboMapa
                   coudelarias={searchQuery ? filteredCoudelarias : coudelarias}
                   flyTo={flyTo}
                   onMarkerClick={handleMarkerClick}

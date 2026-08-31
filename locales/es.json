@@ -1696,6 +1696,7 @@
     "reserved_access": "Acceso Reservado",
     "logging_in": "Iniciando sesión...",
     "login_account": "Iniciar Sesión",
+    "login_desc": "Entre para gestionar sus anuncios, hablar con compradores y recibir alertas.",
     "create_account": "Crear Cuenta",
     "new_member": "Nuevo Miembro",
     "forgot_password": "¿Olvidó su contraseña?",

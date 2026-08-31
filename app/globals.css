@@ -69,6 +69,11 @@ html.dark {
   /* Canais em cru do acento, para brilhos e sombras com opacidade. */
   --gold-rgb: 198 161 91;
   --ok: #34d399;
+  --ok-rgb: 52 211 153;
+  /* O par do `--ok`. Faltava, e por isso os formulários assinalavam o erro
+     com vermelhos literais espalhados por três ficheiros. */
+  --erro: #f87171;
+  --erro-rgb: 248 113 113;
   --surface-hover: rgba(255, 255, 255, 0.04);
   --scrollbar-track: transparent;
   --scrollbar-thumb: #2b2b2b;
@@ -111,6 +116,9 @@ html.light {
   --gold-hover: #a8873a;
   --gold-rgb: 138 109 47;
   --ok: #059669;
+  --ok-rgb: 5 150 105;
+  --erro: #dc2626;
+  --erro-rgb: 220 38 38;
   --surface-hover: rgba(9, 9, 11, 0.04);
   --scrollbar-track: transparent;
   --scrollbar-thumb: #d4d4d8;

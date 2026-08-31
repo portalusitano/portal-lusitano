@@ -1696,6 +1696,7 @@
     "reserved_access": "Reserved Access",
     "logging_in": "Logging in...",
     "login_account": "Sign In",
+    "login_desc": "Sign in to manage your listings, talk to buyers and receive alerts.",
     "create_account": "Create Account",
     "new_member": "New Member",
     "forgot_password": "Forgot your password?",

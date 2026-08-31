@@ -1,11 +1,12 @@
-"use client";
+/**
+ * Coordenadas das coudelarias.
+ *
+ * Estava tudo dentro do `LeafletMap`, que agora é um de dois desenhos
+ * possíveis do mesmo mapa. A tabela de localidades e a resolução são o
+ * dado, não o desenho — vivem aqui e servem os dois.
+ */
 
-import { MapContainer, TileLayer, Marker, Tooltip, useMap } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import "./leaflet-tooltip.css";
-
-interface Coudelaria {
+export interface CoudelariaNoMapa {
   id: string;
   nome: string;
   slug: string;
@@ -230,133 +231,32 @@ const regiaoCoords: Record<string, [number, number]> = {
  * 2. Tenta match parcial (ex: "Alter do Chão, Alentejo" → "alter do chao")
  * 3. Fallback para centro da região
  */
-function resolveCoords(
-  localizacao: string,
-  regiao: string,
-  coordLat?: number,
-  coordLng?: number
-): [number, number] | null {
-  // Se tem coordenadas explícitas, usa-as
-  if (coordLat && coordLng) return [coordLat, coordLng];
 
-  const loc = localizacao
+/** Devolve `[lat, lon]`, ou `null` se a localização não for reconhecida. */
+export function resolverCoordenadas(c: {
+  localizacao: string;
+  regiao: string;
+  coordenadas_lat?: number;
+  coordenadas_lng?: number;
+}): [number, number] | null {
+  if (c.coordenadas_lat && c.coordenadas_lng) return [c.coordenadas_lat, c.coordenadas_lng];
+
+  const loc = c.localizacao
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // remove acentos
+    .replace(/[\u0300-\u036f]/g, "")
     .trim();
 
-  // Match exacto
   if (localCoords[loc]) return localCoords[loc];
 
-  // Match parcial — tenta cada parte separada por vírgula
-  const parts = loc.split(",").map((p) => p.trim());
-  for (const part of parts) {
-    if (localCoords[part]) return localCoords[part];
+  for (const parte of loc.split(",").map((p) => p.trim())) {
+    if (localCoords[parte]) return localCoords[parte];
   }
 
-  // Tenta match parcial — procura se alguma key do mapa está contida na localização
-  for (const [key, coords] of Object.entries(localCoords)) {
-    const keyNorm = key.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    if (loc.includes(keyNorm) || keyNorm.includes(loc)) {
-      return coords;
-    }
+  for (const [chave, coords] of Object.entries(localCoords)) {
+    const normalizada = chave.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (loc.includes(normalizada) || normalizada.includes(loc)) return coords;
   }
 
-  // Fallback para centro da região
-  return regiaoCoords[regiao] || null;
-}
-
-// Marker dourado custom
-const goldIcon = new L.DivIcon({
-  className: "",
-  html: `<div style="
-    width:32px;height:32px;
-    background:#C5A059;
-    border:3px solid #fff;
-    border-radius:50% 50% 50% 0;
-    transform:rotate(-45deg);
-    box-shadow:0 2px 8px rgba(0,0,0,0.5);
-    display:flex;align-items:center;justify-content:center; "><div style="transform:rotate(45deg);color:#000;font-weight:bold;font-size:12px;">&#9733;</div></div>`,
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor: [0, -32],
-});
-
-const defaultIcon = new L.DivIcon({
-  className: "",
-  html: `<div style="
-    width:24px;height:24px;
-    background:#C5A059;
-    border:2px solid rgba(255,255,255,0.6);
-    border-radius:50% 50% 50% 0;
-    transform:rotate(-45deg);
-    box-shadow:0 2px 6px rgba(0,0,0,0.4); "></div>`,
-  iconSize: [24, 24],
-  iconAnchor: [12, 24],
-  popupAnchor: [0, -24],
-});
-
-// Componente auxiliar para controlar fly-to
-function FlyToMarker({ center, zoom }: { center: [number, number] | null; zoom?: number }) {
-  const map = useMap();
-  if (center) {
-    map.flyTo(center, zoom || 10, { duration: 0.8 });
-  }
-  return null;
-}
-
-export default function LeafletMap({
-  coudelarias,
-  flyTo,
-  onMarkerClick,
-}: {
-  coudelarias: Coudelaria[];
-  flyTo?: [number, number] | null;
-  onMarkerClick?: (c: Coudelaria) => void;
-}) {
-  return (
-    <MapContainer
-      center={[39.5, -8.0]}
-      zoom={7}
-      minZoom={6}
-      maxZoom={16}
-      className="w-full h-full rounded-2xl"
-      style={{ background: "#0a0a0a" }}
-      zoomControl={false}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-      />
-
-      {flyTo && <FlyToMarker center={flyTo} />}
-
-      {coudelarias.map((c) => {
-        const coords = resolveCoords(c.localizacao, c.regiao, c.coordenadas_lat, c.coordenadas_lng);
-        if (!coords) return null;
-
-        return (
-          <Marker
-            key={c.id}
-            position={coords}
-            icon={c.destaque ? goldIcon : defaultIcon}
-            eventHandlers={{
-              click: () => onMarkerClick?.(c),
-            }}
-          >
-            <Tooltip
-              direction="top"
-              offset={[0, -28]}
-              opacity={1}
-              className="leaflet-tooltip-portal"
-            >
-              <strong style={{ fontSize: 13 }}>{c.nome}</strong>
-              <br />
-              <span style={{ fontSize: 11, opacity: 0.7 }}>{c.localizacao}</span>
-            </Tooltip>
-          </Marker>
-        );
-      })}
-    </MapContainer>
-  );
+  return regiaoCoords[c.regiao] || null;
 }

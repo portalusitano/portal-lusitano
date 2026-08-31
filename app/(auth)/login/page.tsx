@@ -8,23 +8,18 @@ import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
 import { Mail, Lock, Eye, EyeOff, LogIn, Loader2, AlertCircle } from "lucide-react";
 
-// ─── Shared input class builder ───────────────────────────────────────────────
+/* O campo é o do sistema (`.campo`); aqui só se abre espaço à esquerda para
+   o ícone. O `pl-10` ganha ao `padding` do `.campo` porque as utilidades do
+   Tailwind estão numa camada posterior ao `@layer components` — é de
+   propósito, e está escrito no CLAUDE.md. */
 function inputClass(hasError: boolean) {
-  return [
-    "w-full bg-[var(--background-card)] border rounded-lg pl-10 pr-4 py-3",
-    "text-[var(--foreground)] placeholder:text-[var(--foreground-muted)]",
-    "outline-none transition-colors",
-    "focus:border-[var(--border-hover)] focus:ring-1 focus:ring-[var(--border-hover)]",
-    hasError
-      ? "border-red-500/60 focus:border-red-500/60 focus:ring-red-500/20"
-      : "border-[var(--border)]",
-  ].join("");
+  return ["campo pl-10", hasError ? "border-[var(--erro)]" : ""].join(" ");
 }
 
 // ─── Inline field error ────────────────────────────────────────────────────────
 function FieldError({ id, message }: { id: string; message: string }) {
   return (
-    <p id={id} role="alert" className="mt-1.5 flex items-center gap-1.5 text-xs text-red-400">
+    <p id={id} role="alert" className="mt-1.5 flex items-center gap-1.5 text-xs text-[var(--erro)]">
       <AlertCircle size={12} aria-hidden="true" />
       {message}
     </p>
@@ -101,14 +96,20 @@ function LoginContent() {
 
   return (
     <div>
-      <h1 className="text-2xl text-[var(--foreground)] mb-1">{t.auth.login_account}</h1>
-      <p className="text-sm text-[var(--foreground-muted)] mb-6">{t.auth.recover_desc}</p>
+      {/* Dizia «insira o seu email para receber um link de recuperação» por
+          baixo de «Entrar na Conta» — a legenda da página ao lado. */}
+      <h1 className="titulo-pagina mb-1 text-2xl">{t.auth.login_account}</h1>
+      <p className="mb-7 text-sm text-[var(--foreground-secondary)]">{t.auth.login_desc}</p>
 
       {/* Global error banner */}
       {globalError && (
         <div
           role="alert"
-          className="mb-5 flex items-start gap-2.5 p-3.5 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-400"
+          className="mb-5 flex items-start gap-2.5 rounded-lg border p-3.5 text-sm text-[var(--erro)]"
+          style={{
+            background: "rgb(var(--erro-rgb) / 0.1)",
+            borderColor: "rgb(var(--erro-rgb) / 0.3)",
+          }}
         >
           <AlertCircle size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
           <span>{globalError}</span>
@@ -124,10 +125,7 @@ function LoginContent() {
       >
         {/* Email */}
         <div>
-          <label
-            htmlFor="login-email"
-            className="block text-xs text-[var(--foreground-muted)] uppercase tracking-wider mb-2"
-          >
+          <label htmlFor="login-email" className="rotulo mb-2 block">
             {t.auth.email}
           </label>
           <div className="relative">
@@ -158,10 +156,7 @@ function LoginContent() {
 
         {/* Password */}
         <div>
-          <label
-            htmlFor="login-password"
-            className="block text-xs text-[var(--foreground-muted)] uppercase tracking-wider mb-2"
-          >
+          <label htmlFor="login-password" className="rotulo mb-2 block">
             {t.auth.password}
           </label>
           <div className="relative">
@@ -218,7 +213,7 @@ function LoginContent() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 btn btn-primario w-full gap-2 rounded-full disabled:cursor-not-allowed"
+          className="btn btn-primario w-full gap-2 rounded-full py-3 disabled:cursor-not-allowed"
           aria-busy={loading}
         >
           {loading ? (
@@ -232,8 +227,7 @@ function LoginContent() {
 
       {/* Register link */}
       <p className="mt-6 text-center text-sm text-[var(--foreground-muted)]">
-        {t.auth.no_account}
-        {""}
+        {t.auth.no_account}{" "}
         <LocalizedLink
           href={
             returnUrl !== "/" ? `/registar?redirect=${encodeURIComponent(returnUrl)}` : "/registar"

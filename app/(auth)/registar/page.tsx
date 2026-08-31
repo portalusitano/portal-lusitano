@@ -22,17 +22,11 @@ import {
 } from "lucide-react";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-function inputClass(hasError: boolean, isFocused?: boolean) {
-  return [
-    "w-full bg-[var(--background-card)] border rounded-xl pl-10 pr-4 py-3.5",
-    "text-[var(--foreground)] placeholder:text-[var(--foreground-muted)]/60",
-    "outline-none transition-all duration-200",
-    "focus:border-[var(--border-hover)] focus:ring-2 focus:ring-[var(--border-hover)] focus:bg-[var(--background-card)]/90",
-    isFocused ? "border-[var(--border-soft)]" : "",
-    hasError
-      ? "border-red-500/60 focus:border-red-500/60 focus:ring-red-500/20"
-      : "border-[var(--border)] hover:border-[var(--border-hover)]",
-  ].join("");
+/* Ver a nota igual no login: o campo é o do sistema, e o `pl-10` abre espaço
+   ao ícone ganhando ao `padding` do `.campo` por estar numa camada posterior.
+   As classes iam juntas sem espaço entre elas — metade nunca existiu. */
+function inputClass(hasError: boolean) {
+  return ["campo pl-10", hasError ? "border-[var(--erro)]" : ""].join(" ");
 }
 
 function FieldError({ id, message }: { id: string; message: string }) {
@@ -40,7 +34,7 @@ function FieldError({ id, message }: { id: string; message: string }) {
     <p
       id={id}
       role="alert"
-      className="mt-1.5 flex items-center gap-1.5 text-xs text-red-400 animate-auth-fadeInUp"
+      className="mt-1.5 flex items-center gap-1.5 text-xs text-[var(--erro)] animate-auth-fadeInUp"
     >
       <AlertCircle size={12} aria-hidden="true" />
       {message}
@@ -62,9 +56,9 @@ function getPasswordStrength(pw: string): StrengthLevel {
 
 const strengthConfig: Record<StrengthLevel, { label: string; color: string; width: string }> = {
   none: { label: "", color: "bg-[var(--border)]", width: "w-0" },
-  weak: { label: "Fraca", color: "bg-red-500", width: "w-1/3" },
-  medium: { label: "Média", color: "bg-amber-400", width: "w-2/3" },
-  strong: { label: "Forte", color: "bg-emerald-500", width: "w-full" },
+  weak: { label: "Fraca", color: "bg-[var(--erro)]", width: "w-1/3" },
+  medium: { label: "Média", color: "bg-[var(--foreground-secondary)]", width: "w-2/3" },
+  strong: { label: "Forte", color: "bg-[var(--ok)]", width: "w-full" },
 };
 
 function PasswordStrengthBar({ password }: { password: string }) {
@@ -106,7 +100,7 @@ function PasswordStrengthBar({ password }: { password: string }) {
       </div>
       {label && (
         <p
-          className={`mt-1.5 text-xs ${level === "strong" ? "text-emerald-400" : level === "medium" ? "text-amber-400" : "text-red-400"}`}
+          className={`mt-1.5 text-xs ${level === "strong" ? "text-[var(--ok)]" : level === "medium" ? "text-[var(--foreground-secondary)]" : "text-[var(--erro)]"}`}
         >
           Força: <span className="font-medium">{label}</span>
         </p>
@@ -139,15 +133,15 @@ function PasswordChecks({ password }: { password: string }) {
       {checks.map(({ ok, label }) => (
         <li
           key={label}
-          className={`flex items-center gap-1.5 text-xs transition-colors duration-200 ${ok ? "text-emerald-400" : "text-[var(--foreground-muted)]/60"}`}
+          className={`flex items-center gap-1.5 text-xs transition-colors duration-200 ${ok ? "text-[var(--ok)]" : "text-[var(--foreground-muted)]/60"}`}
         >
           <div
-            className={`w-3.5 h-3.5 rounded-full flex items-center justify-center transition-all duration-300 ${ok ? "bg-emerald-500/20" : "bg-[var(--border)]/30"}`}
+            className={`w-3.5 h-3.5 rounded-full flex items-center justify-center transition-all duration-300 ${ok ? "bg-[rgb(var(--ok-rgb)/0.2)]" : "bg-[var(--border)]/30"}`}
           >
             <CheckCircle
               size={10}
               aria-hidden="true"
-              className={`transition-all duration-300 ${ok ? "text-emerald-400 scale-100" : "text-[var(--border)] scale-75"}`}
+              className={`transition-all duration-300 ${ok ? "text-[var(--ok)] scale-100" : "text-[var(--border)] scale-75"}`}
             />
           </div>
           {label}
@@ -310,13 +304,13 @@ function RegistarContent() {
         >
           {/* Outer glow ring */}
           <div
-            className="absolute inset-0 rounded-full bg-emerald-500/10 animate-ping"
+            className="absolute inset-0 rounded-full bg-[rgb(var(--ok-rgb)/0.1)] animate-ping"
             style={{ animationDuration: "1.4s", animationIterationCount: 1 }}
           />
           {/* Main circle */}
-          <div className="relative w-20 h-20 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border-2 border-emerald-500/40 rounded-full flex items-center justify-center">
+          <div className="relative flex h-20 w-20 items-center justify-center rounded-full border-2 border-[rgb(var(--ok-rgb)/0.4)] bg-[rgb(var(--ok-rgb)/0.12)]">
             <CheckCircle
-              className="text-emerald-400"
+              className="text-[var(--ok)]"
               size={36}
               aria-hidden="true"
               strokeWidth={1.5}
@@ -414,7 +408,11 @@ function RegistarContent() {
       {globalError && (
         <div
           role="alert"
-          className="mb-5 flex items-start gap-2.5 p-3.5 bg-red-500/10 border border-red-500/30 rounded-xl text-sm text-red-400 animate-auth-fadeInUp"
+          className="mb-5 flex items-start gap-2.5 rounded-xl border p-3.5 text-sm text-[var(--erro)] animate-auth-fadeInUp"
+          style={{
+            background: "rgb(var(--erro-rgb) / 0.1)",
+            borderColor: "rgb(var(--erro-rgb) / 0.3)",
+          }}
         >
           <AlertCircle size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
           <span>{globalError}</span>
@@ -607,8 +605,8 @@ function RegistarContent() {
             <FieldError id="reg-confirm-error" message={fieldErrors.confirmPassword} />
           )}
           {!fieldErrors.confirmPassword && confirmPassword && confirmPassword === password && (
-            <span className="mt-1.5 flex items-center gap-1.5 text-xs text-emerald-400 animate-auth-fadeInUp">
-              <span className="w-3.5 h-3.5 rounded-full bg-emerald-500/20 flex items-center justify-center inline-flex">
+            <span className="mt-1.5 flex items-center gap-1.5 text-xs text-[var(--ok)] animate-auth-fadeInUp">
+              <span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[rgb(var(--ok-rgb)/0.2)]">
                 <CheckCircle size={10} aria-hidden="true" />
               </span>
               Palavras-passe coincidem
@@ -640,7 +638,7 @@ function RegistarContent() {
                   termsAccepted
                     ? "bg-[var(--foreground-strong)] border-[var(--foreground-strong)] scale-100"
                     : fieldErrors.terms
-                      ? "border-red-500/60 bg-[var(--background-card)]"
+                      ? "border-[var(--erro)] bg-[var(--background-card)]"
                       : "border-[var(--border)] bg-[var(--background-card)] group-hover:border-[var(--border-hover)]"
                 }`}
                 aria-hidden="true"
