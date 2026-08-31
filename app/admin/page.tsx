@@ -187,7 +187,7 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--gold)] mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--foreground-strong)] mx-auto"></div>
           <p className="text-gray-400 mt-4">A carregar dashboard...</p>
         </div>
       </div>
@@ -240,7 +240,8 @@ export default function AdminDashboard() {
                   <p className="text-sm text-gray-300 font-mono mb-2">📋 Siga estes passos:</p>
                   <ol className="text-sm text-gray-400 space-y-1 ml-4 list-decimal">
                     <li>
-                      Abra o ficheiro <code className="text-[var(--gold)]">INSTALAR_ADMIN.md</code>
+                      Abra o ficheiro{" "}
+                      <code className="text-[var(--foreground-muted)]">INSTALAR_ADMIN.md</code>
                     </li>
                     <li>Siga as instruções para executar o SQL no Supabase</li>
                     <li>Recarregue esta página (F5)</li>
@@ -268,7 +269,7 @@ export default function AdminDashboard() {
               <h2 className="text-2xl font-bold text-white">💰 Financeiro</h2>
               <Link
                 href="/admin/financeiro"
-                className="text-[var(--gold)] hover:text-[var(--gold-hover)] text-sm font-medium transition-colors"
+                className="text-[var(--foreground-muted)] hover:text-[var(--foreground-strong)] text-sm font-medium transition-colors"
               >
                 Ver Dashboard Completo →
               </Link>
@@ -276,10 +277,10 @@ export default function AdminDashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
               {/* Receita Total */}
-              <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6 hover:border-[var(--gold)]/30 transition-colors">
+              <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6 hover:border-[var(--border-hover)] transition-colors">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-medium text-gray-400">Receita Total</h3>
-                  <DollarSign className="text-[var(--gold)]" size={20} />
+                  <DollarSign className="text-[var(--foreground-muted)]" size={20} />
                 </div>
                 <p className="text-3xl font-bold text-white">
                   {formatCurrency(financial.totalRevenue)}
@@ -307,20 +308,20 @@ export default function AdminDashboard() {
               </div>
 
               {/* MRR */}
-              <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6 hover:border-[var(--gold)]/30 transition-colors">
+              <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6 hover:border-[var(--border-hover)] transition-colors">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-medium text-gray-400">MRR</h3>
-                  <Repeat className="text-[var(--gold)]" size={20} />
+                  <Repeat className="text-[var(--foreground-muted)]" size={20} />
                 </div>
                 <p className="text-3xl font-bold text-white">{formatCurrency(financial.mrr)}</p>
                 <p className="text-xs text-gray-500 mt-1">Receita recorrente</p>
               </div>
 
               {/* Transações */}
-              <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6 hover:border-[var(--gold)]/30 transition-colors">
+              <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6 hover:border-[var(--border-hover)] transition-colors">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-medium text-gray-400">Transações</h3>
-                  <ShoppingCart className="text-[var(--gold)]" size={20} />
+                  <ShoppingCart className="text-[var(--foreground-muted)]" size={20} />
                 </div>
                 <p className="text-3xl font-bold text-white">{financial.totalTransactions}</p>
                 <p className="text-xs text-gray-500 mt-1">
@@ -338,7 +339,7 @@ export default function AdminDashboard() {
               <h2 className="text-2xl font-bold text-white">📨 Mensagens & Contactos</h2>
               <Link
                 href="/admin/mensagens"
-                className="text-[var(--gold)] hover:text-[var(--gold-hover)] text-sm font-medium transition-colors"
+                className="text-[var(--foreground-muted)] hover:text-[var(--foreground-strong)] text-sm font-medium transition-colors"
               >
                 Ver Inbox Completo →
               </Link>
@@ -348,7 +349,7 @@ export default function AdminDashboard() {
               {/* Stats de Mensagens */}
               <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <Mail className="text-[var(--gold)]" size={24} />
+                  <Mail className="text-[var(--foreground-muted)]" size={24} />
                   <h3 className="text-lg font-semibold text-white">Status das Mensagens</h3>
                 </div>
                 <div className="space-y-3">
@@ -421,7 +422,7 @@ export default function AdminDashboard() {
               <h2 className="text-2xl font-bold text-white">📊 Analytics & Performance</h2>
               <Link
                 href="/admin/analytics"
-                className="text-[var(--gold)] hover:text-[var(--gold-hover)] text-sm font-medium transition-colors"
+                className="text-[var(--foreground-muted)] hover:text-[var(--foreground-strong)] text-sm font-medium transition-colors"
               >
                 Ver Analytics Completo →
               </Link>
@@ -533,15 +534,15 @@ export default function AdminDashboard() {
         )}
 
         {/* DASHBOARDS ESPECIALIZADOS */}
-        <div className="bg-gradient-to-br from-[var(--gold)]/10 to-[var(--gold)]/5 border border-[var(--gold)]/20 rounded-lg p-6">
+        <div className="bg-gradient-to-br from-[var(--elevate-1)] to-[var(--elevate-1)] border border-[var(--border-soft)] rounded-lg p-6">
           <h2 className="text-2xl font-bold text-white mb-4">🚀 Dashboards Especializados</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <Link
               href="/admin/financeiro"
-              className="bg-[var(--background-secondary)] border border-white/10 hover:border-[var(--gold)]/50 rounded-lg p-6 transition-all hover:scale-105"
+              className="bg-[var(--background-secondary)] border border-white/10 hover:border-[var(--border-hover)] rounded-lg p-6 transition-all hover:scale-105"
             >
               <div className="flex items-center gap-3 mb-3">
-                <DollarSign className="text-[var(--gold)]" size={28} />
+                <DollarSign className="text-[var(--foreground-muted)]" size={28} />
                 <h3 className="text-lg font-bold text-white">Dashboard Financeiro</h3>
               </div>
               <p className="text-sm text-gray-400">

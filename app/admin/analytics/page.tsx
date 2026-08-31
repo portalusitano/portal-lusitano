@@ -125,7 +125,7 @@ export default function AdminAnalyticsPage() {
     return (
       <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--gold)] mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--foreground-strong)] mx-auto"></div>
           <p className="text-gray-400 mt-4">A carregar analytics...</p>
         </div>
       </div>
@@ -173,14 +173,14 @@ export default function AdminAnalyticsPage() {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-white font-bold">{formatNumber(stage.count)}</span>
-                        <span className="text-[var(--gold)] text-sm font-semibold">
+                        <span className="text-[var(--foreground-muted)] text-sm font-semibold">
                           {stage.percentage.toFixed(1)}%
                         </span>
                       </div>
                     </div>
                     <div className="h-12 bg-white/5 rounded-lg overflow-hidden relative">
                       <div
-                        className="h-full bg-gradient-to-r from-[var(--gold)] to-[var(--gold-hover)] transition-all duration-1000 flex items-center justify-end pr-4"
+                        className="h-full bg-[var(--foreground-strong)] transition-all duration-1000 flex items-center justify-end pr-4"
                         style={{ width: `${stage.percentage}%` }}
                       >
                         <span className="text-black font-bold text-sm">
@@ -206,11 +206,11 @@ export default function AdminAnalyticsPage() {
             <h2 className="text-2xl font-bold text-white mb-6">💰 ROI por Canal de Marketing</h2>
 
             {sources.bestChannel && (
-              <div className="bg-gradient-to-r from-[var(--gold)]/20 to-[var(--gold)]/5 border-2 border-[var(--gold)]/30 rounded-lg p-6 mb-6">
+              <div className="bg-gradient-to-r from-[var(--elevate-1)] to-[var(--elevate-1)] border-2 border-[var(--border-soft)] rounded-lg p-6 mb-6">
                 <div className="flex items-start gap-4">
                   <div className="text-4xl">🏆</div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-[var(--gold)] mb-2">
+                    <h3 className="text-xl font-bold text-[var(--foreground-muted)] mb-2">
                       Melhor Canal: {sources.bestChannel.source}
                     </h3>
                     <div className="grid grid-cols-2 gap-4">
@@ -334,7 +334,9 @@ export default function AdminAnalyticsPage() {
                       className="flex items-center justify-between p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-[var(--gold)] font-bold w-6">#{index + 1}</span>
+                        <span className="text-[var(--foreground-muted)] font-bold w-6">
+                          #{index + 1}
+                        </span>
                         <span className="text-white">{cavalo.name}</span>
                       </div>
                       <span className="text-gray-400 text-sm">

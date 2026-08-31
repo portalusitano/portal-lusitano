@@ -209,7 +209,7 @@ export default function CalendarioPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--gold)]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--foreground-strong)]"></div>
       </div>
     );
   }
@@ -225,7 +225,7 @@ export default function CalendarioPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-                <Calendar className="text-[var(--gold)]" />
+                <Calendar className="text-[var(--foreground-muted)]" />
                 Calendário de Follow-ups
               </h1>
               <p className="text-gray-400 mt-1">Gerir tarefas e lembretes de clientes</p>

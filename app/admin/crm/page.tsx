@@ -232,7 +232,7 @@ export default function CRMPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--gold)]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--foreground-strong)]"></div>
       </div>
     );
   }
@@ -248,7 +248,7 @@ export default function CRMPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-                <TrendingUp className="text-[var(--gold)]" />
+                <TrendingUp className="text-[var(--foreground-muted)]" />
                 CRM - Pipeline de Vendas
               </h1>
               <p className="text-gray-400 mt-1">Gestão visual de leads e oportunidades</p>
@@ -256,7 +256,7 @@ export default function CRMPage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => openModal()}
-                className="flex items-center gap-2 px-4 py-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black font-semibold rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-[var(--foreground-strong)] hover:bg-[var(--foreground)] text-black font-semibold rounded-lg transition-colors"
               >
                 <Plus size={16} />
                 Novo Lead

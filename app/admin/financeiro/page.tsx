@@ -242,7 +242,7 @@ export default function AdminFinanceiroPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--gold)]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--foreground-strong)]"></div>
       </div>
     );
   }

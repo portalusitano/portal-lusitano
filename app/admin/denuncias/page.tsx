@@ -75,7 +75,7 @@ export default function AdminDenunciasPage() {
     <main className="p-6 sm:p-10">
       <header className="mb-8">
         <h1 className="text-2xl font-normal tracking-wide text-[var(--foreground)] flex items-center gap-3">
-          <Flag size={20} className="text-[var(--gold)]" />
+          <Flag size={20} className="text-[var(--foreground-muted)]" />
           Denúncias
         </h1>
         <p className="text-sm text-[var(--foreground-muted)] mt-2">
@@ -90,7 +90,7 @@ export default function AdminDenunciasPage() {
             onClick={() => setFiltro(f.id)}
             className={`px-4 py-2 rotulo border transition-colors ${
               filtro === f.id
-                ? "border-[var(--gold)]/50 text-[var(--gold)] bg-[var(--gold)]/5"
+                ? "border-[var(--border-soft)] text-[var(--foreground-muted)] bg-[var(--elevate-1)]"
                 : "border-[var(--border)] text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
             }`}
           >
@@ -114,12 +114,12 @@ export default function AdminDenunciasPage() {
 
       {!loading && !erro && denuncias.length === 0 && (
         <div className="cartao p-10 text-center">
-          <ShieldCheck size={22} className="mx-auto text-[var(--gold)]/25 mb-4" />
+          <ShieldCheck size={22} className="mx-auto text-[var(--foreground-muted)]/25 mb-4" />
           <p className="text-sm text-[var(--foreground)]">Nada nesta fila.</p>
         </div>
       )}
 
-      <div className="space-y-px bg-[var(--gold)]/8">
+      <div className="space-y-px bg-[var(--elevate-1)]">
         {denuncias.map((d) => (
           <article key={d.id} className="bg-[var(--background)] p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -128,7 +128,7 @@ export default function AdminDenunciasPage() {
                   href={`/comprar/${d.cavaloId}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-base font-normal text-[var(--foreground)] hover:text-[var(--gold)] transition-colors"
+                  className="text-base font-normal text-[var(--foreground)] hover:text-[var(--foreground-strong)] transition-colors"
                 >
                   {d.cavaloNome} ↗
                 </a>
