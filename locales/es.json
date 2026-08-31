@@ -1493,7 +1493,7 @@
     "all_regions": "Todas",
     "select_region_hint": "Seleccione una región o haga clic en un pin del mapa",
     "view_globe": "Globo",
-    "globe_hint": "Arrastre para girar · acérquese para ver los nombres",
+    "globe_hint": "Arrastre para girar · toque un número para ver quién está allí",
     "title_highlight": "Portugal",
     "stat_horses_hint": "caballos declarados por las yeguadas del mapa",
     "showing": "mostrando",

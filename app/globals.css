@@ -2552,6 +2552,27 @@ body {
     border-top-left-radius: 3px;
   }
 
+  /* Centrada por cima ou por baixo do ponto. Aqui o cotovelo também não tem
+     lado para onde virar — o nome está a prumo sobre o ponto —, e o fio fica
+     um traço vertical do meio da caixa até ao alfinete. */
+  .globo-etiqueta[data-lado="centro"] .globo-etiqueta__linha {
+    left: 50%;
+    width: 0;
+    border-left-width: 1px;
+  }
+
+  .globo-etiqueta[data-lado="centro"][data-vert="cima"] .globo-etiqueta__linha {
+    bottom: -10px;
+  }
+
+  .globo-etiqueta[data-lado="centro"][data-vert="baixo"] .globo-etiqueta__linha {
+    top: -10px;
+  }
+
+  .globo-etiqueta[data-lado="centro"] .globo-etiqueta__caixa {
+    text-align: center;
+  }
+
   /* À altura do ponto o cotovelo não tem para onde virar: fica o traço. */
   .globo-etiqueta[data-vert="meio"] .globo-etiqueta__linha {
     top: 50%;
@@ -2583,6 +2604,15 @@ body {
 
   .globo-etiqueta[data-lado="esquerda"] .globo-etiqueta__caixa {
     text-align: right;
+  }
+
+  /* Sem lugar neste quadro. Sai do rato mas não necessariamente da
+     tabulação: a etiqueta que tem o foco fica focável mesmo durante o quadro
+     em que a câmara ainda não a trouxe à vista — sem isso, percorrer o globo
+     pelas setas perdia o foco ao segundo passo. Quem trata da tabulação é o
+     `inert`, que é outra coisa e vive no JavaScript. */
+  .globo-etiqueta[data-oculta] {
+    pointer-events: none;
   }
 
   /* Um botão a sério, não uma `div` com `role="button"`: assim o Enter e o
@@ -2701,6 +2731,247 @@ body {
     color: var(--foreground);
   }
 
+  /* ── Manchas: o algarismo por cima de um ajuntamento de pontos ────────
+     Onde não coube um nome, fica a conta. É a diferença entre uma nuvem de
+     pintas anónimas e um mapa que diz «aqui estão sete».
+
+     É um algarismo, não um selo: a mesma família do `.globo-etiqueta__conta`
+     — hairline fria, fundo elevado, número em tabular — mas redondo e
+     autónomo, porque não se encosta a nome nenhum. Branco e não dourado: o
+     dourado é o acento e já saiu dos alfinetes pela mesma razão — repetido
+     em cada mancha da grelha deixaria de assinalar seja o que for. */
+
+  .globo-mancha {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    pointer-events: auto;
+    will-change: transform, opacity;
+    transition: opacity 220ms var(--ease-out);
+    animation: etiqueta-nascer 700ms var(--ease-out) var(--entrada, 0ms) backwards;
+  }
+
+  /* Fora de jogo: sem lugar neste quadro. Sai do rato também — uma bolha
+     invisível a apanhar o ponteiro é um clique que ninguém pediu. */
+  .globo-mancha[data-oculta] {
+    pointer-events: none;
+  }
+
+  .globo-mancha__chip {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    margin: 0;
+    padding: 0;
+    border: 1px solid rgba(214, 235, 253, 0.22);
+    border-radius: 999px;
+    background: var(--background-elevated);
+    box-shadow:
+      0 1px 4px rgba(0, 0, 0, 0.95),
+      0 0 14px rgba(0, 0, 0, 0.7);
+    font: inherit;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    color: var(--foreground-secondary);
+    cursor: pointer;
+    transition:
+      color var(--d-fast) var(--ease-out),
+      border-color var(--d-fast) var(--ease-out);
+  }
+
+  /* Estado escolhido é branco. */
+  .globo-mancha:hover .globo-mancha__chip,
+  .globo-mancha[data-aberta] .globo-mancha__chip {
+    border-color: var(--border-hover);
+    color: var(--foreground-strong);
+  }
+
+  /* O painel dos nomes pendura-se do algarismo e não desloca nada: a
+     colocação da mancha usa sempre a medida do algarismo fechado, por isso
+     abrir não obriga a recolocar o quadro inteiro. */
+  .globo-mancha__painel {
+    position: absolute;
+    top: 26px;
+    left: 50%;
+    z-index: 2;
+    display: none;
+    width: max-content;
+    max-width: 220px;
+    /* O `--desvio` é escrito no momento em que abre, e é o que encosta o
+       painel à borda em vez de o deixar sair da lona — que o `overflow:
+       hidden` da camada cortaria a meio de uma lista. */
+    transform: translateX(calc(-50% + var(--desvio, 0px)));
+    padding: 7px 9px 8px;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    background: var(--background-card);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.85);
+  }
+
+  .globo-mancha[data-aberta] .globo-mancha__painel {
+    display: block;
+    animation: globo-mancha-abrir 200ms var(--ease-out);
+    transform-origin: top center;
+  }
+
+  /* Na metade de baixo da lona o painel abre para cima. Sem isto ficava
+     cortado pela borda: medido, cinco nomes visíveis em onze. */
+  .globo-mancha[data-cima] .globo-mancha__painel {
+    top: auto;
+    bottom: 26px;
+    transform-origin: bottom center;
+  }
+
+  /* O mesmo movimento do `.anim-crescer` dos dropdowns — 200ms, `--ease-out`,
+     origem no topo —, escrito à parte só porque este painel já traz um
+     `translateX(-50%)` para se centrar no algarismo, e uma animação de
+     `transform` que não o carregue atira-o para o lado a meio da abertura. */
+  @keyframes globo-mancha-abrir {
+    from {
+      opacity: 0;
+      transform: translateX(calc(-50% + var(--desvio, 0px))) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(calc(-50% + var(--desvio, 0px))) scale(1);
+    }
+  }
+
+  .globo-mancha__titulo {
+    margin: 0 0 5px;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--foreground-muted);
+  }
+
+  /* Uma mancha grande dava um menu mais alto do que a lona do telemóvel.
+     Tem tecto e rola; a barra fina já vem do `*` do sistema. */
+  .globo-mancha__membros {
+    display: grid;
+    gap: 1px;
+    max-height: 232px;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+    overscroll-behavior: contain;
+  }
+
+  .globo-mancha__membro {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 2px 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    color: var(--foreground-secondary);
+    transition: color var(--d-fast) var(--ease-out);
+  }
+
+  .globo-mancha__membro:hover,
+  .globo-mancha__membro:focus-visible {
+    color: var(--foreground-strong);
+  }
+
+  .globo-mancha__nome {
+    display: block;
+    overflow: hidden;
+    font-size: 11px;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .globo-mancha__sitio {
+    display: block;
+    overflow: hidden;
+    font-size: 9px;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--foreground-muted);
+  }
+
+  /* ── Os comandos da vista ─────────────────────────────────────────────
+     Aproximar é a acção que faz aparecer os nomes, e era a única que não
+     estava desenhada em lado nenhum: quem não soubesse que a roda do rato
+     ali fazia alguma coisa nunca a experimentava. Três botões pequenos no
+     canto, com a mesma hairline fria e o mesmo vidro do resto do site.
+
+     Ficam no alto e à direita porque em baixo passa a barra de cookies em
+     telemóvel e a legenda da página em todos os ecrãs; e descem o que for
+     preciso quando o cabeçalho lhes fica por cima — é o `--recuo`, que o
+     componente escreve com a mesma medida que usa para os nomes. */
+  .globo-comandos {
+    position: absolute;
+    top: calc(10px + var(--recuo, 0px));
+    right: 10px;
+    z-index: 20;
+    display: grid;
+    gap: 6px;
+    transition: top var(--d-fast) var(--ease-out);
+  }
+
+  .globo-comando {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--background-card) 78%, transparent);
+    backdrop-filter: blur(10px);
+    color: var(--foreground-secondary);
+    cursor: pointer;
+    transition:
+      color var(--d-fast) var(--ease-out),
+      border-color var(--d-fast) var(--ease-out),
+      background var(--d-fast) var(--ease-out);
+  }
+
+  .globo-comando svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Estado escolhido é branco. */
+  .globo-comando:hover:not(:disabled),
+  .globo-comando:focus-visible {
+    border-color: var(--border-hover);
+    background: var(--background-elevated);
+    color: var(--foreground-strong);
+  }
+
+  /* Apagado ao fim do curso. É a maneira de dizer que a aproximação tem
+     limite sem escrever um número que ninguém quer ler. */
+  .globo-comando:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  @media (max-width: 768px) {
+    /* Quadrado outra vez: a regra global de alvo de toque põe-lhe 44px de
+       altura, e 34 de largura por 44 de altura é uma cápsula. */
+    .globo-comando {
+      width: 44px;
+      height: 44px;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .globo-etiqueta {
       animation: none;
@@ -2710,6 +2981,63 @@ body {
     .globo-etiqueta__membro {
       transition: none;
     }
+
+    .globo-mancha {
+      animation: none;
+      visibility: visible;
+    }
+
+    .globo-mancha__chip,
+    .globo-mancha__membro {
+      transition: none;
+    }
+
+    .globo-mancha[data-aberta] .globo-mancha__painel {
+      animation: none;
+    }
+  }
+}
+
+/* ── Fora de qualquer camada, de propósito ────────────────────────────────
+   A regra de alvo de toque de 44px lá em cima neste ficheiro também vive
+   fora de camada, e **CSS sem camada ganha a qualquer `@layer`** — por isso
+   nada dentro de `@layer components` lhe pode responder. É a mesma razão
+   pela qual os interruptores já estavam de fora. Aqui são dois casos:
+
+   - O algarismo de uma mancha é redondo. Esticado a 44px de altura por 22 de
+     largura deixa de ser um algarismo e passa a ser uma cápsula. Medido em
+     telemóvel: 22×44.
+   - A caixa de um nome é também a caixa com que o teste de colisão decide
+     quem cabe. Com 44px de altura em vez dos 28 que o texto ocupa, cada nome
+     reserva 57% mais altura do que gasta — e num ecrã de 518px isso custa
+     nomes que cabiam. Medido: 44px em telemóvel, 28 no computador, com o
+     mesmo texto.
+
+   O alvo de toque não se perde: passa para um `::after` transparente que
+   estica para os 44px **sem entrar na medida do elemento**. É essa a
+   diferença entre uma área de toque e um espaço reservado — e é o que
+   permite ter as duas coisas. */
+@media (max-width: 768px) {
+  /* Dois selectores e a etiqueta do elemento: a regra do outro lado é
+     `button:not([role="switch"])`, e um `:not()` conta a especificidade do
+     que leva lá dentro — (0,1,1), que ganha a uma classe só. Medido: com
+     `.globo-etiqueta__cabeca` sozinho o `min-height` continuava nos 44px. */
+  .globo-etiqueta button.globo-etiqueta__cabeca,
+  .globo-mancha button.globo-mancha__chip {
+    position: relative;
+    min-height: 0;
+  }
+
+  .globo-etiqueta button.globo-etiqueta__cabeca::after,
+  .globo-mancha button.globo-mancha__chip::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    min-width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
   }
 }
 

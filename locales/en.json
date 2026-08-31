@@ -1493,7 +1493,7 @@
     "all_regions": "All",
     "select_region_hint": "Select a region or click a pin on the map",
     "view_globe": "Globe",
-    "globe_hint": "Drag to rotate · zoom in for place names",
+    "globe_hint": "Drag to rotate · tap a number to see who is there",
     "title_highlight": "Portugal",
     "stat_horses_hint": "horses declared by the studs on the map",
     "showing": "showing",

@@ -1493,7 +1493,7 @@
     "all_regions": "Todas",
     "select_region_hint": "Selecione uma região ou clique num pin no mapa",
     "view_globe": "Globo",
-    "globe_hint": "Arraste para rodar · aproxime-se para ver os nomes das terras",
+    "globe_hint": "Arraste para rodar · toque num número para ver quem lá está",
     "title_highlight": "Portugal",
     "stat_horses_hint": "cavalos declarados pelas coudelarias no mapa",
     "showing": "a mostrar",

@@ -698,6 +698,20 @@ export default function GloboTerra({
        Quem sabe que a caixa mudou é o `ResizeObserver`. */
     let larguraCaixa = largura;
     let alturaCaixa = altura;
+    /* ── A parte da lona que está mesmo à vista ───────────────────────────
+       A lona ocupa a caixa toda, mas nem toda a caixa se vê: a barra de
+       cookies está fixa ao fundo do ecrã e, num telemóvel, tapa 162 dos 518
+       pixéis de altura do globo — quase um terço. Medido: dos cinco nomes
+       que se liam, dois ficavam por baixo dela. O cabeçalho faz o mesmo em
+       cima quando a página está rolada.
+
+       O motor de etiquetas passa a colocar dentro desta janela e não dentro
+       da lona. Os alfinetes ficam onde estão — um ponto tapado é um ponto
+       tapado —, mas o nome sobe para cima do estorvo e o fio, que continua a
+       apontar-lhe, atravessa-o: lê-se «há mais ali por baixo», que é
+       verdade, em vez de não se ler nada. */
+    let topoUtil = 0;
+    let baseUtil = altura;
     /** Ponteiros em baixo, por id. Um arrasta; dois fazem pinça. */
     const ponteiros = new Map<number, { x: number; y: number }>();
     let pinca = 0;
@@ -1138,12 +1152,19 @@ export default function GloboTerra({
     camadaEtiquetas.className = "globo-etiquetas";
     camadaEtiquetas.setAttribute("role", "group");
     camadaEtiquetas.setAttribute("aria-label", "Coudelarias assinaladas no globo");
+    /* As setas percorrem as vinte e nove, não só as que estão escritas. Está
+       dito aqui e por extenso no parágrafo de leitura de ecrã. */
+    camadaEtiquetas.setAttribute("aria-keyshortcuts", "ArrowDown ArrowUp Home End");
     el.appendChild(camadaEtiquetas);
 
     type Caixa = { x: number; y: number; l: number; a: number };
     type Medida = { l: number; a: number };
     type Etiqueta = {
       nó: HTMLElement;
+      /** A cabeça accionável, que é quem recebe o foco. */
+      cabeca: HTMLElement;
+      /** Onde está no planeta. É por aqui que as setas ordenam e centram. */
+      coords: [number, number];
       membros: CoudelariaNoMapa[];
       alfinete: Alfinete;
       destaque: boolean;
@@ -1169,6 +1190,7 @@ export default function GloboTerra({
         lado: string;
         vert: string;
         curto: boolean;
+        oculto: boolean;
         morto: boolean;
       };
     };
@@ -1279,6 +1301,8 @@ export default function GloboTerra({
 
       const et: Etiqueta = {
         nó,
+        cabeca,
+        coords,
         membros,
         alfinete: fazerAlfinete(i, coords, destaque, éGrupo),
         destaque,
@@ -1299,7 +1323,7 @@ export default function GloboTerra({
         ecraX: 0,
         ecraY: 0,
         noEcra: false,
-        anterior: { t: "", op: "", lado: "", vert: "", curto: false, morto: true },
+        anterior: { t: "", op: "", lado: "", vert: "", curto: false, oculto: true, morto: true },
       };
 
       cabeca.addEventListener("click", (ev) => {
@@ -1322,6 +1346,8 @@ export default function GloboTerra({
     const alfinetesEcra: Caixa[] = [];
     const ordem: Etiqueta[] = [];
     const sitios: number[] = [];
+    /** As etiquetas que, neste quadro, não arranjaram lugar. */
+    const sobras: Etiqueta[] = [];
 
     /** Afastamento entre o alfinete e a etiqueta, e folga entre etiquetas. */
     const AFAST = 10;
@@ -1331,7 +1357,393 @@ export default function GloboTerra({
         ponto — quem lê atribui o nome ao ponto que estiver por baixo dele. */
     const MEIO_ALFINETE = 6;
 
+    /* ── As manchas ───────────────────────────────────────────────────────
+     *
+     * Um nome que não cabe deixava um ponto anónimo. Em telemóvel eram
+     * catorze dos dezanove pontos do quadro: uma nuvem de pintas sem uma
+     * palavra, sem sinal de que ali havia coisa para ver e sem forma de
+     * saber quantas. É o defeito que se corrige aqui.
+     *
+     * O que se faz: as sobras de cada quadro juntam-se por proximidade no
+     * ECRÃ — não no terreno —, e cada ajuntamento ganha um algarismo por
+     * cima. Diz quantas coudelarias ali estão. Apontá-lo abre a lista dos
+     * nomes, e cada nome é um botão que leva à coudelaria, como qualquer
+     * etiqueta.
+     *
+     * Três razões para ser assim e não de outra maneira:
+     *
+     * 1. **Só apanha sobras.** Corre depois da colocação e nunca lhe toca,
+     *    por isso nenhum nome que já se lia deixa de se ler — os quinze do
+     *    computador e os cinco do telemóvel ficam onde estavam. Um
+     *    agrupamento feito ANTES da colocação seria mais arrumado e teria
+     *    custado nomes; este só pode acrescentar.
+     * 2. **Agrupa no ecrã, e por isso desfaz-se ao aproximar.** Aproximar
+     *    afasta os pontos, mais nomes cabem, e o algarismo desce sozinho
+     *    até desaparecer. Passa a haver uma recompensa visível para quem
+     *    mexe na roda — que é o que faltava para o zoom se descobrir.
+     * 3. **Não entra na tabulação** (`aria-hidden`, botões a `tabindex=-1`).
+     *    Não é para poupar trabalho a ninguém: as mesmas coudelarias são
+     *    todas alcançáveis pelas setas, numa ordem estável de norte para
+     *    sul, e a lista completa está na vista de lista. Uma segunda rota,
+     *    por bolhas que mudam de sítio e de conteúdo a cada arrasto, seria
+     *    uma rota pior — não uma rota a mais.
+     */
+    type Mancha = {
+      nó: HTMLElement;
+      chip: HTMLButtonElement;
+      painel: HTMLElement;
+      titulo: HTMLElement;
+      lista: HTMLUListElement;
+      assinatura: string;
+      quantos: number;
+      usada: boolean;
+      ecraX: number;
+      ecraY: number;
+      anterior: { t: string; op: string; aberta: boolean };
+    };
+
+    /** Raio de ajuntamento, em pixéis de ecrã. Constante e não uma fracção da
+        lona: o que decide se dois nomes se estorvam é a distância em pixéis
+        entre eles, e essa não muda por a janela ser maior. */
+    const RAIO_MANCHA = 40;
+    /** Uma sobra solitária ainda se cola à mancha mais próxima até aqui —
+        melhor um algarismo que a inclui do que uma pinta anónima. */
+    const RAIO_ADOPCAO = 104;
+    let manchaAberta: Mancha | null = null;
+    let manchaFixa: Mancha | null = null;
+    let manchaSob: Mancha | null = null;
+    /** Medida do algarismo fechado. É sempre a mesma; mede-se com as outras. */
+    const chipMedida: Medida = { l: 22, a: 22 };
+
+    const criarMancha = (): Mancha => {
+      const nó = document.createElement("div");
+      nó.className = "globo-mancha";
+      /* Escondida dos leitores de ecrã de propósito — ver a razão 3 acima.
+         Os botões lá dentro levam `tabindex="-1"`, sem o que um
+         `aria-hidden` com coisas focáveis lá dentro seria um erro a sério. */
+      nó.setAttribute("aria-hidden", "true");
+
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.tabIndex = -1;
+      chip.className = "globo-mancha__chip";
+      nó.appendChild(chip);
+
+      const painel = document.createElement("div");
+      painel.className = "globo-mancha__painel";
+      const titulo = document.createElement("p");
+      titulo.className = "globo-mancha__titulo";
+      const lista = document.createElement("ul");
+      lista.className = "globo-mancha__membros";
+      painel.append(titulo, lista);
+      nó.appendChild(painel);
+
+      camadaEtiquetas.appendChild(nó);
+
+      const m: Mancha = {
+        nó,
+        chip,
+        painel,
+        titulo,
+        lista,
+        assinatura: "",
+        quantos: 0,
+        usada: false,
+        ecraX: 0,
+        ecraY: 0,
+        anterior: { t: "", op: "0", aberta: false },
+      };
+
+      chip.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        if (arrastou) return;
+        manchaFixa = manchaFixa === m ? null : m;
+        actualizarMancha();
+      });
+      return m;
+    };
+
+    /* No pior caso cada ponto do quadro é uma mancha por si — ver a nota
+       sobre as sobras solitárias mais abaixo. */
+    const manchas: Mancha[] = Array.from({ length: Math.max(1, grupos.length) }, criarMancha);
+
+    const escreverMancha = (m: Mancha, membros: CoudelariaNoMapa[]) => {
+      const assinatura = membros.map((c) => c.id).join(",");
+      if (assinatura === m.assinatura) return;
+      m.assinatura = assinatura;
+      m.quantos = membros.length;
+      if (manchaFixa === m) manchaFixa = null;
+
+      m.chip.textContent = String(membros.length);
+      m.nó.dataset.conta = String(membros.length);
+
+      /* O cabeçalho diz a região quando as coudelarias todas da mancha são
+         da mesma — que é o caso quase sempre, porque estão a poucos pixéis
+         umas das outras. Quando não são, não se inventa um nome comum: diz
+         só quantas são.
+
+         Sem `title` no algarismo: apontá-lo já abre a lista, e uma dica do
+         sistema por cima da lista que ela anuncia é a mesma coisa dita duas
+         vezes, a segunda a tapar a primeira. */
+      const regioes = new Set(membros.map((c) => c.regiao).filter(Boolean));
+      const uma = regioes.size === 1 ? [...regioes][0] : "";
+      const quantas = membros.length === 1 ? "1 coudelaria" : `${membros.length} coudelarias`;
+      m.titulo.textContent = uma ? `${quantas} · ${uma}` : quantas;
+
+      m.lista.replaceChildren();
+      for (const c of membros) {
+        const item = document.createElement("li");
+        const botão = document.createElement("button");
+        botão.type = "button";
+        botão.tabIndex = -1;
+        botão.className = "globo-mancha__membro";
+        botão.title = c.nome;
+        const nome = document.createElement("span");
+        nome.className = "globo-mancha__nome";
+        nome.textContent = nomeCurto(c.nome);
+        const sitio = document.createElement("span");
+        sitio.className = "globo-mancha__sitio";
+        sitio.textContent = sitioCurto(c.localizacao);
+        botão.append(nome, sitio);
+        botão.addEventListener("click", (ev) => {
+          ev.stopPropagation();
+          if (arrastou) return;
+          aoEscolherRef.current?.(c);
+        });
+        item.appendChild(botão);
+        m.lista.appendChild(item);
+      }
+    };
+
+    /* O painel abre para o lado que tem sítio.
+       A camada dos nomes é `overflow: hidden` — tem de ser, senão um nome
+       junto à borda escorregava para fora da lona —, e por isso um painel que
+       não caiba não fica pendurado por fora: fica cortado a meio de uma
+       lista. Medido em telemóvel: aberto sobre o Ribatejo, viam-se cinco dos
+       onze nomes e o resto estava do lado de fora da caixa.
+
+       Duas correcções, ambas medidas no momento em que abre e não a cada
+       quadro: para cima quando o algarismo está na metade de baixo, e um
+       desvio horizontal que o encosta à borda em vez de o deixar sair. */
+    /** Folga entre o painel e a borda da janela útil. */
+    const MARGEM_PAINEL = 6;
+
+    const ajustarPainel = (m: Mancha) => {
+      m.painel.style.setProperty("--desvio", "0px");
+      m.lista.style.maxHeight = "";
+      const caixa = el.getBoundingClientRect();
+      const chipR = m.chip.getBoundingClientRect();
+
+      /* Para cima ou para baixo: quem decide é o lado que tem mais espaço, e
+         não a metade da lona em que o algarismo caiu. Com onze nomes na
+         lista, «está em baixo, logo abre para cima» ainda deixava o cabeçalho
+         da lista fora da lona. */
+      const acima = chipR.top - (caixa.top + topoUtil) - MARGEM_PAINEL;
+      const abaixo = caixa.top + baseUtil - chipR.bottom - MARGEM_PAINEL;
+      const paraCima = abaixo < acima;
+      m.nó.toggleAttribute("data-cima", paraCima);
+
+      /* A lista rola dentro do que sobrar. O resto do painel — cabeçalho,
+         bordas, respiro — mede-se, não se adivinha. */
+      const resto = m.painel.offsetHeight - m.lista.offsetHeight;
+      const espaco = Math.max(acima, abaixo) - 26 - resto;
+      m.lista.style.maxHeight = `${Math.round(Math.max(44, Math.min(232, espaco)))}px`;
+
+      const r = m.painel.getBoundingClientRect();
+      let dx = 0;
+      if (r.left < caixa.left + MARGEM_PAINEL) dx = caixa.left + MARGEM_PAINEL - r.left;
+      else if (r.right > caixa.right - MARGEM_PAINEL) dx = caixa.right - MARGEM_PAINEL - r.right;
+      if (dx) m.painel.style.setProperty("--desvio", `${Math.round(dx)}px`);
+    };
+
+    const actualizarMancha = () => {
+      const alvo = manchaFixa ?? manchaSob;
+      if (alvo === manchaAberta) return;
+      manchaAberta = alvo;
+      for (const m of manchas) {
+        const aberta = m === alvo;
+        if (aberta === m.anterior.aberta) continue;
+        m.anterior.aberta = aberta;
+        m.nó.toggleAttribute("data-aberta", aberta);
+        if (aberta) ajustarPainel(m);
+      }
+      pedirQuadro();
+    };
+
+    const esconderMancha = (m: Mancha) => {
+      m.usada = false;
+      if (m.anterior.op !== "0") {
+        m.nó.style.opacity = "0";
+        m.anterior.op = "0";
+      }
+      if (!m.nó.hasAttribute("data-oculta")) m.nó.toggleAttribute("data-oculta", true);
+      if (manchaFixa === m) manchaFixa = null;
+      if (manchaSob === m) manchaSob = null;
+    };
+
+    /** Onde a mancha tenta pousar, por ordem: em cima do ajuntamento e depois
+        em anéis cada vez mais largos à volta. Só precisa de fugir às caixas de
+        nome já colocadas — das pintas que ela própria representa não foge, que
+        é o ponto.
+
+        Três anéis e não um: com um só, treze das vinte e nove ficavam sem
+        lugar num quadro cheio de nomes e voltavam a ser pontos calados —
+        medido. Um algarismo a trinta pixéis do sítio ainda se lê como sendo
+        daquele ajuntamento; não se ler de todo é que não. */
+    const ANEL_MANCHA: readonly (readonly [number, number])[] = [
+      [0, 0],
+      ...[26, 46, 68].flatMap((r) =>
+        [0, 45, 90, 135, 180, 225, 270, 315].map(
+          (g) =>
+            [
+              Math.round(r * Math.cos((g * Math.PI) / 180)),
+              Math.round(r * Math.sin((g * Math.PI) / 180)),
+            ] as const
+        )
+      ),
+    ];
+
+    /* O algarismo é pequeno e não é texto: a folga com que se afasta de um
+       nome não tem de ser a folga entre dois nomes. Com os doze pixéis do
+       `FOLGA_X` não sobrava lugar nenhum num quadro cheio. */
+    const FOLGA_MANCHA = 5;
+    const bateMancha = (c: Caixa) =>
+      colocadas.some(
+        (o) =>
+          c.x < o.x + o.l + FOLGA_MANCHA &&
+          c.x + c.l + FOLGA_MANCHA > o.x &&
+          c.y < o.y + o.a + FOLGA_MANCHA &&
+          c.y + c.a + FOLGA_MANCHA > o.y
+      );
+
+    const agruparSobras = (l: number) => {
+      for (const m of manchas) m.usada = false;
+      const livres = sobras.filter((e) => e.noEcra);
+      if (!livres.length) {
+        for (const m of manchas) esconderMancha(m);
+        return;
+      }
+
+      const r2 = RAIO_MANCHA * RAIO_MANCHA;
+      const dist2 = (a: Etiqueta, b: Etiqueta) =>
+        (a.ecraX - b.ecraX) ** 2 + (a.ecraY - b.ecraY) ** 2;
+      const usados = new Set<Etiqueta>();
+      const ajuntamentos: Etiqueta[][] = [];
+
+      /* Guloso pelo mais povoado: em cada volta lidera quem tiver mais
+         vizinhos ainda livres. Sai mais estável do que ir por ordem de
+         índice — a mesma nuvem de pontos dá sempre o mesmo desenho, e é a
+         estabilidade que impede o algarismo de saltitar ao arrastar. */
+      for (;;) {
+        let lider: Etiqueta | null = null;
+        let melhor = 0;
+        for (const e of livres) {
+          if (usados.has(e)) continue;
+          let n = 0;
+          for (const o of livres) if (!usados.has(o) && dist2(e, o) <= r2) n++;
+          if (n > melhor) {
+            melhor = n;
+            lider = e;
+          }
+        }
+        if (!lider) break;
+        const g = livres.filter((o) => !usados.has(o) && dist2(lider!, o) <= r2);
+        for (const o of g) usados.add(o);
+        ajuntamentos.push(g);
+      }
+
+      const cheios = ajuntamentos.filter((g) => g.length > 1);
+      /* Solitárias: primeiro tentam colar-se à mancha mais próxima — a conta
+         de uma zona vale mais do que duas contas ao lado uma da outra. Quem
+         não tiver nenhuma por perto fica com mancha própria, de uma só.
+
+         Um algarismo «1» parece pouco, e é de propósito que fica: continua a
+         dizer «aqui está uma coudelaria» e continua a abrir-se no nome dela,
+         que é tudo o que faltava ao ponto anónimo. Sem isto ficavam três
+         pontos calados no computador e três no telemóvel — medido —, e a
+         promessa de que nenhum ponto fica sem conta deixava de ser verdade. */
+      const adopcao2 = RAIO_ADOPCAO * RAIO_ADOPCAO;
+      for (const g of ajuntamentos) {
+        if (g.length !== 1) continue;
+        const [so] = g;
+        let alvo: Etiqueta[] | null = null;
+        let menor = adopcao2;
+        for (const c of cheios) {
+          const d = dist2(so, c[0]);
+          if (d < menor) {
+            menor = d;
+            alvo = c;
+          }
+        }
+        if (alvo) alvo.push(so);
+        else cheios.push(g);
+      }
+
+      // A mais povoada escolhe lugar primeiro.
+      cheios.sort((x, y) => y.length - x.length);
+
+      let i = 0;
+      for (const g of cheios) {
+        if (i >= manchas.length) break;
+        const m = manchas[i];
+        let cx = 0;
+        let cy = 0;
+        for (const e of g) {
+          cx += e.ecraX;
+          cy += e.ecraY;
+        }
+        cx /= g.length;
+        cy /= g.length;
+
+        let posta: Caixa | null = null;
+        for (const [dx, dy] of ANEL_MANCHA) {
+          const c: Caixa = {
+            x: cx + dx - chipMedida.l / 2,
+            y: cy + dy - chipMedida.a / 2,
+            l: chipMedida.l,
+            a: chipMedida.a,
+          };
+          if (c.x < 2 || c.y < topoUtil + 2 || c.x + c.l > l - 2 || c.y + c.a > baseUtil - 2)
+            continue;
+          if (bateMancha(c)) continue;
+          posta = c;
+          break;
+        }
+        if (!posta) continue;
+
+        escreverMancha(
+          m,
+          g.flatMap((e) => e.membros)
+        );
+        m.usada = true;
+        m.ecraX = posta.x + posta.l / 2;
+        m.ecraY = posta.y + posta.a / 2;
+        /* Entra na lista das caixas ocupadas para que a mancha seguinte não
+           lhe caia em cima — e para que, no quadro a seguir, nenhum nome
+           pouse por cima dela. */
+        colocadas.push(posta);
+
+        const t = `translate3d(${Math.round(posta.x)}px, ${Math.round(posta.y)}px, 0)`;
+        if (t !== m.anterior.t) {
+          m.nó.style.transform = t;
+          m.anterior.t = t;
+        }
+        if (m.anterior.op !== "1") {
+          m.nó.style.opacity = "1";
+          m.anterior.op = "1";
+        }
+        if (m.nó.hasAttribute("data-oculta")) m.nó.toggleAttribute("data-oculta", false);
+        i++;
+      }
+
+      for (const m of manchas) if (!m.usada) esconderMancha(m);
+    };
+
     const medirTodas = () => {
+      if (manchas[0]) {
+        chipMedida.l = manchas[0].chip.offsetWidth || chipMedida.l;
+        chipMedida.a = manchas[0].chip.offsetHeight || chipMedida.a;
+      }
       for (const e of etiquetas) e.nó.toggleAttribute("data-curto", false);
       for (const e of etiquetas) {
         e.cheia.l = e.nó.offsetWidth;
@@ -1345,11 +1757,21 @@ export default function GloboTerra({
       for (const e of etiquetas) e.nó.toggleAttribute("data-curto", e.anterior.curto);
     };
 
-    /* Seis sítios por etiqueta, por ordem de preferência: acima à direita —
+    /* Oito sítios por etiqueta, por ordem de preferência: acima à direita —
        que é onde o olho a procura —, acima à esquerda, abaixo dos dois lados,
        e por fim ao lado à altura do ponto. Havia dois, e com dois perdiam-se
        dois terços dos nomes num país onde metade das coudelarias está no
-       mesmo vale. */
+       mesmo vale.
+
+       As duas últimas — a caixa centrada por cima e por baixo do ponto — são
+       as que faltavam para o telemóvel. As outras seis empurram a caixa toda
+       para um lado do ponto, e por isso cada nome come a sua largura inteira
+       de um dos lados; numa lona de 356px, com nomes de 150, dois pontos a
+       trinta pixéis um do outro nunca cabiam ambos. Centrada, a caixa gasta
+       metade para cada lado e usa a altura, que numa lona mais alta do que
+       larga é o que sobra. Ficam no fim da lista de propósito: só se
+       experimentam depois de as seis falharem, por isso nenhuma colocação
+       que já existia muda de sítio — a contagem só pode subir. */
     const hipoteses = [
       { lado: "direita", vert: "cima" },
       { lado: "esquerda", vert: "cima" },
@@ -1357,10 +1779,12 @@ export default function GloboTerra({
       { lado: "esquerda", vert: "baixo" },
       { lado: "direita", vert: "meio" },
       { lado: "esquerda", vert: "meio" },
+      { lado: "centro", vert: "cima" },
+      { lado: "centro", vert: "baixo" },
     ] as const;
 
     const caixaDe = (x: number, y: number, m: Medida, h: (typeof hipoteses)[number]): Caixa => ({
-      x: h.lado === "direita" ? x + AFAST : x - AFAST - m.l,
+      x: h.lado === "direita" ? x + AFAST : h.lado === "esquerda" ? x - AFAST - m.l : x - m.l / 2,
       y: h.vert === "cima" ? y - m.a - AFAST : h.vert === "baixo" ? y + AFAST : y - m.a / 2,
       l: m.l,
       a: m.a,
@@ -1414,11 +1838,23 @@ export default function GloboTerra({
         e.nó.toggleAttribute("data-curto", curto);
         ant.curto = curto;
       }
+      const oculto = perto <= 0.55;
+      if (oculto !== ant.oculto) {
+        e.nó.toggleAttribute("data-oculta", oculto);
+        ant.oculto = oculto;
+      }
       /* `inert` em vez de `pointer-events`: tira a etiqueta do rato **e** da
          ordem de tabulação de uma vez. Sem isto, tabular pelo globo passava
          pelas vinte e nove — dezoito delas invisíveis, do outro lado do
-         planeta ou vencidas na colisão, com o foco a parar em cima de nada. */
-      const morto = perto <= 0.55;
+         planeta ou vencidas na colisão, com o foco a parar em cima de nada.
+
+         Excepção: a que tem o foco nunca fica inerte. Quem percorre o globo
+         pelas setas larga uma etiqueta invisível durante o quadro em que a
+         câmara ainda não a trouxe à vista, e torná-la inerte nesse quadro
+         devolvia o foco ao corpo da página — o percurso acabava sozinho ao
+         segundo passo. O rato não entra por aqui: quem lhe fecha a porta é o
+         `data-oculta`, que é sobre estar invisível e não sobre ter o foco. */
+      const morto = oculto && e !== focada;
       if (morto !== ant.morto) {
         e.nó.toggleAttribute("inert", morto);
         ant.morto = morto;
@@ -1432,9 +1868,14 @@ export default function GloboTerra({
         e.nó.style.opacity = "0";
         ant.op = "0";
       }
-      if (!ant.morto) {
-        e.nó.toggleAttribute("inert", true);
-        ant.morto = true;
+      if (!ant.oculto) {
+        e.nó.toggleAttribute("data-oculta", true);
+        ant.oculto = true;
+      }
+      const morto = e !== focada;
+      if (morto !== ant.morto) {
+        e.nó.toggleAttribute("inert", morto);
+        ant.morto = morto;
       }
     };
 
@@ -1446,6 +1887,7 @@ export default function GloboTerra({
       const a = alturaCaixa;
       colocadas.length = 0;
       alfinetesEcra.length = 0;
+      sobras.length = 0;
 
       for (const e of etiquetas) {
         projeccao.copy(e.alfinete.posicao).applyMatrix4(mundo.matrixWorld);
@@ -1515,25 +1957,44 @@ export default function GloboTerra({
         let lado = "direita";
         let vert = "cima";
         let curto = false;
-        for (const medida of [e.cheia, e.curta]) {
-          if (!medida.l) continue;
-          for (const k of sitios) {
-            const h = hipoteses[k];
-            const c = caixaDe(e.ecraX, e.ecraY, medida, h);
-            const cabe = c.x >= 2 && c.y >= 2 && c.x + c.l <= l - 2 && c.y + c.a <= a - 2;
-            if (!cabe || bate(c) || bateAlfinete(c)) continue;
-            posta = c;
-            lado = h.lado;
-            vert = h.vert;
-            curto = medida === e.curta;
-            e.ultimo = k;
-            break;
+        /* Duas voltas, e a segunda só para a etiqueta activa.
+           Nenhum nome pousa em cima de outro ponto — quem lê atribui o nome
+           ao ponto que estiver por baixo dele —, e essa regra fica de pé para
+           as vinte e nove. Mas num vale com doze pontos a trinta pixéis uns
+           dos outros ela deixa de haver sítio nenhum: no percurso pelas
+           setas, catorze dos vinte e nove passos davam foco a um nome que
+           continuava invisível — medido, passo a passo.
+           Para a etiqueta que está debaixo do rato ou com o foco a regra
+           cede, porque o que ela previne já não se aplica: essa etiqueta está
+           acesa, tem o fio a apontar-lhe o ponto, e é a única no quadro nessa
+           condição. Cede só à segunda volta, para continuar a preferir o
+           lugar limpo sempre que exista um. */
+        for (const semAlfinetes of e.activo ? [false, true] : [false]) {
+          for (const medida of [e.cheia, e.curta]) {
+            if (!medida.l) continue;
+            for (const k of sitios) {
+              const h = hipoteses[k];
+              const c = caixaDe(e.ecraX, e.ecraY, medida, h);
+              const cabe =
+                c.x >= 2 && c.y >= topoUtil + 2 && c.x + c.l <= l - 2 && c.y + c.a <= baseUtil - 2;
+              if (!cabe || bate(c) || (!semAlfinetes && bateAlfinete(c))) continue;
+              posta = c;
+              lado = h.lado;
+              vert = h.vert;
+              curto = medida === e.curta;
+              e.ultimo = k;
+              break;
+            }
+            if (posta) break;
           }
           if (posta) break;
         }
 
         if (!posta) {
           esconder(e);
+          /* Não coube: passa às manchas, que a contam ainda que não a
+             escrevam. Um ponto anónimo deixa de ser um ponto calado. */
+          sobras.push(e);
           continue;
         }
         colocadas.push(posta);
@@ -1546,6 +2007,10 @@ export default function GloboTerra({
            estava errado era o sítio onde eu punha o elemento a seguir. */
         escrever(e, posta, lado, vert, curto, Math.min(1, (e.deFrente - 0.12) / 0.28));
       }
+
+      /* Por fim, o que ficou sem nome. Corre depois de tudo colocado, e é
+         por isso que não pode tirar um nome a ninguém. */
+      agruparSobras(l);
     };
 
     /* ── O alfinete e a etiqueta são a mesma coisa vista de dois sítios ────
@@ -1614,12 +2079,17 @@ export default function GloboTerra({
       const alvo = (ev.target as HTMLElement).closest(".globo-etiqueta");
       sobEtiqueta = etiquetas.find((e) => e.nó === alvo) ?? null;
       actualizarActivo();
+      const mancha = (ev.target as HTMLElement).closest(".globo-mancha");
+      manchaSob = manchas.find((m) => m.nó === mancha) ?? null;
+      actualizarMancha();
     });
     camadaEtiquetas.addEventListener("pointerout", (ev) => {
       const para = ev.relatedTarget as Node | null;
       if (para && camadaEtiquetas.contains(para)) return;
       sobEtiqueta = null;
       actualizarActivo();
+      manchaSob = null;
+      actualizarMancha();
     });
     camadaEtiquetas.addEventListener("focusin", (ev) => {
       const alvo = (ev.target as HTMLElement).closest(".globo-etiqueta");
@@ -1689,6 +2159,7 @@ export default function GloboTerra({
       colocarCamara();
       renderizador.render(cena, camara);
       etiquetar();
+      actualizarComandos();
       // Só se encadeia enquanto alguma coisa se mexe.
       if (aEntrar || ponteiros.size > 0) pedirQuadro();
     }
@@ -1744,6 +2215,9 @@ export default function GloboTerra({
       };
     };
 
+    /** Um toque no botão vale cerca de dois dentes de roda. */
+    const PASSO_ZOOM = 1.35;
+
     const mudarAltura = (factor: number) => {
       aEntrar = false;
       zoomDoUtilizador = true;
@@ -1766,7 +2240,6 @@ export default function GloboTerra({
       const p = noElemento(e);
       sobAlfinete = alfineteEm(p.x, p.y);
       actualizarActivo();
-      el.setPointerCapture(e.pointerId);
       pedirQuadro();
     };
 
@@ -1785,7 +2258,31 @@ export default function GloboTerra({
       antes.y = e.clientY;
       // Três pixéis chegam para separar um clique de um arrasto; sem isto,
       // largar o rato depois de rodar o globo abria a coudelaria por baixo.
-      if (Math.abs(dx) + Math.abs(dy) > 3) arrastou = true;
+      if (Math.abs(dx) + Math.abs(dy) > 3) {
+        arrastou = true;
+        /* ── O ponteiro só se agarra depois de o gesto ser um arrasto ──────
+           Agarrá-lo logo no `pointerdown`, que era o que aqui estava, custava
+           **todos os cliques do globo no computador**. Com o ponteiro
+           capturado pela caixa, o browser passa a entregar-lhe o `pointerup`
+           e o `click` — e o alvo desses eventos deixa de ser o que está
+           debaixo do rato. Medido, com um espião nos três eventos:
+
+             pointerdown → globo-etiqueta__nome
+             pointerup   → (a caixa)
+             click       → (a caixa)
+
+           O `click` do nome nunca chegava ao nome, e o `largar`, que exige
+           `e.target === lona` para tratar um clique no alfinete, também nunca
+           passava desse teste. Resultado: `aoEscolher` estava morto com rato
+           — nem o nome nem o ponto abriam a ficha da coudelaria. Só o toque
+           funcionava, porque aí o alvo do clique se resolve de outra maneira.
+
+           A captura serve para o arrasto continuar quando o rato sai da
+           caixa, e para isso basta agarrá-lo quando o arrasto começa. Um
+           clique, que por definição não passa dos três pixéis, nunca a
+           chega a pedir — e chega ao elemento certo. */
+        if (!el.hasPointerCapture(e.pointerId)) el.setPointerCapture(e.pointerId);
+      }
 
       if (ponteiros.size >= 2) {
         /* Dois dedos mudam a altura. Num telemóvel não há roda do rato, e
@@ -1819,10 +2316,16 @@ export default function GloboTerra({
       if (!clique || eraArrasto || e.target !== lona) return;
       // O alfinete vale um clique tanto quanto o nome: é ele o alvo que se vê.
       if (sobAlfinete) accionar(sobAlfinete);
-      // Carregar no vazio fecha a pilha que estiver aberta.
-      else if (fixa) {
-        fixa = null;
-        actualizarActivo();
+      // Carregar no vazio fecha a pilha ou a mancha que estiver aberta.
+      else {
+        if (fixa) {
+          fixa = null;
+          actualizarActivo();
+        }
+        if (manchaFixa) {
+          manchaFixa = null;
+          actualizarMancha();
+        }
       }
     };
 
@@ -1844,10 +2347,220 @@ export default function GloboTerra({
       mudarAltura(Math.exp(passo * 0.13));
     };
 
+    /** Volta ao enquadramento com que o globo pousou. */
+    const reporVista = () => {
+      aEntrar = false;
+      zoomDoUtilizador = false;
+      alturaVoo = alturaRepouso;
+      orbita.theta = 0;
+      orbita.phi = 0;
+      pedirQuadro();
+    };
+
+    /* ── Percurso pelas coudelarias com as setas ──────────────────────────
+     *
+     * A tabulação passa só pelos nomes que se lêem — e está certo: um foco em
+     * cima de nada não é um caminho, é uma armadilha. Mas isso deixava as
+     * outras catorze sem caminho nenhum a partir do globo, que é o defeito
+     * a sério. Aqui está o caminho: as setas percorrem as vinte e nove por
+     * ordem de latitude, de norte para sul, e cada passo traz a coudelaria à
+     * vista antes de lhe dar o foco.
+     *
+     * Norte→sul e não a ordem da base de dados porque a ordem tem de se
+     * poder prever olhando para o mapa: quem vê o ponteiro a descer o país
+     * sabe onde vai dar a seta seguinte.
+     *
+     * Não é preciso mexer a câmara em quase nenhum passo. Uma etiqueta com o
+     * foco está `activa`, e uma etiqueta activa é a primeira a escolher
+     * lugar — por isso o nome aparece por si, mesmo que a colisão o tivesse
+     * calado. Só quando o ponto está mesmo fora do quadro é que a vista se
+     * repõe e se centra o que os limites da órbita deixarem.
+     *
+     * O salto é seco, sem animação, e de propósito: quem navega por teclado
+     * quer o passo seguinte, não uma viagem de trezentos milissegundos por
+     * cada uma de vinte e nove. */
+    const ordemNS = [...etiquetas].sort((x, y) => y.coords[0] - x.coords[0]);
+    let indiceTour = -1;
+
+    const mostrar = (e: Etiqueta) => {
+      if (e.noEcra) return;
+      alturaVoo = alturaRepouso;
+      zoomDoUtilizador = false;
+      const s = escala();
+      /* A guinada corre paralelos e não mexe na latitude; a inclinação corre
+         o meridiano da mira, onde a guinada acabou de pôr o ponto. Por isso
+         as duas contas são independentes e directas. Os limites da órbita
+         ficam de pé: dentro deles o país inteiro está no quadro, e o que
+         interessa é o ponto entrar no ecrã, não ficar no meio dele. */
+      const theta = (MIRA.lon - e.coords[1]) * grau;
+      const phi = (MIRA.lat - e.coords[0]) * grau;
+      const limiteTheta = 0.2 * s.l * s.theta;
+      const limitePhi = 0.12 * s.a * s.phi;
+      orbita.theta = Math.max(-limiteTheta, Math.min(limiteTheta, theta));
+      orbita.phi = Math.max(-limitePhi, Math.min(limitePhi, phi));
+    };
+
+    const irPara = (i: number) => {
+      if (!ordemNS.length) return;
+      indiceTour = ((i % ordemNS.length) + ordemNS.length) % ordemNS.length;
+      const e = ordemNS[indiceTour];
+      aEntrar = false;
+      mostrar(e);
+      /* Nunca se dá o foco a um elemento inerte — não iria lá parar. Tira-se
+         a inércia agora e o quadro a seguir escreve-a no sítio. */
+      if (e.anterior.morto) {
+        e.nó.toggleAttribute("inert", false);
+        e.anterior.morto = false;
+      }
+      e.cabeca.focus();
+      pedirQuadro();
+    };
+
+    camadaEtiquetas.addEventListener("keydown", (ev) => {
+      let passo = 0;
+      if (ev.key === "ArrowDown" || ev.key === "ArrowRight") passo = 1;
+      else if (ev.key === "ArrowUp" || ev.key === "ArrowLeft") passo = -1;
+      else if (ev.key === "Home") {
+        ev.preventDefault();
+        irPara(0);
+        return;
+      } else if (ev.key === "End") {
+        ev.preventDefault();
+        irPara(ordemNS.length - 1);
+        return;
+      }
+      if (!passo) return;
+      // Sem isto as setas rolavam a página por baixo do globo ao mesmo tempo.
+      ev.preventDefault();
+      const actual = focada ? ordemNS.indexOf(focada) : indiceTour;
+      irPara(actual < 0 ? (passo > 0 ? 0 : ordemNS.length - 1) : actual + passo);
+    });
+
     const aoTeclar = (e: KeyboardEvent) => {
-      if (e.key !== "Escape" || !fixa) return;
+      /* As mesmas teclas de qualquer mapa. Chegam aqui por borbulhamento, a
+         partir de um nome ou de um botão com o foco — a caixa não entra na
+         tabulação, porque uma paragem que não diz o que faz não é um caminho. */
+      if (e.key === "+" || e.key === "=") {
+        e.preventDefault();
+        mudarAltura(1 / PASSO_ZOOM);
+        return;
+      }
+      if (e.key === "-" || e.key === "_") {
+        e.preventDefault();
+        mudarAltura(PASSO_ZOOM);
+        return;
+      }
+      if (e.key === "0") {
+        e.preventDefault();
+        reporVista();
+        return;
+      }
+      if (e.key !== "Escape") return;
+      if (manchaFixa) {
+        manchaFixa = null;
+        actualizarMancha();
+      }
+      if (!fixa) return;
       fixa = null;
       actualizarActivo();
+    };
+
+    /* ── Os comandos ──────────────────────────────────────────────────────
+     *
+     * Aproximar era possível — com a roda do rato ou com dois dedos —, mas
+     * não estava escrito em lado nenhum do quadro, e é aproximar que faz os
+     * nomes aparecerem: é a acção mais útil do ecrã e era a mais escondida.
+     * Uma legenda a dizer «aproxime-se» não é a mesma coisa que um botão:
+     * a legenda tem de se ler e de se acreditar, o botão carrega-se.
+     *
+     * São três e não uma barra de zoom com cursor: num globo de que se pode
+     * sair pelo lado, repor o enquadramento vale tanto como aproximar, e um
+     * cursor de zoom seria mais uma peça a desenhar por cima da fotografia.
+     * Apagam-se ao fim do curso — é a maneira honesta de dizer que a
+     * aproximação tem limite, sem escrever nenhum número.
+     *
+     * Ficam antes da camada de nomes na árvore de propósito: quem chega por
+     * tabulação encontra primeiro três acções com nome e depois os nomes, e
+     * não quinze nomes antes de saber que a vista se mexe. */
+    const comandos = document.createElement("div");
+    comandos.className = "globo-comandos";
+    comandos.setAttribute("role", "group");
+    comandos.setAttribute("aria-label", "Vista do globo");
+
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    const desenho = (...ds: string[]) => {
+      const svg = document.createElementNS(SVG_NS, "svg");
+      svg.setAttribute("viewBox", "0 0 16 16");
+      svg.setAttribute("aria-hidden", "true");
+      svg.setAttribute("focusable", "false");
+      for (const d of ds) {
+        const p = document.createElementNS(SVG_NS, "path");
+        p.setAttribute("d", d);
+        svg.appendChild(p);
+      }
+      return svg;
+    };
+
+    const fazerComando = (rotulo: string, svg: SVGElement, accao: () => void) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "globo-comando";
+      b.setAttribute("aria-label", rotulo);
+      b.title = rotulo;
+      b.appendChild(svg);
+      /* O `pointerdown` não pode chegar à caixa: chegava, e carregar no
+         botão punha a caixa a capturar o ponteiro e a tratar o gesto como um
+         arrasto do globo. */
+      b.addEventListener("pointerdown", (ev) => ev.stopPropagation());
+      b.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        accao();
+      });
+      comandos.appendChild(b);
+      return b;
+    };
+
+    const btAproximar = fazerComando("Aproximar", desenho("M8 3.2v9.6", "M3.2 8h9.6"), () =>
+      mudarAltura(1 / PASSO_ZOOM)
+    );
+    const btAfastar = fazerComando("Afastar", desenho("M3.2 8h9.6"), () => mudarAltura(PASSO_ZOOM));
+    const btRepor = fazerComando(
+      "Repor a vista",
+      desenho(
+        "M8 2.2v3",
+        "M8 10.8v3",
+        "M2.2 8h3",
+        "M10.8 8h3",
+        "M8 5.6a2.4 2.4 0 1 0 0 4.8 2.4 2.4 0 0 0 0-4.8"
+      ),
+      reporVista
+    );
+
+    el.insertBefore(comandos, camadaEtiquetas);
+
+    /* Escrito uma vez por mudança e não uma vez por quadro: pôr o mesmo
+       `disabled` sessenta vezes por segundo é trabalho de layout a troco de
+       nada. */
+    const estadoComandos = { perto: false, longe: false, posto: false };
+    const actualizarComandos = () => {
+      const perto = alturaVoo <= ALTURA_MINIMA * 1.001;
+      const longe = alturaVoo >= ALTURA_MAXIMA * 0.999;
+      const posto =
+        Math.abs(Math.log(alturaVoo / alturaRepouso)) < 0.01 &&
+        Math.abs(orbita.theta) < 1e-4 &&
+        Math.abs(orbita.phi) < 1e-4;
+      if (perto !== estadoComandos.perto) {
+        btAproximar.disabled = perto;
+        estadoComandos.perto = perto;
+      }
+      if (longe !== estadoComandos.longe) {
+        btAfastar.disabled = longe;
+        estadoComandos.longe = longe;
+      }
+      if (posto !== estadoComandos.posto) {
+        btRepor.disabled = posto;
+        estadoComandos.posto = posto;
+      }
     };
 
     el.addEventListener("pointerdown", aoDescer);
@@ -1896,6 +2609,144 @@ export default function GloboTerra({
     };
     document.addEventListener("visibilitychange", aoMudarSeparador);
 
+    /* ── Quem está por cima da lona ───────────────────────────────────────
+       Não se pergunta ao código de fora quanto espaço ocupa — pergunta-se ao
+       browser quem está no caminho. Três sondagens na borda de baixo e três
+       na de cima com `elementFromPoint`: o que vier de volta e não for nosso
+       é um estorvo, e sobe-se até ao primeiro antepassado `fixed` ou
+       `sticky` para lhe saber a altura toda.
+
+       Assim a barra de cookies, a navegação de fundo do telemóvel e o
+       cabeçalho ao rolar entram na conta sem que o globo tenha de saber que
+       existem — nem de conhecer os nomes das classes de outros componentes,
+       que mudam sem aviso. `elementFromPoint` já ignora o que tem
+       `pointer-events: none`, por isso uma legenda decorativa não conta como
+       estorvo.
+
+       É caro (obriga o browser a refazer o layout), por isso não corre por
+       quadro: corre quando a caixa muda de tamanho, quando a página rola —
+       uma vez por quadro, no máximo — e três vezes depois de montar, que é
+       para apanhar a barra de cookies, que entra com atraso e com animação. */
+    const COLUNAS_SONDA = [0.16, 0.5, 0.84];
+    /* Fundos, em pixéis a contar da borda. Não chega sondar a borda: a barra
+       de cookies é `bottom: 12px`, isto é flutua doze pixéis acima do fundo
+       do ecrã, e uma sondagem só na última linha da lona passava-lhe por
+       baixo e dava «não há estorvo nenhum» — que foi exactamente o que
+       aconteceu à primeira tentativa. Sonda-se uma faixa, e o que conta é o
+       ponto mais fundo a que um estorvo chega. */
+    const FUNDOS_SONDA = [2, 18, 42, 78, 130, 200];
+    let estorvoPedido = 0;
+
+    /** O rectângulo do estorvo fixo que está neste ponto, se algum houver. */
+    const fixoEm = (x: number, y: number) => {
+      const alvo = document.elementFromPoint(x, y);
+      if (!alvo || el.contains(alvo)) return null;
+      let n: HTMLElement | null = alvo as HTMLElement;
+      while (n && n !== document.body) {
+        const pos = getComputedStyle(n).position;
+        if (pos === "fixed" || pos === "sticky") return n.getBoundingClientRect();
+        n = n.parentElement;
+      }
+      return null;
+    };
+
+    const medirEstorvos = () => {
+      estorvoPedido = 0;
+      if (desmontado || !noEcra || escondido) return;
+      const c = el.getBoundingClientRect();
+      if (c.width < 1 || c.height < 1) return;
+      /* Um estorvo que come mais de 40% da lona já não é uma barra: é uma
+         cortina ou uma modal por cima de tudo. Nesse caso não há janela útil
+         para onde fugir, e apertar mais só apagava os nomes todos. */
+      const tecto = c.height * 0.4;
+      let alturaDoTopo = c.top;
+      let fundoDaBase = c.bottom;
+      const maisFundo = FUNDOS_SONDA[FUNDOS_SONDA.length - 1];
+      for (const f of COLUNAS_SONDA) {
+        const x = c.left + c.width * f;
+        let chegaCima = false;
+        let chegaBaixo = false;
+        for (const d of FUNDOS_SONDA) {
+          if (d > tecto) break;
+          /* Uma sondagem custa uma consulta de layout ao browser. Assim que
+             um estorvo desta coluna já se estende para além da sondagem mais
+             funda, nenhuma sondagem seguinte lhe pode acrescentar nada — e
+             deixa-se de perguntar. Medido: no telemóvel, com a barra de
+             cookies, passa de trinta e seis consultas para seis. */
+          if (!chegaCima) {
+            const emCima = fixoEm(x, c.top + d);
+            if (emCima) {
+              alturaDoTopo = Math.max(alturaDoTopo, emCima.bottom);
+              chegaCima = emCima.bottom - c.top >= maisFundo;
+            }
+          }
+          if (!chegaBaixo) {
+            const emBaixo = fixoEm(x, c.bottom - d);
+            if (emBaixo) {
+              fundoDaBase = Math.min(fundoDaBase, emBaixo.top);
+              chegaBaixo = c.bottom - emBaixo.top >= maisFundo;
+            }
+          }
+          if (chegaCima && chegaBaixo) break;
+        }
+      }
+      const topo = Math.min(tecto, Math.max(0, alturaDoTopo - c.top));
+      const base = alturaCaixa - Math.min(tecto, Math.max(0, c.bottom - fundoDaBase));
+      if (Math.abs(topo - topoUtil) < 2 && Math.abs(base - baseUtil) < 2) return;
+      topoUtil = topo;
+      baseUtil = base;
+      /* Os comandos descem o mesmo que os nomes. Estavam no canto de cima e
+         iam parar por baixo do cabeçalho com a página a meio do rolo. */
+      comandos.style.setProperty("--recuo", `${Math.round(topo)}px`);
+      pedirQuadro();
+    };
+
+    const pedirEstorvos = () => {
+      if (estorvoPedido || desmontado) return;
+      estorvoPedido = requestAnimationFrame(medirEstorvos);
+    };
+
+    /* ── Quando é que se volta a medir ────────────────────────────────────
+       Um estorvo aparece de duas maneiras, e cada uma tem o seu sinal.
+
+       Aparece **por si**, com atraso: a barra de cookies só entra dois
+       segundos depois de a página carregar, e entra a deslizar. Medir a meio
+       do deslize dá a barra onde ela ainda não está — e foi isso que
+       aconteceu à primeira: a faixa saía curta e dois nomes ficavam por
+       baixo dela na mesma. Quem avisa que acabou de entrar é o
+       `animationend`, e é a ele que se ouve.
+
+       Ou aparece e desaparece **por acção de alguém**: quem aceita os
+       cookies faz a barra sair, e nesse instante há mais lona outra vez. Um
+       `click` em qualquer sítio da página chega para o saber, e mede-se duas
+       vezes — agora e um terço de segundo depois, que é o tempo de o React
+       desmontar o que quer que tenha saído.
+
+       Nenhum destes é um relógio a bater para sempre. Em repouso, sem
+       ninguém a mexer em nada, não corre nada disto — que é a regra da casa
+       para esta cena. */
+    const talvezEstorvo = (ev: Event) => {
+      const alvo = ev.target as HTMLElement | null;
+      if (!alvo || typeof alvo.getBoundingClientRect !== "function") return;
+      if (el.contains(alvo)) return;
+      const pos = getComputedStyle(alvo).position;
+      if (pos !== "fixed" && pos !== "sticky") return;
+      pedirEstorvos();
+    };
+
+    let relogioClique = 0;
+    const aoClicarAlgures = () => {
+      pedirEstorvos();
+      window.clearTimeout(relogioClique);
+      relogioClique = window.setTimeout(pedirEstorvos, 320);
+    };
+
+    window.addEventListener("scroll", pedirEstorvos, { passive: true });
+    document.addEventListener("animationend", talvezEstorvo, true);
+    document.addEventListener("transitionend", talvezEstorvo, true);
+    document.addEventListener("click", aoClicarAlgures, true);
+    const relogiosEstorvo = [0, 700, 2600].map((t) => window.setTimeout(pedirEstorvos, t));
+
     const observador = new ResizeObserver(() => {
       const l = el.clientWidth || 1;
       const a = el.clientHeight || 1;
@@ -1914,6 +2765,11 @@ export default function GloboTerra({
       // Numa coluna mais estreita as etiquetas encolhem: as medidas em cache
       // deixam de valer, e é delas que sai o teste de colisão.
       precisaMedir = true;
+      /* A janela útil sai da posição da lona no ecrã, que acabou de mudar.
+         Enquanto não se remede, vale a lona inteira — nunca menos, para que
+         uma medida por fazer não apague nomes. */
+      baseUtil = Math.min(baseUtil, a);
+      pedirEstorvos();
       pedirQuadro();
     });
     observador.observe(el);
@@ -1924,6 +2780,13 @@ export default function GloboTerra({
       desmontado = true;
       cancelarContornos.abort();
       window.clearTimeout(relogioRevelar);
+      for (const r of relogiosEstorvo) window.clearTimeout(r);
+      window.clearTimeout(relogioClique);
+      window.removeEventListener("scroll", pedirEstorvos);
+      document.removeEventListener("animationend", talvezEstorvo, true);
+      document.removeEventListener("transitionend", talvezEstorvo, true);
+      document.removeEventListener("click", aoClicarAlgures, true);
+      if (estorvoPedido) cancelAnimationFrame(estorvoPedido);
       if (quadroPedido) cancelAnimationFrame(quadroPedido);
       observador.disconnect();
       observadorVista.disconnect();
@@ -1940,6 +2803,7 @@ export default function GloboTerra({
       /* Os ouvintes das etiquetas ficam nos nós que saem daqui com a camada:
          a árvore inteira fica sem referências e vai com o resto do fecho. */
       camadaEtiquetas.remove();
+      comandos.remove();
 
       cena.traverse((o) => {
         const obj = o as THREE.Mesh;
@@ -1999,13 +2863,17 @@ export default function GloboTerra({
           </p>
         </div>
       )}
-      {/* Só se pode tabular pelos nomes que estão à vista; os que estão do
-          outro lado do planeta ficam `inert`. Quem não quiser rodar o globo
-          para lá chegar tem a lista, e é preciso dizê-lo. */}
+      {/* A tabulação passa só pelos nomes que estão à vista — um foco em cima
+          de nada não é um caminho. O caminho para as outras são as setas, que
+          percorrem as {pontos.length} por ordem de latitude e trazem cada uma
+          à vista antes de lhe dar o foco. Tem de estar escrito: um atalho que
+          ninguém sabe que existe é um atalho que não existe. */}
       <p className="sr-only">
-        Globo com {pontos.length} coudelarias em Portugal, em {grupos.length} pontos. Percorre-se
-        por tabulação, mas só os nomes visíveis de cada vez; a lista completa está na vista de
-        lista.
+        Globo com {pontos.length} coudelarias em Portugal, em {grupos.length} pontos. A tabulação
+        passa pelos nomes visíveis de cada vez. Com um nome seleccionado, as setas para cima e para
+        baixo percorrem todas as coudelarias de norte para sul, movendo a vista quando é preciso;
+        Início e Fim saltam para a primeira e para a última. Mais e menos aproximam e afastam, zero
+        repõe a vista. A lista completa está na vista de lista.
       </p>
     </div>
   );
