@@ -75,11 +75,21 @@ html.dark {
   --selection-bg: #c6a15b;
   --selection-fg: #000;
   --nav-bg: transparent;
-  --nav-bg-scrolled: rgba(0, 0, 0, 0.6);
+  --nav-bg-scrolled: rgba(0, 0, 0, 0.55);
   /* Curvas de movimento, iguais em todo o lado. */
   --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  /* `--ease-out` já é o `ease-out-soft` do kit — mesma curva, não se duplica. */
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ease-inout: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1);
+  --ease-header: cubic-bezier(0.215, 0.61, 0.355, 1);
+
+  /* Durações medidas no site de referência. */
+  --d-fast: 200ms;
+  --d-menu: 300ms;
+  --d-drill: 320ms;
+  --d-header: 230ms;
+  --d-reveal: 1000ms;
 }
 
 /* Light mode */
@@ -1166,9 +1176,9 @@ body {
     white-space: nowrap;
     cursor: pointer;
     transition:
-      background-color 0.15s ease,
-      border-color 0.15s ease,
-      color 0.15s ease;
+      background-color var(--d-fast) ease-out,
+      border-color var(--d-fast) ease-out,
+      color var(--d-fast) ease-out;
   }
 
   .btn:disabled {
@@ -1221,9 +1231,19 @@ body {
     color: var(--foreground-secondary);
   }
 
+  /* O hover inverte: fundo cheio, texto preto. Num botão de contorno sobre
+     preto, mudar só a cor da borda quase não se vê — a inversão é a única
+     resposta que se lê à distância a que a mão está do ecrã. */
   .btn-secundario:hover:not(:disabled) {
-    border-color: var(--border);
-    color: var(--foreground-strong);
+    border-color: var(--foreground-strong);
+    background: var(--foreground-strong);
+    color: #000;
+  }
+
+  html.light .btn-secundario:hover:not(:disabled) {
+    border-color: #0a0a0a;
+    background: #0a0a0a;
+    color: #fff;
   }
 
   .btn-subtil {
@@ -1450,8 +1470,8 @@ body {
   /* --- Botão de vidro ------------------------------------------------------ */
   .botao-vidro {
     border: 2px solid var(--elevate-1);
-    -webkit-backdrop-filter: blur(25px);
-    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(32px);
+    backdrop-filter: blur(32px);
     background-origin: border-box;
     background-image: linear-gradient(
       104deg,
@@ -1505,11 +1525,25 @@ body {
      branco se o script falhar. */
   .js [data-revelar] {
     opacity: 0;
-    transform: translateY(var(--ry, 24px));
+    transform: translate(var(--rx, 0px), var(--ry, 2rem));
     transition:
-      opacity var(--rd, 500ms) var(--ease) var(--rdelay, 0ms),
-      transform var(--rd, 500ms) var(--ease) var(--rdelay, 0ms);
+      opacity var(--rd, var(--d-reveal)) var(--ease-out) var(--rdelay, 0ms),
+      transform var(--rd, var(--d-reveal)) var(--ease-out) var(--rdelay, 0ms);
     will-change: opacity, transform;
+  }
+
+  /* Direcções. O eixo é escolhido pelo valor do atributo; a distância é
+     sempre 2rem, para o movimento ter o mesmo peso venha de onde vier. */
+  .js [data-revelar="down"] {
+    --ry: -2rem;
+  }
+  .js [data-revelar="left"] {
+    --rx: 2rem;
+    --ry: 0px;
+  }
+  .js [data-revelar="right"] {
+    --rx: -2rem;
+    --ry: 0px;
   }
 
   .js [data-revelar].dentro {
@@ -1590,20 +1624,21 @@ body {
 /* ===========================================================================
  * MENU DE ECRÃ INTEIRO
  * ===========================================================================
- * O painel entra a subir e a aparecer; as entradas seguem-no, escalonadas.
- * O escalonamento é o que dá a sensação de o menu se compor em vez de
- * aparecer feito — e é curto de propósito: quem abre um menu quer navegar,
- * não assistir.
+ * O painel não desliza: anima só a opacidade. O peso vem do fundo a 64% com
+ * desfoque de 24px, que empurra a página para trás sem a apagar — é isso, e
+ * não o movimento, que faz o menu parecer pousado por cima do site.
+ *
+ * As entradas deixaram de entrar escalonadas. Um menu abre-se para navegar,
+ * não para se ver a compor, e o escalonamento atrasava a última linha quando
+ * ela podia já ser o destino de quem abriu.
  * ========================================================================= */
 
-@keyframes menu-entrar {
+@keyframes menu-aparecer {
   from {
     opacity: 0;
-    transform: translateY(12px);
   }
   to {
     opacity: 1;
-    transform: none;
   }
 }
 
@@ -1614,24 +1649,160 @@ body {
 }
 
 .menu-painel {
-  animation: menu-entrar 0.32s var(--ease-out) both;
+  animation: menu-aparecer var(--d-menu) var(--ease-in-out-cubic) both;
 }
 
 .menu-painel[data-a-fechar="true"] {
-  animation: menu-sair 0.2s var(--ease-inout) both;
+  animation: menu-sair var(--d-menu) var(--ease-in-out-cubic) both;
 }
 
-/* Cada entrada arranca deslocada e vai a horas marcadas pelo `--i` que a
-   página lhe põe. Um só keyframe serve todas. */
-.menu-item {
-  animation: menu-entrar 0.4s var(--ease) both;
-  animation-delay: calc(60ms + var(--i, 0) * 45ms);
+/* --- Níveis ---------------------------------------------------------------
+ * Os dois níveis ocupam o mesmo sítio. Ao abrir um grupo, o submenu entra a
+ * deslizar da direita uma largura inteira enquanto o nível de cima fica
+ * quieto e só se apaga: são os dois movimentos ao mesmo tempo que dão a
+ * leitura de profundidade, em vez de troca de página.
+ * ------------------------------------------------------------------------ */
+
+.menu-palco {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.menu-nivel {
+  transition:
+    transform var(--d-drill) var(--ease-in-out-cubic),
+    opacity var(--d-drill) var(--ease-in-out-cubic);
+}
+
+.menu-nivel[data-nivel="0"][data-atras="true"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.menu-nivel[data-nivel="1"] {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.menu-nivel[data-nivel="1"][data-activo="true"] {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .menu-painel,
-  .menu-painel[data-a-fechar="true"],
-  .menu-item {
+  .menu-painel[data-a-fechar="true"] {
     animation: none;
+  }
+
+  .menu-nivel {
+    transition: none;
+  }
+}
+
+/* ===========================================================================
+ * CORTINA, MURO EM MOVIMENTO, GRUPO DE NAVEGAÇÃO
+ * ===========================================================================
+ * Três peças do sistema de movimento que não pertencem a nenhum componente
+ * já existente. Ficam em `@layer components` como as outras: as utilidades
+ * do Tailwind vêm depois e continuam a ganhar a uma classe destas.
+ * ========================================================================= */
+
+@layer components {
+  /* --- Cortina de entrada -------------------------------------------------
+   * Um pano preto que sobe e descobre a página. Anima-se sozinha em CSS e só
+   * depois é que o JS a retira do DOM: se o script falhar, a cortina já saiu
+   * do ecrã à mesma e nunca fica um rectângulo preto por cima do site.
+   * ---------------------------------------------------------------------- */
+
+  @keyframes cortina-subir {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(-100%);
+    }
+  }
+
+  .cortina {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: var(--background);
+    pointer-events: none;
+    animation: cortina-subir 250ms var(--ease-in-out-cubic) forwards;
+  }
+
+  /* --- Muro de coudelarias em movimento -----------------------------------
+   * A máscara nas pontas é o que distingue isto de um carrossel: os nomes
+   * não desaparecem numa aresta, dissolvem-se no fundo. Pára ao passar o
+   * rato por cima, para se poder ler e clicar um nome.
+   * ---------------------------------------------------------------------- */
+
+  @keyframes deslizar-esquerda {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(var(--distancia, -50%));
+    }
+  }
+
+  .muro {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  }
+
+  .muro__pista {
+    display: flex;
+    width: max-content;
+    --distancia: -50%;
+    animation: deslizar-esquerda 45s linear infinite;
+  }
+
+  .muro:hover .muro__pista,
+  .muro:focus-within .muro__pista {
+    animation-play-state: paused;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cortina {
+    display: none;
+  }
+
+  .muro__pista {
+    animation: none;
+  }
+}
+
+/* --- Grupo de navegação -----------------------------------------------------
+ * Ao apontar para o grupo, as entradas todas esmorecem e só a apontada fica
+ * acesa. Diz onde está a mão sem precisar de sublinhado nem caixa.
+ *
+ * Fica fora de `@layer` de propósito, ao contrário de quase tudo o resto: a
+ * cor de base das entradas está numa utilidade do Tailwind no JSX, e as
+ * utilidades vêm numa camada posterior. Dentro da camada, esta regra perdia
+ * sempre e o esmorecer não acontecia.
+ * -------------------------------------------------------------------------- */
+
+.grupo-nav .ligacao-nav {
+  transition: color var(--d-fast) ease-out;
+}
+
+@media (hover: hover) {
+  .grupo-nav:hover .ligacao-nav:not([aria-current="page"]) {
+    color: color-mix(in srgb, var(--foreground) 48%, transparent);
+  }
+
+  .grupo-nav:hover .ligacao-nav:hover {
+    color: var(--foreground-strong);
   }
 }

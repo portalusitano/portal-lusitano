@@ -243,20 +243,36 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
               <p className="mb-10 text-center text-sm text-[var(--foreground-secondary)]">
                 Coudelarias que já publicam no Portal
               </p>
-              <div className="mx-auto grid max-w-4xl grid-cols-2 items-center justify-items-center gap-x-6 gap-y-8 sm:grid-cols-3 md:grid-cols-4">
-                {COUDELARIAS.map((c) => (
-                  <LocalizedLink
-                    key={c.nome}
-                    href="/directorio"
-                    className="group flex h-16 items-center justify-center"
-                  >
-                    <span
-                      className={`text-lg text-[var(--foreground)]/90 transition-colors duration-300 group-hover:text-[var(--gold)] motion-safe:group-hover:scale-110 motion-safe:transition-transform ${c.classe}`}
+              {/* A lista vai duplicada e a pista anda -50%: quando lá chega,
+                  a segunda cópia está exactamente onde a primeira começou e
+                  o salto de volta a zero não se vê. A segunda cópia fica
+                  fora da árvore de acessibilidade, que os nomes já lá estão
+                  uma vez. */}
+              <div className="muro">
+                <div className="muro__pista">
+                  {[0, 1].map((copia) => (
+                    <div
+                      key={copia}
+                      className="flex shrink-0 items-center"
+                      aria-hidden={copia === 1 ? "true" : undefined}
                     >
-                      {c.nome}
-                    </span>
-                  </LocalizedLink>
-                ))}
+                      {COUDELARIAS.map((c) => (
+                        <LocalizedLink
+                          key={c.nome}
+                          href="/directorio"
+                          tabIndex={copia === 1 ? -1 : undefined}
+                          className="group flex h-16 shrink-0 items-center justify-center px-6 md:px-9"
+                        >
+                          <span
+                            className={`whitespace-nowrap text-lg text-[var(--foreground)]/90 transition-colors duration-300 group-hover:text-[var(--gold)] ${c.classe}`}
+                          >
+                            {c.nome}
+                          </span>
+                        </LocalizedLink>
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </Revelar>

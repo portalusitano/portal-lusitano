@@ -70,13 +70,54 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
 
 ### Movimento
 
-- Entrada ao entrar no ecrã: `<Revelar>`, com `duracao` 500ms (cartões) ou
-  600ms (cabeçalhos), `cubic-bezier(.25,.1,.25,1)`, dispara uma vez.
+As durações e as curvas são medidas, não inventadas. Vivem em tokens no
+`globals.css` e é por lá que se mudam.
+
+| Curva                 | Valor                            | Onde                 |
+| --------------------- | -------------------------------- | -------------------- |
+| `--ease-out`          | `cubic-bezier(0,0,.2,1)`         | entradas de conteúdo |
+| `--ease-in-out-cubic` | `cubic-bezier(.645,.045,.355,1)` | menu, cortina        |
+| `--ease-header`       | `cubic-bezier(.215,.61,.355,1)`  | cabeçalho ao rolar   |
+
+| Duração      | Valor  | Onde                        |
+| ------------ | ------ | --------------------------- |
+| `--d-fast`   | 200ms  | hovers, botões              |
+| `--d-menu`   | 300ms  | abrir e fechar o menu       |
+| `--d-drill`  | 320ms  | entrar e sair de um submenu |
+| `--d-header` | 230ms  | véu e hairline do cabeçalho |
+| `--d-reveal` | 1000ms | entrada ao entrar no ecrã   |
+
+- Entrada ao entrar no ecrã: `<Revelar>` — 2rem de deslocação, 1000ms,
+  `--ease-out`, dispara uma vez. `direccao` aceita `up` (omissão), `down`,
+  `left` e `right`; a distância é sempre a mesma, muda só o eixo.
+- O observador usa `rootMargin: 0px 0px -10% 0px` e **`threshold: 0`**. O
+  limiar fica em zero de propósito: exigir uma percentagem do elemento
+  visível é uma armadilha para secções altas — mil pixels de ecrã não são
+  15% de trinta mil, e a página nunca revelava. A margem já dá o atraso.
 - Stagger: 100ms por cartão em grelhas; 120ms nas grelhas de seis.
-- Cabeçalho: entra a descer 500ms; ao rolar ganha véu (150ms) e hairline (200ms).
+- Cabeçalho: entra a descer 500ms; ao rolar ganha véu e hairline em 230ms
+  com `--ease-header`. Com o menu aberto sai de cena — o painel é
+  translúcido e a barra atravessava-o por trás da marca que ele já mostra.
+- Menu de ecrã inteiro: **não desliza**, anima só opacidade em 300ms. O peso
+  vem do fundo a 64% com desfoque de 24px. As entradas não são escalonadas —
+  quem abre um menu quer navegar, não ver uma lista a compor-se.
+- Submenus: os níveis empilham-se no mesmo sítio. O submenu entra da direita
+  uma largura inteira enquanto o nível de cima fica quieto e só se apaga; são
+  os dois ao mesmo tempo que se leem como profundidade.
+- Cortina de entrada (`.cortina`): pano da cor do fundo que sobe em 250ms,
+  uma vez por carregamento. Quem a anima é o CSS; o JS só a retira do DOM.
+  Se o script falhar, a cortina já saiu do ecrã à mesma — nunca fica um
+  rectângulo opaco por cima do site. Entre rotas não corre: quem assinala
+  essas é a barra de progresso.
 - Dropdowns: `.anim-crescer`, 200ms, origem no topo.
-- **Um só ciclo infinito em todo o site** — o ponto verde da contagem de
-  anúncios (`pulsar-ponto`). É o único `infinite` no CSS e assim deve ficar.
+- Botões de contorno invertem no hover — fundo cheio, texto preto, 200ms.
+  Mudar só a cor da borda quase não se via sobre preto.
+- **Dois ciclos infinitos em todo o site**, e não mais: o ponto verde da
+  contagem de anúncios (`pulsar-ponto`) e o muro de coudelarias
+  (`.muro__pista`, 45s lineares). O muro pára ao passar o rato e é anulado
+  por `prefers-reduced-motion`. Antes a regra era um só; passou a dois
+  quando o muro deixou de ser uma grelha parada. Um terceiro precisa de
+  razão escrita.
   Os esqueletos de carregamento usam `animate-pulse` do Tailwind: são a
   excepção aceite, porque só existem enquanto o conteúdo não chegou.
 - Entrada anterior (`fadeSlideIn`) ainda em várias páginas: mesma família de
@@ -89,6 +130,13 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
 A classe `.js` que arma o estado inicial das animações é posta pelo script
 inline em `app/layout.tsx`, **antes da primeira pintura**. Posta na
 hidratação, o conteúdo acima da dobra aparecia e voltava a desaparecer.
+
+Quase tudo o que é componente vive em `@layer components`. As duas excepções
+estão comentadas no sítio e são pela mesma razão: **CSS sem camada ganha a
+qualquer `@layer`**, e as utilidades do Tailwind estão numa camada posterior.
+O alvo de toque de 44px em telemóvel é a regra sem camada que esticava os
+interruptores; o esmorecer do grupo de navegação tem de ser sem camada porque
+a cor de base das entradas está numa utilidade no JSX.
 
 ### Densidade
 

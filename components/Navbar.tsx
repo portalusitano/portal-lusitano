@@ -82,14 +82,18 @@ export default memo(function Navbar() {
             ? "Navegación principal"
             : "Main navigation"
       }
-      className={`anim-cabecalho fixed w-full z-50 border-b [transform:translateZ(0)] transition-[border-color] duration-200 ease-in-out ${
+      // Com o menu aberto a barra sai de cena. O painel é translúcido, por
+      // isso a barra ficava a atravessá-lo desfocada por trás da marca que o
+      // próprio painel já mostra — a mesma palavra duas vezes, uma delas
+      // fantasma.
+      className={`anim-cabecalho fixed w-full z-50 border-b [transform:translateZ(0)] transition-[border-color,opacity] duration-[230ms] ease-[var(--ease-header)] ${
         scrolled ? "border-[var(--border-soft)]" : "border-transparent"
-      }`}
+      } ${isMobileOpen ? "pointer-events-none opacity-0" : "opacity-100"}`}
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       <div
         aria-hidden="true"
-        className={`absolute inset-0 bg-[var(--nav-bg-scrolled)] backdrop-blur-md transition-opacity duration-150 ${
+        className={`absolute inset-0 bg-[var(--nav-bg-scrolled)] backdrop-blur-[24px] transition-opacity duration-[230ms] ease-[var(--ease-header)] ${
           scrolled ? "opacity-100" : "opacity-0"
         }`}
       />

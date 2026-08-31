@@ -38,7 +38,7 @@ export const DesktopMenu = memo(function DesktopMenu({ t }: DesktopMenuProps) {
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
   return (
-    <div className="hidden lg:flex items-center gap-4 xl:gap-6 ml-8 lg:ml-12">
+    <div className="grupo-nav hidden lg:flex items-center gap-4 xl:gap-6 ml-8 lg:ml-12">
       {navItems.map((item) => {
         const active = isActive(item.href);
         return (
@@ -46,7 +46,7 @@ export const DesktopMenu = memo(function DesktopMenu({ t }: DesktopMenuProps) {
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
-            className={`rotulo transition-colors duration-300 relative group py-2 ${
+            className={`ligacao-nav rotulo relative group py-2 ${
               active
                 ? "text-[var(--gold)]"
                 : "text-[var(--foreground-secondary)] hover:text-[var(--foreground)]"

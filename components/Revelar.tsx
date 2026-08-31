@@ -2,9 +2,14 @@
 
 import { useEffect, type ReactNode } from "react";
 
+/** De onde entra o bloco. A distância é sempre a mesma; muda só o eixo. */
+export type Direccao = "up" | "down" | "left" | "right";
+
 interface RevelarProps {
   children: ReactNode;
-  /** Deslocamento vertical inicial, em pixels. */
+  /** De onde entra. Por omissão sobe. */
+  direccao?: Direccao;
+  /** Deslocamento inicial, em pixels. Por omissão 2rem. */
   y?: number;
   /** Duração da transição, em milissegundos. */
   duracao?: number;
@@ -32,14 +37,24 @@ export function atrasoEmGrelha(indice: number, passo = 100, maximo = 5): number 
 
 export default function Revelar({
   children,
-  y = 24,
-  duracao = 500,
+  direccao = "up",
+  y = 32,
+  duracao = 1000,
   atraso = 0,
   className,
 }: RevelarProps) {
+  // O eixo é escolhido aqui e não na folha de estilo: o `--ry` em linha
+  // ganharia sempre ao que a regra de direcção pusesse.
+  const eixo: Record<string, string> =
+    direccao === "left"
+      ? { "--rx": `${y}px`, "--ry": "0px" }
+      : direccao === "right"
+        ? { "--rx": `${-y}px`, "--ry": "0px" }
+        : { "--ry": `${direccao === "down" ? -y : y}px` };
+
   return (
     <div
-      data-revelar=""
+      data-revelar={direccao === "up" ? "" : direccao}
       className={className}
       // O observador acrescenta `dentro` a este elemento, e pode fazê-lo
       // antes de a hidratação terminar. Sem isto, cada bloco com entrada
@@ -47,7 +62,7 @@ export default function Revelar({
       suppressHydrationWarning
       style={
         {
-          "--ry": `${y}px`,
+          ...eixo,
           "--rd": `${duracao}ms`,
           "--rdelay": `${atraso}ms`,
         } as React.CSSProperties
@@ -93,12 +108,16 @@ export function ObservadorRevelar() {
           }
         }
       },
-      // `threshold: 0` — qualquer pixel visível chega. Com 0.04 exigia-se que
-      // 4% do elemento estivesse no ecrã, e uma secção muito alta (uma página
-      // de termos, por exemplo) nunca lá chega: mil pixels de ecrã não são 4%
-      // de trinta mil, e o bloco ficava invisível até a rede de segurança o
-      // apanhar segundos depois.
-      { rootMargin: "0px 0px -6% 0px", threshold: 0 }
+      // A margem de -10% é a do kit: o bloco só entra quando já passou bem a
+      // borda, e não no instante em que assoma.
+      //
+      // O `threshold` fica em 0 e não nos 0.15 do kit, de propósito. Exigir
+      // 15% do elemento visível é uma armadilha para secções altas: mil
+      // pixels de ecrã não são 15% de trinta mil, e uma página de termos
+      // nunca lá chegaria — ficava invisível até a rede de segurança a
+      // apanhar segundos depois. A margem já dá o mesmo atraso de entrada,
+      // sem depender do tamanho do bloco.
+      { rootMargin: "0px 0px -10% 0px", threshold: 0 }
     );
 
     // Blocos que aparecem depois (paginação, filtros) também entram.
@@ -113,7 +132,7 @@ export function ObservadorRevelar() {
       const altura = window.innerHeight || 800;
       document.querySelectorAll("[data-revelar]:not(.dentro)").forEach((el) => {
         const caixa = el.getBoundingClientRect();
-        if (caixa.top < altura * 0.96 && caixa.bottom > 0) revelar(el);
+        if (caixa.top < altura * 0.9 && caixa.bottom > 0) revelar(el);
       });
       ligar();
     };

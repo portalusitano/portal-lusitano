@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 
+import Cortina from "@/components/Cortina";
 import { ObservadorRevelar } from "@/components/Revelar";
 
 const ScrollToTop = dynamic(() => import("@/components/ScrollToTop"), { ssr: false });
@@ -18,6 +19,7 @@ const ServiceWorkerRegistration = dynamic(() => import("@/components/ServiceWork
 export default function ClientOverlays() {
   return (
     <>
+      <Cortina />
       <ObservadorRevelar />
       <ScrollToTop />
       <CookieConsent />
