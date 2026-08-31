@@ -2288,3 +2288,235 @@ body {
     outline: none;
   }
 }
+
+@layer components {
+  /* ── Holofote e marcas vivas ──────────────────────────────────────────
+     A grelha de seis lê-se como uma folha de vidro: a luz do ponteiro
+     atravessa-a e acende a hairline por onde passa. É o mesmo azul frio
+     das outras hairlines do site — branco puro leria como uma caixa
+     desenhada. Sem rato, nada disto existe. */
+
+  .cartao-holofote {
+    position: relative;
+    isolation: isolate;
+    transition:
+      border-color var(--d-fast) var(--ease-out),
+      transform var(--d-fast) var(--ease-out);
+  }
+
+  .cartao-holofote:hover {
+    transform: translateY(-2px);
+  }
+
+  /* A hairline acesa: a borda inteira num gradiente, recortada à moldura. */
+  .cartao-holofote::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    padding: 1px;
+    background: radial-gradient(
+      260px circle at var(--px, -999px) var(--py, -999px),
+      rgba(214, 235, 253, 0.9),
+      rgba(214, 235, 253, 0.25) 40%,
+      transparent 65%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity var(--d-fast) var(--ease-out);
+    pointer-events: none;
+  }
+
+  /* E um halo ténue por baixo, para o cartão não ser só um contorno aceso. */
+  .cartao-holofote::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      300px circle at var(--px, -999px) var(--py, -999px),
+      rgba(255, 255, 255, 0.09),
+      transparent 62%
+    );
+    opacity: 0;
+    transition: opacity var(--d-fast) var(--ease-out);
+    pointer-events: none;
+  }
+
+  .grelha-holofote:hover .cartao-holofote::before,
+  .grelha-holofote:hover .cartao-holofote::after {
+    opacity: 1;
+  }
+
+  /* ── A marca viva de cada cartão ──────────────────────────────────────
+     Um pedaço de interface a 10px, na linha das três receitas do sistema:
+     previews em HTML, nunca capturas de ecrã. Compõe-se uma vez, quando o
+     cartão entra no ecrã — nenhuma destas animações se repete. */
+
+  .marca {
+    position: relative;
+    display: flex;
+    height: 56px;
+    width: 100%;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    overflow: hidden;
+  }
+
+  .marca__barra {
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(214, 235, 253, 0.14);
+    transform-origin: left center;
+  }
+
+  .marca__acento {
+    border-radius: 999px;
+    background: var(--foreground-strong);
+  }
+
+  /* Parado, o desenho está todo feito: sem JavaScript não fica um buraco. */
+  .js [data-revelar] .marca__barra,
+  .js [data-revelar] .marca__acento,
+  .js [data-revelar] .marca__coluna,
+  .js [data-revelar] .marca__chip {
+    opacity: 0;
+  }
+
+  .js [data-revelar].dentro .marca__barra {
+    animation: marca-barra 620ms var(--ease-out) both;
+  }
+  .js [data-revelar].dentro .marca__barra:nth-child(2) {
+    animation-delay: 90ms;
+  }
+  .js [data-revelar].dentro .marca__barra:nth-child(3) {
+    animation-delay: 180ms;
+  }
+
+  @keyframes marca-barra {
+    from {
+      opacity: 0;
+      transform: scaleX(0.15);
+    }
+    to {
+      opacity: 1;
+      transform: scaleX(1);
+    }
+  }
+
+  /* O acento entra depois das barras — é ele que conta a história. */
+  .js [data-revelar].dentro .marca__acento,
+  .js [data-revelar].dentro .marca__chip {
+    animation: marca-acento 520ms var(--ease-out) 340ms both;
+  }
+
+  @keyframes marca-acento {
+    from {
+      opacity: 0;
+      transform: translateX(10px) scale(0.7);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Variante «prazo»: a barra esvazia-se, que é o que um prazo faz. */
+  .js [data-revelar].dentro .marca__prazo {
+    animation: marca-prazo 900ms var(--ease-in-out-cubic) 300ms both;
+  }
+
+  @keyframes marca-prazo {
+    from {
+      opacity: 1;
+      width: 100%;
+    }
+    to {
+      opacity: 1;
+      width: 26%;
+    }
+  }
+
+  /* Variante «resultados»: colunas que crescem. */
+  .marca__colunas {
+    display: flex;
+    height: 34px;
+    align-items: flex-end;
+    gap: 5px;
+  }
+
+  .marca__coluna {
+    width: 10px;
+    border-radius: 2px;
+    background: rgba(214, 235, 253, 0.2);
+    transform-origin: bottom center;
+  }
+
+  .marca__coluna:last-child {
+    background: var(--foreground-strong);
+  }
+
+  .js [data-revelar].dentro .marca__coluna {
+    animation: marca-coluna 620ms var(--ease-out) both;
+  }
+  .js [data-revelar].dentro .marca__coluna:nth-child(1) {
+    animation-delay: 260ms;
+  }
+  .js [data-revelar].dentro .marca__coluna:nth-child(2) {
+    animation-delay: 340ms;
+  }
+  .js [data-revelar].dentro .marca__coluna:nth-child(3) {
+    animation-delay: 420ms;
+  }
+  .js [data-revelar].dentro .marca__coluna:nth-child(4) {
+    animation-delay: 500ms;
+  }
+  .js [data-revelar].dentro .marca__coluna:nth-child(5) {
+    animation-delay: 580ms;
+  }
+
+  @keyframes marca-coluna {
+    from {
+      opacity: 0;
+      transform: scaleY(0.08);
+    }
+    to {
+      opacity: 1;
+      transform: scaleY(1);
+    }
+  }
+
+  .marca__chip {
+    align-self: flex-start;
+    border-radius: 999px;
+    background: var(--foreground-strong);
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #000;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .js [data-revelar] .marca__barra,
+    .js [data-revelar] .marca__acento,
+    .js [data-revelar] .marca__coluna,
+    .js [data-revelar] .marca__chip {
+      opacity: 1;
+      animation: none;
+    }
+
+    .cartao-holofote:hover {
+      transform: none;
+    }
+  }
+}

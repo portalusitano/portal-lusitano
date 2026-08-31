@@ -7,6 +7,7 @@ import LocalizedLink from "@/components/LocalizedLink";
 import { useMaquinaDeEscrever } from "@/components/ui/useMaquinaDeEscrever";
 import Revelar from "@/components/Revelar";
 import PainelEscrito from "@/components/ui/PainelEscrito";
+import GrelhaHolofote from "@/components/ui/GrelhaHolofote";
 import { usePassoVivo } from "@/components/ui/usePassoVivo";
 import { ImageIcon, Search } from "lucide-react";
 import type { SellerListing } from "@/lib/marketplace-listings";
@@ -257,6 +258,98 @@ const PEDIGREES: [string, string, string, boolean][][] = [
     ["Avó paterna — Serena", "Andrade", "Prata", false],
     ["Avô materno — Cartucho", "Coimbra", "Ouro", false],
   ],
+];
+
+/* ── «Publique com confiança» ──────────────────────────────────────────────
+   Cada cartão leva um pedaço de interface a 10px em vez de ficar só com
+   texto: é a terceira receita do sistema — previews em HTML, nunca capturas
+   de ecrã. Pesam zero, ficam nítidos em qualquer ecrã, e cada um conta em
+   movimento aquilo que a frase diz por palavras. Compõem-se uma vez, quando
+   o cartão entra no ecrã. */
+
+function Barras({ larguras }: { larguras: string[] }) {
+  return (
+    <>
+      {larguras.map((w, i) => (
+        <div key={i} className="marca__barra" style={{ width: w }} />
+      ))}
+    </>
+  );
+}
+
+const CONFIANCA = [
+  {
+    t: "Anúncios moderados",
+    d: "Cada anúncio é aprovado antes de ficar visível, e qualquer pessoa pode denunciar o que estiver errado.",
+    // Três anúncios em fila; o carimbo de aprovado cai no fim.
+    marca: (
+      <div className="marca" aria-hidden="true">
+        <Barras larguras={["100%", "72%", "48%"]} />
+        <div className="marca__acento absolute right-0 top-1/2 h-5 w-5 -translate-y-1/2" />
+      </div>
+    ),
+  },
+  {
+    t: "Mensagens no portal",
+    d: "Fale com o vendedor sem publicar o seu número. O contacto só é partilhado se quiser.",
+    // Uma conversa: a pergunta cinzenta, a resposta branca.
+    marca: (
+      <div className="marca" aria-hidden="true">
+        <Barras larguras={["58%", "38%"]} />
+        <div className="marca__acento ml-auto h-5 w-[42%]" />
+      </div>
+    ),
+  },
+  {
+    t: "Alertas de pesquisa",
+    d: "O cavalo certo raramente está à venda hoje. Guarde a pesquisa e avisamos quando aparecer.",
+    // A pesquisa guardada, e o aviso a chegar.
+    marca: (
+      <div className="marca" aria-hidden="true">
+        <Barras larguras={["100%", "64%"]} />
+        <div className="marca__chip">1 novo</div>
+      </div>
+    ),
+  },
+  {
+    t: "Prazo que conta",
+    d: "O anúncio pago tem fim, e o vendedor é avisado antes. Nada fica na montra depois de acabar.",
+    // A barra esvazia-se: é o que um prazo faz.
+    marca: (
+      <div className="marca" aria-hidden="true">
+        <Barras larguras={["100%"]} />
+        <div className="relative h-[5px] w-full overflow-hidden rounded-full bg-[rgba(214,235,253,0.10)]">
+          <div className="marca__prazo marca__acento absolute inset-y-0 left-0" />
+        </div>
+        <Barras larguras={["44%"]} />
+      </div>
+    ),
+  },
+  {
+    t: "Anúncio em minutos",
+    d: "Formulário curto, fotografias direct do telemóvel, publicação assim que for validado.",
+    // Três passos; o último acende.
+    marca: (
+      <div className="marca" aria-hidden="true">
+        <Barras larguras={["30%", "56%", "82%"]} />
+        <div className="marca__acento absolute bottom-[9px] right-0 h-2.5 w-2.5" />
+      </div>
+    ),
+  },
+  {
+    t: "Sabe o que resultou",
+    d: "Visualizações e mensagens por anúncio. Percebe que cavalo interessa a quem.",
+    // Cinco dias de visitas; o de hoje a branco.
+    marca: (
+      <div className="marca" aria-hidden="true">
+        <div className="marca__colunas">
+          {[14, 22, 12, 27, 34].map((h, i) => (
+            <div key={i} className="marca__coluna" style={{ height: h }} />
+          ))}
+        </div>
+      </div>
+    ),
+  },
 ];
 
 export default function HomeContent({ destaques, recentes, totalAtivos }: Props) {
@@ -712,45 +805,23 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
           </p>
         </Revelar>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {[
-            {
-              t: "Anúncios moderados",
-              d: "Cada anúncio é aprovado antes de ficar visível, e qualquer pessoa pode denunciar o que estiver errado.",
-            },
-            {
-              t: "Mensagens no portal",
-              d: "Fale com o vendedor sem publicar o seu número. O contacto só é partilhado se quiser.",
-            },
-            {
-              t: "Alertas de pesquisa",
-              d: "O cavalo certo raramente está à venda hoje. Guarde a pesquisa e avisamos quando aparecer.",
-            },
-            {
-              t: "Prazo que conta",
-              d: "O anúncio pago tem fim, e o vendedor é avisado antes. Nada fica na montra depois de acabar.",
-            },
-            {
-              t: "Anúncio em minutos",
-              d: "Formulário curto, fotografias direct do telemóvel, publicação assim que for validado.",
-            },
-            {
-              t: "Sabe o que resultou",
-              d: "Visualizações e mensagens por anúncio. Percebe que cavalo interessa a quem.",
-            },
-          ].map((c, i) => (
+        <GrelhaHolofote className="grelha-holofote grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {CONFIANCA.map((c, i) => (
             <Revelar key={c.t} y={20} atraso={i * 120}>
               <CartaoSeco>
-                <div className="relative z-10 flex flex-col gap-3 p-8">
-                  <h4 className="text-xl font-normal text-[var(--foreground-strong)]">{c.t}</h4>
-                  <p className="text-sm leading-relaxed text-[var(--foreground-secondary)]">
+                <div className="cartao-holofote flex h-full flex-col gap-4 rounded-[24px] p-8">
+                  <div className="relative z-10">{c.marca}</div>
+                  <h4 className="relative z-10 text-xl font-normal text-[var(--foreground-strong)]">
+                    {c.t}
+                  </h4>
+                  <p className="relative z-10 text-sm leading-relaxed text-[var(--foreground-secondary)]">
                     {c.d}
                   </p>
                 </div>
               </CartaoSeco>
             </Revelar>
           ))}
-        </div>
+        </GrelhaHolofote>
       </section>
 
       {/* ── CTA FINAL ────────────────────────────────────────────────────── */}

@@ -91,7 +91,15 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
    redondo e `border-t`. As secções encaixam umas nas outras.
 3. **Previews em HTML, nunca capturas de ecrã** — `.cabeca-ui`, `.linha-ui`,
    `.ponto` compõem tabelas e painéis a 10–11px. Pesam zero, ficam nítidos em
-   qualquer ecrã e o conteúdo actualiza-se sozinho.
+   qualquer ecrã e o conteúdo actualiza-se sozinho. A `.marca` é a versão
+   pequena da mesma ideia: barras e um acento que, em movimento, contam o
+   que a frase do cartão diz por palavras.
+4. **Holofote na grelha** — `<GrelhaHolofote>` escreve a posição do rato em
+   coordenadas de cada cartão (`--px`, `--py`) e o `.cartao-holofote` acende
+   com ela a hairline e um halo. Como os cartões todos lêem a mesma luz, ela
+   atravessa a grelha como se fosse uma folha de vidro só. As medidas ficam
+   em cache e as escritas passam por um `requestAnimationFrame`; sem rato
+   (`pointer: coarse`) o efeito nem se liga.
 
 ### Movimento
 
