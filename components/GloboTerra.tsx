@@ -59,6 +59,18 @@ const RAIO = 1;
    terreno perde a caminho da câmara (o shader da Terra) —, por isso vive
    aqui e não dentro de uma delas. */
 const TOPO_AR = 1.02;
+
+/** A janela do mapa de relevo, em graus. É a Península e o mar à volta.
+ *
+ *  Não é o planeta todo por duas razões. A primeira é o peso: a esta
+ *  resolução — 163 pontos por grau de longitude, contra os 5,7 da textura do
+ *  mundo — o planeta inteiro dava noventa e seis megabytes. A segunda é
+ *  que não faria falta: a câmara olha sempre para aqui, e o que está a mais
+ *  de mil quilómetros já não se lê como terreno, lê-se como bruma.
+ *
+ *  As bordas caem no mar ou bem longe da mira, e o peso esbate-se num grau
+ *  antes de lá chegar. */
+const JANELA_RELEVO = { lonMin: -13, lonMax: -2, latMin: 35, latMax: 45 };
 /** Lat/lon → ponto na esfera. */
 function naEsfera(lat: number, lon: number, raio: number) {
   const phi = (90 - lat) * (Math.PI / 180);
@@ -83,6 +95,8 @@ const VERT = /* glsl */ `
   varying vec3 vNormal;
   varying vec3 vPosVista;
   varying vec3 vPosMundo;
+  varying vec3 vEste;
+  varying vec3 vNorte;
   void main() {
     vUv = uv;
     vNormal = normalize(normalMatrix * normal);
@@ -90,6 +104,25 @@ const VERT = /* glsl */ `
     vPosMundo = posMundo.xyz;
     vec4 posVista = modelViewMatrix * vec4(position, 1.0);
     vPosVista = posVista.xyz;
+
+    /* ── O norte e o este deste ponto, para o mapa de relevo ───────────────
+       O relevo vem guardado como o declive do terreno em duas direcções —
+       para nascente e para norte —, que é como se mede um declive num mapa.
+       Para o iluminar com o Sol da cena é preciso saber para onde apontam
+       essas duas direcções aqui, e é preciso sabê-lo no mesmo referencial
+       em que está a normal, senão a serra fica com a luz do lado errado.
+
+       Sai daqui e não do fragmento porque a matriz que leva uma normal ao
+       referencial da câmara — a «normalMatrix» — o three.js só a declara no
+       vértice. Como isto acompanha a «normal» pela mesma matriz, o globo
+       pode rodar à vontade que a luz do relevo roda com ele. */
+    vec3 cima = normalize(position);
+    vec3 semNorte = vec3(0.0, 1.0, 0.0) - cima * cima.y;
+    // Nos pólos o norte deixa de existir; o piso evita um NaN a alastrar.
+    vec3 norte = semNorte / max(length(semNorte), 1e-4);
+    vNorte = normalize(normalMatrix * norte);
+    vEste = normalize(normalMatrix * cross(norte, cima));
+
     gl_Position = projectionMatrix * posVista;
   }
 `;
@@ -98,6 +131,11 @@ const FRAG_TERRA = /* glsl */ `
   uniform sampler2D mapaDia;
   uniform sampler2D mapaLuzes;
   uniform sampler2D mapaBrilho;
+  uniform sampler2D mapaRelevo;
+  uniform vec4 janelaRelevo;
+  uniform float relevoPronto;
+  uniform float exageroRelevo;
+  uniform float ganhoRelevo;
   uniform float extincao;
   uniform float raioTopo;
   uniform vec3 sol;
@@ -105,6 +143,8 @@ const FRAG_TERRA = /* glsl */ `
   varying vec3 vNormal;
   varying vec3 vPosVista;
   varying vec3 vPosMundo;
+  varying vec3 vEste;
+  varying vec3 vNorte;
 
   void main() {
     vec3 n = normalize(vNormal);
@@ -130,11 +170,7 @@ const FRAG_TERRA = /* glsl */ `
     float colunaAr = max(distancia - max(-aCam - rTopo, 0.0), 0.0);
     float longe = 1.0 - exp(-colunaAr * 4.0);
 
-    /* ── A papa ──────────────────────────────────────────────────────────
-       A textura tem 2048 pixéis para dar a volta ao planeta: desta altura
-       são uns seis por grau. Não há nitidez para ir buscar, e filtro
-       nenhum a inventa. O que se pode ir buscar é a cor.
-
+    /* ── A cor ao longe ──────────────────────────────────────────────────
        O que os mipmaps comem a um ângulo rasante não é só o detalhe — é a
        saturação. Cada texel do nível grosseiro é a média de mar, terra e
        sombra de serra, e a média de azul-escuro com ocre é malva, que não
@@ -151,8 +187,89 @@ const FRAG_TERRA = /* glsl */ `
     corDia = max(mix(vec3(cinza), corDia, mix(1.34, 0.72, longe)), 0.0);
     corDia = pow(corDia, vec3(mix(1.16, 1.0, longe))) * mix(1.12, 1.0, longe);
 
+    /* ── O relevo, onde há relevo para mostrar ───────────────────────────
+       A textura do planeta tem 2048 pixéis para dar a volta ao mundo: desta
+       altura são seis por grau, e Portugal inteiro cabe em dezanove deles
+       ao largo, esticados por duzentos e tal pixéis de ecrã. Nenhum filtro
+       tira nitidez de onde ela não está, e uma textura de ruído por cima
+       não é terreno — é ruído. O que falta não é contraste, é geografia.
+
+       Por isso a geografia vem de facto: «relevo.webp» é o declive do
+       terreno da Península, tirado de altimetria verdadeira (os tiles
+       Terrarium da AWS, 234 m por amostra a esta latitude, reduzidos a
+       meio quilómetro por ponto no que se entrega), guardado como as duas
+       componentes da normal — para nascente e para norte — mais a
+       altitude no azul. Não é um ornamento procedural: a Serra da Estrela
+       está lá porque está lá, e o vale do Guadiana faz a curva que faz.
+
+       Guarda-se a normal e não um sombreado pronto porque o Sol desta cena
+       é um uniforme: assim é o mesmo Sol que ilumina a serra e o resto do
+       planeta, e ao rodar o globo a luz do relevo roda com ele. Um
+       sombreado cozido com outra luz brigava com o terminador.
+
+       Só a Península: é o que se vê de perto, e é aí que a falta de nitidez
+       se lê. Ao largo da janela o peso vai a zero num grau, que é dentro da
+       bruma — não há costura para ver. */
+    vec2 grauUv = vec2(vUv.x * 360.0 - 180.0, vUv.y * 180.0 - 90.0);
+    vec2 uvRelevo = (grauUv - janelaRelevo.xz) / (janelaRelevo.yw - janelaRelevo.xz);
+    vec2 daBorda = min(uvRelevo, 1.0 - uvRelevo);
+    float pesoRelevo = smoothstep(0.0, 0.05, min(daBorda.x, daBorda.y)) * relevoPronto;
+
+    /* A amostra vem de fora de qualquer «if», e de propósito.
+       O nível de mipmap sai da derivada das coordenadas entre pixéis
+       vizinhos, e dentro de um ramo que uns pixéis tomam e outros não essa
+       derivada não está definida — a norma diz mesmo que o resultado é
+       indeterminado. Na prática dava uma orla de um pixel com o nível
+       errado a toda a volta da janela. O ramo poupava meia dúzia de contas
+       fora da Península; não vale uma linha de lixo. */
+    vec3 amostra = texture2D(mapaRelevo, clamp(uvRelevo, 0.0, 1.0)).rgb;
+
+    /* O azul separa a terra da água: zero é mar, e a terra começa acima
+       do intervalo vazio que se deixou na compressão. Sem este teste o
+       relevo gravava a plataforma continental no mar, que é batimetria
+       verdadeira e mesmo assim erro — de órbita não se vê o fundo. */
+    float terra = smoothstep(0.03, 0.08, amostra.b);
+
+    /* Da normal guardada tira-se o declive, exagera-se, e volta a fazer-se
+       a normal. Exagerar a normal directamente encostava-a ao horizonte
+       sem nunca lá chegar; exagerar o declive é o que a cartografia faz
+       há um século, e é linear no que interessa. */
+    vec2 nEN = amostra.rg * 2.0 - 1.0;
+    float nCima = sqrt(max(1.0 - dot(nEN, nEN), 1e-4));
+    vec2 declive = -nEN / nCima * exageroRelevo;
+    vec3 nLocal = normalize(vec3(-declive, 1.0));
+    vec3 nTerreno = normalize(vEste * nLocal.x + vNorte * nLocal.y + n * nLocal.z);
+
+    /* Junto ao horizonte o relevo desaparece com o resto: lá a coluna de
+       ar já come tudo, e um declive amostrado de raspão só daria cintilação. */
+    float p = pesoRelevo * terra * (1.0 - 0.75 * longe);
+
+    /* Guarda-se o DESVIO da luz, não a luz do terreno.
+       Substituir uma pela outra escurecia o país: um terreno rugoso
+       apanha, em média, menos luz do que a esfera lisa, e a média é o
+       que menos interessa aqui — o que se quer ver é a diferença entre a
+       encosta virada ao Sol e a que lhe volta as costas. Como o desvio
+       tem média nula, o Alentejo fica com o brilho que tinha e ganha só
+       o que lhe faltava, que era ter dois lados.
+
+       O ganho existe porque o Sol desta cena está a 61° de altura sobre
+       Portugal — escolhido para o país se ler, e não se mexe. A essa
+       altura a luz cai quase a pique e o relevo verdadeiro rende cinco
+       por cento de contraste: certo de mais para se ver. É a mesma
+       licença que qualquer carta de relevo toma há um século. */
+    float desvio = dot(nTerreno, dirSol) - luz;
+    float relevoLuz = mix(1.0, clamp(1.0 + desvio * ganhoRelevo, 0.30, 1.95), p);
+
+    /* De caminho, a costa: o mapa do mar também tem 2048 pixéis para dar
+       a volta ao mundo, e por isso a sua orla escorre uns vinte
+       quilómetros por terra dentro. Onde escorria, o reflexo do Sol
+       acendia-se em cima do Sado e da foz do Tejo — uma mancha clara com
+       a forma de nada. A altimetria sabe onde acaba a terra a meio
+       quilómetro; é ela que fecha a torneira. */
+    mar = min(mar, mix(1.0, 1.0 - terra, pesoRelevo));
+
     // Lado iluminado, com o azul do mar a ganhar profundidade nos bordos.
-    vec3 ladoDia = corDia * (0.35 + 0.75 * max(luz, 0.0));
+    vec3 ladoDia = corDia * (0.35 + 0.75 * max(luz, 0.0)) * relevoLuz;
 
     /* Lado escuro: quase preto, com as cidades acesas por cima. O tom
        quente é o do sódio das luzes públicas, que é o que se vê de facto.
@@ -606,6 +723,23 @@ export default function GloboTerra({
       return t;
     };
 
+    /* O relevo carrega-se à parte das outras três porque tem de acender uma
+       chave ao chegar — e porque, se não chegar, o globo fica exactamente
+       como estava em vez de ficar com a Península afogada. */
+    const mapaRelevo = carregador.load(
+      "/globo/relevo.webp",
+      () => {
+        const m = terra.material as THREE.ShaderMaterial;
+        m.uniforms.relevoPronto.value = 1;
+        revelar();
+      },
+      undefined,
+      revelar
+    );
+    mapaRelevo.colorSpace = THREE.NoColorSpace;
+    mapaRelevo.anisotropy = renderizador.capabilities.getMaxAnisotropy();
+    texturas.push(mapaRelevo);
+
     // ── Terra ─────────────────────────────────────────────────────────────
     const terra = new THREE.Mesh(
       /* 220 paralelos e meridianos, não 128. De órbita baixa o que se vê da
@@ -618,6 +752,31 @@ export default function GloboTerra({
           mapaDia: { value: textura("/globo/dia.webp", true) },
           mapaLuzes: { value: textura("/globo/luzes.webp", true) },
           mapaBrilho: { value: textura("/globo/brilho.webp", false) },
+          /* O relevo são declives, não cor: entra em valores lineares, que
+             é como saiu. Passado por sRGB, a curva torcia-lhe as encostas. */
+          mapaRelevo: { value: mapaRelevo },
+          janelaRelevo: {
+            value: new THREE.Vector4(
+              JANELA_RELEVO.lonMin,
+              JANELA_RELEVO.lonMax,
+              JANELA_RELEVO.latMin,
+              JANELA_RELEVO.latMax
+            ),
+          },
+          /* Fica a zero até o ficheiro chegar. Uma textura por carregar é
+             preta, e preta quer dizer «mar» no canal da altitude: sem esta
+             chave a Península aparecia rasa até ao relevo aterrar. */
+          relevoPronto: { value: 0 },
+          /* Exagero vertical. Um relevo à escala verdadeira não se vê: a
+             Estrela tem dois quilómetros de altura para duzentos de largura,
+             e a olho isso é uma planície. Seis é o valor a que a serra se
+             lê como serra sem que o Alentejo ganhe rugas que não tem. */
+          exageroRelevo: { value: 6 },
+          /* Quanto é que o desvio de luz do relevo pesa no que se vê. Vale
+             o que vale porque foi medido no ecrã, não porque saia de uma
+             conta: abaixo de 2 o Alentejo continua a ser uma mancha, acima
+             de 4 as encostas ganham um contorno duro que se lê como filtro. */
+          ganhoRelevo: { value: 3 },
           raioTopo: { value: TOPO_AR },
           extincao: { value: 2.1 },
           sol: { value: SOL },

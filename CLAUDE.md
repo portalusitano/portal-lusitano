@@ -95,8 +95,8 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
    pequena da mesma ideia: barras e um acento que, em movimento, contam o
    que a frase do cartão diz por palavras.
 4. **A Terra em 3D** (`<GloboTerra>`) — é o mapa da página `/mapa`, e não
-   há outro. Texturas da NASA em `public/globo/` (592KB, só nesta página).
-   O que o faz funcionar:
+   há outro. Texturas em `public/globo/` (569KB, mais 53KB de contornos
+   comprimidos; só nesta página). O que o faz funcionar:
    - **Órbita baixa**, a 0,05 raios sobre um ponto a sul de Portugal, a
      olhar para norte: o país enche o quadro e o horizonte entra em cima.
      Do espaço as vinte e nove coudelarias cabiam num borrão de dez pixéis.
@@ -119,6 +119,26 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
      ponto onde a etiqueta assenta. O dourado ficou no alfinete e no fio e
      saiu do texto — das onze etiquetas legíveis ao mesmo tempo, seis eram
      douradas, o que já não é um acento mas uma segunda cor de texto.
+   - **O relevo da Ibéria vem de uma textura à parte** (`relevo.webp`,
+     159KB, janela de −13…−2 de longitude e 35…45 de latitude). A textura
+     global tem 19×30 texels para Portugal continental inteiro, esticados
+     por ~290 pixéis de ecrã: a esta distância o terreno lia-se como uma
+     fotografia fora de foco, ao lado de contornos vectoriais nítidos — e
+     era esse contraste que denunciava tudo. O que falta não é contraste, é
+     geografia, e por isso **não se inventa com ruído**: acrescentar
+     estrutura que ali não existe é mentir sobre o terreno. Os dados são
+     elevação a sério (AWS Terrain Tiles, 234m por amostra).
+     O que se guarda não é uma sombra cozida: são as duas componentes da
+     normal do terreno mais a altitude, e quem as acende é o `sol` da cena —
+     assim o relevo roda com o globo e nunca briga com o terminador. A
+     resolução é casada com o terreno e não quadrada (163 px/° de longitude
+     contra 205 px/° de latitude), porque a longitude encolhe com o cosseno
+     da latitude. O azul serve também de máscara de terra, com um vazio
+     deliberado entre 0 e 24 para que a compressão com perdas não confunda
+     costa ao nível do mar com mar. Medido: das 50 janelas que estavam lisas
+     antes, as 25 de terra ganharam estrutura (100× a 990× na variância do
+     laplaciano) e as 25 de mar e céu continuam lisas — não entrou
+     batimetria no oceano.
    - **A atmosfera é uma casca só**, e o que ela desenha é a coluna de ar
      que cada raio atravessa. Eram duas — uma larga e ténue, outra apertada
      e forte — porque cada uma fazia um Fresnel com uma potência diferente,
