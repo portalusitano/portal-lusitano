@@ -3,7 +3,7 @@ import LocalizedLink from "@/components/LocalizedLink";
 export default function DevolucoesPage() {
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-32 pb-20 px-4 sm:px-6 font-normal selection:bg-[var(--gold)] selection:text-black">
-      <div data-revelar="" className="max-w-4xl mx-auto">
+      <div data-revelar="" suppressHydrationWarning className="max-w-4xl mx-auto">
         <span className="text-[var(--gold)] rotulo font-bold block mb-6 text-center">
           Direitos do Consumidor
         </span>

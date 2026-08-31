@@ -41,6 +41,10 @@ export default function Revelar({
     <div
       data-revelar=""
       className={className}
+      // O observador acrescenta `dentro` a este elemento, e pode fazê-lo
+      // antes de a hidratação terminar. Sem isto, cada bloco com entrada
+      // gerava um aviso de hidratação em todas as páginas.
+      suppressHydrationWarning
       style={
         {
           "--ry": `${y}px`,

@@ -19,7 +19,7 @@ export default function TemporalComparison({ data, period = "month" }: TemporalC
 
   // Calcular diferença e crescimento
   const difference = current - previous;
-  const growthPercentage = previous !== 0 ? ((difference / previous) * 100) : 0;
+  const growthPercentage = previous !== 0 ? (difference / previous) * 100 : 0;
   const isPositive = difference > 0;
   const isNeutral = difference === 0;
 
@@ -98,19 +98,26 @@ export default function TemporalComparison({ data, period = "month" }: TemporalC
         </div>
 
         {/* Diferença */}
-        <div className={`
+        <div
+          className={`
           flex items-center justify-between px-4 py-3 rounded-lg border-2
-          ${isNeutral ? "bg-gray-500/10 border-gray-500/20" :
-            isPositive ? "bg-green-500/10 border-green-500/20" :
-            "bg-red-500/10 border-red-500/20"}
-        `}>
+          ${
+            isNeutral
+              ? "bg-gray-500/10 border-gray-500/20"
+              : isPositive
+                ? "bg-green-500/10 border-green-500/20"
+                : "bg-red-500/10 border-red-500/20"
+          }
+        `}
+        >
           <span className="text-sm text-gray-300">Diferença</span>
-          <span className={`text-lg font-bold ${
-            isNeutral ? "text-gray-400" :
-            isPositive ? "text-green-400" :
-            "text-red-400"
-          }`}>
-            {isPositive && "+"}{formatValue(difference)}
+          <span
+            className={`text-lg font-bold ${
+              isNeutral ? "text-gray-400" : isPositive ? "text-green-400" : "text-red-400"
+            }`}
+          >
+            {isPositive && "+"}
+            {formatValue(difference)}
           </span>
         </div>
       </div>
@@ -120,9 +127,7 @@ export default function TemporalComparison({ data, period = "month" }: TemporalC
         <div className="h-2 bg-black/30 rounded-full overflow-hidden">
           <div
             className={`h-full transition-all duration-500 ${
-              isPositive ? "bg-green-500" :
-              isNeutral ? "bg-gray-500" :
-              "bg-red-500"
+              isPositive ? "bg-green-500" : isNeutral ? "bg-gray-500" : "bg-red-500"
             }`}
             style={{
               width: `${Math.min(Math.abs(growthPercentage), 100)}%`,

@@ -1,9 +1,7 @@
 /**
  * StepNavigation Component - Reusable bottom navigation for multi-step forms
  * Used by: Calculadora, Análise Perfil, Comparador
- */
-
-"use client";
+ */ "use client";
 
 import React from "react";
 import { Button } from "@/components/ui/button";

@@ -776,25 +776,6 @@ body {
 }
 
 /* Ripple click effect */
-.ripple-btn {
-  position: relative;
-  overflow: hidden;
-}
-.ripple-btn::after {
-  content: "";
-  position: absolute;
-  width: 100%;
-  padding-top: 100%;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  opacity: 0;
-}
-.ripple-btn:active::after {
-  animation: rippleEffect 0.5s ease-out;
-}
 @keyframes rippleEffect {
   0% {
     transform: translate(-50%, -50%) scale(0);
@@ -829,34 +810,6 @@ body {
 }
 
 /* Gold shimmer on hover */
-.shimmer-gold {
-  position: relative;
-  overflow: hidden;
-}
-.shimmer-gold::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgb(var(--gold-rgb) / 0.08), transparent);
-  transform: translateX(-100%);
-  transition: none;
-}
-.shimmer-gold:hover::before {
-  /* will-change apenas durante hover — liberta GPU layer quando não está a animar */
-  will-change: transform;
-  animation: shimmerSlide 0.8s ease-out;
-}
-@keyframes shimmerSlide {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
 
 /* Parallax container */
 .parallax-section {
@@ -865,18 +818,6 @@ body {
 }
 
 /* Floating animation for decorative elements */
-@keyframes floatGentle {
-  0%,
-  100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  33% {
-    transform: translateY(-8px) rotate(1deg);
-  }
-  66% {
-    transform: translateY(4px) rotate(-1deg);
-  }
-}
 .float-gentle {
   animation: none;
   will-change: transform;
@@ -899,24 +840,6 @@ body {
 }
 
 /* Glow pulse for gold accents — static shadow, animate only on hover */
-.glow-pulse {
-  position: relative;
-}
-.glow-pulse::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  box-shadow:
-    0 0 40px rgb(var(--gold-rgb) / 0.25),
-    0 0 80px rgb(var(--gold-rgb) / 0.1);
-  opacity: 0;
-  transition: opacity 0.5s ease;
-  pointer-events: none;
-}
-.glow-pulse:hover::after {
-  opacity: 1;
-}
 
 /* Gradient border animation */
 @keyframes borderGradient {
@@ -955,14 +878,6 @@ body {
 }
 
 /* Text gradient animation */
-@keyframes textGradientShift {
-  0% {
-    background-position: 0% center;
-  }
-  100% {
-    background-position: 200% center;
-  }
-}
 .text-gradient-gold {
   background: linear-gradient(90deg, var(--gold), #e8d5a8, var(--gold), #e8d5a8);
   background-size: 200% auto;
@@ -1054,14 +969,6 @@ body {
 }
 
 /* Marquee for testimonials/brands */
-@keyframes marqueeScroll {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
 .marquee-track {
   display: flex;
   width: max-content;
@@ -1080,16 +987,6 @@ body {
 }
 
 /* Gradient orb decorative — static blur, no animation for perf */
-.gradient-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  pointer-events: none;
-  opacity: 0.06;
-  contain: layout style;
-  /* Camada GPU própria — elimina repaints durante scroll */
-  transform: translateZ(0);
-}
 
 /* ===== MOBILE MENU ENTRANCE ANIMATION ===== */
 @keyframes mobileMenuIn {
@@ -1100,26 +997,6 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-/* ===== MOBILE TOUCH ACTIVE STATES =====
- * :hover never fires on touch — give mobile users the same gold feedback
- * through :active as desktop users get through :hover. */
-@media (hover: none) {
-  /* Stronger glow on active tap for card accents */
-  .glow-pulse:active::after {
-    opacity: 1;
-  }
-
-  /* Flash shimmer sweep on tap */
-  .shimmer-gold:active::before {
-    animation: shimmerSlide 0.5s ease-out;
-  }
-
-  /* More visible orbs on small screens (OLED tends to crush subtle opacity) */
-  .gradient-orb {
-    opacity: 0.12;
   }
 }
 

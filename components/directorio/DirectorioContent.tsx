@@ -196,6 +196,7 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
       {/* ── Hero ── */}
       <section
         data-revelar=""
+        suppressHydrationWarning
         className="relative pt-20 sm:pt-32 pb-16 overflow-hidden"
         aria-label="Cabeçalho do directório"
       >
@@ -389,7 +390,7 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
         {/* ── Results ── */}
         <div className="space-y-12">
           {paginadas.length > 0 && (
-            <section data-revelar="" aria-label={t.directorio.coudelarias}>
+            <section data-revelar="" suppressHydrationWarning aria-label={t.directorio.coudelarias}>
               <AnimateOnScroll>
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-3">
@@ -493,7 +494,7 @@ function CoudelariaCard({
           onError={handleError}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-        {/* Overlay shimmer on hover */}
+        {/* Overlay  on hover */}
         <div className="absolute inset-0 bg-[var(--gold)]/0 group-hover:bg-[var(--gold)]/5 transition-colors duration-300" />
 
         {/* Top badges */}

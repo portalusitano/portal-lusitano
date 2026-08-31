@@ -229,6 +229,7 @@ export default function SobreContent() {
           profundidade com um gradiente radial e deixa o texto respirar. */}
       <section
         data-revelar=""
+        suppressHydrationWarning
         className="relative overflow-hidden px-4 pt-28 pb-16 sm:px-6 md:pt-40 md:pb-24"
       >
         <div
@@ -262,6 +263,7 @@ export default function SobreContent() {
  ══════════════════════════════════════════════════════════════════════════ */}
       <section
         data-revelar=""
+        suppressHydrationWarning
         className="grid grid-cols-2 sm:grid-cols-4 gap-px"
         style={{ background: "rgb(var(--gold-rgb) / 0.07)" }}
       >
@@ -323,6 +325,7 @@ export default function SobreContent() {
  ══════════════════════════════════════════════════════════════════════════ */}
       <section
         data-revelar=""
+        suppressHydrationWarning
         className="relative px-6 sm:px-10 lg:px-16 py-24 sm:py-40 overflow-hidden"
       >
         {/* Atmospheric glow */}
@@ -387,6 +390,7 @@ export default function SobreContent() {
  ══════════════════════════════════════════════════════════════════════════ */}
       <section
         data-revelar=""
+        suppressHydrationWarning
         className="px-6 sm:px-10 lg:px-16 py-16 sm:py-28"
         style={{ borderTop: "1px solid rgb(var(--gold-rgb) / 0.06)" }}
       >
@@ -506,7 +510,11 @@ export default function SobreContent() {
       {/* ═══════════════════════════════════════════════════════════════════════
  FULL-BLEED IMAGE BREAK — cinematic interlude
  ══════════════════════════════════════════════════════════════════════════ */}
-      <section data-revelar="" className="relative h-[50vh] sm:h-[60vh] overflow-hidden">
+      <section
+        data-revelar=""
+        suppressHydrationWarning
+        className="relative h-[50vh] sm:h-[60vh] overflow-hidden"
+      >
         <Image
           src="/images/sobre/break/break.png"
           alt=""
@@ -577,6 +585,7 @@ export default function SobreContent() {
  ══════════════════════════════════════════════════════════════════════════ */}
       <section
         data-revelar=""
+        suppressHydrationWarning
         className="px-6 sm:px-10 lg:px-16 py-16 sm:py-28"
         style={{ borderTop: "1px solid rgb(var(--gold-rgb) / 0.06)" }}
       >
@@ -678,6 +687,7 @@ export default function SobreContent() {
  ══════════════════════════════════════════════════════════════════════════ */}
       <section
         data-revelar=""
+        suppressHydrationWarning
         className="px-6 sm:px-10 lg:px-16 py-16 sm:py-28"
         style={{ borderTop: "1px solid rgb(var(--gold-rgb) / 0.06)" }}
       >
@@ -766,6 +776,7 @@ export default function SobreContent() {
  ══════════════════════════════════════════════════════════════════════════ */}
       <section
         data-revelar=""
+        suppressHydrationWarning
         className="px-6 sm:px-10 lg:px-16 py-16 sm:py-28"
         style={{ borderTop: "1px solid rgb(var(--gold-rgb) / 0.06)" }}
       >
@@ -844,6 +855,7 @@ export default function SobreContent() {
  ══════════════════════════════════════════════════════════════════════════ */}
       <section
         data-revelar=""
+        suppressHydrationWarning
         className="relative px-6 sm:px-10 lg:px-16 py-24 sm:py-40 overflow-hidden"
         style={{ borderTop: "1px solid rgb(var(--gold-rgb) / 0.06)" }}
       >
@@ -894,7 +906,7 @@ export default function SobreContent() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-5 mb-8">
               <LocalizedLink
                 href="/registar"
-                className="ripple-btn inline-flex items-center gap-3 bg-[var(--gold)] text-black px-10 py-4.5 rotulo font-bold hover:bg-white transition-[background-color] duration-300 shadow-[0_8px_32px_rgb(var(--gold-rgb) / 0.25)] group/cta"
+                className="inline-flex items-center gap-3 bg-[var(--gold)] text-black px-10 py-4.5 rotulo font-bold hover:bg-white transition-[background-color] duration-300 shadow-[0_8px_32px_rgb(var(--gold-rgb) / 0.25)] group/cta"
               >
                 <Users size={14} aria-hidden />
                 {tr("Criar Conta Grátis", "Create Free Account", "Crear Cuenta Gratis")}

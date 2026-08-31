@@ -1,9 +1,7 @@
 /**
  * StepIndicator Component - Reusable progress indicator
  * Used by: Calculadora, Análise Perfil, Comparador, e future forms
- */
-
-"use client";
+ */ "use client";
 
 import React from "react";
 import { Check, ChevronRight } from "lucide-react";

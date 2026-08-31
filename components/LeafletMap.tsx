@@ -276,8 +276,7 @@ const goldIcon = new L.DivIcon({
     border-radius:50% 50% 50% 0;
     transform:rotate(-45deg);
     box-shadow:0 2px 8px rgba(0,0,0,0.5);
-    display:flex;align-items:center;justify-content:center;
-  "><div style="transform:rotate(45deg);color:#000;font-weight:bold;font-size:12px;">&#9733;</div></div>`,
+    display:flex;align-items:center;justify-content:center; "><div style="transform:rotate(45deg);color:#000;font-weight:bold;font-size:12px;">&#9733;</div></div>`,
   iconSize: [32, 32],
   iconAnchor: [16, 32],
   popupAnchor: [0, -32],
@@ -291,8 +290,7 @@ const defaultIcon = new L.DivIcon({
     border:2px solid rgba(255,255,255,0.6);
     border-radius:50% 50% 50% 0;
     transform:rotate(-45deg);
-    box-shadow:0 2px 6px rgba(0,0,0,0.4);
-  "></div>`,
+    box-shadow:0 2px 6px rgba(0,0,0,0.4); "></div>`,
   iconSize: [24, 24],
   iconAnchor: [12, 24],
   popupAnchor: [0, -24],

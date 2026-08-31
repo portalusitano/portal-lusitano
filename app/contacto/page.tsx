@@ -6,7 +6,7 @@ export default function ContactoPage() {
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-32 pb-20 px-4 sm:px-6 selection:bg-[var(--gold)] selection:text-black">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div data-revelar="" className="text-center mb-16">
+        <div data-revelar="" suppressHydrationWarning className="text-center mb-16">
           <span className="text-[var(--gold)] rotulo font-bold block mb-6">Fale Connosco</span>
           <h1 className="titulo-gradiente text-4xl sm:text-5xl md:text-[4rem] font-normal leading-[100%] tracking-[-0.01em] mb-4">
             Contacto
@@ -87,7 +87,11 @@ export default function ContactoPage() {
         {/* Assuntos frequentes */}
         <div className="border-t border-[var(--border)] pt-10 mb-12">
           <h2 className="rotulo-forte mb-6">Assuntos Frequentes</h2>
-          <div data-revelar="" className="grid sm:grid-cols-2 gap-3 text-sm">
+          <div
+            data-revelar=""
+            suppressHydrationWarning
+            className="grid sm:grid-cols-2 gap-3 text-sm"
+          >
             {[
               {
                 assunto: "Anúncio de venda de cavalo",

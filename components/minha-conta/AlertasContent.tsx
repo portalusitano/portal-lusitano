@@ -194,7 +194,7 @@ export default function AlertasContent() {
           <ArrowLeft size={12} />A minha conta
         </LocalizedLink>
 
-        <header data-revelar="" className="mb-10">
+        <header data-revelar="" suppressHydrationWarning className="mb-10">
           <h1 className="titulo-gradiente text-[1.75rem] md:text-[2.5rem] font-normal leading-[120%] tracking-tighter">
             Os meus alertas
           </h1>

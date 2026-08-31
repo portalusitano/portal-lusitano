@@ -141,6 +141,7 @@ export default function MensagensContent() {
 
           <header
             data-revelar=""
+            suppressHydrationWarning
             className="flex items-center gap-4 pb-6 border-b border-[var(--border)]"
           >
             <div className="relative w-14 h-14 shrink-0 bg-[var(--background-secondary)]/30">
@@ -243,7 +244,7 @@ export default function MensagensContent() {
           <ArrowLeft size={12} />A minha conta
         </LocalizedLink>
 
-        <header data-revelar="" className="mb-12">
+        <header data-revelar="" suppressHydrationWarning className="mb-12">
           <h1 className="titulo-gradiente text-[1.75rem] md:text-[2.5rem] font-normal leading-[120%] tracking-tighter">
             As minhas mensagens
           </h1>

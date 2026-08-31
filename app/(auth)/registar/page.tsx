@@ -682,7 +682,7 @@ function RegistarContent() {
           {fieldErrors.terms && <FieldError id="reg-terms-error" message={fieldErrors.terms} />}
         </div>
 
-        {/* Submit — premium button with shimmer */}
+        {/* Submeter */}
         <div className="animate-auth-fadeInUp auth-stagger-6 pt-1">
           <button
             type="submit"

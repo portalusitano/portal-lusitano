@@ -34,6 +34,7 @@ export default function OfflinePage() {
   return (
     <main
       data-revelar=""
+      suppressHydrationWarning
       className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center px-6 text-center"
     >
       {/* Linha decorativa */}

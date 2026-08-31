@@ -369,13 +369,21 @@ export default function VenderCavaloPage() {
 
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-24 md:pt-32 pb-32 px-4 sm:px-6 md:px-12">
-      <div data-revelar="">
+      <div data-revelar="" suppressHydrationWarning>
         <PageHeader />
       </div>
-      <div data-revelar="" style={{ "--rdelay": "100ms" } as React.CSSProperties}>
+      <div
+        data-revelar=""
+        suppressHydrationWarning
+        style={{ "--rdelay": "100ms" } as React.CSSProperties}
+      >
         <HowItWorks />
       </div>
-      <div data-revelar="" style={{ "--rdelay": "200ms" } as React.CSSProperties}>
+      <div
+        data-revelar=""
+        suppressHydrationWarning
+        style={{ "--rdelay": "200ms" } as React.CSSProperties}
+      >
         <PricingBanner selectedTier={selectedTier} onTierChange={setSelectedTier} />
       </div>
 

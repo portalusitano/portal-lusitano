@@ -245,6 +245,7 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
       {/* ═══ HERO ═══ */}
       <section
         data-revelar=""
+        suppressHydrationWarning
         className="relative min-h-[55vh] flex flex-col items-center justify-center text-center px-4 overflow-hidden noise-overlay"
       >
         {/* Gradient overlay */}
@@ -253,7 +254,7 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
         {/* Floating gold orbs with parallax + gentle float */}
         <ParallaxSection speed={0.15} className="absolute inset-0 pointer-events-none">
           <div
-            className="gradient-orb"
+            className=""
             style={{
               width: 500,
               height: 500,
@@ -263,7 +264,7 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
             }}
           />
           <div
-            className="gradient-orb"
+            className=""
             style={{
               width: 400,
               height: 400,
@@ -274,7 +275,7 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
             }}
           />
           <div
-            className="gradient-orb"
+            className=""
             style={{
               width: 300,
               height: 300,
@@ -316,6 +317,7 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
       {nextEvento && (
         <section
           data-revelar=""
+          suppressHydrationWarning
           className="relative py-12 border-y border-[var(--border)] bg-[var(--background-secondary)]/30"
         >
           <div className="max-w-5xl mx-auto px-6">
@@ -343,7 +345,7 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
               ].map((unit) => (
                 <div
                   key={unit.label}
-                  className="bg-[var(--background-card)] border border-[var(--gold)]/20 px-3 sm:px-5 py-3 min-w-[60px] sm:min-w-[75px] text-center glow-pulse"
+                  className="bg-[var(--background-card)] border border-[var(--gold)]/20 px-3 sm:px-5 py-3 min-w-[60px] sm:min-w-[75px] text-center "
                 >
                   <span className="text-2xl sm:text-3xl text-[var(--gold)]">
                     {String(unit.value).padStart(2, "0")}
@@ -400,9 +402,9 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
 
         {/* ═══ FEATURED CAROUSEL ═══ */}
         {eventosDestaque.length > 0 && (
-          <section data-revelar="" className="mb-16">
+          <section data-revelar="" suppressHydrationWarning className="mb-16">
             <RevealOnScroll variant="fade-up" className="text-center mb-10">
-              <span className="rotulo-forte block mb-3 glow-pulse inline-block px-3 py-1">
+              <span className="rotulo-forte block mb-3  inline-block px-3 py-1">
                 {t.eventos.featured_badge}
               </span>
               <h2 className="text-2xl sm:text-3xl text-gradient-gold inline-block">
@@ -581,7 +583,7 @@ function EventoDestaqueCardPremium({
     <div style={{ transition: "transform 0.1s ease" }}>
       <button
         onClick={onClick}
-        className="text-left relative w-[320px] sm:w-[400px] h-80 overflow-hidden group card-premium shimmer-gold animated-border border border-[var(--gold)]/20 hover:border-[var(--gold)]/50 transition-all duration-500 flex-shrink-0"
+        className="text-left relative w-[320px] sm:w-[400px] h-80 overflow-hidden group card-premium  animated-border border border-[var(--gold)]/20 hover:border-[var(--gold)]/50 transition-all duration-500 flex-shrink-0"
         style={{ animationDelay: `${index * 0.08}s` }}
       >
         {/* Image */}
@@ -927,7 +929,7 @@ function EventoModal({
                   href={evento.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="ripple-btn flex items-center justify-center gap-2 w-full bg-[var(--background-elevated)] text-[var(--foreground)] py-3 font-medium hover:bg-[var(--surface-hover)] transition-colors border border-[var(--border)]"
+                  className="flex items-center justify-center gap-2 w-full bg-[var(--background-elevated)] text-[var(--foreground)] py-3 font-medium hover:bg-[var(--surface-hover)] transition-colors border border-[var(--border)]"
                 >
                   <ExternalLink size={18} />
                   {t.eventos.official_site}

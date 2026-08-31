@@ -148,7 +148,14 @@ export default function RootLayout({
   // theme-detection script and Next.js RSC inline scripts to execute.
 
   return (
-    <html lang="pt" className={`${geist.variable} ${geistMono.variable} dark`}>
+    <html
+      lang="pt"
+      className={`${geist.variable} ${geistMono.variable} dark`}
+      // O script inline em <head> acrescenta `js` e, se for o caso, `light`
+      // antes da primeira pintura. O React renderiza sem elas e acusava
+      // incompatibilidade de hidratação em todas as páginas.
+      suppressHydrationWarning
+    >
       <head>
         {/* Corre antes da primeira pintura. Além do tema, marca `.js`, que é
             o que arma o estado inicial das animações de entrada: pô-la só na

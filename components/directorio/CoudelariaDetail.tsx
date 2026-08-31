@@ -258,6 +258,7 @@ export default function CoudelariaDetail({
       {/* ── Hero ── */}
       <section
         data-revelar=""
+        suppressHydrationWarning
         className="relative h-[50vh] sm:h-[65vh] min-h-[340px] sm:min-h-[460px]"
         aria-label={coudelaria.nome}
       >
@@ -366,7 +367,11 @@ export default function CoudelariaDetail({
             {/* Especialidades */}
             {Array.isArray(coudelaria.especialidades) && coudelaria.especialidades.length > 0 && (
               <AnimateOnScroll delay={100}>
-                <section data-revelar="" aria-label={t.directorio.specialties}>
+                <section
+                  data-revelar=""
+                  suppressHydrationWarning
+                  aria-label={t.directorio.specialties}
+                >
                   <SectionTitle icon={<Sparkles size={22} />} title={t.directorio.specialties} />
                   <div className="flex flex-wrap gap-3">
                     {coudelaria.especialidades.map((esp) => (
@@ -385,7 +390,7 @@ export default function CoudelariaDetail({
             {/* Historia */}
             {coudelaria.historia && (
               <AnimateOnScroll delay={150}>
-                <section data-revelar="" aria-label={t.directorio.history}>
+                <section data-revelar="" suppressHydrationWarning aria-label={t.directorio.history}>
                   <SectionTitle icon={<Calendar size={22} />} title={t.directorio.history} />
                   <div className="space-y-4">
                     {coudelaria.historia.split("\n\n").map((paragraph, i) => (
@@ -404,7 +409,7 @@ export default function CoudelariaDetail({
             {/* Galeria */}
             {images.length > 1 && (
               <AnimateOnScroll delay={200}>
-                <section data-revelar="" aria-label={t.directorio.gallery}>
+                <section data-revelar="" suppressHydrationWarning aria-label={t.directorio.gallery}>
                   <SectionTitle title={t.directorio.gallery} />
                   <div className="relative">
                     <div className="aspect-video relative overflow-hidden bg-[var(--background-secondary)] border border-[var(--border)]">
@@ -474,7 +479,7 @@ export default function CoudelariaDetail({
             {/* Premios */}
             {Array.isArray(coudelaria.premios) && coudelaria.premios.length > 0 && (
               <AnimateOnScroll delay={250}>
-                <section data-revelar="" aria-label={t.directorio.awards}>
+                <section data-revelar="" suppressHydrationWarning aria-label={t.directorio.awards}>
                   <SectionTitle icon={<Trophy size={22} />} title={t.directorio.awards} />
                   <div className="space-y-3">
                     {coudelaria.premios.map((premio) => (
@@ -501,7 +506,11 @@ export default function CoudelariaDetail({
             {Array.isArray(coudelaria.cavalos_destaque) &&
               coudelaria.cavalos_destaque.length > 0 && (
                 <AnimateOnScroll delay={300}>
-                  <section data-revelar="" aria-label={t.directorio.featured_horses}>
+                  <section
+                    data-revelar=""
+                    suppressHydrationWarning
+                    aria-label={t.directorio.featured_horses}
+                  >
                     <SectionTitle icon={<Star size={22} />} title={t.directorio.featured_horses} />
                     <div className="grid sm:grid-cols-2 gap-4">
                       {coudelaria.cavalos_destaque.map((cavalo) => (
@@ -558,7 +567,11 @@ export default function CoudelariaDetail({
             {/* Testemunhos */}
             {Array.isArray(coudelaria.testemunhos) && coudelaria.testemunhos.length > 0 && (
               <AnimateOnScroll delay={350}>
-                <section data-revelar="" aria-label={t.directorio.testimonials}>
+                <section
+                  data-revelar=""
+                  suppressHydrationWarning
+                  aria-label={t.directorio.testimonials}
+                >
                   <SectionTitle icon={<Quote size={22} />} title={t.directorio.testimonials} />
                   <div className="space-y-4">
                     {coudelaria.testemunhos.map((test) => (
@@ -586,7 +599,7 @@ export default function CoudelariaDetail({
 
             {/* Reviews */}
             <AnimateOnScroll delay={400}>
-              <section data-revelar="" aria-label={t.directorio.reviews}>
+              <section data-revelar="" suppressHydrationWarning aria-label={t.directorio.reviews}>
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                   <div className="flex items-center gap-3">
                     <span className="w-px h-6 bg-[var(--gold)]" aria-hidden="true" />
@@ -773,7 +786,11 @@ export default function CoudelariaDetail({
                         key={review.id}
                         className="p-4 sm:p-6 bg-[var(--background-secondary)]/50 border border-[var(--border)] hover:border-[var(--gold)]/20 transition-colors"
                       >
-                        <header data-revelar="" className="flex items-start justify-between mb-3">
+                        <header
+                          data-revelar=""
+                          suppressHydrationWarning
+                          className="flex items-start justify-between mb-3"
+                        >
                           <div>
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-[var(--foreground)] font-medium text-sm">

@@ -81,19 +81,13 @@ export function ProductSchema({
     description,
     image,
     sku,
-    brand: {
-      "@type": "Brand",
-      name: "Portal Lusitano",
-    },
+    brand: { "@type": "Brand", name: "Portal Lusitano" },
     offers: {
       "@type": "Offer",
       price,
       priceCurrency: currency,
       availability: `https://schema.org/${availability}`,
-      seller: {
-        "@type": "Organization",
-        name: "Portal Lusitano",
-      },
+      seller: { "@type": "Organization", name: "Portal Lusitano" },
     },
   };
 
@@ -139,23 +133,12 @@ export function ArticleSchema({
     datePublished,
     dateModified: dateModified || datePublished,
     author: isNamedAuthor
-      ? {
-          "@type": "Person",
-          name: author,
-          ...(authorUrl ? { url: authorUrl } : {}),
-        }
-      : {
-          "@type": "Organization",
-          name: "Portal Lusitano",
-          url: siteUrl,
-        },
+      ? { "@type": "Person", name: author, ...(authorUrl ? { url: authorUrl } : {}) }
+      : { "@type": "Organization", name: "Portal Lusitano", url: siteUrl },
     publisher: {
       "@type": "Organization",
       name: "Portal Lusitano",
-      logo: {
-        "@type": "ImageObject",
-        url: `${siteUrl}/logo.png`,
-      },
+      logo: { "@type": "ImageObject", url: `${siteUrl}/logo.png` },
     },
     ...(estimatedReadTime ? { timeRequired: `PT${estimatedReadTime}M` } : {}),
     // SpeakableSpecification: permite ao Google Assistant ler partes do artigo em voz alta
@@ -216,10 +199,7 @@ export function FAQSchema({ items }: { items: FAQItem[] }) {
     mainEntity: items.map((item) => ({
       "@type": "Question",
       name: item.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.answer,
-      },
+      acceptedAnswer: { "@type": "Answer", text: item.answer },
     })),
   };
 
@@ -267,20 +247,9 @@ export function EventSchema({
       ? "https://schema.org/OfflineEventAttendanceMode"
       : "https://schema.org/OnlineEventAttendanceMode",
     location: location
-      ? {
-          "@type": "Place",
-          name: location,
-          address: address || location,
-        }
-      : {
-          "@type": "VirtualLocation",
-          url: siteUrl,
-        },
-    organizer: {
-      "@type": "Organization",
-      name: organizer,
-      url: siteUrl,
-    },
+      ? { "@type": "Place", name: location, address: address || location }
+      : { "@type": "VirtualLocation", url: siteUrl },
+    organizer: { "@type": "Organization", name: organizer, url: siteUrl },
     image,
     offers: price
       ? {
@@ -330,11 +299,7 @@ export function LocalBusinessSchema({
     "@id": `${siteUrl}/directorio/${name.toLowerCase().replace(/\s+/g, "-")}`,
     name,
     description,
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: address,
-      addressCountry: "PT",
-    },
+    address: { "@type": "PostalAddress", addressLocality: address, addressCountry: "PT" },
     telephone,
     email,
     url: website || siteUrl,
@@ -390,10 +355,7 @@ export function HorseSchema({
     name,
     description,
     image,
-    brand: {
-      "@type": "Brand",
-      name: breed,
-    },
+    brand: { "@type": "Brand", name: breed },
     category: "Horses",
     additionalProperty: [
       age ? { "@type": "PropertyValue", name: "Age", value: `${age} years` } : null,
@@ -405,11 +367,7 @@ export function HorseSchema({
       price: price || undefined,
       priceCurrency: "EUR",
       availability: "https://schema.org/InStock",
-      seller: {
-        "@type": "Organization",
-        name: seller || "Portal Lusitano",
-        address: location,
-      },
+      seller: { "@type": "Organization", name: seller || "Portal Lusitano", address: location },
     },
   };
 
@@ -476,11 +434,7 @@ export function CollectionPageSchema({ name, description, url }: CollectionPageS
     name,
     description,
     url,
-    isPartOf: {
-      "@type": "WebSite",
-      name: "Portal Lusitano",
-      url: siteUrl,
-    },
+    isPartOf: { "@type": "WebSite", name: "Portal Lusitano", url: siteUrl },
     inLanguage: "pt-PT",
   };
 
@@ -508,16 +462,8 @@ export function WebApplicationSchema({ name, description, url }: WebApplicationS
     url,
     applicationCategory: "UtilityApplication",
     operatingSystem: "Any",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "EUR",
-    },
-    provider: {
-      "@type": "Organization",
-      name: "Portal Lusitano",
-      url: siteUrl,
-    },
+    offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
+    provider: { "@type": "Organization", name: "Portal Lusitano", url: siteUrl },
     inLanguage: "pt-PT",
   };
 
@@ -543,10 +489,7 @@ export function MedicalWebPageSchema() {
       "@type": "MedicalCondition",
       name: "Piroplasmose Equina",
       alternateName: ["Equine Piroplasmosis", "Babesiose Equina"],
-      associatedAnatomy: {
-        "@type": "AnatomicalStructure",
-        name: "Sangue (eritrócitos)",
-      },
+      associatedAnatomy: { "@type": "AnatomicalStructure", name: "Sangue (eritrócitos)" },
       cause: [
         { "@type": "InfectiveAgent", name: "Theileria equi" },
         { "@type": "InfectiveAgent", name: "Babesia caballi" },
@@ -557,11 +500,7 @@ export function MedicalWebPageSchema() {
       audienceType: "Veterinários, Proprietários de Cavalos",
     },
     inLanguage: "pt-PT",
-    publisher: {
-      "@type": "Organization",
-      name: "Portal Lusitano",
-      url: siteUrl,
-    },
+    publisher: { "@type": "Organization", name: "Portal Lusitano", url: siteUrl },
   };
 
   return (
@@ -597,11 +536,7 @@ export function DefinedTermSetSchema({
     description,
     url,
     inLanguage: "pt-PT",
-    publisher: {
-      "@type": "Organization",
-      name: "Portal Lusitano",
-      url: siteUrl,
-    },
+    publisher: { "@type": "Organization", name: "Portal Lusitano", url: siteUrl },
     hasDefinedTerm: terms.map((term) => ({
       "@type": "DefinedTerm",
       name: term.name,
@@ -627,14 +562,8 @@ export function BookSchema() {
     name: "Introdução ao Cavalo Lusitano",
     description:
       "O guia essencial para quem quer conhecer a raça mais nobre da Península Ibérica. História, linhagens, cuidados e dicas para compradores.",
-    author: {
-      "@type": "Organization",
-      name: "Portal Lusitano",
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "Portal Lusitano",
-    },
+    author: { "@type": "Organization", name: "Portal Lusitano" },
+    publisher: { "@type": "Organization", name: "Portal Lusitano" },
     inLanguage: "pt",
     bookFormat: "https://schema.org/EBook",
     isAccessibleForFree: true,
@@ -668,15 +597,8 @@ export function EbookOfferSchema() {
     priceCurrency: "EUR",
     availability: "https://schema.org/InStock",
     url: `${siteUrl}/ebook-gratis`,
-    offeredBy: {
-      "@type": "Organization",
-      name: "Portal Lusitano",
-      url: siteUrl,
-    },
-    eligibleRegion: {
-      "@type": "Place",
-      name: "Worldwide",
-    },
+    offeredBy: { "@type": "Organization", name: "Portal Lusitano", url: siteUrl },
+    eligibleRegion: { "@type": "Place", name: "Worldwide" },
     category: "EBook",
     itemOffered: {
       "@type": "Book",
@@ -715,10 +637,7 @@ export function AboutPageSchema() {
       location: {
         "@type": "Place",
         name: "Portugal",
-        address: {
-          "@type": "PostalAddress",
-          addressCountry: "PT",
-        },
+        address: { "@type": "PostalAddress", addressCountry: "PT" },
       },
       contactPoint: {
         "@type": "ContactPoint",
@@ -773,11 +692,7 @@ export function VideoObjectSchema({
     ...(thumbnailUrl ? { thumbnailUrl } : {}),
     ...(uploadDate ? { uploadDate } : {}),
     ...(duration ? { duration } : {}),
-    publisher: {
-      "@type": "Organization",
-      name: "Portal Lusitano",
-      url: siteUrl,
-    },
+    publisher: { "@type": "Organization", name: "Portal Lusitano", url: siteUrl },
   };
 
   return (
@@ -814,22 +729,10 @@ export function EducationalArticleSchema({
     educationalUse: "Reference",
     keywords: keywords.join(", "),
     learningResourceType: "Article",
-    author: {
-      "@type": "Organization",
-      name: "Portal Lusitano",
-      url: siteUrl,
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "Portal Lusitano",
-      url: siteUrl,
-    },
+    author: { "@type": "Organization", name: "Portal Lusitano", url: siteUrl },
+    publisher: { "@type": "Organization", name: "Portal Lusitano", url: siteUrl },
     inLanguage: "pt-PT",
-    isPartOf: {
-      "@type": "WebSite",
-      name: "Portal Lusitano",
-      url: siteUrl,
-    },
+    isPartOf: { "@type": "WebSite", name: "Portal Lusitano", url: siteUrl },
   };
 
   return (

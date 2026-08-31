@@ -177,7 +177,7 @@ function SubscriptionSection() {
             <button
               onClick={handleSubscribe}
               disabled={portalLoading}
-              className="shimmer-gold inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[var(--gold)] to-[#B8956F] text-black text-[10px] uppercase tracking-wider font-bold hover:from-[var(--gold-hover)] hover:to-[var(--gold)] transition-all disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[var(--gold)] to-[#B8956F] text-black text-[10px] uppercase tracking-wider font-bold hover:from-[var(--gold-hover)] hover:to-[var(--gold)] transition-all disabled:opacity-50"
             >
               {portalLoading ? <Loader2 size={12} className="animate-spin" /> : <Crown size={12} />}
               Subscrever PRO
@@ -208,6 +208,7 @@ function RecentFavorites({ delay }: { delay: number }) {
   return (
     <section
       data-revelar=""
+      suppressHydrationWarning
       className="opacity-0 translate-y-5 transition-all duration-700"
       style={{ animationDelay: `${delay}ms`, transitionDelay: `${delay}ms` }}
       data-animate
@@ -336,8 +337,8 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
         />
 
         {/* Gradient orbs */}
-        <div className="gradient-orb w-[600px] h-[600px] bg-[var(--gold)] top-[-240px] left-[-120px] opacity-[0.07]" />
-        <div className="gradient-orb w-[400px] h-[400px] bg-purple-700 top-[-180px] right-[-60px] opacity-[0.04]" />
+        <div className="w-[600px] h-[600px] bg-[var(--gold)] top-[-240px] left-[-120px] opacity-[0.07]" />
+        <div className="w-[400px] h-[400px] bg-purple-700 top-[-180px] right-[-60px] opacity-[0.04]" />
 
         {/* Fine top rule */}
         <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[var(--gold)]/30 to-transparent" />
@@ -484,7 +485,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
             {/* Alertas shortcut */}
             <LocalizedLink
               href="/minha-conta/alertas"
-              className="glow-pulse flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
+              className="flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
             >
               <span className="flex items-center gap-3 text-[11px] uppercase tracking-wider text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
                 <BellRing size={13} className="text-[var(--gold)]" />
@@ -498,7 +499,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
             {/* Mensagens shortcut */}
             <LocalizedLink
               href="/minha-conta/mensagens"
-              className="glow-pulse flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
+              className="flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
             >
               <span className="flex items-center gap-3 text-[11px] uppercase tracking-wider text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
                 <MessagesSquare size={13} className="text-[var(--gold)]" />
@@ -512,7 +513,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
             {/* Os meus anúncios shortcut */}
             <LocalizedLink
               href="/minha-conta/anuncios"
-              className="glow-pulse flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
+              className="flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
             >
               <span className="flex items-center gap-3 text-[11px] uppercase tracking-wider text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
                 <Tag size={13} className="text-[var(--gold)]" />
@@ -526,7 +527,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
             {/* Favoritos shortcut */}
             <LocalizedLink
               href="/cavalos-favoritos"
-              className="glow-pulse flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
+              className="flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
             >
               <span className="flex items-center gap-3 text-[11px] uppercase tracking-wider text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
                 <Heart size={13} className="text-[var(--gold)]" />
@@ -546,6 +547,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
             {/* Explore grid */}
             <section
               data-revelar=""
+              suppressHydrationWarning
               className="opacity-0 translate-y-5 transition-all duration-700"
               style={{ transitionDelay: "440ms" }}
               data-animate
@@ -559,7 +561,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                   <LocalizedLink
                     key={href}
                     href={href}
-                    className="shimmer-gold flex items-center gap-2.5 px-4 py-4 bg-[var(--background)] hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgb(var(--gold-rgb) / 0.08)] transition-all duration-200 group"
+                    className="flex items-center gap-2.5 px-4 py-4 bg-[var(--background)] hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgb(var(--gold-rgb) / 0.08)] transition-all duration-200 group"
                   >
                     <Icon
                       size={13}
