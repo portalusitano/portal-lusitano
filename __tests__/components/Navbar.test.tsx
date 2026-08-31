@@ -103,10 +103,10 @@ describe("Navbar", () => {
 
   it("mostra a marca como texto e liga-a à página inicial", () => {
     render(<Navbar />);
-    expect(screen.getByText("Portal Lusitano")).toBeInTheDocument();
+    expect(screen.getByText("PORTAL LUSITANO")).toBeInTheDocument();
 
     // The logo text should be inside a link pointing to "/"
-    const logoLink = screen.getByText("Portal Lusitano").closest("a");
+    const logoLink = screen.getByText("PORTAL LUSITANO").closest("a");
     expect(logoLink).toBeTruthy();
     expect(logoLink).toHaveAttribute("href", "/");
   });
