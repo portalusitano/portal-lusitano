@@ -1395,7 +1395,9 @@
     "view_page": "View Page",
     "no_results": "No stud farms found",
     "all_regions": "All",
-    "select_region_hint": "Select a region or click a pin on the map"
+    "select_region_hint": "Select a region or click a pin on the map",
+    "view_globe": "Globe",
+    "globe_hint": "Drag to rotate · zoom in for place names"
   },
   "cavalos_favoritos": {
     "title": "Favorite Horses",

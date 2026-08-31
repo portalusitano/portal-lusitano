@@ -609,7 +609,7 @@ export default function MensagensPage() {
                   <div className="bg-zinc-800/50 p-4 rounded-lg space-y-2 text-sm">
                     {selectedMessage.responded_at && (
                       <div className="text-green-400">
-                        ✅ Respondida em{""}
+                        ✅ Respondida em{" "}
                         {new Date(selectedMessage.responded_at).toLocaleDateString("pt-PT", {
                           day: "2-digit",
                           month: "long",

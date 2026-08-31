@@ -1395,7 +1395,9 @@
     "view_page": "Ver Página",
     "no_results": "Ninguna yeguada encontrada",
     "all_regions": "Todas",
-    "select_region_hint": "Seleccione una región o haga clic en un pin del mapa"
+    "select_region_hint": "Seleccione una región o haga clic en un pin del mapa",
+    "view_globe": "Globo",
+    "globe_hint": "Arrastre para girar · acérquese para ver los nombres"
   },
   "cavalos_favoritos": {
     "title": "Caballos Favoritos",

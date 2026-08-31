@@ -57,12 +57,11 @@ function ComprarContentInner({
             </h1>
             {totalCount > 0 && (
               <p className="text-sm text-[var(--foreground-muted)] mt-1">
-                {totalCount}
-                {""}
+                {totalCount}{" "}
                 {totalCount === 1
                   ? t.comprar_page.horse_available
-                  : t.comprar_page.horses_available}
-                {""}·{""}
+                  : t.comprar_page.horses_available}{" "}
+                ·{" "}
                 <span className="text-[var(--foreground-muted)]">
                   {language === "en"
                     ? "Verified listings"
@@ -90,7 +89,7 @@ function ComprarContentInner({
               href="/vender-cavalo"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--gold)] text-black font-semibold hover:bg-[var(--gold-hover)] transition-colors text-sm touch-manipulation whitespace-nowrap"
             >
-              +{""}
+              +{" "}
               {language === "en"
                 ? "List Horse"
                 : language === "es"

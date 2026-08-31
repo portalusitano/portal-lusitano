@@ -333,14 +333,13 @@ export default function MeusAnunciosContent() {
 
                       {anuncio.expirado && anuncio.status !== LISTING_STATUS.VENDIDO && (
                         <p className="text-[11px] text-[var(--foreground-muted)] mt-3">
-                          O período do anúncio terminou.{""}
+                          O período do anúncio terminou.{" "}
                           <LocalizedLink
                             href="/vender-cavalo"
                             className="text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-2 hover:decoration-[var(--border-hover)]"
                           >
                             Publique novamente
-                          </LocalizedLink>
-                          {""}
+                          </LocalizedLink>{" "}
                           para voltar ao marketplace.
                         </p>
                       )}

@@ -16,7 +16,6 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
-  Sparkles,
   Shield,
   ArrowRight,
 } from "lucide-react";
@@ -350,8 +349,7 @@ function RegistarContent() {
         {toolParam && redirect && (
           <div className="bg-[var(--elevate-1)] border border-[var(--border-soft)] rounded-xl p-3 mb-5 animate-auth-fadeInUp auth-stagger-5">
             <p className="text-xs text-[var(--foreground-muted)]">
-              Após confirmar o email e iniciar sessão, será redirecionado de volta à ferramenta com
-              {""}
+              Após confirmar o email e iniciar sessão, será redirecionado de volta à ferramenta com{" "}
               <strong className="text-[var(--foreground-muted)]">1 uso gratuito</strong> disponível.
             </p>
           </div>
@@ -373,15 +371,7 @@ function RegistarContent() {
     <div>
       {/* Header with staggered animation */}
       <div className="animate-auth-fadeInUp">
-        <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-2xl text-[var(--foreground)]">{t.auth.create_account}</h1>
-          <Sparkles
-            size={18}
-            className="text-[var(--foreground-muted)] animate-auth-float"
-            style={{ animationDuration: "3s" }}
-            aria-hidden="true"
-          />
-        </div>
+        <h1 className="titulo-pagina mb-1 text-2xl">{t.auth.create_account}</h1>
         <p className="text-sm text-[var(--foreground-muted)] mb-6">
           Junta-te à maior comunidade equestre de Portugal
         </p>
@@ -400,7 +390,7 @@ function RegistarContent() {
               Acesso à Ferramenta
             </p>
             <p className="text-xs text-[var(--foreground-muted)] leading-relaxed">
-              Crie a sua conta para aceder à ferramenta com{""}
+              Crie a sua conta para aceder à ferramenta com{" "}
               <strong className="text-[var(--foreground-muted)]">1 uso gratuito</strong>.
             </p>
           </div>
@@ -660,7 +650,7 @@ function RegistarContent() {
               </div>
             </div>
             <span className="text-xs text-[var(--foreground-muted)] leading-relaxed">
-              Aceito os{""}
+              Aceito os{" "}
               <LocalizedLink
                 href="/termos"
                 className="text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-2 transition-colors hover:decoration-[var(--border-hover)]"
@@ -668,8 +658,8 @@ function RegistarContent() {
                 rel="noopener noreferrer"
               >
                 Termos de Serviço
-              </LocalizedLink>
-              {""}e a{""}
+              </LocalizedLink>{" "}
+              e a{" "}
               <LocalizedLink
                 href="/privacidade"
                 className="text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-2 transition-colors hover:decoration-[var(--border-hover)]"
@@ -716,17 +706,12 @@ function RegistarContent() {
 
       {/* Login link */}
       <div className="animate-auth-fadeInUp auth-stagger-7">
-        <div className="flex items-center gap-3 my-6">
-          <div className="flex-1 h-px bg-[var(--border)]/30" />
-          <span className="text-xs text-[var(--foreground-muted)]/50 uppercase tracking-wider">
-            ou
-          </span>
-          <div className="flex-1 h-px bg-[var(--border)]/30" />
-        </div>
+        {/* Sem um segundo «ou»: o de cima já separa as duas maneiras de
+            entrar, e dois seguidos deixam de separar seja o que for. */}
+        <div className="my-6 h-px bg-[var(--border-soft)]" />
 
         <p className="text-center text-sm text-[var(--foreground-muted)]">
-          {t.auth.already_have_account}
-          {""}
+          {t.auth.already_have_account}{" "}
           <LocalizedLink
             href={redirect ? `/login?returnUrl=${encodeURIComponent(redirect)}` : "/login"}
             className="text-[var(--foreground-strong)] font-medium underline decoration-[var(--border)] underline-offset-2 transition-colors hover:decoration-[var(--border-hover)]"

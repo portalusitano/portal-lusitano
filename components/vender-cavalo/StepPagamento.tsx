@@ -147,17 +147,14 @@ export default function StepPagamento({
             className="w-5 h-5 accent-[var(--foreground-strong)] mt-0.5"
           />
           <span className="text-sm text-[var(--foreground-secondary)]">
-            {t.vender_cavalo.terms_agree}
-            {""}
+            {t.vender_cavalo.terms_agree}{" "}
             <LocalizedLink
               href="/termos"
               className="text-[var(--foreground-muted)] hover:underline"
             >
               {t.vender_cavalo.terms_link}
-            </LocalizedLink>
-            {""}
-            {t.vender_cavalo.privacy_and}
-            {""}
+            </LocalizedLink>{" "}
+            {t.vender_cavalo.privacy_and}{" "}
             <LocalizedLink
               href="/privacidade"
               className="text-[var(--foreground-muted)] hover:underline"

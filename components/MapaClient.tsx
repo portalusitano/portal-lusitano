@@ -23,6 +23,12 @@ import LocalizedLink from "@/components/LocalizedLink";
 import Image from "next/image";
 
 // O globo desenha-se em canvas e mede o elemento onde está: só no cliente.
+// A cena 3D só se carrega nesta página, e só quando é precisa.
+const GloboTerra = dynamic(() => import("@/components/GloboTerra"), {
+  ssr: false,
+  loading: () => <div className="h-full w-full" />,
+});
+
 const GloboMapa = dynamic(() => import("@/components/GloboMapa"), {
   ssr: false,
   loading: () => (
@@ -202,7 +208,10 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
   const { t } = useLanguage();
   const [selectedRegiao, setSelectedRegiao] = useState<string | null>(null);
   const [selectedCoudelaria, setSelectedCoudelaria] = useState<Coudelaria | null>(null);
-  const [viewMode, setViewMode] = useState<"map" | "list">("map");
+  /* Três vistas. O globo é a entrada — diz de onde é que o portal fala
+     antes de dizer o quê. Quem quiser nomes de terras carrega em «Mapa»,
+     ou aproxima-se no globo até ele próprio entregar o ecrã aos tiles. */
+  const [viewMode, setViewMode] = useState<"globo" | "map" | "list">("globo");
   const [searchQuery, setSearchQuery] = useState("");
   const [flyTo, setFlyTo] = useState<[number, number] | null>(null);
 
@@ -296,6 +305,12 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
         <div className="cartao mb-6 flex flex-wrap items-center justify-between gap-3 p-3">
           <div className="flex items-center gap-1.5">
             <button
+              onClick={() => setViewMode("globo")}
+              className={`chip gap-1.5 ${viewMode === "globo" ? "chip-activo" : ""}`}
+            >
+              <Globe size={16} /> {t.mapa.view_globe}
+            </button>
+            <button
               onClick={() => setViewMode("map")}
               className={`chip gap-1.5 ${viewMode === "map" ? "chip-activo" : ""}`}
             >
@@ -326,7 +341,18 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
           </div>
         </div>
 
-        {viewMode === "map" ? (
+        {viewMode === "globo" ? (
+          <div className="relative z-0 h-[520px] overflow-hidden rounded-2xl border border-[var(--border)] bg-black sm:h-[620px] lg:h-[720px]">
+            <div className="cartao-seco__costura z-10" />
+            <GloboTerra
+              coudelarias={searchQuery ? filteredCoudelarias : coudelarias}
+              aoAproximar={() => setViewMode("map")}
+            />
+            <p className="pointer-events-none absolute inset-x-0 bottom-5 z-10 text-center text-[11px] text-[var(--foreground-muted)]">
+              {t.mapa.globe_hint}
+            </p>
+          </div>
+        ) : viewMode === "map" ? (
           <div className="grid lg:grid-cols-12 gap-6">
             {/* Globo */}
             <div className="lg:col-span-8">

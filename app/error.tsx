@@ -107,8 +107,7 @@ export default function Error({
           className="text-[var(--foreground-muted)] text-xs mt-10 opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
           style={{ animationDelay: "0.4s" }}
         >
-          {t.error_page.persist_contact}
-          {""}
+          {t.error_page.persist_contact}{" "}
           <a
             href={`mailto:${SUPPORT_EMAIL}`}
             className="text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-4 hover:decoration-[var(--border-hover)]"

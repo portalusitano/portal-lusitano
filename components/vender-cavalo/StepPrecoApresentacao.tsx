@@ -553,7 +553,7 @@ export default function StepPrecoApresentacao({
                   {isDragging ? t.vender_cavalo.drop_here : t.vender_cavalo.drag_or_click}
                 </p>
                 <p className="text-xs text-[var(--foreground-muted)] mt-1">
-                  JPG, PNG, WEBP &middot;{""}
+                  JPG, PNG, WEBP &middot;{" "}
                   {t.vender_cavalo.max_images_hint.replace("{max}", String(maxImages))}
                 </p>
               </div>

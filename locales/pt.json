@@ -1395,7 +1395,9 @@
     "view_page": "Ver Página",
     "no_results": "Nenhuma coudelaria encontrada",
     "all_regions": "Todas",
-    "select_region_hint": "Selecione uma região ou clique num pin no mapa"
+    "select_region_hint": "Selecione uma região ou clique num pin no mapa",
+    "view_globe": "Globo",
+    "globe_hint": "Arraste para rodar · aproxime-se para ver os nomes das terras"
   },
   "cavalos_favoritos": {
     "title": "Cavalos Favoritos",

@@ -63,8 +63,7 @@ function UnsubscribeContent() {
             </p>
             {email && (
               <p className="text-[var(--foreground-muted)] text-sm mb-6">
-                {t.unsubscribe_page.email_label}
-                {""}
+                {t.unsubscribe_page.email_label}{" "}
                 <span className="text-[var(--foreground)]">{email}</span>
               </p>
             )}

@@ -325,8 +325,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                     <p className="text-xs text-[var(--foreground-secondary)] leading-relaxed">
                       {visibilidade === "vendido"
                         ? "Este cavalo já foi vendido. A ficha fica para consulta — os contactos do vendedor deixaram de estar disponíveis."
-                        : "O período de publicação deste anúncio chegou ao fim, por isso os contactos do vendedor já não estão disponíveis."}
-                      {""}
+                        : "O período de publicação deste anúncio chegou ao fim, por isso os contactos do vendedor já não estão disponíveis."}{" "}
                       <Link
                         href="/comprar"
                         className="text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-2 transition-colors hover:decoration-[var(--border-hover)]"
@@ -550,8 +549,8 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                       Os contactos deste anúncio já não estão disponíveis.
                       {cavalo.user_id ? (
                         <>
-                          {""}
-                          Pode ver o que este vendedor tem à venda em{""}
+                          {" "}
+                          Pode ver o que este vendedor tem à venda em{" "}
                           <Link
                             href={`/vendedor/${cavalo.user_id}`}
                             className="text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-2 transition-colors hover:decoration-[var(--border-hover)]"

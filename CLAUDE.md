@@ -94,7 +94,14 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
    qualquer ecrã e o conteúdo actualiza-se sozinho. A `.marca` é a versão
    pequena da mesma ideia: barras e um acento que, em movimento, contam o
    que a frase do cartão diz por palavras.
-4. **Holofote na grelha** — `<GrelhaHolofote>` escreve a posição do rato em
+4. **A Terra em 3D** (`<GloboTerra>`) — a vista de entrada do mapa. Texturas
+   da NASA em `public/globo/` (411KB em WebP, só nesta página), mistura
+   dia/noite ao longo do terminador com as luzes das cidades, e a atmosfera
+   feita de duas cascas: uma larga e ténue para o ar visto de longe, outra
+   apertada para a linha acesa no horizonte. Uma só nunca dá as duas coisas.
+   O brilho conta-se contra o eixo da câmara, não contra a superfície — um
+   Fresnel numa casca fina dá um anel desenhado a régua, não uma atmosfera.
+5. **Holofote na grelha** — `<GrelhaHolofote>` escreve a posição do rato em
    coordenadas de cada cartão (`--px`, `--py`) e o `.cartao-holofote` acende
    com ela a hairline e um halo. Como os cartões todos lêem a mesma luz, ela
    atravessa a grelha como se fosse uma folha de vidro só. As medidas ficam
@@ -171,9 +178,10 @@ As durações e as curvas são medidas, não inventadas. Vivem em tokens no
   quarto custa outra.
   Os esqueletos de carregamento usam `animate-pulse` do Tailwind: são a
   excepção aceite, porque só existem enquanto o conteúdo não chegou.
-  O globo do mapa também não faz excepção: voa até Portugal num movimento
-  só, que corre uma vez e pára. O exemplo que lhe serviu de referência
-  rodava para sempre e tinha os pontos a pulsar; ficaram os dois de fora.
+  Os dois globos do mapa também não fazem excepção: o de tiles voa até
+  Portugal e o da Terra fecha-se sobre ela, cada um num movimento só que
+  corre uma vez e pára. Os exemplos que lhes serviram de referência rodavam
+  para sempre e tinham os pontos a pulsar; ficou tudo isso de fora.
 - Entrada anterior (`fadeSlideIn`) ainda em várias páginas: mesma família de
   movimento, alinhada na distância. Diferença que fica: dispara ao carregar,
   não ao entrar no ecrã. Em código novo usar `Revelar`/`data-revelar`.
