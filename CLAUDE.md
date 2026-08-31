@@ -106,8 +106,19 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
      elas que as etiquetas assentam.
    - **Etiquetas em HTML**, colocadas a cada quadro a partir da posição
      projectada. Só se escreve o que está virado para nós, e não se deixam
-     duas sobreporem-se: cada uma tenta a direita e depois a esquerda, e
-     quem perde é a que estiver mais longe. Medido: zero sobreposições.
+     duas sobreporem-se: cada uma tenta seis posições — acima à direita,
+     que é onde o olho a procura, acima à esquerda, abaixo dos dois lados,
+     e por fim ao lado à altura do ponto. Com só duas hipóteses perdiam-se
+     nomes que cabiam bem um pouco mais abaixo. Quem não couber inteira
+     encolhe para uma linha antes de desistir, e quem perde é a que estiver
+     mais longe. Medido: zero sobreposições.
+   - **O título da etiqueta é o nome da coudelaria, a localidade vem por
+     baixo.** Ao contrário dava dois títulos «Ferreira do Alentejo» lado a
+     lado com a coudelaria sussurrada por baixo: o que distingue duas
+     coudelarias da mesma vila é o nome delas, e o sítio já está dito pelo
+     ponto onde a etiqueta assenta. O dourado ficou no alfinete e no fio e
+     saiu do texto — das onze etiquetas legíveis ao mesmo tempo, seis eram
+     douradas, o que já não é um acento mas uma segunda cor de texto.
    - **A atmosfera são duas cascas**, uma larga e ténue e outra apertada;
      e o brilho conta-se contra o eixo da câmara, não contra a superfície —
      um Fresnel numa casca fina dá um anel desenhado a régua.

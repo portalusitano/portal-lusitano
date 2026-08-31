@@ -2446,9 +2446,22 @@ body {
 
 @layer components {
   /* ── Etiquetas sobre o globo ──────────────────────────────────────────
-     O nome da localidade escrito por cima da cena 3D. Em HTML e não em
+     O nome de cada coudelaria escrito por cima da cena 3D. Em HTML e não em
      textura: fica nítido em qualquer ecrã, herda a tipografia do site e
-     pode receber o rato. */
+     pode receber o rato e o foco.
+
+     A hierarquia é nome-da-coudelaria primeiro e localidade por baixo, e não
+     ao contrário. Com os dados reais o contrário dava dois títulos «Ferreira
+     do Alentejo» lado a lado com a coudelaria sussurrada por baixo: o que
+     distingue duas coudelarias da mesma vila é o nome delas, e o sítio já
+     está dito pelo ponto onde a etiqueta assenta.
+
+     O dourado ficou no alfinete e no fio, e saiu do texto. Das onze etiquetas
+     que se liam ao mesmo tempo, seis eram douradas — não é um acento, é uma
+     segunda cor de texto. E sobre uma fotografia do planeta o dourado a 12px
+     lê-se pior do que o branco, o que punha as coudelarias em destaque a ser
+     as mais difíceis de ler. Um ponto e um fio dourados são do tamanho de um
+     ícone, que é o que o acento pode ocupar. */
 
   .globo-etiquetas {
     position: absolute;
@@ -2462,65 +2475,138 @@ body {
     top: 0;
     left: 0;
     opacity: 0;
+    pointer-events: auto;
     will-change: transform, opacity;
     transition: opacity 220ms var(--ease-out);
     animation: etiqueta-nascer 700ms var(--ease-out) var(--entrada, 0ms) backwards;
   }
 
   /* Nasce depois de a câmara pousar: escrever nomes por cima de uma
-     aproximação a meio é ruído. */
+     aproximação a meio é ruído. A visibilidade anima junto com a opacidade
+     de propósito — sem ela a etiqueta é invisível mas continua a apanhar o
+     rato e a receber o foco durante os dois segundos da entrada. */
   @keyframes etiqueta-nascer {
     from {
       opacity: 0;
+      visibility: hidden;
     }
     to {
       opacity: 1;
+      visibility: visible;
     }
   }
 
   /* O fio que liga o ponto ao nome. Sem ele, os nomes flutuam e não se
-     percebe a que ponto pertence cada um. */
+     percebe a que ponto pertence cada um.
+
+     O fio tem de chegar ao alfinete. A primeira versão punha-o dentro da
+     caixa (`left: 0`), com o cotovelo a apontar para fora: o segmento
+     horizontal partia da borda da etiqueta e afastava-se do ponto, deixando
+     dez pixéis de vazio entre os dois. Ligava a etiqueta a coisa nenhuma.
+     Agora sai da caixa (`-10px`) e acaba exactamente onde o ponto está. */
   .globo-etiqueta__linha {
     position: absolute;
-    bottom: -12px;
-    left: 0;
-    height: 12px;
     width: 10px;
-    border-bottom: 1px solid rgba(214, 235, 253, 0.45);
-    border-left: 1px solid rgba(214, 235, 253, 0.45);
-    border-bottom-left-radius: 3px;
+    height: 10px;
+    pointer-events: none;
+    border-style: solid;
+    border-width: 0;
+    border-color: rgba(214, 235, 253, 0.5);
   }
 
-  /* Do outro lado o fio também troca, senão apontava para o vazio. */
-  .globo-etiqueta[data-lado="esquerda"] .globo-etiqueta__linha {
-    left: auto;
-    right: 0;
-    border-left: 0;
-    border-right: 1px solid rgba(214, 235, 253, 0.45);
-    border-bottom-left-radius: 0;
+  .globo-etiqueta[data-lado="direita"][data-vert="cima"] .globo-etiqueta__linha {
+    left: -10px;
+    bottom: -10px;
+    border-bottom-width: 1px;
+    border-right-width: 1px;
     border-bottom-right-radius: 3px;
   }
 
-  .globo-etiqueta[data-lado="esquerda"] .globo-etiqueta__caixa {
-    padding-left: 0;
-    padding-right: 10px;
-    text-align: right;
+  .globo-etiqueta[data-lado="esquerda"][data-vert="cima"] .globo-etiqueta__linha {
+    right: -10px;
+    bottom: -10px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-bottom-left-radius: 3px;
+  }
+
+  .globo-etiqueta[data-lado="direita"][data-vert="baixo"] .globo-etiqueta__linha {
+    left: -10px;
+    top: -10px;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-top-right-radius: 3px;
+  }
+
+  .globo-etiqueta[data-lado="esquerda"][data-vert="baixo"] .globo-etiqueta__linha {
+    right: -10px;
+    top: -10px;
+    border-top-width: 1px;
+    border-left-width: 1px;
+    border-top-left-radius: 3px;
+  }
+
+  /* À altura do ponto o cotovelo não tem para onde virar: fica o traço. */
+  .globo-etiqueta[data-vert="meio"] .globo-etiqueta__linha {
+    top: 50%;
+    height: 0;
+    border-top-width: 1px;
+  }
+
+  .globo-etiqueta[data-lado="direita"][data-vert="meio"] .globo-etiqueta__linha {
+    left: -10px;
+  }
+
+  .globo-etiqueta[data-lado="esquerda"][data-vert="meio"] .globo-etiqueta__linha {
+    right: -10px;
   }
 
   .globo-etiqueta[data-destaque] .globo-etiqueta__linha {
-    border-bottom-color: rgb(var(--gold-rgb) / 0.6);
-    border-left-color: rgb(var(--gold-rgb) / 0.6);
-    border-right-color: rgb(var(--gold-rgb) / 0.6);
+    border-color: rgb(var(--gold-rgb) / 0.7);
+  }
+
+  .globo-etiqueta[data-activo] .globo-etiqueta__linha {
+    border-color: rgba(255, 255, 255, 0.85);
   }
 
   .globo-etiqueta__caixa {
     display: block;
     white-space: nowrap;
-    padding-left: 10px;
   }
 
-  .globo-etiqueta__local {
+  .globo-etiqueta[data-lado="esquerda"] .globo-etiqueta__caixa {
+    text-align: right;
+  }
+
+  /* Um botão a sério, não uma `div` com `role="button"`: assim o Enter e o
+     espaço vêm do browser, o foco vem do browser, e não há uma linha de
+     JavaScript a imitar o que o elemento já sabe fazer. */
+  .globo-etiqueta__cabeca,
+  .globo-etiqueta__membro {
     display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-align: inherit;
+    cursor: pointer;
+  }
+
+  /* Sem nada para abrir, a cabeça é um `span` e não pretende ser clicável. */
+  span.globo-etiqueta__cabeca {
+    cursor: inherit;
+  }
+
+  .globo-etiqueta__nome {
+    display: block;
+    /* Um nome não pode crescer sem fim: uma etiqueta de trezentos pixéis
+       tapa três vizinhas. Ao apontar, abre. */
+    max-width: 168px;
+    overflow: hidden;
+    text-overflow: ellipsis;
     font-size: 12px;
     line-height: 1.25;
     font-weight: 500;
@@ -2531,21 +2617,91 @@ body {
       0 0 12px rgba(0, 0, 0, 0.8);
   }
 
-  .globo-etiqueta[data-destaque] .globo-etiqueta__local {
-    color: var(--gold);
+  .globo-etiqueta[data-activo] .globo-etiqueta__nome,
+  .globo-etiqueta[data-activo] .globo-etiqueta__local {
+    max-width: 320px;
   }
 
-  .globo-etiqueta__nome {
+  .globo-etiqueta__local {
     display: block;
+    max-width: 168px;
+    overflow: hidden;
+    text-overflow: ellipsis;
     font-size: 10px;
     line-height: 1.3;
-    color: var(--foreground-muted);
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
+    /* Era `--foreground-muted` (#666): sobre uma fotografia do planeta, com
+       o terreno claro do Alentejo por baixo, a segunda linha desaparecia. */
+    color: var(--foreground-secondary);
+    text-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.95),
+      0 0 10px rgba(0, 0, 0, 0.7);
+  }
+
+  /* Quando não há espaço para as duas linhas, fica a primeira. Vale mais um
+     nome sem a localidade do que um ponto sem nome nenhum. */
+  .globo-etiqueta[data-curto] .globo-etiqueta__local,
+  .globo-etiqueta[data-aberto] .globo-etiqueta__local {
+    display: none;
+  }
+
+  /* Quantas coudelarias há neste ponto. Não é um selo: é um algarismo do
+     tamanho do texto à volta, para se ler sem roubar a linha. */
+  .globo-etiqueta__conta {
+    margin-left: 5px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--elevate-2);
+    font-size: 9px;
+    font-variant-numeric: tabular-nums;
+    line-height: 14px;
+    vertical-align: 1px;
+    color: var(--foreground-strong);
+  }
+
+  /* A pilha aberta: os nomes que estavam encostados uns aos outros, agora em
+     coluna e cada um seu botão. É esta a forma de «aproximar» um ponto onde
+     duas coudelarias têm a mesma coordenada — nenhum zoom as separa. */
+  .globo-etiqueta__membros {
+    display: grid;
+    gap: 1px;
+    margin: 2px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .globo-etiqueta__membro {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--foreground-secondary);
+    text-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.95),
+      0 0 10px rgba(0, 0, 0, 0.7);
+    transition: color var(--d-fast) var(--ease-out);
+  }
+
+  .globo-etiqueta__membro:hover,
+  .globo-etiqueta__membro:focus-visible {
+    color: var(--foreground-strong);
+  }
+
+  /* Estado escolhido é branco. O ponto que está debaixo do rato acende-se em
+     branco mesmo quando é dourado — o dourado diz «esta é rara», o branco diz
+     «é esta que estás a apontar», e são duas coisas diferentes. */
+  .globo-etiqueta[data-activo] .globo-etiqueta__local {
+    color: var(--foreground);
   }
 
   @media (prefers-reduced-motion: reduce) {
     .globo-etiqueta {
       animation: none;
+      visibility: visible;
+    }
+
+    .globo-etiqueta__membro {
+      transition: none;
     }
   }
 }
