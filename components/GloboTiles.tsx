@@ -107,8 +107,12 @@ export default function GloboTiles({ coudelarias, flyTo, onMarkerClick, aoFalhar
     const m = new MapaGL({
       container: el,
       style: ESTILO,
-      center: [-52, 26],
-      zoom: 1.1,
+      /* Já enquadrado em Portugal. Antes começava no meio do Atlântico a
+         zoom 1,1 e contava com a animação para lá chegar — e quando alguma
+         coisa a interrompia, o que ficava no ecrã era o planeta inteiro com
+         as vinte e nove coudelarias sobrepostas num ponto. */
+      center: CENTRO_PT,
+      zoom: 3.4,
       attributionControl: { compact: true },
     });
     mapa.current = m;
@@ -128,14 +132,9 @@ export default function GloboTiles({ coudelarias, flyTo, onMarkerClick, aoFalhar
       });
       repintar(m);
 
-      /* Voa até Portugal, uma vez. A referência rodava para sempre; um ciclo
-         infinito a mais não se paga com «fica giro». */
-      m.easeTo({
-        center: CENTRO_PT,
-        zoom: 5.4,
-        duration: parado ? 0 : 2600,
-        essential: true,
-      });
+      /* Fecha sobre a Península, uma vez. A referência rodava para sempre;
+         um ciclo infinito a mais não se paga com «fica giro». */
+      m.easeTo({ center: CENTRO_PT, zoom: 5.4, duration: parado ? 0 : 1800, essential: true });
     });
 
     m.on("error", (e: { error?: { message?: string } }) => {
@@ -144,7 +143,15 @@ export default function GloboTiles({ coudelarias, flyTo, onMarkerClick, aoFalhar
       if (process.env.NODE_ENV !== "production") console.warn("globo:", e.error?.message);
     });
 
+    /* Um estilo que carrega mas cujos tiles nunca chegam dá exactamente o
+       mesmo que não ter mapa: uma bola preta. Passados oito segundos sem
+       nada desenhado, entrega-se o ecrã ao globo de recurso. */
+    const vigia = window.setTimeout(() => {
+      if (!m.areTilesLoaded()) aoFalharRef.current?.();
+    }, 8000);
+
     return () => {
+      clearTimeout(vigia);
       for (const marca of marcas.current) marca.remove();
       marcas.current = [];
       m.remove();

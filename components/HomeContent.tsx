@@ -318,88 +318,85 @@ const PEDIGREES: [string, string, string, boolean][][] = [
    movimento aquilo que a frase diz por palavras. Compõem-se uma vez, quando
    o cartão entra no ecrã. */
 
-function Barras({ larguras }: { larguras: string[] }) {
-  return (
-    <>
-      {larguras.map((w, i) => (
-        <div key={i} className="marca__barra" style={{ width: w }} />
-      ))}
-    </>
-  );
-}
+/* Cada cartão leva um pedaço de interface a 11px que se escreve sozinho e
+   vai mudando — a mesma ideia dos três previews lá de cima, à escala de um
+   cartão. As barras abstractas que aqui estavam eram bonitas e não diziam
+   nada; isto diz o que a frase do cartão promete, com números a sério. */
 
-const CONFIANCA = [
+type Cartao = {
+  t: string;
+  d: string;
+  /** Cinco estados possíveis; cada cartão anda no seu tempo. */
+  estados: { texto: string; forte?: string }[];
+  acento?: React.ReactNode;
+};
+
+const CONFIANCA: Cartao[] = [
   {
     t: "Anúncios moderados",
     d: "Cada anúncio é aprovado antes de ficar visível, e qualquer pessoa pode denunciar o que estiver errado.",
-    // Três anúncios em fila; o carimbo de aprovado cai no fim.
-    marca: (
-      <div className="marca" aria-hidden="true">
-        <Barras larguras={["100%", "72%", "48%"]} />
-        <div className="marca__acento absolute right-0 top-1/2 h-5 w-5 -translate-y-1/2" />
-      </div>
-    ),
+    estados: [
+      { texto: "Ícaro do Vale", forte: "aprovado" },
+      { texto: "Nobreza da Ribeira", forte: "em revisão" },
+      { texto: "Quixote MB", forte: "aprovado" },
+      { texto: "Sultão da Coudelaria", forte: "denunciado" },
+      { texto: "Aurora do Sorraia", forte: "aprovado" },
+    ],
   },
   {
     t: "Mensagens no portal",
     d: "Fale com o vendedor sem publicar o seu número. O contacto só é partilhado se quiser.",
-    // Uma conversa: a pergunta cinzenta, a resposta branca.
-    marca: (
-      <div className="marca" aria-hidden="true">
-        <Barras larguras={["58%", "38%"]} />
-        <div className="marca__acento ml-auto h-5 w-[42%]" />
-      </div>
-    ),
+    estados: [
+      { texto: "Ana Ferreira · Sevilha", forte: "por ler" },
+      { texto: "Pieter de Vries · Utreque", forte: "respondida" },
+      { texto: "Marta Ribeiro · Golegã", forte: "por ler" },
+      { texto: "Klaus Berger · Munique", forte: "respondida" },
+      { texto: "Sofia Marques · Cascais", forte: "por ler" },
+    ],
   },
   {
     t: "Alertas de pesquisa",
     d: "O cavalo certo raramente está à venda hoje. Guarde a pesquisa e avisamos quando aparecer.",
-    // A pesquisa guardada, e o aviso a chegar.
-    marca: (
-      <div className="marca" aria-hidden="true">
-        <Barras larguras={["100%", "64%"]} />
-        <div className="marca__chip">1 novo</div>
-      </div>
-    ),
+    estados: [
+      { texto: "égua · Alentejo · até 20 k€", forte: "1 novo" },
+      { texto: "poldro · Veiga · 2 a 4 anos", forte: "3 novos" },
+      { texto: "dressage · nível médio", forte: "2 novos" },
+      { texto: "atrelagem · pares", forte: "1 novo" },
+      { texto: "castanho · até 15 k€", forte: "4 novos" },
+    ],
   },
   {
     t: "Prazo que conta",
     d: "O anúncio pago tem fim, e o vendedor é avisado antes. Nada fica na montra depois de acabar.",
-    // A barra esvazia-se: é o que um prazo faz.
-    marca: (
-      <div className="marca" aria-hidden="true">
-        <Barras larguras={["100%"]} />
-        <div className="relative h-[5px] w-full overflow-hidden rounded-full bg-[rgba(214,235,253,0.10)]">
-          <div className="marca__prazo marca__acento absolute inset-y-0 left-0" />
-        </div>
-        <Barras larguras={["44%"]} />
-      </div>
-    ),
+    estados: [
+      { texto: "Ícaro do Vale", forte: "faltam 12 dias" },
+      { texto: "Bailarina de Alter", forte: "faltam 5 dias" },
+      { texto: "Corisco do Tejo", forte: "acaba amanhã" },
+      { texto: "Firmamento MV", forte: "faltam 28 dias" },
+      { texto: "Sereno da Coruche", forte: "faltam 3 dias" },
+    ],
   },
   {
     t: "Anúncio em minutos",
     d: "Formulário curto, fotografias direct do telemóvel, publicação assim que for validado.",
-    // Três passos; o último acende.
-    marca: (
-      <div className="marca" aria-hidden="true">
-        <Barras larguras={["30%", "56%", "82%"]} />
-        <div className="marca__acento absolute bottom-[9px] right-0 h-2.5 w-2.5" />
-      </div>
-    ),
+    estados: [
+      { texto: "identificação · linhagem", forte: "2 de 4" },
+      { texto: "fotografias · 6 carregadas", forte: "3 de 4" },
+      { texto: "preço e apresentação", forte: "4 de 4" },
+      { texto: "em validação", forte: "quase" },
+      { texto: "publicado", forte: "pronto" },
+    ],
   },
   {
     t: "Sabe o que resultou",
     d: "Visualizações e mensagens por anúncio. Percebe que cavalo interessa a quem.",
-    // Cinco dias de visitas; o de hoje a branco.
-    marca: (
-      <div className="marca" aria-hidden="true">
-        <div className="marca__colunas">
-          {[14, 22, 12, 27, 34].map((h, i) => (
-            <div key={i} className="marca__coluna" style={{ height: h }} />
-          ))}
-        </div>
-      </div>
-    ),
+    estados: [
+      { texto: "142 visualizações", forte: "7 mensagens" },
+      { texto: "89 visualizações", forte: "3 mensagens" },
+      { texto: "310 visualizações", forte: "16 mensagens" },
+      { texto: "57 visualizações", forte: "1 mensagem" },
+      { texto: "204 visualizações", forte: "9 mensagens" },
+    ],
   },
 ];
 
@@ -458,6 +455,11 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
   const anuncios = [0, 1, 2, 3, 4].map((k) => variante(ANUNCIOS, k));
   const pedigree = [0, 1, 2, 3, 4].map((k) => variante(PEDIGREES, k));
   const mensagem = MENSAGENS[Math.floor(passo / 4) % MENSAGENS.length];
+
+  /* A grelha «Publique com confiança» tem o seu relógio: fica noutra parte
+     da página e não faz sentido andar ao ritmo de painéis que já saíram do
+     ecrã. Mesma regra — cada cartão desencontrado dos vizinhos. */
+  const { passo: passoCartoes, alvo: cartoesVivos } = usePassoVivo(900);
 
   return (
     <main className="bg-[var(--background)]">
@@ -868,23 +870,36 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
           </p>
         </Revelar>
 
-        <GrelhaHolofote className="grelha-holofote grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {CONFIANCA.map((c, i) => (
-            <Revelar key={c.t} y={20} atraso={i * 120}>
-              <CartaoSeco>
-                <div className="cartao-holofote flex h-full flex-col gap-4 rounded-[24px] p-8">
-                  <div className="relative z-10">{c.marca}</div>
-                  <h4 className="relative z-10 text-xl font-normal text-[var(--foreground-strong)]">
-                    {c.t}
-                  </h4>
-                  <p className="relative z-10 text-sm leading-relaxed text-[var(--foreground-secondary)]">
-                    {c.d}
-                  </p>
-                </div>
-              </CartaoSeco>
-            </Revelar>
-          ))}
-        </GrelhaHolofote>
+        <div ref={cartoesVivos}>
+          <GrelhaHolofote className="grelha-holofote grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {CONFIANCA.map((c, i) => {
+              const estado = c.estados[(Math.floor((passoCartoes + i) / 3) + i) % c.estados.length];
+              return (
+                <Revelar key={c.t} y={20} atraso={i * 120}>
+                  <CartaoSeco>
+                    <div className="cartao-holofote flex h-full flex-col gap-4 rounded-[24px] p-8">
+                      <div className="relative z-10">
+                        <PainelEscrito chave={estado.texto} duracao={700}>
+                          <div className="linha-viva">
+                            <span className="linha-viva__ponto" />
+                            <span className="linha-viva__texto">{estado.texto}</span>
+                            <span className="linha-viva__forte">{estado.forte}</span>
+                          </div>
+                        </PainelEscrito>
+                      </div>
+                      <h4 className="relative z-10 text-xl font-normal text-[var(--foreground-strong)]">
+                        {c.t}
+                      </h4>
+                      <p className="relative z-10 text-sm leading-relaxed text-[var(--foreground-secondary)]">
+                        {c.d}
+                      </p>
+                    </div>
+                  </CartaoSeco>
+                </Revelar>
+              );
+            })}
+          </GrelhaHolofote>
+        </div>
       </section>
 
       {/* ── CTA FINAL ────────────────────────────────────────────────────── */}
