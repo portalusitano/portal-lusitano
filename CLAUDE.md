@@ -119,9 +119,17 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
      ponto onde a etiqueta assenta. O dourado ficou no alfinete e no fio e
      saiu do texto — das onze etiquetas legíveis ao mesmo tempo, seis eram
      douradas, o que já não é um acento mas uma segunda cor de texto.
-   - **A atmosfera são duas cascas**, uma larga e ténue e outra apertada;
-     e o brilho conta-se contra o eixo da câmara, não contra a superfície —
-     um Fresnel numa casca fina dá um anel desenhado a régua.
+   - **A atmosfera é uma casca só**, e o que ela desenha é a coluna de ar
+     que cada raio atravessa. Eram duas — uma larga e ténue, outra apertada
+     e forte — porque cada uma fazia um Fresnel com uma potência diferente,
+     e um Fresnel só nunca dava ao mesmo tempo o véu sobre o terreno e a
+     linha do horizonte. Com a coluna de ar a mesma conta dá as duas: a
+     diferença entre elas é geometria (coluna curta contra coluna rasante),
+     não um expoente à escolha. A esfera é maior do que o ar que desenha —
+     1,08 contra 1,020 — de propósito: quem decide onde a atmosfera acaba é
+     o shader, que descarta o pixel onde não há ar. Quando era a geometria a
+     decidir, o remate contra o preto era uma linha quebrada com os cantos
+     dos polígonos à vista.
 5. **Holofote na grelha** — `<GrelhaHolofote>` escreve a posição do rato em
    coordenadas de cada cartão (`--px`, `--py`) e o `.cartao-holofote` acende
    com ela a hairline e um halo. Como os cartões todos lêem a mesma luz, ela

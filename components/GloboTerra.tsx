@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { nomeCurto, sitioCurto } from "@/lib/nomes-globo";
 import * as THREE from "three";
 import { resolverCoordenadas, type CoudelariaNoMapa } from "@/lib/coordenadas-coudelarias";
 
@@ -443,15 +444,6 @@ function alturaParaCaber(aspecto: number) {
   return cima;
 }
 
-/* «Coudelaria de Alter Real» → «Alter Real».
-   Numa lista de coudelarias a palavra «Coudelaria» não distingue nenhuma das
-   outras: dezasseis dos vinte e nove nomes começam por ela. Ocupa setenta
-   pixéis de linha por etiqueta, que é precisamente o que falta para caber
-   mais um nome no Ribatejo. O nome inteiro fica no `aria-label` e no `title`. */
-function nomeCurto(nome: string) {
-  return nome.replace(/^coudelaria\s+(?:d[eoa]s?\s+)?/i, "").trim() || nome;
-}
-
 type Ponto = { c: CoudelariaNoMapa; coords: [number, number] };
 
 /** Estado visível do componente. */
@@ -845,11 +837,15 @@ export default function GloboTerra({
     alfinetes.count = grupos.length;
     grupoAlfinetes.add(alfinetes);
 
-    /* Quatro materiais chegam para os halos todos: branco e dourado, cada um
-       apagado e aceso. Um material por sprite era um programa e um descarte
-       por coudelaria, para duas cores; e como a opacidade vive no material,
-       acender um halo com material partilhado acendia-os todos — por isso o
-       aceso é um material à parte e o realce troca a referência. */
+    /* Dois materiais, e não quatro: apagado e aceso, ambos brancos.
+       Os alfinetes em destaque eram dourados — e são vinte e um dos vinte e
+       nove. Um acento em setenta e dois por cento dos pontos não assinala
+       nada; é a regra da grelha do CLAUDE.md aplicada a um mapa. Sobre a
+       fotografia do planeta quem assinala é o contraste, e o que distingue
+       um destaque passa a ser o tamanho do halo, não a cor.
+       Como a opacidade vive no material, acender um halo com material
+       partilhado acendia-os todos — por isso o aceso é um material à parte
+       e o realce troca a referência em vez de mutar a opacidade. */
     const matHalo = (cor: number, opacidade: number) =>
       new THREE.SpriteMaterial({
         map: texturaHalo,
@@ -859,11 +855,9 @@ export default function GloboTerra({
         depthWrite: false,
         blending: THREE.AdditiveBlending,
       });
-    const haloBranco = matHalo(0xffffff, 0.6);
-    const haloDourado = matHalo(0xc6a15b, 0.6);
-    const haloBrancoAceso = matHalo(0xffffff, 1);
-    const haloDouradoAceso = matHalo(0xc6a15b, 1);
-    const materiaisHalo = [haloBranco, haloDourado, haloBrancoAceso, haloDouradoAceso];
+    const haloApagado = matHalo(0xffffff, 0.6);
+    const haloAceso = matHalo(0xffffff, 1);
+    const materiaisHalo = [haloApagado, haloAceso];
 
     type Alfinete = {
       indice: number;
@@ -887,16 +881,15 @@ export default function GloboTerra({
       molde.scale.setScalar(1);
       molde.updateMatrix();
       alfinetes.setMatrixAt(indice, molde.matrix);
-      alfinetes.setColorAt(indice, corAlfinete.setHex(destaque ? 0xc6a15b : 0xffffff));
+      alfinetes.setColorAt(indice, corAlfinete.setHex(0xffffff));
 
       // Um halo por baixo, para o ponto se ler contra as luzes das cidades.
-      const materiais: [THREE.SpriteMaterial, THREE.SpriteMaterial] = destaque
-        ? [haloDourado, haloDouradoAceso]
-        : [haloBranco, haloBrancoAceso];
+      const materiais: [THREE.SpriteMaterial, THREE.SpriteMaterial] = [haloApagado, haloAceso];
       const halo = new THREE.Sprite(materiais[0]);
-      // Onde há mais do que uma, o halo abre-se: o ponto lê-se como pilha
-      // antes de se chegar a ler o «2» na etiqueta.
-      const base = grupo ? HALO_BASE * 1.5 : HALO_BASE;
+      /* O halo é o que diz a hierarquia, agora que a cor não a diz: mais
+         aberto num destaque, e mais aberto ainda onde há mais do que uma —
+         o ponto lê-se como pilha antes de se chegar a ler o «2». */
+      const base = grupo ? HALO_BASE * 1.6 : destaque ? HALO_BASE * 1.25 : HALO_BASE;
       halo.scale.setScalar(base);
       halo.position.copy(posicao);
       grupoAlfinetes.add(halo);
@@ -1084,7 +1077,7 @@ export default function GloboTerra({
         /* Numa pilha quem identifica é o sítio: as duas coudelarias de
            Ferreira do Alentejo partilham tudo menos o nome, e é o nome que
            se abre a seguir. */
-        titulo.textContent = principal.localizacao;
+        titulo.textContent = sitioCurto(principal.localizacao);
         const conta = document.createElement("span");
         conta.className = "globo-etiqueta__conta";
         conta.textContent = String(membros.length);
@@ -1118,7 +1111,7 @@ export default function GloboTerra({
         caixa.appendChild(lista);
       } else {
         titulo.textContent = nomeCurto(principal.nome);
-        subtitulo.textContent = principal.localizacao;
+        subtitulo.textContent = sitioCurto(principal.localizacao);
         cabeca.title = principal.nome;
         cabeca.setAttribute("aria-label", `${principal.nome}, ${principal.localizacao}`);
       }
