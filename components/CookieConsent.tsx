@@ -168,63 +168,20 @@ export default function CookieConsent() {
       className="fixed bottom-0 left-0 right-0 md:left-auto md:right-6 md:bottom-6 z-[9998] md:w-[360px] pb-[72px] md:pb-0 opacity-0 animate-[slideUp_0.5s_cubic-bezier(0.22,1,0.36,1)_forwards]"
       style={{ willChange: "transform, opacity" }}
     >
-      <div className="relative bg-[var(--background)] border-t border-l border-r border-[var(--border)] md:border shadow-[0_-8px_50px_rgba(0,0,0,0.7)] md:shadow-[0_12px_60px_rgba(0,0,0,0.8)]">
-        {/* Gold accent top line */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent" />
-
-        {/* SVG grain texture */}
-        <svg
-          className="absolute inset-0 w-full h-full opacity-[0.025] pointer-events-none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            <filter id="cookie-noise">
-              <feTurbulence
-                type="fractalNoise"
-                baseFrequency="0.65"
-                numOctaves="3"
-                stitchTiles="stitch"
-              />
-              <feColorMatrix type="saturate" values="0" />
-            </filter>
-          </defs>
-          <rect width="100%" height="100%" filter="url(#cookie-noise)" />
-        </svg>
-
+      <div className="cartao relative rounded-b-none md:rounded-[24px] shadow-[0_12px_60px_rgba(0,0,0,0.8)]">
         <div className="relative p-5 md:p-6">
           {/* Header */}
           <div className="mb-5">
             <div className="flex items-center gap-2 mb-3">
-              {/* Gold ornament */}
-              <div className="flex items-center gap-1.5">
-                <div className="w-4 h-px bg-gradient-to-r from-transparent to-[var(--gold)]/60" />
-                <svg width="5" height="5" viewBox="0 0 5 5" xmlns="http://www.w3.org/2000/svg">
-                  <rect
-                    x="0.5"
-                    y="0.5"
-                    width="4"
-                    height="4"
-                    transform="rotate(45 2.5 2.5)"
-                    fill="none"
-                    stroke="var(--gold)"
-                    strokeWidth="0.8"
-                    strokeOpacity="0.7"
-                  />
-                </svg>
-                <div className="w-4 h-px bg-gradient-to-l from-transparent to-[var(--gold)]/60" />
-              </div>
-              <p className="text-[var(--gold)] rotulo">{t.label}</p>
+              <p className="rotulo-forte">{t.label}</p>
             </div>
 
-            <h3 className="text-[var(--foreground)] text-[1.15rem] leading-snug mb-2.5">
-              {t.title}
-            </h3>
-            <p className="text-[var(--foreground-muted)] text-[11px] leading-relaxed">
-              {t.description}
-              {""}
+            <h3 className="titulo-seccao text-base mb-2">{t.title}</h3>
+            <p className="meta leading-relaxed">
+              {t.description}{" "}
               <LocalizedLink
                 href="/privacidade"
-                className="text-[var(--gold)]/70 hover:text-[var(--gold)] transition-colors underline underline-offset-2 decoration-[var(--gold)]/30"
+                className="text-[var(--gold)] hover:underline underline-offset-2"
               >
                 {t.policy}
               </LocalizedLink>
@@ -291,46 +248,24 @@ export default function CookieConsent() {
           {/* Action buttons */}
           <div className="space-y-2">
             {/* Primary CTA */}
-            <button
-              onClick={handleAcceptAll}
-              className="w-full py-3 bg-[var(--gold)] text-black rotulo font-bold hover:bg-white transition-colors duration-200 shimmer-gold"
-            >
+            <button onClick={handleAcceptAll} className="btn btn-primario w-full">
               {t.accept_all}
             </button>
 
             {/* Secondary row */}
             <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => setShowDetails((s) => !s)}
-                className="py-2.5 border border-[var(--border)] hover:border-[var(--gold)]/40 text-[var(--foreground-muted)] hover:text-[var(--foreground)] rotulo transition-colors duration-200"
-              >
+              <button onClick={() => setShowDetails((s) => !s)} className="btn btn-secundario">
                 {showDetails ? t.hide_details : t.customize}
               </button>
               <button
                 onClick={showDetails ? handleAcceptSelected : handleDecline}
-                className="py-2.5 border border-[var(--border)] hover:border-[var(--border-hover)] text-[var(--foreground-muted)] hover:text-[var(--foreground)] rotulo transition-colors duration-200"
+                className="btn btn-secundario"
               >
                 {showDetails ? t.accept_selected : t.decline}
               </button>
             </div>
           </div>
-        </div>
-
-        {/* Ornamental bottom-right corner */}
-        <div className="absolute bottom-3 right-3 pointer-events-none opacity-[0.18]">
-          <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 20 L20 20 L20 0" fill="none" stroke="var(--gold)" strokeWidth="1" />
-            <path d="M0 15 L15 15 L15 0" fill="none" stroke="var(--gold)" strokeWidth="0.5" />
-          </svg>
-        </div>
-
-        {/* Ornamental top-left corner */}
-        <div className="absolute top-3 left-3 pointer-events-none opacity-[0.18]">
-          <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 0 L0 0 L0 20" fill="none" stroke="var(--gold)" strokeWidth="1" />
-            <path d="M20 5 L5 5 L5 20" fill="none" stroke="var(--gold)" strokeWidth="0.5" />
-          </svg>
-        </div>
+        </div>{" "}
       </div>
     </div>
   );
