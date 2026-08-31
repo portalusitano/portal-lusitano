@@ -123,21 +123,28 @@ function Preview({
   atraso = 0,
   duracao,
   chave,
+  escrever = true,
 }: {
   children: React.ReactNode;
   colunas: string;
   atraso?: number;
   duracao?: number;
   chave?: string | number;
+  /** Falso nas tabelas: aí quem se escreve é cada linha, no seu tempo. */
+  escrever?: boolean;
 }) {
   return (
     <div className="relative z-10 h-[280px] overflow-hidden rounded-t-[24px] px-5 pt-5">
       {/* Esbate o preview para o fundo em vez de o cortar a direito. */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-40 bg-gradient-to-t from-[var(--background)] to-transparent" />
       <div className="w-full overflow-hidden" style={{ ["--cols" as string]: colunas }}>
-        <PainelEscrito atraso={atraso} duracao={duracao} chave={chave}>
-          {children}
-        </PainelEscrito>
+        {escrever ? (
+          <PainelEscrito atraso={atraso} duracao={duracao} chave={chave}>
+            {children}
+          </PainelEscrito>
+        ) : (
+          children
+        )}
       </div>
     </div>
   );
@@ -434,20 +441,23 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
   const semAnuncios = destaques.length === 0 && recentes.length === 0;
   const grelhaCols = "1fr 96px 74px 62px";
 
-  /* Os painéis estão sempre a escrever, e sempre coisa diferente.
-     Um relógio só, a bater de 800 em 800ms, e cada painel a mudar a um
-     múltiplo diferente dele: 2,4s, 3,2s e 4,0s. Como os três períodos não
-     coincidem, nunca chegam todos ao mesmo tempo — há sempre um a compor-se
-     enquanto os outros acabam de o fazer. Com um período só, os três
-     mudavam em uníssono e ficavam parados nos intervalos; com estes, medido
-     no browser, a maior pausa em que nada mexe fica abaixo de meio segundo. */
+  /* Quem muda é **cada linha**, não o painel inteiro.
+     Escrever o painel todo de uma vez e depois segurar é sempre pausado:
+     por muito que se apertem os tempos, fica um bloco a compor-se e um
+     silêncio a seguir. Assim cada linha tem o seu relógio, desencontrado
+     do das vizinhas — de 4 em 4 segundos, mas cada uma no seu tempo —, de
+     modo que a cada 800ms há uma a escrever-se algures. E como as linhas
+     se combinam livremente, a tabela que se vê nunca é a mesma duas vezes:
+     cinco variantes por linha dão 3125 tabelas diferentes, não cinco. */
   const { passo, alvo: painelVivo } = usePassoVivo(800);
-  const iAnuncios = Math.floor(passo / 3);
-  const iMensagem = Math.floor(passo / 4);
-  const iPedigree = Math.floor(passo / 5);
-  const anuncios = ANUNCIOS[iAnuncios % ANUNCIOS.length];
-  const mensagem = MENSAGENS[iMensagem % MENSAGENS.length];
-  const pedigree = PEDIGREES[iPedigree % PEDIGREES.length];
+
+  /** A variante da linha `k`, no relógio próprio dessa linha. */
+  const variante = <T,>(conjuntos: T[][], k: number): T =>
+    conjuntos[(Math.floor((passo + k) / 5) + k) % conjuntos.length][k];
+
+  const anuncios = [0, 1, 2, 3, 4].map((k) => variante(ANUNCIOS, k));
+  const pedigree = [0, 1, 2, 3, 4].map((k) => variante(PEDIGREES, k));
+  const mensagem = MENSAGENS[Math.floor(passo / 4) % MENSAGENS.length];
 
   return (
     <main className="bg-[var(--background)]">
@@ -605,33 +615,35 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
         <div ref={painelVivo} className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           <Revelar y={20} atraso={0}>
             <CartaoSeco>
-              <Preview colunas={grelhaCols} atraso={0} duracao={2000} chave={iAnuncios}>
+              <Preview colunas={grelhaCols} escrever={false}>
                 <div className="cabeca-ui" style={{ gridTemplateColumns: grelhaCols }}>
                   <span>Cavalo</span>
                   <span>Coudelaria</span>
                   <span>Idade</span>
                   <span className="text-right">Estado</span>
                 </div>
-                {anuncios.map(([nome, coudelaria, idade, estado]) => (
-                  <div key={nome} className="linha-ui" style={{ gridTemplateColumns: grelhaCols }}>
-                    <span className="truncate pr-2 text-[11px] font-medium text-[var(--foreground-strong)]">
-                      {nome}
-                    </span>
-                    <span className="truncate text-[11px] text-[var(--foreground-muted)]">
-                      {coudelaria}
-                    </span>
-                    <span className="font-mono text-[11px] text-[var(--foreground-muted)]">
-                      {idade}
-                    </span>
-                    <span
-                      className="text-right text-[10px]"
-                      style={{
-                        color: estado === "Activo" ? "var(--ok)" : "var(--foreground-muted)",
-                      }}
-                    >
-                      {estado}
-                    </span>
-                  </div>
+                {anuncios.map(([nome, coudelaria, idade, estado], k) => (
+                  <PainelEscrito key={k} chave={nome} duracao={520}>
+                    <div className="linha-ui" style={{ gridTemplateColumns: grelhaCols }}>
+                      <span className="truncate pr-2 text-[11px] font-medium text-[var(--foreground-strong)]">
+                        {nome}
+                      </span>
+                      <span className="truncate text-[11px] text-[var(--foreground-muted)]">
+                        {coudelaria}
+                      </span>
+                      <span className="font-mono text-[11px] text-[var(--foreground-muted)]">
+                        {idade}
+                      </span>
+                      <span
+                        className="text-right text-[10px]"
+                        style={{
+                          color: estado === "Activo" ? "var(--ok)" : "var(--foreground-muted)",
+                        }}
+                      >
+                        {estado}
+                      </span>
+                    </div>
+                  </PainelEscrito>
                 ))}
               </Preview>
               <CorpoCartao
@@ -644,7 +656,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
 
           <Revelar y={20} atraso={100}>
             <CartaoSeco>
-              <Preview colunas="1fr" atraso={0} duracao={2000} chave={iMensagem}>
+              <Preview colunas="1fr" duracao={1400} chave={mensagem.de}>
                 <div
                   className="rounded-xl border p-3"
                   style={{ borderColor: "var(--border-soft)" }}
@@ -712,33 +724,31 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
 
           <Revelar y={20} atraso={200}>
             <CartaoSeco>
-              <Preview colunas="1fr 84px 64px" atraso={0} duracao={2000} chave={iPedigree}>
+              <Preview colunas="1fr 84px 64px" escrever={false}>
                 <div className="cabeca-ui" style={{ gridTemplateColumns: "1fr 84px 64px" }}>
                   <span>Ascendência</span>
                   <span>Linhagem</span>
                   <span className="text-right">Grau</span>
                 </div>
-                {pedigree.map(([nome, linhagem, grau, forte]) => (
-                  <div
-                    key={String(nome)}
-                    className="linha-ui"
-                    style={{ gridTemplateColumns: "1fr 84px 64px" }}
-                  >
-                    <span
-                      className={`truncate pr-2 text-[11px] ${forte ? "font-medium text-[var(--foreground-strong)]" : "text-[var(--foreground-secondary)]"}`}
-                    >
-                      {nome}
-                    </span>
-                    <span className="truncate text-[11px] text-[var(--foreground-muted)]">
-                      {linhagem}
-                    </span>
-                    <span
-                      className="text-right font-mono text-[11px]"
-                      style={{ color: forte ? "var(--gold)" : "var(--foreground-muted)" }}
-                    >
-                      {grau}
-                    </span>
-                  </div>
+                {pedigree.map(([nome, linhagem, grau, forte], k) => (
+                  <PainelEscrito key={k} chave={String(nome)} duracao={520}>
+                    <div className="linha-ui" style={{ gridTemplateColumns: "1fr 84px 64px" }}>
+                      <span
+                        className={`truncate pr-2 text-[11px] ${forte ? "font-medium text-[var(--foreground-strong)]" : "text-[var(--foreground-secondary)]"}`}
+                      >
+                        {nome}
+                      </span>
+                      <span className="truncate text-[11px] text-[var(--foreground-muted)]">
+                        {linhagem}
+                      </span>
+                      <span
+                        className="text-right font-mono text-[11px]"
+                        style={{ color: forte ? "var(--gold)" : "var(--foreground-muted)" }}
+                      >
+                        {grau}
+                      </span>
+                    </div>
+                  </PainelEscrito>
                 ))}
               </Preview>
               <CorpoCartao

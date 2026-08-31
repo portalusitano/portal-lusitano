@@ -154,12 +154,14 @@ As durações e as curvas são medidas, não inventadas. Vivem em tokens no
 - **Três ciclos infinitos em todo o site**, e não mais: o ponto verde da
   contagem de anúncios (`pulsar-ponto`), o muro de coudelarias
   (`.muro__pista`, 45s lineares) e os três previews da página inicial, que
-  estão sempre a escrever-se — e sempre coisa diferente. Um relógio só bate
-  de 800 em 800ms e cada painel muda a um múltiplo diferente dele (2,4s,
-  3,2s e 4,0s): como os períodos não coincidem, nunca chegam ao mesmo tempo
-  e há sempre um a compor-se. Medido no browser, 97% dos instantes têm algo
-  a mexer e a maior pausa em que tudo pára fica em 0,3s. Com um período só,
-  os três mudavam em uníssono e ficavam parados nos intervalos. A razão escrita do terceiro: aqui o que se mexe é o
+  estão sempre a escrever-se — e sempre coisa diferente. Quem muda é **cada
+  linha**, não o painel: escrever o painel todo de uma vez e segurar é
+  sempre pausado, por muito que se apertem os tempos. Um relógio só bate de
+  800 em 800ms e cada linha tem o seu, desencontrado do das vizinhas, de
+  modo que a cada 800ms há uma a compor-se algures. Como as linhas se
+  combinam livremente, cinco variantes por linha dão 3125 tabelas
+  possíveis, não cinco. Medido no browser: 86% dos instantes com algo a
+  mexer, pausa máxima de 0,2s, 65 tabelas distintas em 25 segundos. A razão escrita do terceiro: aqui o que se mexe é o
   conteúdo, não um adorno — um painel que mostra sempre as mesmas cinco
   linhas parece uma captura de ecrã, e a rodar lê-se como o produto a
   funcionar. Pára fora do ecrã, pára com o separador escondido e não
