@@ -121,11 +121,13 @@ function Preview({
   children,
   colunas,
   atraso = 0,
+  duracao,
   chave,
 }: {
   children: React.ReactNode;
   colunas: string;
   atraso?: number;
+  duracao?: number;
   chave?: string | number;
 }) {
   return (
@@ -133,7 +135,7 @@ function Preview({
       {/* Esbate o preview para o fundo em vez de o cortar a direito. */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-40 bg-gradient-to-t from-[var(--background)] to-transparent" />
       <div className="w-full overflow-hidden" style={{ ["--cols" as string]: colunas }}>
-        <PainelEscrito atraso={atraso} chave={chave}>
+        <PainelEscrito atraso={atraso} duracao={duracao} chave={chave}>
           {children}
         </PainelEscrito>
       </div>
@@ -202,6 +204,20 @@ const ANUNCIOS: string[][][] = [
     ["Infanta de Arraiolos", "Arraiolos", "3 anos", "Reservado"],
     ["Barroco do Ribatejo", "Ribatejo", "12 anos", "Vendido"],
   ],
+  [
+    ["Vaidoso de Alpiarça", "Alpiarça", "7 anos", "Activo"],
+    ["Princesa do Sado", "Sado", "5 anos", "Activo"],
+    ["Guerreiro da Azinhaga", "Azinhaga", "10 anos", "Reservado"],
+    ["Alegria de Estremoz", "Estremoz", "2 anos", "Activo"],
+    ["Marquês do Couço", "Couço", "13 anos", "Vendido"],
+  ],
+  [
+    ["Sereno da Coruche", "Coruche", "6 anos", "Activo"],
+    ["Fidalga de Monforte", "Monforte", "4 anos", "Activo"],
+    ["Corisco do Tejo", "Tejo", "8 anos", "Activo"],
+    ["Donaire de Beja", "Beja", "3 anos", "Reservado"],
+    ["Ilustre da Chamusca", "Chamusca", "14 anos", "Vendido"],
+  ],
 ];
 
 type Mensagem = {
@@ -234,6 +250,20 @@ const MENSAGENS: Mensagem[] = [
     orcamento: "8–14 k€",
     disciplina: "Criação",
   },
+  {
+    de: "Sofia Marques · Cascais",
+    cavalo: "Princesa do Sado",
+    texto: "Primeira compra. Procuro um cavalo calmo, para passeio.",
+    orcamento: "6–10 k€",
+    disciplina: "Passeio",
+  },
+  {
+    de: "Klaus Berger · Munique",
+    cavalo: "Corisco do Tejo",
+    texto: "Atrelagem a pares. Preciso de dois com a mesma capa.",
+    orcamento: "20–35 k€",
+    disciplina: "Atrelagem",
+  },
 ];
 
 const PEDIGREES: [string, string, string, boolean][][] = [
@@ -257,6 +287,20 @@ const PEDIGREES: [string, string, string, boolean][][] = [
     ["Avô paterno — Batuque", "Andrade", "—", false],
     ["Avó paterna — Serena", "Andrade", "Prata", false],
     ["Avô materno — Cartucho", "Coimbra", "Ouro", false],
+  ],
+  [
+    ["Pai — Corisco", "Veiga", "Ouro", true],
+    ["Mãe — Donaire", "Alter Real", "Prata", true],
+    ["Avô paterno — Novilheiro", "Veiga", "Ouro", false],
+    ["Avó paterna — Garbosa", "Veiga", "Prata", false],
+    ["Avô materno — Legionário", "Alter Real", "—", false],
+  ],
+  [
+    ["Pai — Marquês", "Coimbra", "Prata", true],
+    ["Mãe — Alegria", "Andrade", "Ouro", true],
+    ["Avô paterno — Vaidoso", "Coimbra", "Ouro", false],
+    ["Avó paterna — Formosa", "Coimbra", "—", false],
+    ["Avô materno — Sereno", "Andrade", "Prata", false],
   ],
 ];
 
@@ -390,11 +434,20 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
   const semAnuncios = destaques.length === 0 && recentes.length === 0;
   const grelhaCols = "1fr 96px 74px 62px";
 
-  // Os previews rodam entre conjuntos e reescrevem-se a cada mudança.
-  const { passo, alvo: painelVivo } = usePassoVivo(6500);
-  const anuncios = ANUNCIOS[passo % ANUNCIOS.length];
-  const mensagem = MENSAGENS[passo % MENSAGENS.length];
-  const pedigree = PEDIGREES[passo % PEDIGREES.length];
+  /* Os painéis estão sempre a escrever, e sempre coisa diferente.
+     Um relógio só, a bater de 800 em 800ms, e cada painel a mudar a um
+     múltiplo diferente dele: 2,4s, 3,2s e 4,0s. Como os três períodos não
+     coincidem, nunca chegam todos ao mesmo tempo — há sempre um a compor-se
+     enquanto os outros acabam de o fazer. Com um período só, os três
+     mudavam em uníssono e ficavam parados nos intervalos; com estes, medido
+     no browser, a maior pausa em que nada mexe fica abaixo de meio segundo. */
+  const { passo, alvo: painelVivo } = usePassoVivo(800);
+  const iAnuncios = Math.floor(passo / 3);
+  const iMensagem = Math.floor(passo / 4);
+  const iPedigree = Math.floor(passo / 5);
+  const anuncios = ANUNCIOS[iAnuncios % ANUNCIOS.length];
+  const mensagem = MENSAGENS[iMensagem % MENSAGENS.length];
+  const pedigree = PEDIGREES[iPedigree % PEDIGREES.length];
 
   return (
     <main className="bg-[var(--background)]">
@@ -552,7 +605,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
         <div ref={painelVivo} className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           <Revelar y={20} atraso={0}>
             <CartaoSeco>
-              <Preview colunas={grelhaCols} atraso={150} chave={passo}>
+              <Preview colunas={grelhaCols} atraso={0} duracao={2000} chave={iAnuncios}>
                 <div className="cabeca-ui" style={{ gridTemplateColumns: grelhaCols }}>
                   <span>Cavalo</span>
                   <span>Coudelaria</span>
@@ -591,7 +644,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
 
           <Revelar y={20} atraso={100}>
             <CartaoSeco>
-              <Preview colunas="1fr" atraso={250} chave={passo}>
+              <Preview colunas="1fr" atraso={0} duracao={2000} chave={iMensagem}>
                 <div
                   className="rounded-xl border p-3"
                   style={{ borderColor: "var(--border-soft)" }}
@@ -659,7 +712,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
 
           <Revelar y={20} atraso={200}>
             <CartaoSeco>
-              <Preview colunas="1fr 84px 64px" atraso={350} chave={passo}>
+              <Preview colunas="1fr 84px 64px" atraso={0} duracao={2000} chave={iPedigree}>
                 <div className="cabeca-ui" style={{ gridTemplateColumns: "1fr 84px 64px" }}>
                   <span>Ascendência</span>
                   <span>Linhagem</span>
