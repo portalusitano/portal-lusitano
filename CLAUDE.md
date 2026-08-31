@@ -94,13 +94,23 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
    qualquer ecrã e o conteúdo actualiza-se sozinho. A `.marca` é a versão
    pequena da mesma ideia: barras e um acento que, em movimento, contam o
    que a frase do cartão diz por palavras.
-4. **A Terra em 3D** (`<GloboTerra>`) — a vista de entrada do mapa. Texturas
-   da NASA em `public/globo/` (411KB em WebP, só nesta página), mistura
-   dia/noite ao longo do terminador com as luzes das cidades, e a atmosfera
-   feita de duas cascas: uma larga e ténue para o ar visto de longe, outra
-   apertada para a linha acesa no horizonte. Uma só nunca dá as duas coisas.
-   O brilho conta-se contra o eixo da câmara, não contra a superfície — um
-   Fresnel numa casca fina dá um anel desenhado a régua, não uma atmosfera.
+4. **A Terra em 3D** (`<GloboTerra>`) — é o mapa da página `/mapa`, e não
+   há outro. Texturas da NASA em `public/globo/` (592KB, só nesta página).
+   O que o faz funcionar:
+   - **Órbita baixa**, a 0,05 raios sobre um ponto a sul de Portugal, a
+     olhar para norte: o país enche o quadro e o horizonte entra em cima.
+     Do espaço as vinte e nove coudelarias cabiam num borrão de dez pixéis.
+   - **Contornos em vectorial** por cima da esfera. A textura tem 2048
+     pontos para dar a volta ao planeta; vista de perto vira papa. As
+     linhas vêm de outro lado e ficam nítidas a qualquer altura — é sobre
+     elas que as etiquetas assentam.
+   - **Etiquetas em HTML**, colocadas a cada quadro a partir da posição
+     projectada. Só se escreve o que está virado para nós, e não se deixam
+     duas sobreporem-se: cada uma tenta a direita e depois a esquerda, e
+     quem perde é a que estiver mais longe. Medido: zero sobreposições.
+   - **A atmosfera são duas cascas**, uma larga e ténue e outra apertada;
+     e o brilho conta-se contra o eixo da câmara, não contra a superfície —
+     um Fresnel numa casca fina dá um anel desenhado a régua.
 5. **Holofote na grelha** — `<GrelhaHolofote>` escreve a posição do rato em
    coordenadas de cada cartão (`--px`, `--py`) e o `.cartao-holofote` acende
    com ela a hairline e um halo. Como os cartões todos lêem a mesma luz, ela

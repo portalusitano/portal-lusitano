@@ -29,15 +29,6 @@ const GloboTerra = dynamic(() => import("@/components/GloboTerra"), {
   loading: () => <div className="h-full w-full" />,
 });
 
-const GloboMapa = dynamic(() => import("@/components/GloboMapa"), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-full w-full items-center justify-center">
-      <Compass className="text-[var(--foreground-muted)]" size={32} aria-hidden="true" />
-    </div>
-  ),
-});
-
 export interface Coudelaria {
   id: string;
   nome: string;
@@ -211,9 +202,8 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
   /* Três vistas. O globo é a entrada — diz de onde é que o portal fala
      antes de dizer o quê. Quem quiser nomes de terras carrega em «Mapa»,
      ou aproxima-se no globo até ele próprio entregar o ecrã aos tiles. */
-  const [viewMode, setViewMode] = useState<"globo" | "map" | "list">("globo");
+  const [viewMode, setViewMode] = useState<"globo" | "list">("globo");
   const [searchQuery, setSearchQuery] = useState("");
-  const [flyTo, setFlyTo] = useState<[number, number] | null>(null);
 
   const coudelariasPorRegiao = useMemo(
     () =>
@@ -251,9 +241,7 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
   const handleSelectRegiao = (regiao: string | null) => {
     setSelectedRegiao(regiao);
     if (regiao && regiaoCoords[regiao]) {
-      setFlyTo(regiaoCoords[regiao]);
     } else {
-      setFlyTo([39.5, -8.0]);
     }
   };
 
@@ -308,13 +296,7 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
               onClick={() => setViewMode("globo")}
               className={`chip gap-1.5 ${viewMode === "globo" ? "chip-activo" : ""}`}
             >
-              <Globe size={16} /> {t.mapa.view_globe}
-            </button>
-            <button
-              onClick={() => setViewMode("map")}
-              className={`chip gap-1.5 ${viewMode === "map" ? "chip-activo" : ""}`}
-            >
-              <Layers size={16} /> {t.mapa.view_map}
+              <Globe size={16} /> {t.mapa.view_map}
             </button>
             <button
               onClick={() => setViewMode("list")}
@@ -342,30 +324,17 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
         </div>
 
         {viewMode === "globo" ? (
-          <div className="relative z-0 h-[520px] overflow-hidden rounded-2xl border border-[var(--border)] bg-black sm:h-[620px] lg:h-[720px]">
-            <div className="cartao-seco__costura z-10" />
-            <GloboTerra
-              coudelarias={searchQuery ? filteredCoudelarias : coudelarias}
-              aoAproximar={() => setViewMode("map")}
-            />
-            <p className="pointer-events-none absolute inset-x-0 bottom-5 z-10 text-center text-[11px] text-[var(--foreground-muted)]">
-              {t.mapa.globe_hint}
-            </p>
-          </div>
-        ) : viewMode === "map" ? (
           <div className="grid lg:grid-cols-12 gap-6">
-            {/* Globo */}
             <div className="lg:col-span-8">
-              <div className="relative z-0 h-[400px] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--background)] sm:h-[520px] lg:h-[640px]">
-                {/* A mesma costura de luz dos cartões assinatura: liga o mapa
-                    ao resto do site em vez de o deixar como um rectângulo
-                    colado à página. */}
+              <div className="relative z-0 h-[520px] overflow-hidden rounded-2xl border border-[var(--border)] bg-black sm:h-[620px] lg:h-[720px]">
                 <div className="cartao-seco__costura z-10" />
-                <GloboMapa
+                <GloboTerra
                   coudelarias={searchQuery ? filteredCoudelarias : coudelarias}
-                  flyTo={flyTo}
-                  onMarkerClick={handleMarkerClick}
+                  aoEscolher={handleMarkerClick}
                 />
+                <p className="pointer-events-none absolute inset-x-0 bottom-5 z-10 text-center text-[11px] text-[var(--foreground-muted)]">
+                  {t.mapa.globe_hint}
+                </p>
               </div>
             </div>
 

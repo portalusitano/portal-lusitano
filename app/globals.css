@@ -2443,3 +2443,109 @@ body {
     }
   }
 }
+
+@layer components {
+  /* ── Etiquetas sobre o globo ──────────────────────────────────────────
+     O nome da localidade escrito por cima da cena 3D. Em HTML e não em
+     textura: fica nítido em qualquer ecrã, herda a tipografia do site e
+     pode receber o rato. */
+
+  .globo-etiquetas {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .globo-etiqueta {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    will-change: transform, opacity;
+    transition: opacity 220ms var(--ease-out);
+    animation: etiqueta-nascer 700ms var(--ease-out) var(--entrada, 0ms) backwards;
+  }
+
+  /* Nasce depois de a câmara pousar: escrever nomes por cima de uma
+     aproximação a meio é ruído. */
+  @keyframes etiqueta-nascer {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* O fio que liga o ponto ao nome. Sem ele, os nomes flutuam e não se
+     percebe a que ponto pertence cada um. */
+  .globo-etiqueta__linha {
+    position: absolute;
+    bottom: -12px;
+    left: 0;
+    height: 12px;
+    width: 10px;
+    border-bottom: 1px solid rgba(214, 235, 253, 0.45);
+    border-left: 1px solid rgba(214, 235, 253, 0.45);
+    border-bottom-left-radius: 3px;
+  }
+
+  /* Do outro lado o fio também troca, senão apontava para o vazio. */
+  .globo-etiqueta[data-lado="esquerda"] .globo-etiqueta__linha {
+    left: auto;
+    right: 0;
+    border-left: 0;
+    border-right: 1px solid rgba(214, 235, 253, 0.45);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 3px;
+  }
+
+  .globo-etiqueta[data-lado="esquerda"] .globo-etiqueta__caixa {
+    padding-left: 0;
+    padding-right: 10px;
+    text-align: right;
+  }
+
+  .globo-etiqueta[data-destaque] .globo-etiqueta__linha {
+    border-bottom-color: rgb(var(--gold-rgb) / 0.6);
+    border-left-color: rgb(var(--gold-rgb) / 0.6);
+    border-right-color: rgb(var(--gold-rgb) / 0.6);
+  }
+
+  .globo-etiqueta__caixa {
+    display: block;
+    white-space: nowrap;
+    padding-left: 10px;
+  }
+
+  .globo-etiqueta__local {
+    display: block;
+    font-size: 12px;
+    line-height: 1.25;
+    font-weight: 500;
+    color: var(--foreground-strong);
+    /* Sombra em vez de caixa: uma caixa por cada nome tapava o planeta. */
+    text-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.95),
+      0 0 12px rgba(0, 0, 0, 0.8);
+  }
+
+  .globo-etiqueta[data-destaque] .globo-etiqueta__local {
+    color: var(--gold);
+  }
+
+  .globo-etiqueta__nome {
+    display: block;
+    font-size: 10px;
+    line-height: 1.3;
+    color: var(--foreground-muted);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .globo-etiqueta {
+      animation: none;
+    }
+  }
+}

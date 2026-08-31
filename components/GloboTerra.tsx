@@ -26,10 +26,24 @@ import { resolverCoordenadas, type CoudelariaNoMapa } from "@/lib/coordenadas-co
  */
 
 const RAIO = 1;
-/* O Sol posto de modo a apanhar a Europa no fim da tarde: Portugal fica
-   junto ao terminador, com as luzes de Espanha e França já acesas ao lado.
-   É o enquadramento da fotografia que serviu de referência. */
-const SOL = new THREE.Vector3(0.55, 0.32, 0.77).normalize();
+/** Lat/lon → ponto na esfera. */
+function naEsfera(lat: number, lon: number, raio: number) {
+  const phi = (90 - lat) * (Math.PI / 180);
+  const theta = (lon + 180) * (Math.PI / 180);
+  return new THREE.Vector3(
+    -raio * Math.sin(phi) * Math.cos(theta),
+    raio * Math.cos(phi),
+    raio * Math.sin(phi) * Math.sin(theta)
+  );
+}
+
+/* O Sol ao largo, a oeste da Península.
+   Numa vista de órbita baixa sobre Portugal, o país tem de se ler: com o
+   Sol do outro lado ficava tudo escuro e as etiquetas assentavam em cima
+   de nada. Assim apanha luz rasante de fim de tarde — o terreno lê-se, as
+   sombras dão relevo, e o terminador fica a leste com as luzes de Espanha
+   e de França já acesas. */
+const SOL = naEsfera(16, -26, 1).normalize();
 
 const VERT = /* glsl */ `
   varying vec2 vUv;
@@ -111,26 +125,15 @@ const FRAG_ATMOSFERA = /* glsl */ `
   }
 `;
 
-/** Lat/lon → ponto na esfera. */
-function naEsfera(lat: number, lon: number, raio: number) {
-  const phi = (90 - lat) * (Math.PI / 180);
-  const theta = (lon + 180) * (Math.PI / 180);
-  return new THREE.Vector3(
-    -raio * Math.sin(phi) * Math.cos(theta),
-    raio * Math.cos(phi),
-    raio * Math.sin(phi) * Math.sin(theta)
-  );
-}
-
 const suave = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
 export default function GloboTerra({
   coudelarias,
-  aoAproximar,
+  aoEscolher,
 }: {
   coudelarias: CoudelariaNoMapa[];
-  /** Chamado quando o utilizador se aproxima ao ponto de querer detalhe. */
-  aoAproximar?: () => void;
+  /** Chamado ao carregar no nome de uma coudelaria. */
+  aoEscolher?: (c: CoudelariaNoMapa) => void;
 }) {
   const caixa = useRef<HTMLDivElement>(null);
   const [pronto, setPronto] = useState(false);
@@ -143,9 +146,9 @@ export default function GloboTerra({
     [coudelarias]
   );
 
-  const aoAproximarRef = useRef(aoAproximar);
+  const aoEscolherRef = useRef(aoEscolher);
   useEffect(() => {
-    aoAproximarRef.current = aoAproximar;
+    aoEscolherRef.current = aoEscolher;
   });
 
   const montar = useCallback(() => {
@@ -165,7 +168,10 @@ export default function GloboTerra({
     const cena = new THREE.Scene();
     /* Lente longa. É o que separa uma fotografia do espaço de um render de
        jogo: com 30° a curvatura lê-se sem a distorção de grande angular. */
-    const camara = new THREE.PerspectiveCamera(30, largura / altura, 0.01, 100);
+    /* 42° de abertura, não 30. A composição que se procura tem duas coisas
+       ao mesmo tempo no quadro — o horizonte curvo em cima e a Península em
+       baixo — e com uma lente longa não cabem as duas. */
+    const camara = new THREE.PerspectiveCamera(42, largura / altura, 0.005, 100);
 
     const carregador = new THREE.TextureLoader();
     const textura = (caminho: string, srgb: boolean) => {
@@ -226,6 +232,33 @@ export default function GloboTerra({
     cena.add(halo);
     cena.add(aro);
 
+    /* ── Costas e fronteiras, em vectorial ────────────────────────────────
+       A textura tem 2048 pontos para dar a volta ao planeta. Vista de uma
+       órbita baixa, cada grau ocupa uns seis texels e a imagem vira papa —
+       é o preço de olhar de perto para uma fotografia de longe.
+
+       Por isso as linhas vêm de outro lado: os contornos de Portugal e
+       vizinhos em vectorial, desenhados por cima da esfera. Ficam nítidos a
+       qualquer altura, e é sobre eles que as etiquetas assentam. A textura
+       fica a fazer o que sabe — a cor da terra, o mar, a atmosfera. */
+    const grupoContornos = new THREE.Group();
+    fetch("/globo/contornos.json")
+      .then((r) => r.json())
+      .then((aneis: [number, number][][]) => {
+        const material = new THREE.LineBasicMaterial({
+          color: 0xd6ebfd,
+          transparent: true,
+          opacity: 0.5,
+          depthWrite: false,
+        });
+        for (const anel of aneis) {
+          const pontos = anel.map(([lon, lat]) => naEsfera(lat, lon, RAIO * 1.0012));
+          const geo = new THREE.BufferGeometry().setFromPoints(pontos);
+          grupoContornos.add(new THREE.Line(geo, material));
+        }
+      })
+      .catch(() => {});
+
     // ── Estrelas, quietas ─────────────────────────────────────────────────
     const nEstrelas = 1400;
     const posicoes = new Float32Array(nEstrelas * 3);
@@ -277,7 +310,9 @@ export default function GloboTerra({
     texturaHalo.colorSpace = THREE.SRGBColorSpace;
 
     const grupoAlfinetes = new THREE.Group();
-    const geoAlfinete = new THREE.SphereGeometry(0.0045, 12, 12);
+    /* À escala da órbita: a 0,17 de distância, um alfinete de raio 0,0008
+       dá uns cinco pixéis. Com o raio da versão anterior era um selo. */
+    const geoAlfinete = new THREE.SphereGeometry(0.0004, 12, 12);
     for (const { c, coords } of pontos) {
       const destaque = c.destaque;
       const material = new THREE.MeshBasicMaterial({
@@ -295,80 +330,231 @@ export default function GloboTerra({
           map: texturaHalo,
           color: destaque ? 0xc6a15b : 0xffffff,
           transparent: true,
-          opacity: 0.75,
+          opacity: 0.85,
           depthWrite: false,
           blending: THREE.AdditiveBlending,
         })
       );
-      brilho.scale.setScalar(0.035);
+      brilho.scale.setScalar(0.0015);
       brilho.position.copy(alfinete.position);
       grupoAlfinetes.add(brilho);
     }
     cena.add(grupoAlfinetes);
 
     // ── A câmara: parte de longe e fecha sobre Portugal, uma vez ──────────
-    /* A câmara não aponta a Portugal: aponta a um ponto mais a sul, para
-       Portugal ficar na metade de cima do quadro e sobrar o Sara em baixo —
-       que é a composição da fotografia. Apontada ao país, o país fica no
-       meio e o resto do planeta fica só a preencher. */
-    const alvo = naEsfera(24, -9, 1).normalize();
+    /* ── O enquadramento ──────────────────────────────────────────────────
+       Não é o planeta ao centro: é a vista de quem está em órbita baixa a
+       sul da Península e olha para norte. A câmara pousa a 0,28 raios de
+       altura sobre um ponto 18° a sul de Portugal e aponta a um ponto 10°
+       a norte dele. Assim Portugal cai na metade de baixo do quadro e o
+       horizonte, que dessa altura fica a arccos(1/1,28) ≈ 38°, entra em
+       cima — que é a fotografia da referência.
+
+       Antes a câmara estava a 4,6 raios com o planeta ao centro: bonito,
+       mas as vinte e nove coudelarias cabiam todas num borrão de dez
+       pixéis, e não era isso que se pedia. */
+    const PORTUGAL = { lat: 39.5, lon: -8.2 };
+    /* Órbita baixa: 0,09 raios ≈ 570km. Daqui o horizonte fica a
+       arccos(1/1,09) ≈ 23°, e o país ocupa dois terços da altura do quadro
+       — que é o que faz caber um nome ao lado de cada coudelaria. A 0,28
+       cabia tudo no enquadramento e não se lia nada. */
+    const ALTURA = 0.05;
+
+    const solo = naEsfera(PORTUGAL.lat - 4.5, PORTUGAL.lon, 1);
+    const olhar = naEsfera(PORTUGAL.lat + 3.5, PORTUGAL.lon, 1);
     const parado = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    /* Com uma lente de 30° e um planeta de raio 1, a esfera ocupa a altura
-       toda do quadro a 1/sin(15°) ≈ 3,86. A 4,6 ocupa uns 80% e sobra
-       espaço para o halo e para as estrelas — que é o enquadramento da
-       fotografia. Mais perto e vê-se oceano; mais longe e é uma bola. */
-    const distanciaFinal = 4.6;
-    const distanciaInicial = 11;
-    let distancia = parado ? distanciaFinal : distanciaInicial;
+    const posFinal = solo.clone().multiplyScalar(1 + ALTURA);
+    const alvoFinal = olhar.clone();
 
-    const cima = new THREE.Vector3(0, 1, 0);
-    const lado = new THREE.Vector3().crossVectors(cima, alvo).normalize();
-    // Chegada: quase de frente, com um grau de inclinação só.
-    const direccaoFinal = alvo.clone().addScaledVector(cima, 0.06).normalize();
-    // Partida: de lado, para a entrada ser uma aproximação e não um zoom.
-    const direccaoInicial = alvo
-      .clone()
-      .addScaledVector(lado, -0.72)
-      .addScaledVector(cima, 0.24)
-      .normalize();
+    // A entrada vem de longe, com o planeta inteiro no quadro.
+    const posInicial = naEsfera(PORTUGAL.lat - 10, PORTUGAL.lon + 52, 1).multiplyScalar(4.6);
+    const alvoInicial = new THREE.Vector3(0, 0, 0);
 
-    const direccao = direccaoInicial.clone();
-    const arrastoRot = { activo: false, x: 0, y: 0 };
+    const posCam = (parado ? posFinal : posInicial).clone();
+    const alvoCam = (parado ? alvoFinal : alvoInicial).clone();
+
+    /* A órbita do utilizador roda o planeta, não a câmara. Rodar a câmara
+       à volta de um ponto que já não é o centro dá enjoo. */
     const orbita = { theta: 0, phi: 0 };
 
     const colocarCamara = () => {
-      const d = direccao.clone();
-      // A órbita do utilizador aplica-se por cima da direcção base.
-      const eixoY = new THREE.Vector3(0, 1, 0);
-      const eixoX = new THREE.Vector3().crossVectors(eixoY, d).normalize();
-      d.applyAxisAngle(eixoY, orbita.theta);
-      d.applyAxisAngle(eixoX, orbita.phi);
-      camara.position.copy(d.multiplyScalar(distancia));
-      camara.lookAt(0, 0, 0);
+      camara.position.copy(posCam);
+      camara.up.copy(posCam).normalize();
+      camara.lookAt(alvoCam);
+    };
+
+    /* ── As etiquetas ─────────────────────────────────────────────────────
+       O nome de cada localidade em HTML por cima da cena, colocado a cada
+       quadro a partir da posição projectada do alfinete. Em HTML e não em
+       textura por três razões: fica nítido em qualquer ecrã, herda a
+       tipografia do site, e pode receber o rato.
+
+       Duas regras fazem a diferença entre um mapa anotado e uma confusão:
+       só se escreve o que está virado para nós, e não se deixam duas
+       etiquetas sobreporem-se — quem perde é a que estiver mais longe. */
+    const camadaEtiquetas = document.createElement("div");
+    camadaEtiquetas.className = "globo-etiquetas";
+    el.appendChild(camadaEtiquetas);
+
+    type Etiqueta = {
+      nó: HTMLElement;
+      posicao: THREE.Vector3;
+      destaque: boolean;
+      largura: number;
+      altura: number;
+    };
+
+    const etiquetas: Etiqueta[] = pontos.map(({ c, coords }, i) => {
+      const nó = document.createElement("div");
+      nó.className = "globo-etiqueta";
+      if (c.destaque) nó.dataset.destaque = "";
+      nó.style.setProperty("--entrada", `${1900 + Math.min(i * 55, 1100)}ms`);
+      nó.innerHTML =
+        '<span class="globo-etiqueta__linha"></span>' +
+        '<span class="globo-etiqueta__caixa">' +
+        '<span class="globo-etiqueta__local"></span>' +
+        '<span class="globo-etiqueta__nome"></span>' +
+        "</span>";
+      nó.querySelector(".globo-etiqueta__local")!.textContent = c.localizacao;
+      nó.querySelector(".globo-etiqueta__nome")!.textContent = c.nome;
+      if (aoEscolherRef.current) {
+        nó.setAttribute("role", "button");
+        nó.setAttribute("tabindex", "0");
+        nó.setAttribute("aria-label", `${c.nome}, ${c.localizacao}`);
+        const abrir = () => aoEscolherRef.current?.(c);
+        nó.addEventListener("click", abrir);
+        nó.addEventListener("keydown", (ev) => {
+          if (ev.key === "Enter" || ev.key === " ") {
+            ev.preventDefault();
+            abrir();
+          }
+        });
+      }
+      camadaEtiquetas.appendChild(nó);
+      return {
+        nó,
+        posicao: naEsfera(coords[0], coords[1], RAIO * 1.004),
+        destaque: c.destaque,
+        largura: 0,
+        altura: 0,
+      };
+    });
+
+    const projeccao = new THREE.Vector3();
+    const normalMundo = new THREE.Vector3();
+    const paraCamara = new THREE.Vector3();
+    const colocadas: { x: number; y: number; l: number; a: number }[] = [];
+
+    const etiquetar = () => {
+      const l = el.clientWidth;
+      const a = el.clientHeight;
+      colocadas.length = 0;
+
+      // Primeiro as que estão em destaque, depois as mais perto de nós: são
+      // essas que ficam quando duas se estorvam.
+      const ordem = etiquetas
+        .map((e, i) => {
+          projeccao.copy(e.posicao).applyMatrix4(mundo.matrixWorld);
+          normalMundo.copy(projeccao).normalize();
+          paraCamara.copy(camara.position).sub(projeccao).normalize();
+          const deFrente = normalMundo.dot(paraCamara);
+          const ecra = projeccao.clone().project(camara);
+          return { e, i, deFrente, ecra, z: ecra.z };
+        })
+        .sort((x, y) => (y.e.destaque ? 1 : 0) - (x.e.destaque ? 1 : 0) || x.z - y.z);
+
+      for (const { e, deFrente, ecra } of ordem) {
+        const x = (ecra.x * 0.5 + 0.5) * l;
+        const y = (-ecra.y * 0.5 + 0.5) * a;
+        const dentro = ecra.z < 1 && x > -40 && x < l + 40 && y > -20 && y < a + 20;
+
+        if (!dentro || deFrente < 0.12) {
+          e.nó.style.opacity = "0";
+          continue;
+        }
+
+        if (!e.largura) {
+          e.largura = e.nó.offsetWidth || 120;
+          e.altura = e.nó.offsetHeight || 34;
+        }
+
+        /* Duas hipóteses de colocação por etiqueta: à direita do alfinete e,
+           se aí bater noutra, à esquerda. Só com um lado perdiam-se metade
+           dos nomes num país onde as coudelarias estão todas encostadas. */
+        const bate = (c: { x: number; y: number; l: number; a: number }) =>
+          colocadas.some(
+            (o) =>
+              c.x < o.x + o.l + 12 &&
+              c.x + c.l + 12 > o.x &&
+              c.y < o.y + o.a + 8 &&
+              c.y + c.a + 8 > o.y
+          );
+
+        const direita = { x: x + 10, y: y - e.altura - 12, l: e.largura, a: e.altura };
+        const esquerda = { x: x - 10 - e.largura, y: y - e.altura - 12, l: e.largura, a: e.altura };
+        const escolhida = !bate(direita) ? direita : !bate(esquerda) ? esquerda : null;
+
+        if (!escolhida) {
+          e.nó.style.opacity = "0";
+          e.nó.style.pointerEvents = "none";
+          continue;
+        }
+        colocadas.push(escolhida);
+        e.nó.dataset.lado = escolhida === esquerda ? "esquerda" : "direita";
+
+        // Esbate-se junto ao horizonte, onde a superfície foge do olhar.
+        /* Colocar onde as contas disseram, e não em cima do alfinete: era
+           esta a razão de as etiquetas continuarem a sobrepor-se depois de
+           eu ter posto um teste de colisão. O teste estava certo; o que
+           estava errado era o sítio onde eu punha o elemento a seguir. */
+        const perto = Math.min(1, (deFrente - 0.12) / 0.28);
+        e.nó.style.transform = `translate3d(${Math.round(escolhida.x)}px, ${Math.round(escolhida.y)}px, 0)`;
+        e.nó.style.opacity = String(perto);
+        e.nó.style.pointerEvents = perto > 0.6 ? "auto" : "none";
+      }
     };
 
     let quadro = 0;
     const inicio = performance.now();
-    const duracao = parado ? 0 : 2800;
+    const duracao = parado ? 0 : 3000;
     let aEntrar = !parado;
+
+    const mundo = new THREE.Group();
+    mundo.add(terra);
+    mundo.add(grupoContornos);
+    mundo.add(grupoAlfinetes);
+    cena.add(mundo);
 
     const desenhar = () => {
       if (aEntrar) {
         const t = Math.min(1, (performance.now() - inicio) / duracao);
         const e = suave(t);
-        distancia = distanciaInicial + (distanciaFinal - distanciaInicial) * e;
-        direccao.copy(direccaoInicial).lerp(direccaoFinal, e).normalize();
+        // A direcção interpola-se pelo arco, o raio pela recta: assim a
+        // câmara descreve uma aproximação e não um corte em diagonal.
+        const dir = posInicial
+          .clone()
+          .normalize()
+          .lerp(posFinal.clone().normalize(), e)
+          .normalize();
+        const raio = posInicial.length() + (posFinal.length() - posInicial.length()) * e;
+        posCam.copy(dir.multiplyScalar(raio));
+        alvoCam.copy(alvoInicial).lerp(alvoFinal, e);
         if (t >= 1) aEntrar = false;
       }
+      mundo.rotation.y = orbita.theta;
+      mundo.rotation.x = orbita.phi;
       colocarCamara();
       renderizador.render(cena, camara);
+      etiquetar();
       quadro = requestAnimationFrame(desenhar);
     };
     colocarCamara();
     quadro = requestAnimationFrame(desenhar);
 
     // ── Interacção ────────────────────────────────────────────────────────
+    const arrastoRot = { activo: false, x: 0, y: 0 };
+
     const aoDescer = (e: PointerEvent) => {
       aEntrar = false;
       arrastoRot.activo = true;
@@ -378,8 +564,8 @@ export default function GloboTerra({
     };
     const aoMover = (e: PointerEvent) => {
       if (!arrastoRot.activo) return;
-      orbita.theta -= (e.clientX - arrastoRot.x) * 0.005;
-      orbita.phi = Math.max(-1.2, Math.min(1.2, orbita.phi + (e.clientY - arrastoRot.y) * 0.005));
+      orbita.theta += (e.clientX - arrastoRot.x) * 0.004;
+      orbita.phi = Math.max(-0.5, Math.min(0.5, orbita.phi + (e.clientY - arrastoRot.y) * 0.003));
       arrastoRot.x = e.clientX;
       arrastoRot.y = e.clientY;
     };
@@ -389,9 +575,9 @@ export default function GloboTerra({
     const aoRodar = (e: WheelEvent) => {
       aEntrar = false;
       e.preventDefault();
-      distancia = Math.max(2.3, Math.min(16, distancia * (e.deltaY > 0 ? 1.08 : 0.92)));
-      // Chegado a este ponto, quem está a olhar quer nomes de terras.
-      if (distancia <= 2.45) aoAproximarRef.current?.();
+      const factor = e.deltaY > 0 ? 1.07 : 0.93;
+      const novoRaio = Math.max(1.012, Math.min(2.6, posCam.length() * factor));
+      posCam.normalize().multiplyScalar(novoRaio);
     };
 
     el.addEventListener("pointerdown", aoDescer);
@@ -417,6 +603,7 @@ export default function GloboTerra({
       el.removeEventListener("pointerup", aoSubir);
       el.removeEventListener("pointerleave", aoSubir);
       el.removeEventListener("wheel", aoRodar);
+      camadaEtiquetas.remove();
       cena.traverse((o) => {
         if (o instanceof THREE.Mesh || o instanceof THREE.Points) {
           o.geometry.dispose();
