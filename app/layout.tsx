@@ -151,7 +151,10 @@ export default function RootLayout({
     <html
       lang="pt"
       className={`${geist.variable} ${geistMono.variable} dark`}
-      // O script inline em <head> acrescenta `js`
+      // O script inline em <head> acrescenta `js` e, na primeira vez de cada
+      // sessão, `intro`. As duas decisões têm de ser tomadas antes da
+      // primeira pintura: postas na hidratação, a cortina curta já ia a meio
+      // da subida quando a intro longa lhe tomava o lugar.
       // antes da primeira pintura. O React renderiza sem elas e acusava
       // incompatibilidade de hidratação em todas as páginas.
       suppressHydrationWarning
@@ -164,7 +167,7 @@ export default function RootLayout({
         <script
           suppressHydrationWarning
           dangerouslySetInnerHTML={{
-            __html: `(function(){document.documentElement.classList.add('js')})()`,
+            __html: `(function(){var d=document.documentElement;try{if(!sessionStorage.getItem('portal-lusitano-intro')){sessionStorage.setItem('portal-lusitano-intro','1');d.classList.add('intro')}}catch(e){}d.classList.add('js')})()`,
           }}
         />
         {/* Preconnect para recursos críticos — reduz latência de first requests */}

@@ -1739,6 +1739,99 @@ body {
     animation: cortina-subir 250ms var(--ease-in-out-cubic) forwards;
   }
 
+  /* --- Intro com mote ------------------------------------------------------
+   * A cortina, quando é a primeira vez na sessão, segura o ecrã dois
+   * segundos e escreve o mote antes de subir.
+   *
+   * Uma só animação faz as duas coisas: o pano fica parado 88% do tempo e
+   * sobe nos últimos 270ms. É de propósito que não são duas — assim o pano
+   * sai sozinho, em CSS, sem depender de nenhum temporizador em JS. Um
+   * preloader que precise de script para sair é um ecrã preto permanente no
+   * dia em que o script falhar.
+   * ---------------------------------------------------------------------- */
+
+  @keyframes cortina-segurar {
+    0%,
+    88% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(-100%);
+    }
+  }
+
+  @keyframes intro-frase {
+    0% {
+      opacity: 0;
+      transform: translateY(var(--dy-entra, 10px));
+    }
+    35%,
+    65% {
+      opacity: 1;
+      transform: none;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(var(--dy-sai, -10px));
+    }
+  }
+
+  html.intro .cortina {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    animation: cortina-segurar 2250ms var(--ease-in-out-cubic) forwards;
+  }
+
+  /* O mote está sempre na marcação, servidor incluído, e é o CSS que decide
+     se se vê. Deixá-lo ao estado do React obrigava o servidor a adivinhar se
+     era a primeira visita da sessão — e adivinhar mal é um erro de
+     hidratação em todas as páginas. */
+  .intro__mote {
+    display: none;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0 0.35em;
+    text-align: center;
+  }
+
+  html.intro .intro__mote {
+    display: flex;
+  }
+
+  .intro__mote > * {
+    font-size: clamp(1.5rem, 5vw, 2.2rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    color: var(--foreground-strong);
+    animation: intro-frase 2s var(--ease-in-out-cubic) forwards;
+  }
+
+  /* Cada grupo parte de mais longe e sai para mais longe do que o anterior.
+     É esse desencontro — e não o atraso — que dá a leitura em camadas. */
+  .intro__mote > *:nth-child(1) {
+    --dy-entra: 10px;
+    --dy-sai: -10px;
+    animation-delay: 0s;
+  }
+  .intro__mote > *:nth-child(2) {
+    --dy-entra: 20px;
+    --dy-sai: -20px;
+    animation-delay: 0.05s;
+  }
+  .intro__mote > *:nth-child(3) {
+    --dy-entra: 30px;
+    --dy-sai: -30px;
+    animation-delay: 0.05s;
+  }
+  .intro__mote > *:nth-child(4) {
+    --dy-entra: 40px;
+    --dy-sai: -40px;
+    animation-delay: 0.1s;
+  }
+
   /* --- Muro de coudelarias em movimento -----------------------------------
    * A máscara nas pontas é o que distingue isto de um carrossel: os nomes
    * não desaparecem numa aresta, dissolvem-se no fundo. Pára ao passar o

@@ -95,7 +95,9 @@ export default function PushNotificationPrompt() {
     if (currentCount >= MIN_PAGES_BEFORE_PROMPT) {
       // Small delay so the banner does not appear instantly on page load
       const timer = setTimeout(() => {
-        setIsVisible(true);
+        // Espera que o aviso de cookies esteja respondido: os dois ocupam a
+        // mesma barra em baixo e sobrepunham-se.
+        if (localStorage.getItem("cookie-consent")) setIsVisible(true);
       }, 2000);
       return () => clearTimeout(timer);
     }
