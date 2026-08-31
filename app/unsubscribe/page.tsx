@@ -99,10 +99,7 @@ function UnsubscribeContent() {
             <p className="text-[var(--foreground-muted)] text-sm mb-6">
               {t.unsubscribe_page.goodbye}
             </p>
-            <LocalizedLink
-              href="/"
-              className="inline-block bg-[var(--gold)] text-black font-bold uppercase text-xs tracking-wide py-4 px-8 hover:bg-white transition-all"
-            >
+            <LocalizedLink href="/" className="btn btn-primario gap-2 rounded-full">
               {t.unsubscribe_page.back_to_portal}
             </LocalizedLink>
           </>

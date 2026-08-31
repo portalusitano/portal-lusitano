@@ -14,11 +14,9 @@ export default async function FAQPage() {
         {/* Header */}
         <div className="text-center mb-16 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
           <div className="w-16 h-16 bg-[var(--elevate-1)] rounded-full flex items-center justify-center mx-auto mb-6">
-            <HelpCircle className="text-[var(--gold)]" size={32} />
+            <HelpCircle className="text-[var(--foreground-muted)]" size={32} aria-hidden="true" />
           </div>
-          <span className="text-xs uppercase tracking-wider text-[var(--gold)] block mb-4">
-            {tr("Suporte", "Support", "Soporte")}
-          </span>
+          <span className="rotulo block mb-4">{tr("Suporte", "Support", "Soporte")}</span>
           <h1 className="text-2xl sm:text-4xl md:text-5xl text-[var(--foreground)] mb-4">
             {tr("Perguntas Frequentes", "Frequently Asked Questions", "Preguntas Frecuentes")}
           </h1>
@@ -46,10 +44,7 @@ export default async function FAQPage() {
               "¿No encontró lo que buscaba?"
             )}
           </p>
-          <a
-            href={`mailto:${CONTACT_EMAIL}`}
-            className="inline-block text-[var(--gold)] hover:text-[var(--foreground)] transition-colors text-sm uppercase tracking-wider"
-          >
+          <a href={`mailto:${CONTACT_EMAIL}`} className="btn btn-secundario rounded-full text-sm">
             {tr("Contacte-nos", "Contact us", "Contáctenos")} →
           </a>
         </div>

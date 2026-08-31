@@ -35,7 +35,7 @@ export default function StepIndicator({ currentStep }: StepIndicatorProps) {
         aria-label={stepText}
       >
         <div
-          className="absolute inset-y-0 left-0 bg-[var(--gold)] transition-all duration-500"
+          className="absolute inset-y-0 left-0 bg-[var(--foreground-strong)] transition-all duration-500"
           style={{ width: `${progressPercent}%` }}
         />
       </div>
@@ -57,9 +57,9 @@ export default function StepIndicator({ currentStep }: StepIndicatorProps) {
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-300 ${
                   isCurrent
-                    ? "bg-[var(--gold)] text-black ring-2 ring-[var(--gold)]/30 ring-offset-2 ring-offset-[var(--background)]"
+                    ? "bg-[var(--foreground-strong)] text-black"
                     : isCompleted
-                      ? "bg-[var(--elevate-1)] text-[var(--gold)] border border-[var(--border-soft)]"
+                      ? "bg-[var(--elevate-1)] text-[var(--foreground-muted)] border border-[var(--border-soft)]"
                       : "bg-[var(--background-card)] text-[var(--foreground-muted)] border border-[var(--border)]"
                 }`}
                 aria-current={isCurrent ? "step" : undefined}
@@ -69,7 +69,7 @@ export default function StepIndicator({ currentStep }: StepIndicatorProps) {
               <span
                 className={`text-[11px] uppercase tracking-wider text-center leading-tight hidden sm:block ${
                   isCurrent
-                    ? "text-[var(--gold)] font-semibold"
+                    ? "text-[var(--foreground-muted)] font-semibold"
                     : isCompleted
                       ? "text-[var(--foreground-secondary)]"
                       : "text-[var(--foreground-muted)]"

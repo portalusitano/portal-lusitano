@@ -113,7 +113,7 @@ function PerfilContent() {
         {/* User Info */}
         <div className="bg-[var(--background-secondary)] cartao p-6 space-y-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[var(--gold)] to-[#8B7355] flex items-center justify-center text-black text-xl font-bold">
+            <div className="w-14 h-14 rounded-full bg-[var(--foreground-strong)] flex items-center justify-center text-black text-xl font-bold">
               {(name || user?.email || "U").charAt(0).toUpperCase()}
             </div>
             <div className="flex-1">
@@ -128,7 +128,7 @@ function PerfilContent() {
                   <button
                     onClick={handleSaveName}
                     disabled={saving}
-                    className="p-1.5 bg-[var(--gold)] rounded-lg text-black"
+                    className="p-1.5 bg-[var(--foreground-strong)] rounded-lg text-black"
                   >
                     {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                   </button>
@@ -155,7 +155,7 @@ function PerfilContent() {
         {/* Subscription */}
         <div className="bg-[var(--background-secondary)] cartao p-6">
           <div className="flex items-center gap-3 mb-4">
-            <Crown className="text-[var(--gold)]" size={20} />
+            <Crown className="text-[var(--foreground-muted)]" size={20} />
             <h2 className="text-lg font-medium">{t.profile.subscription}</h2>
           </div>
 
@@ -174,7 +174,7 @@ function PerfilContent() {
                   <p className="text-[var(--foreground)] font-medium flex items-center gap-2">
                     {isPro ? (
                       <>
-                        <Star size={14} className="text-[var(--gold)] fill-[var(--gold)]" />
+                        <Star size={14} className="text-[var(--foreground-muted)]" />
                         Pro
                       </>
                     ) : (
@@ -185,7 +185,7 @@ function PerfilContent() {
                 {!isPro && (
                   <a
                     href="/vender-cavalo"
-                    className="px-4 py-2 bg-gradient-to-r from-[var(--gold)] to-[#B8956F] text-black text-sm font-semibold rounded-lg hover:from-[var(--gold-hover)] hover:to-[var(--gold)] transition-all"
+                    className="px-4 py-2 btn btn-primario rounded-full text-sm"
                   >
                     {t.profile.upgrade_pro}
                   </a>
@@ -202,10 +202,10 @@ function PerfilContent() {
         <div className="bg-[var(--background-secondary)] cartao p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Star className="text-[var(--gold)]" size={20} />
+              <Star className="text-[var(--foreground-muted)]" size={20} />
               <h2 className="text-lg font-medium">{tr("Favoritos", "Favourites", "Favoritos")}</h2>
             </div>
-            <span className="text-2xl text-[var(--gold)]">{favoritesCount}</span>
+            <span className="text-2xl text-[var(--foreground-muted)]">{favoritesCount}</span>
           </div>
           {favoritesCount > 0 && (
             <LocalizedLink
@@ -239,7 +239,7 @@ function PerfilContent() {
                   <span className="text-sm text-[var(--foreground-secondary)]">
                     {TOOL_LABELS[tool_name] || tool_name}
                   </span>
-                  <span className="text-sm font-medium text-[var(--gold)]">
+                  <span className="text-sm font-medium text-[var(--foreground-muted)]">
                     {count}× {count === 1 ? tr("uso", "use", "uso") : tr("usos", "uses", "usos")}
                   </span>
                 </div>

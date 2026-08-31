@@ -32,10 +32,7 @@ export default function Error({
       aria-labelledby="error-title"
     >
       {/* Background decorativo — idêntico à 404 para consistência de marca */}
-      <div className="absolute inset-0 opacity-5" aria-hidden="true">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[var(--gold)] rounded-full blur-[150px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-[var(--gold)] rounded-full blur-[100px]" />
-      </div>
+      <div className="absolute inset-0 opacity-5" aria-hidden="true"></div>
 
       <div className="relative z-10 text-center max-w-md w-full">
         {/* Ícone de exclamação estilizado */}
@@ -52,7 +49,7 @@ export default function Error({
             className="absolute inset-0 flex items-center justify-center opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
             style={{ animationDelay: "0.1s" }}
           >
-            <span className="text-6xl md:text-8xl text-[var(--gold)]">!</span>
+            <span className="text-6xl text-[var(--foreground-muted)] md:text-8xl">!</span>
           </div>
         </div>
 
@@ -91,7 +88,7 @@ export default function Error({
         >
           <button
             onClick={reset}
-            className="flex items-center gap-3 bg-[var(--gold)] text-black px-8 py-4 text-xs uppercase tracking-wide font-bold hover:bg-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+            className="btn btn-primario gap-2 rounded-full"
             aria-label={t.error_page.try_again}
           >
             {t.error_page.try_again}
@@ -114,7 +111,7 @@ export default function Error({
           {""}
           <a
             href={`mailto:${SUPPORT_EMAIL}`}
-            className="text-[var(--gold)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+            className="text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-4 hover:decoration-[var(--border-hover)]"
           >
             {SUPPORT_EMAIL}
           </a>
@@ -126,11 +123,11 @@ export default function Error({
           style={{ animationDelay: "0.5s" }}
           aria-hidden="true"
         >
-          <div className="w-12 h-[1px] bg-[var(--gold)]" />
+          <div className="w-12 h-[1px] bg-[var(--border)]" />
           <span className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)]">
             Portal Lusitano
           </span>
-          <div className="w-12 h-[1px] bg-[var(--gold)]" />
+          <div className="w-12 h-[1px] bg-[var(--border)]" />
         </div>
       </div>
     </main>

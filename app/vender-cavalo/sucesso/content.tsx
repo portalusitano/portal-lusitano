@@ -92,10 +92,7 @@ export default function VenderCavaloSucessoContent() {
         )}
 
         <div className="space-y-4">
-          <LocalizedLink
-            href="/comprar"
-            className="flex items-center justify-center gap-2 w-full bg-[var(--gold)] hover:bg-[var(--gold)] text-black font-bold py-4 rounded-xl transition-all"
-          >
+          <LocalizedLink href="/comprar" className="btn btn-primario w-full gap-2 rounded-full">
             <span>{t.success_pages.view_marketplace}</span>
             <ArrowRight size={18} />
           </LocalizedLink>

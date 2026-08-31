@@ -1086,13 +1086,17 @@ body {
     color: var(--foreground-muted);
   }
 
+  /* Rótulo forte: o mesmo tamanho do `.rotulo`, mas aceso. Era dourado, e
+     numa página com seis destes — como a de contacto — o acento deixava de
+     ser acento. Quem tem de se destacar num rótulo é o próprio rótulo, e
+     para isso chega o peso e o branco. */
   .rotulo-forte {
     font-size: 0.6875rem;
     line-height: 1.2;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-weight: 600;
-    color: var(--gold);
+    color: var(--foreground-strong);
   }
 
   /* Título de secção dentro de uma página. */
@@ -1331,10 +1335,20 @@ body {
     color: var(--foreground-strong);
   }
 
+  /* O filtro escolhido é branco, não dourado. Numa fila de oito regiões o
+     activo tem de saltar à vista, e sobre preto quem faz isso é o contraste;
+     o dourado repetido em cada página de filtros deixava de assinalar nada e
+     dava a estas páginas uma cor que a página inicial não tem. */
   .chip-activo {
-    border-color: var(--gold);
-    background: color-mix(in srgb, var(--gold) 12%, transparent);
-    color: var(--gold);
+    border-color: var(--foreground-strong);
+    background: var(--foreground-strong);
+    color: #000;
+  }
+
+  html.light .chip-activo {
+    border-color: #0a0a0a;
+    background: #0a0a0a;
+    color: #fff;
   }
 
   /* Distintivo informativo, não clicável. */

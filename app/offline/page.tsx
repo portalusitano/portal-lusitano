@@ -53,7 +53,7 @@ export default function OfflinePage() {
       <div className="flex flex-col sm:flex-row gap-4">
         <button
           onClick={() => window.location.reload()}
-          className="px-8 py-3 text-[10px] uppercase tracking-wider bg-[var(--gold)] text-black hover:bg-white transition-colors font-bold"
+          className="btn btn-primario gap-2 rounded-full"
         >
           {t.retry}
         </button>

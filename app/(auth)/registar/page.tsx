@@ -27,8 +27,8 @@ function inputClass(hasError: boolean, isFocused?: boolean) {
     "w-full bg-[var(--background-card)] border rounded-xl pl-10 pr-4 py-3.5",
     "text-[var(--foreground)] placeholder:text-[var(--foreground-muted)]/60",
     "outline-none transition-all duration-200",
-    "focus:border-[var(--border-hover)] focus:ring-2 focus:ring-[var(--gold)]/20 focus:bg-[var(--background-card)]/90",
-    isFocused ? "border-[var(--border-soft)] shadow-sm shadow-[var(--gold)]/5" : "",
+    "focus:border-[var(--border-hover)] focus:ring-2 focus:ring-[var(--border-hover)] focus:bg-[var(--background-card)]/90",
+    isFocused ? "border-[var(--border-soft)]" : "",
     hasError
       ? "border-red-500/60 focus:border-red-500/60 focus:ring-red-500/20"
       : "border-[var(--border)] hover:border-[var(--border-hover)]",
@@ -330,7 +330,7 @@ function RegistarContent() {
         <p className="text-sm text-[var(--foreground-secondary)] mb-1 animate-auth-fadeInUp auth-stagger-3">
           Enviámos um email de confirmação para
         </p>
-        <p className="text-sm font-medium text-[var(--gold)] mb-4 animate-auth-fadeInUp auth-stagger-3">
+        <p className="text-sm font-medium text-[var(--foreground-muted)] mb-4 animate-auth-fadeInUp auth-stagger-3">
           {email}
         </p>
 
@@ -338,7 +338,7 @@ function RegistarContent() {
         <div className="bg-[var(--background-card)]/60 border border-[var(--border)]/50 rounded-xl p-4 mb-5 text-left animate-auth-fadeInUp auth-stagger-4">
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 rounded-lg bg-[var(--elevate-1)] flex items-center justify-center shrink-0 mt-0.5">
-              <Mail size={14} className="text-[var(--gold)]" aria-hidden="true" />
+              <Mail size={14} className="text-[var(--foreground-muted)]" aria-hidden="true" />
             </div>
             <div>
               <p className="text-xs font-medium text-[var(--foreground)] mb-1">
@@ -357,14 +357,14 @@ function RegistarContent() {
             <p className="text-xs text-[var(--foreground-muted)]">
               Após confirmar o email e iniciar sessão, será redirecionado de volta à ferramenta com
               {""}
-              <strong className="text-[var(--gold)]">1 uso gratuito</strong> disponível.
+              <strong className="text-[var(--foreground-muted)]">1 uso gratuito</strong> disponível.
             </p>
           </div>
         )}
 
         <LocalizedLink
           href={loginUrl}
-          className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-[var(--gold)] to-[#B8956F] text-black font-semibold rounded-xl hover:from-[var(--gold-hover)] hover:to-[var(--gold)] transition-all shadow-lg shadow-[var(--gold)]/20 hover:shadow-[var(--gold)]/30 hover:scale-[1.02] active:scale-[0.98] animate-auth-fadeInUp auth-stagger-5"
+          className="inline-flex items-center gap-2 px-8 py-3.5 btn btn-primario w-full rounded-full animate-auth-fadeInUp auth-stagger-5"
         >
           Iniciar Sessão
           <ArrowRight size={16} aria-hidden="true" />
@@ -382,7 +382,7 @@ function RegistarContent() {
           <h1 className="text-2xl text-[var(--foreground)]">{t.auth.create_account}</h1>
           <Sparkles
             size={18}
-            className="text-[var(--gold)] animate-auth-float"
+            className="text-[var(--foreground-muted)] animate-auth-float"
             style={{ animationDuration: "3s" }}
             aria-hidden="true"
           />
@@ -396,7 +396,7 @@ function RegistarContent() {
       {toolParam && redirect && (
         <div className="mb-5 flex items-start gap-3 p-3.5 bg-[var(--elevate-1)] border border-[var(--border-soft)] rounded-xl animate-auth-fadeInUp auth-stagger-1">
           <div className="w-8 h-8 rounded-lg bg-[var(--elevate-1)] flex items-center justify-center shrink-0 mt-0.5">
-            <Shield size={14} className="text-[var(--gold)]" aria-hidden="true" />
+            <Shield size={14} className="text-[var(--foreground-muted)]" aria-hidden="true" />
           </div>
           <div>
             <p className="text-xs font-medium text-[var(--foreground)] mb-0.5">
@@ -404,7 +404,7 @@ function RegistarContent() {
             </p>
             <p className="text-xs text-[var(--foreground-muted)] leading-relaxed">
               Crie a sua conta para aceder à ferramenta com{""}
-              <strong className="text-[var(--gold)]">1 uso gratuito</strong>.
+              <strong className="text-[var(--foreground-muted)]">1 uso gratuito</strong>.
             </p>
           </div>
         </div>
@@ -439,7 +439,7 @@ function RegistarContent() {
           <div className="relative group">
             <User
               size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] pointer-events-none transition-colors group-focus-within:text-[var(--gold)]"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] pointer-events-none transition-colors group-focus-within:text-[var(--foreground-muted)]"
               aria-hidden="true"
             />
             <input
@@ -474,7 +474,7 @@ function RegistarContent() {
           <div className="relative group">
             <Mail
               size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] pointer-events-none transition-colors group-focus-within:text-[var(--gold)]"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] pointer-events-none transition-colors group-focus-within:text-[var(--foreground-muted)]"
               aria-hidden="true"
             />
             <input
@@ -509,7 +509,7 @@ function RegistarContent() {
           <div className="relative group">
             <Lock
               size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] pointer-events-none transition-colors group-focus-within:text-[var(--gold)]"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] pointer-events-none transition-colors group-focus-within:text-[var(--foreground-muted)]"
               aria-hidden="true"
             />
             <input
@@ -569,7 +569,7 @@ function RegistarContent() {
           <div className="relative group">
             <Lock
               size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] pointer-events-none transition-colors group-focus-within:text-[var(--gold)]"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] pointer-events-none transition-colors group-focus-within:text-[var(--foreground-muted)]"
               aria-hidden="true"
             />
             <input
@@ -638,7 +638,7 @@ function RegistarContent() {
               <div
                 className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${
                   termsAccepted
-                    ? "bg-[var(--gold)] border-[var(--gold)] scale-100"
+                    ? "bg-[var(--foreground-strong)] border-[var(--foreground-strong)] scale-100"
                     : fieldErrors.terms
                       ? "border-red-500/60 bg-[var(--background-card)]"
                       : "border-[var(--border)] bg-[var(--background-card)] group-hover:border-[var(--border-hover)]"
@@ -662,7 +662,7 @@ function RegistarContent() {
               Aceito os{""}
               <LocalizedLink
                 href="/termos"
-                className="text-[var(--gold)] hover:text-[var(--foreground-strong)] underline underline-offset-2"
+                className="text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-2 transition-colors hover:decoration-[var(--border-hover)]"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -671,7 +671,7 @@ function RegistarContent() {
               {""}e a{""}
               <LocalizedLink
                 href="/privacidade"
-                className="text-[var(--gold)] hover:text-[var(--foreground-strong)] underline underline-offset-2"
+                className="text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-2 transition-colors hover:decoration-[var(--border-hover)]"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -687,7 +687,7 @@ function RegistarContent() {
           <button
             type="submit"
             disabled={loading || !passwordValid}
-            className="relative w-full py-3.5 bg-gradient-to-r from-[var(--gold)] to-[#B8956F] text-black font-semibold rounded-xl hover:from-[var(--gold-hover)] hover:to-[var(--gold)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[var(--gold)]/15 hover:shadow-[var(--gold)]/25 hover:scale-[1.01] active:scale-[0.99] overflow-hidden group/btn"
+            className="relative w-full py-3.5 btn btn-primario w-full gap-2 rounded-full disabled:cursor-not-allowed"
             aria-busy={loading}
           >
             {/* Shimmer overlay */}
@@ -728,7 +728,7 @@ function RegistarContent() {
           {""}
           <LocalizedLink
             href={redirect ? `/login?returnUrl=${encodeURIComponent(redirect)}` : "/login"}
-            className="text-[var(--gold)] hover:text-[var(--foreground-strong)] font-medium transition-colors"
+            className="text-[var(--foreground-strong)] font-medium underline decoration-[var(--border)] underline-offset-2 transition-colors hover:decoration-[var(--border-hover)]"
           >
             {t.auth.login_account}
           </LocalizedLink>

@@ -58,7 +58,7 @@ export default function CavalosFavoritosPage() {
           {/* Header */}
           <div className="text-center mb-8 sm:mb-16 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
             <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[var(--elevate-1)] rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
-              <Heart className="text-[var(--gold)]" size={28} />
+              <Heart className="text-[var(--foreground-muted)]" size={28} aria-hidden="true" />
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--foreground)] mb-2 sm:mb-4">
               {txt.title}
@@ -94,7 +94,7 @@ export default function CavalosFavoritosPage() {
               </p>
               <LocalizedLink
                 href="/comprar"
-                className="inline-block bg-[var(--gold)] text-black px-6 sm:px-8 py-3 sm:py-4 text-xs uppercase tracking-wide font-bold hover:bg-[var(--gold-hover)] transition-colors active:scale-95"
+                className="btn btn-primario rounded-full px-8 active:scale-95"
               >
                 {txt.explore}
               </LocalizedLink>
@@ -156,7 +156,7 @@ export default function CavalosFavoritosPage() {
                         {/* Quick info overlay - Mobile */}
                         <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
                           {horse.price && (
-                            <p className="text-[var(--gold)] text-lg sm:text-xl font-medium">
+                            <p className="preco text-lg sm:text-xl">
                               {Number(horse.price).toLocaleString(locale)} €
                             </p>
                           )}
@@ -195,7 +195,7 @@ export default function CavalosFavoritosPage() {
                       <div className="flex gap-2">
                         <LocalizedLink
                           href={`/comprar/${horse.id}`}
-                          className="flex-1 bg-[var(--gold)] text-black py-3 text-xs uppercase tracking-wider font-bold hover:bg-[var(--gold-hover)] transition-colors text-center active:scale-[0.98] touch-manipulation"
+                          className="btn btn-primario flex-1 touch-manipulation rounded-full active:scale-[0.98]"
                         >
                           {txt.view}
                         </LocalizedLink>

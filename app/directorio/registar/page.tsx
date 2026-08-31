@@ -100,9 +100,7 @@ export default function RegistarCoudelariaPage() {
       <div className="max-w-4xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-12 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
-          <span className="text-xs uppercase tracking-wider text-[var(--gold)] block mb-4">
-            {t.registar_coudelaria.directory_label}
-          </span>
+          <span className="rotulo block mb-4">{t.registar_coudelaria.directory_label}</span>
           <h1 className="text-2xl sm:text-4xl md:text-5xl text-[var(--foreground)] mb-4">
             {t.registar_coudelaria.title}
           </h1>
@@ -118,7 +116,7 @@ export default function RegistarCoudelariaPage() {
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
                   step >= s
-                    ? "bg-[var(--gold)] text-black"
+                    ? "bg-[var(--foreground-strong)] text-black"
                     : "bg-[var(--background-card)] text-[var(--foreground-muted)]"
                 }`}
               >
@@ -127,7 +125,7 @@ export default function RegistarCoudelariaPage() {
               {s < 2 && (
                 <div
                   className={`w-16 h-0.5 transition-colors ${
-                    step > s ? "bg-[var(--gold)]" : "bg-[var(--background-card)]"
+                    step > s ? "bg-[var(--ok)]" : "bg-[var(--background-card)]"
                   }`}
                 />
               )}
@@ -220,9 +218,7 @@ export default function RegistarCoudelariaPage() {
 
               {/* Contactos */}
               <div className="pt-4 border-t border-[var(--border)]">
-                <span className="text-[var(--gold)] text-sm font-medium mb-4 block">
-                  {t.registar_coudelaria.contacts}
-                </span>
+                <span className="rotulo mb-4 block">{t.registar_coudelaria.contacts}</span>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -332,7 +328,7 @@ export default function RegistarCoudelariaPage() {
                       onClick={() => handleEspecialidadeToggle(key)}
                       className={`px-3 py-2 text-sm transition-colors ${
                         formData.especialidades.includes(key)
-                          ? "bg-[var(--gold)] text-black"
+                          ? "bg-[var(--foreground-strong)] text-black"
                           : "bg-[var(--background-card)] text-[var(--foreground-secondary)] hover:bg-[var(--surface-hover)]"
                       }`}
                     >
@@ -458,10 +454,7 @@ export default function RegistarCoudelariaPage() {
             <p className="text-[var(--foreground-secondary)] mb-8 max-w-md mx-auto">
               {t.registar_coudelaria.success_message}
             </p>
-            <LocalizedLink
-              href="/directorio"
-              className="inline-flex items-center gap-2 bg-[var(--gold)] text-black px-8 py-3 text-sm font-bold uppercase tracking-wider hover:bg-white transition-colors"
-            >
+            <LocalizedLink href="/directorio" className="btn btn-primario gap-2 rounded-full">
               {t.registar_coudelaria.btn_view_directory}
               <ArrowRight size={18} />
             </LocalizedLink>

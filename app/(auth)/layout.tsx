@@ -62,7 +62,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             PORTAL LUSITANO
           </span>
           <div className="flex items-center gap-3">
-            <div className="h-px flex-1 bg-gradient-to-r from-[var(--gold)]/30 to-transparent" />
+            <div className="h-px flex-1 bg-gradient-to-r from-[var(--border)] to-transparent" />
           </div>
         </Link>
 
@@ -70,7 +70,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="relative z-10 flex-1 flex flex-col items-start justify-center gap-8 py-12">
           {/* Decorative horse silhouette mark — larger */}
           <div
-            className="w-20 h-20 rounded-2xl bg-[var(--elevate-1)] border border-[var(--border-soft)] flex items-center justify-center backdrop-blur-sm shadow-lg shadow-[var(--gold)]/5 animate-auth-float"
+            className="w-20 h-20 rounded-2xl bg-[var(--elevate-1)] border border-[var(--border-soft)] flex items-center justify-center backdrop-blur-sm animate-auth-float"
             style={{ animationDuration: "5s" }}
           >
             <svg
@@ -97,7 +97,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <h2 className="text-3xl xl:text-4xl text-[var(--foreground)] leading-snug mb-3">
               A referência do
               <br />
-              <span className="text-[var(--gold)]">cavalo Lusitano</span>
+              <span className="text-[var(--foreground-muted)]">cavalo Lusitano</span>
               <br />
               em Portugal
             </h2>
@@ -154,7 +154,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               { value: "100%", label: "Gratuito" },
             ].map((stat) => (
               <div key={stat.label} className="text-center flex-1">
-                <div className="text-lg font-bold text-[var(--gold)] leading-none mb-1">
+                <div className="text-lg font-bold text-[var(--foreground-strong)] leading-none mb-1">
                   {stat.value}
                 </div>
                 <div className="text-[10px] text-[var(--foreground-muted)] uppercase tracking-wider leading-tight">

@@ -23,10 +23,7 @@ export default function MinhaContaError({
           Não foi possível carregar os dados da sua conta. Tente novamente.
         </p>
         <div className="flex flex-col gap-4">
-          <button
-            onClick={reset}
-            className="bg-[var(--gold)] text-black font-bold uppercase text-xs tracking-wide py-4 px-8 hover:bg-white transition-all"
-          >
+          <button onClick={reset} className="btn btn-primario gap-2 rounded-full">
             Tentar novamente
           </button>
           <LocalizedLink

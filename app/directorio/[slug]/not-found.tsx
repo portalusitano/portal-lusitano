@@ -8,7 +8,7 @@ export default function NotFound() {
         {/* Icon */}
         <div className="mb-8 flex justify-center">
           <div className="relative">
-            <MapPin className="text-[var(--gold)]" size={80} />
+            <MapPin className="text-[var(--foreground-muted)]" size={80} aria-hidden="true" />
             <div className="absolute -bottom-2 -right-2 bg-[var(--background-secondary)] rounded-full p-2">
               <Search className="text-[var(--foreground-muted)]" size={24} />
             </div>
@@ -26,17 +26,11 @@ export default function NotFound() {
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            href="/directorio"
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--gold)] text-black font-bold uppercase text-sm tracking-wide hover:bg-[var(--gold-hover)] transition-all"
-          >
+          <Link href="/directorio" className="btn btn-primario gap-2 rounded-full">
             <ArrowLeft size={18} />
             Ver Diretório
           </Link>
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--background-secondary)] border border-[var(--border-soft)] text-[var(--gold)] font-bold uppercase text-sm tracking-wide hover:bg-[var(--gold)] hover:text-black transition-all"
-          >
+          <Link href="/" className="btn btn-secundario gap-2 rounded-full px-8">
             Página Inicial
           </Link>
         </div>

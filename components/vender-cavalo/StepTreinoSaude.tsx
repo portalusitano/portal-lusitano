@@ -36,7 +36,7 @@ export default function StepTreinoSaude({
   return (
     <div className="bg-[var(--background-secondary)]/50 cartao p-6">
       <h2 className="text-xl mb-6 flex items-center gap-3">
-        <span className="w-8 h-8 bg-[var(--gold)] rounded-full flex items-center justify-center text-black text-sm font-bold">
+        <span className="w-8 h-8 bg-[var(--foreground-strong)] rounded-full flex items-center justify-center text-black text-sm font-bold">
           4
         </span>
         {t.vender_cavalo.step_training_title}
@@ -101,7 +101,7 @@ export default function StepTreinoSaude({
                 onClick={() => onToggleDisciplina(disc)}
                 className={`px-3 py-1.5 rounded-lg text-sm transition-colors touch-manipulation ${
                   formData.disciplinas.includes(disc)
-                    ? "bg-[var(--gold)] text-black"
+                    ? "bg-[var(--foreground-strong)] text-black"
                     : "bg-[var(--background-card)] text-[var(--foreground-secondary)] hover:bg-[var(--surface-hover)]"
                 }`}
               >
@@ -243,7 +243,7 @@ export default function StepTreinoSaude({
         {/* Comportamento e Maneabilidade */}
         <div className="border-t border-[var(--border)] pt-6">
           <h3 className="text-sm font-medium text-[var(--foreground)] mb-4 flex items-center gap-2">
-            <Shield size={18} className="text-[var(--gold)]" />
+            <Shield size={18} className="text-[var(--foreground-muted)]" />
             {tr(
               "Comportamento e Maneabilidade",
               "Behaviour & Tractability",
@@ -278,7 +278,7 @@ export default function StepTreinoSaude({
                   type="checkbox"
                   checked={formData[id as keyof typeof formData] as boolean}
                   onChange={(e) => updateField(id as keyof typeof formData, e.target.checked)}
-                  className="w-5 h-5 accent-[var(--gold)]"
+                  className="w-5 h-5 accent-[var(--foreground-strong)]"
                 />
                 <span className="text-sm">{label}</span>
               </label>
@@ -289,7 +289,7 @@ export default function StepTreinoSaude({
         {/* Maneio */}
         <div className="border-t border-[var(--border)] pt-6">
           <h3 className="text-sm font-medium text-[var(--foreground)] mb-4 flex items-center gap-2">
-            <Shield size={18} className="text-[var(--gold)]" />
+            <Shield size={18} className="text-[var(--foreground-muted)]" />
             {tr("Maneio e Rotina", "Management & Routine", "Manejo y Rutina")}
           </h3>
 
@@ -372,7 +372,7 @@ export default function StepTreinoSaude({
                 type="checkbox"
                 checked={formData.teste_dna_realizado}
                 onChange={(e) => updateField("teste_dna_realizado", e.target.checked)}
-                className="w-5 h-5 accent-[var(--gold)]"
+                className="w-5 h-5 accent-[var(--foreground-strong)]"
               />
               <span className="text-sm">Teste de DNA realizado (parentesco verificado)</span>
             </label>
@@ -385,7 +385,7 @@ export default function StepTreinoSaude({
                 type="checkbox"
                 checked={formData.seguro_equino}
                 onChange={(e) => updateField("seguro_equino", e.target.checked)}
-                className="w-5 h-5 accent-[var(--gold)]"
+                className="w-5 h-5 accent-[var(--foreground-strong)]"
               />
               <span className="text-sm">Seguro equino ativo</span>
             </label>
@@ -395,7 +395,7 @@ export default function StepTreinoSaude({
         {/* Saúde */}
         <div className="border-t border-[var(--border)] pt-6">
           <h3 className="text-sm font-medium text-[var(--foreground)] mb-4 flex items-center gap-2">
-            <Shield size={18} className="text-[var(--gold)]" />
+            <Shield size={18} className="text-[var(--foreground-muted)]" />
             {t.vender_cavalo.health_status_section}
           </h3>
 
@@ -430,7 +430,7 @@ export default function StepTreinoSaude({
                 type="checkbox"
                 checked={formData.vacinacao_atualizada}
                 onChange={(e) => updateField("vacinacao_atualizada", e.target.checked)}
-                className="w-5 h-5 accent-[var(--gold)]"
+                className="w-5 h-5 accent-[var(--foreground-strong)]"
               />
               <span className="text-sm">{t.vender_cavalo.vaccination_updated} *</span>
             </label>
@@ -443,7 +443,7 @@ export default function StepTreinoSaude({
                 type="checkbox"
                 checked={formData.desparasitacao_atualizada}
                 onChange={(e) => updateField("desparasitacao_atualizada", e.target.checked)}
-                className="w-5 h-5 accent-[var(--gold)]"
+                className="w-5 h-5 accent-[var(--foreground-strong)]"
               />
               <span className="text-sm">{t.vender_cavalo.deworming_updated}</span>
             </label>
@@ -456,7 +456,7 @@ export default function StepTreinoSaude({
                 type="checkbox"
                 checked={formData.exame_veterinario}
                 onChange={(e) => updateField("exame_veterinario", e.target.checked)}
-                className="w-5 h-5 accent-[var(--gold)]"
+                className="w-5 h-5 accent-[var(--foreground-strong)]"
               />
               <span className="text-sm">{t.vender_cavalo.vet_exam_available}</span>
             </label>
@@ -469,7 +469,7 @@ export default function StepTreinoSaude({
                 type="checkbox"
                 checked={formData.radiografias_disponivel}
                 onChange={(e) => updateField("radiografias_disponivel", e.target.checked)}
-                className="w-5 h-5 accent-[var(--gold)]"
+                className="w-5 h-5 accent-[var(--foreground-strong)]"
               />
               <span className="text-sm">Radiografias disponíveis (membros / coluna)</span>
             </label>
@@ -482,7 +482,7 @@ export default function StepTreinoSaude({
                 type="checkbox"
                 checked={formData.piroplasmose_testado}
                 onChange={(e) => updateField("piroplasmose_testado", e.target.checked)}
-                className="w-5 h-5 accent-[var(--gold)]"
+                className="w-5 h-5 accent-[var(--foreground-strong)]"
               />
               <span className="text-sm">Testado para Piroplasmose (negativo)</span>
             </label>

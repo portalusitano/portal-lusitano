@@ -7,7 +7,7 @@ export default function ContactoPage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div data-revelar="" suppressHydrationWarning className="text-center mb-16">
-          <span className="text-[var(--gold)] rotulo font-bold block mb-6">Fale Connosco</span>
+          <span className="rotulo block mb-6">Fale Connosco</span>
           <h1 className="titulo-gradiente text-4xl sm:text-5xl md:text-[4rem] font-normal leading-[100%] tracking-[-0.01em] mb-4">
             Contacto
           </h1>
@@ -23,7 +23,7 @@ export default function ContactoPage() {
           <div className="border border-[var(--border)] p-6 space-y-3 hover:border-[var(--border-hover)] transition-colors">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 border border-[var(--border-soft)] flex items-center justify-center flex-shrink-0">
-                <Mail size={15} className="text-[var(--gold)]" />
+                <Mail size={15} className="text-[var(--foreground-muted)]" />
               </div>
               <span className="rotulo-forte font-medium">Email</span>
             </div>
@@ -37,7 +37,7 @@ export default function ContactoPage() {
           <div className="border border-[var(--border)] p-6 space-y-3 hover:border-[var(--border-hover)] transition-colors">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 border border-[var(--border-soft)] flex items-center justify-center flex-shrink-0">
-                <MapPin size={15} className="text-[var(--gold)]" />
+                <MapPin size={15} className="text-[var(--foreground-muted)]" />
               </div>
               <span className="rotulo-forte font-medium">Sede</span>
             </div>
@@ -54,7 +54,7 @@ export default function ContactoPage() {
           <div className="border border-[var(--border)] p-6 space-y-3 hover:border-[var(--border-hover)] transition-colors">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 border border-[var(--border-soft)] flex items-center justify-center flex-shrink-0">
-                <Clock size={15} className="text-[var(--gold)]" />
+                <Clock size={15} className="text-[var(--foreground-muted)]" />
               </div>
               <span className="rotulo-forte font-medium">Tempo de Resposta</span>
             </div>
@@ -70,7 +70,7 @@ export default function ContactoPage() {
           <div className="border border-[var(--border)] p-6 space-y-3 hover:border-[var(--border-hover)] transition-colors">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 border border-[var(--border-soft)] flex items-center justify-center flex-shrink-0">
-                <FileText size={15} className="text-[var(--gold)]" />
+                <FileText size={15} className="text-[var(--foreground-muted)]" />
               </div>
               <span className="rotulo-forte font-medium">Identificação Legal</span>
             </div>
@@ -118,7 +118,7 @@ export default function ContactoPage() {
               <a
                 key={item.assunto}
                 href={`mailto:portal.lusitano2023@gmail.com?subject=${encodeURIComponent(item.assunto)}`}
-                className="cartao cartao-interactivo p-4 hover:bg-[var(--gold)]/[0.03] group"
+                className="cartao cartao-interactivo p-4 hover:bg-[var(--elevate-1)] group"
               >
                 <p className="text-[var(--foreground)] text-xs font-medium group-hover:text-[var(--foreground-strong)] transition-colors mb-1">
                   {item.assunto}

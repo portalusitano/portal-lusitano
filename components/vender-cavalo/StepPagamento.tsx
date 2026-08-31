@@ -47,7 +47,7 @@ export default function StepPagamento({
   return (
     <div className="bg-[var(--background-secondary)]/50 cartao p-6">
       <h2 className="text-xl mb-6 flex items-center gap-3">
-        <span className="w-8 h-8 bg-[var(--gold)] rounded-full flex items-center justify-center text-black text-sm font-bold">
+        <span className="w-8 h-8 bg-[var(--foreground-strong)] rounded-full flex items-center justify-center text-black text-sm font-bold">
           6
         </span>
         {t.vender_cavalo.step_payment_title}
@@ -82,31 +82,35 @@ export default function StepPagamento({
           <div className="flex items-center gap-2">
             <Star
               size={16}
-              className={isDestaque ? "text-[var(--gold)] fill-current" : "text-[var(--gold)]"}
+              className={
+                isDestaque
+                  ? "text-[var(--foreground-muted)] fill-current"
+                  : "text-[var(--foreground-muted)]"
+              }
             />
             <span className="font-semibold">
               {tr("Plano", "Plan", "Plan")} {tier.name}
             </span>
             {tier.badge && (
-              <span className="px-2 py-0.5 bg-[var(--elevate-1)] text-[var(--gold)] text-[10px] font-bold uppercase tracking-wider rounded">
+              <span className="px-2 py-0.5 bg-[var(--elevate-1)] text-[var(--foreground-muted)] text-[10px] font-bold uppercase tracking-wider rounded">
                 {tier.badge}
               </span>
             )}
           </div>
-          <span className="text-xl font-bold text-[var(--gold)]">{precoTotal}€</span>
+          <span className="text-xl font-bold text-[var(--foreground-muted)]">{precoTotal}€</span>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-[var(--foreground-secondary)]">
           <div className="flex items-center gap-1.5">
-            <Clock size={12} className="text-[var(--gold)]" />
+            <Clock size={12} className="text-[var(--foreground-muted)]" />
             {durationLabel}
           </div>
           <div className="flex items-center gap-1.5">
-            <Camera size={12} className="text-[var(--gold)]" />
+            <Camera size={12} className="text-[var(--foreground-muted)]" />
             {photosLabel} {tr("fotos", "photos", "fotos")}
           </div>
           {isDestaque && (
             <div className="flex items-center gap-1.5">
-              <Check size={12} className="text-[var(--gold)]" />
+              <Check size={12} className="text-[var(--foreground-muted)]" />
               {tr("Destaque incluído", "Featured included", "Destacado incluido")}
             </div>
           )}
@@ -120,9 +124,9 @@ export default function StepPagamento({
             <span className="text-sm text-[var(--foreground-secondary)]">
               {t.vender_cavalo.total_to_pay}
             </span>
-            <div className="text-2xl font-bold text-[var(--gold)]">{precoTotal}€</div>
+            <div className="text-2xl font-bold text-[var(--foreground-muted)]">{precoTotal}€</div>
           </div>
-          <CreditCard size={32} className="text-[var(--gold)]" />
+          <CreditCard size={32} className="text-[var(--foreground-muted)]" />
         </div>
         <div className="text-xs text-[var(--foreground-muted)] mt-2">
           {tr("Plano", "Plan", "Plan")} {tier.name} — {durationLabel}
@@ -140,18 +144,24 @@ export default function StepPagamento({
             type="checkbox"
             checked={termsAccepted}
             onChange={(e) => onTermsChange(e.target.checked)}
-            className="w-5 h-5 accent-[var(--gold)] mt-0.5"
+            className="w-5 h-5 accent-[var(--foreground-strong)] mt-0.5"
           />
           <span className="text-sm text-[var(--foreground-secondary)]">
             {t.vender_cavalo.terms_agree}
             {""}
-            <LocalizedLink href="/termos" className="text-[var(--gold)] hover:underline">
+            <LocalizedLink
+              href="/termos"
+              className="text-[var(--foreground-muted)] hover:underline"
+            >
               {t.vender_cavalo.terms_link}
             </LocalizedLink>
             {""}
             {t.vender_cavalo.privacy_and}
             {""}
-            <LocalizedLink href="/privacidade" className="text-[var(--gold)] hover:underline">
+            <LocalizedLink
+              href="/privacidade"
+              className="text-[var(--foreground-muted)] hover:underline"
+            >
               {t.vender_cavalo.privacy_link}
             </LocalizedLink>
             . {t.vender_cavalo.terms_confirm}
@@ -174,7 +184,7 @@ export default function StepPagamento({
       <button
         onClick={onSubmit}
         disabled={loading || !termsAccepted}
-        className="w-full py-4 bg-[var(--gold)] text-black font-semibold rounded-lg hover:bg-[var(--gold-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3 touch-manipulation active:scale-[0.98]"
+        className="w-full py-4 btn btn-primario w-full gap-3 rounded-full disabled:cursor-not-allowed"
       >
         {loading ? (
           <>

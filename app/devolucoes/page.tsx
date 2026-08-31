@@ -4,9 +4,7 @@ export default function DevolucoesPage() {
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-32 pb-20 px-4 sm:px-6 font-normal selection:bg-[var(--gold)] selection:text-black">
       <div data-revelar="" suppressHydrationWarning className="max-w-4xl mx-auto">
-        <span className="text-[var(--gold)] rotulo font-bold block mb-6 text-center">
-          Direitos do Consumidor
-        </span>
+        <span className="rotulo mb-6 block text-center">Direitos do Consumidor</span>
         <h1 className="text-2xl sm:text-4xl md:text-5xl font-normal mb-4 text-center">
           Devoluções &amp; Direito de Arrependimento
         </h1>
@@ -48,7 +46,7 @@ export default function DevolucoesPage() {
                 <strong className="text-[var(--foreground)]">Email:</strong>{" "}
                 <a
                   href="mailto:portal.lusitano2023@gmail.com"
-                  className="text-[var(--gold)] underline underline-offset-4"
+                  className="text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-4 transition-colors hover:decoration-[var(--border-hover)]"
                 >
                   portal.lusitano2023@gmail.com
                 </a>
@@ -156,7 +154,7 @@ export default function DevolucoesPage() {
               Em caso de reclamação, pode contactar-nos pelo email{" "}
               <a
                 href="mailto:portal.lusitano2023@gmail.com"
-                className="text-[var(--gold)] underline underline-offset-4"
+                className="text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-4 transition-colors hover:decoration-[var(--border-hover)]"
               >
                 portal.lusitano2023@gmail.com
               </a>{" "}

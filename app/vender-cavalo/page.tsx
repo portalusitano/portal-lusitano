@@ -407,7 +407,7 @@ export default function VenderCavaloPage() {
                 setSelectedTier("standard");
                 setRestored(false);
               }}
-              className="text-[var(--gold)] text-xs uppercase tracking-wider hover:underline"
+              className="text-[var(--foreground-muted)] text-xs uppercase tracking-wider hover:underline"
             >
               {(t.vender_cavalo as Record<string, string>)?.clear_draft || "Limpar"}
             </button>

@@ -11,7 +11,7 @@ export default function Loading() {
 
         {/* Center Dot */}
         <div className="absolute inset-0 flex items-center justify-center animate-[pulse-scale_1.5s_ease-in-out_infinite]">
-          <div className="w-2 h-2 bg-[var(--gold)] rounded-full" />
+          <div className="w-2 h-2 bg-[var(--foreground-muted)] rounded-full" />
         </div>
       </div>
 

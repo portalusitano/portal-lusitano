@@ -67,7 +67,7 @@ export default function StepPrecoApresentacao({
   return (
     <div className="bg-[var(--background-secondary)]/50 cartao p-6">
       <h2 className="text-xl mb-6 flex items-center gap-3">
-        <span className="w-8 h-8 bg-[var(--gold)] rounded-full flex items-center justify-center text-black text-sm font-bold">
+        <span className="w-8 h-8 bg-[var(--foreground-strong)] rounded-full flex items-center justify-center text-black text-sm font-bold">
           5
         </span>
         {t.vender_cavalo.step_price_title}
@@ -156,7 +156,7 @@ export default function StepPrecoApresentacao({
               type="checkbox"
               checked={formData.negociavel}
               onChange={(e) => updateField("negociavel", e.target.checked)}
-              className="w-5 h-5 accent-[var(--gold)]"
+              className="w-5 h-5 accent-[var(--foreground-strong)]"
             />
             <span className="text-sm">{t.vender_cavalo.price_negotiable}</span>
           </label>
@@ -169,7 +169,7 @@ export default function StepPrecoApresentacao({
               type="checkbox"
               checked={formData.aceita_troca}
               onChange={(e) => updateField("aceita_troca", e.target.checked)}
-              className="w-5 h-5 accent-[var(--gold)]"
+              className="w-5 h-5 accent-[var(--foreground-strong)]"
             />
             <span className="text-sm">{t.vender_cavalo.accepts_trade}</span>
           </label>
@@ -182,7 +182,7 @@ export default function StepPrecoApresentacao({
               type="checkbox"
               checked={formData.transporte_incluido}
               onChange={(e) => updateField("transporte_incluido", e.target.checked)}
-              className="w-5 h-5 accent-[var(--gold)]"
+              className="w-5 h-5 accent-[var(--foreground-strong)]"
             />
             <span className="text-sm">
               {tr(
@@ -201,7 +201,7 @@ export default function StepPrecoApresentacao({
               type="checkbox"
               checked={formData.trial_possivel}
               onChange={(e) => updateField("trial_possivel", e.target.checked)}
-              className="w-5 h-5 accent-[var(--gold)]"
+              className="w-5 h-5 accent-[var(--foreground-strong)]"
             />
             <span className="text-sm">
               {tr(
@@ -220,7 +220,7 @@ export default function StepPrecoApresentacao({
               type="checkbox"
               checked={formData.financiamento_possivel}
               onChange={(e) => updateField("financiamento_possivel", e.target.checked)}
-              className="w-5 h-5 accent-[var(--gold)]"
+              className="w-5 h-5 accent-[var(--foreground-strong)]"
             />
             <span className="text-sm">
               {tr(
@@ -239,7 +239,7 @@ export default function StepPrecoApresentacao({
               type="checkbox"
               checked={formData.exportacao_possivel}
               onChange={(e) => updateField("exportacao_possivel", e.target.checked)}
-              className="w-5 h-5 accent-[var(--gold)]"
+              className="w-5 h-5 accent-[var(--foreground-strong)]"
             />
             <span className="text-sm">
               {tr(
@@ -258,7 +258,7 @@ export default function StepPrecoApresentacao({
               type="checkbox"
               checked={formData.acompanhamento_pos_venda}
               onChange={(e) => updateField("acompanhamento_pos_venda", e.target.checked)}
-              className="w-5 h-5 accent-[var(--gold)]"
+              className="w-5 h-5 accent-[var(--foreground-strong)]"
             />
             <span className="text-sm">
               {tr(
@@ -277,7 +277,7 @@ export default function StepPrecoApresentacao({
               type="checkbox"
               checked={formData.internato_possivel}
               onChange={(e) => updateField("internato_possivel", e.target.checked)}
-              className="w-5 h-5 accent-[var(--gold)]"
+              className="w-5 h-5 accent-[var(--foreground-strong)]"
             />
             <span className="text-sm">
               {tr(
@@ -296,7 +296,7 @@ export default function StepPrecoApresentacao({
               type="checkbox"
               checked={formData.aulas_incluidas}
               onChange={(e) => updateField("aulas_incluidas", e.target.checked)}
-              className="w-5 h-5 accent-[var(--gold)]"
+              className="w-5 h-5 accent-[var(--foreground-strong)]"
             />
             <span className="text-sm">
               {tr(
@@ -316,7 +316,7 @@ export default function StepPrecoApresentacao({
                 type="checkbox"
                 checked={formData.disponivel_cobricao}
                 onChange={(e) => updateField("disponivel_cobricao", e.target.checked)}
-                className="w-5 h-5 accent-[var(--gold)]"
+                className="w-5 h-5 accent-[var(--foreground-strong)]"
               />
               <span className="text-sm">
                 {tr(
@@ -460,7 +460,7 @@ export default function StepPrecoApresentacao({
             type="checkbox"
             checked={formData.aceita_visita_veterinario}
             onChange={(e) => updateField("aceita_visita_veterinario", e.target.checked)}
-            className="w-5 h-5 accent-[var(--gold)]"
+            className="w-5 h-5 accent-[var(--foreground-strong)]"
           />
           <span className="text-sm">
             {tr(
@@ -475,7 +475,7 @@ export default function StepPrecoApresentacao({
         <div className="border-t border-[var(--border)] pt-6">
           <div className="flex items-center justify-between mb-1">
             <h3 className="text-sm font-medium text-[var(--foreground)] flex items-center gap-2">
-              <Camera size={16} className="text-[var(--gold)]" />
+              <Camera size={16} className="text-[var(--foreground-muted)]" />
               {t.vender_cavalo.photos_title} *
             </h3>
             <span className="text-xs text-[var(--foreground-muted)]">
@@ -490,7 +490,7 @@ export default function StepPrecoApresentacao({
           <div className="h-1 bg-[var(--background-card)] rounded-full mb-4">
             <div
               className={`h-full rounded-full transition-all duration-300 ${
-                imagens.length >= MIN_IMAGES ? "bg-[var(--gold)]" : "bg-[var(--foreground-muted)]"
+                imagens.length >= MIN_IMAGES ? "bg-[var(--ok)]" : "bg-[var(--foreground-muted)]"
               }`}
               style={{ width: `${Math.min(100, (imagens.length / MIN_IMAGES) * 100)}%` }}
             />
@@ -519,7 +519,7 @@ export default function StepPrecoApresentacao({
                     <X size={12} />
                   </button>
                   {i === 0 && (
-                    <span className="absolute bottom-1 left-1 text-[10px] uppercase tracking-wider bg-black/60 text-[var(--gold)] px-1.5 py-0.5 rounded">
+                    <span className="absolute bottom-1 left-1 text-[10px] uppercase tracking-wider bg-black/60 text-[var(--foreground-muted)] px-1.5 py-0.5 rounded">
                       {t.vender_cavalo.photo_main}
                     </span>
                   )}
@@ -536,13 +536,13 @@ export default function StepPrecoApresentacao({
               onDrop={handleDrop}
               className={`flex flex-col items-center justify-center gap-3 w-full py-8 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 touch-manipulation ${
                 isDragging
-                  ? "border-[var(--gold)] bg-[var(--elevate-1)]"
+                  ? "border-[var(--foreground-strong)] bg-[var(--elevate-1)]"
                   : "border-[var(--border)] hover:border-[var(--border-hover)] hover:bg-[var(--background-card)]/50"
               }`}
             >
               <div className="w-10 h-10 border border-[var(--border)] rounded-lg flex items-center justify-center">
                 {isDragging ? (
-                  <ImagePlus size={20} className="text-[var(--gold)]" />
+                  <ImagePlus size={20} className="text-[var(--foreground-muted)]" />
                 ) : (
                   <Upload size={18} className="text-[var(--foreground-muted)]" />
                 )}
@@ -575,7 +575,7 @@ export default function StepPrecoApresentacao({
             </label>
             <span
               className={`text-xs transition-colors ${
-                descReached ? "text-[var(--gold)]" : "text-[var(--foreground-muted)]"
+                descReached ? "text-[var(--foreground-muted)]" : "text-[var(--foreground-muted)]"
               }`}
             >
               {descLength}/{descMin}
@@ -594,7 +594,7 @@ export default function StepPrecoApresentacao({
           <div className="mt-1.5 h-0.5 bg-[var(--background-card)] rounded-full">
             <div
               className={`h-full rounded-full transition-all duration-300 ${
-                descReached ? "bg-[var(--gold)]" : "bg-[var(--foreground-muted)]/40"
+                descReached ? "bg-[var(--ok)]" : "bg-[var(--foreground-muted)]/40"
               }`}
               style={{ width: `${descPercent}%` }}
             />

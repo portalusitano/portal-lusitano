@@ -51,7 +51,7 @@ export default function RecuperarSenhaPage() {
     return (
       <div className="text-center py-6">
         <div className="w-16 h-16 bg-[var(--elevate-1)] border border-[var(--border-soft)] rounded-full flex items-center justify-center mx-auto mb-5">
-          <CheckCircle className="text-[var(--gold)]" size={32} aria-hidden="true" />
+          <CheckCircle style={{ color: "var(--ok)" }} size={32} aria-hidden="true" />
         </div>
         <h2 className="text-xl text-[var(--foreground)] mb-2">{t.auth.email_sent}</h2>
         <p className="text-sm text-[var(--foreground-secondary)] mb-1">
@@ -61,10 +61,7 @@ export default function RecuperarSenhaPage() {
         <p className="text-xs text-[var(--foreground-muted)] mb-6 max-w-xs mx-auto">
           Receberá um link de recuperação. Verifique também a pasta de spam.
         </p>
-        <LocalizedLink
-          href="/login"
-          className="inline-flex items-center gap-2 text-sm text-[var(--gold)] hover:text-[var(--foreground-strong)] transition-colors"
-        >
+        <LocalizedLink href="/login" className="btn btn-subtil gap-2 text-sm">
           <ArrowLeft size={16} aria-hidden="true" />
           {t.auth.back_to_login}
         </LocalizedLink>
@@ -125,7 +122,7 @@ export default function RecuperarSenhaPage() {
                 "w-full bg-[var(--background-card)] border rounded-lg pl-10 pr-4 py-3",
                 "text-[var(--foreground)] placeholder:text-[var(--foreground-muted)]",
                 "outline-none transition-colors",
-                "focus:border-[var(--border-hover)] focus:ring-1 focus:ring-[var(--gold)]/30",
+                "focus:border-[var(--border-hover)] focus:ring-1 focus:ring-[var(--border-hover)]",
                 error
                   ? "border-red-500/60 focus:border-red-500/60 focus:ring-red-500/20"
                   : "border-[var(--border)]",
@@ -147,7 +144,7 @@ export default function RecuperarSenhaPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 bg-gradient-to-r from-[var(--gold)] to-[#B8956F] text-black font-semibold rounded-lg hover:from-[var(--gold-hover)] hover:to-[var(--gold)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-3 btn btn-primario w-full gap-2 rounded-full disabled:cursor-not-allowed"
           aria-busy={loading}
         >
           {loading ? (

@@ -134,7 +134,7 @@ function ComprarContentInner({
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--gold)] text-black font-semibold rounded-lg hover:bg-[var(--gold-hover)] transition-colors text-sm"
+              className="btn btn-primario gap-2 rounded-full"
             >
               {language === "en"
                 ? "Try Again"

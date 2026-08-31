@@ -24,15 +24,13 @@ export default function PageHeader() {
       </LocalizedLink>
 
       <div className="text-center">
-        <span className="text-[var(--gold)] uppercase tracking-wider text-[11px] sm:text-[10px] font-bold block mb-3">
+        <span className="text-[var(--foreground-muted)] uppercase tracking-wider text-[11px] sm:text-[10px] font-bold block mb-3">
           {t.vender_cavalo.marketplace_title}
         </span>
 
         {/* Linha decorativa dourada */}
         <div className="flex items-center justify-center gap-3 mb-5">
-          <div className="h-px w-12 bg-gradient-to-r from-transparent to-[var(--gold)]/60" />
-          <div className="w-1.5 h-1.5 bg-[var(--gold)] rotate-45" />
-          <div className="h-px w-12 bg-gradient-to-l from-transparent to-[var(--gold)]/60" />
+          <div className="w-1.5 h-1.5 bg-[var(--foreground-muted)] rotate-45" />
         </div>
 
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-normal mb-4">
@@ -49,7 +47,7 @@ export default function PageHeader() {
               key={label}
               className="flex items-center gap-2 text-xs text-[var(--foreground-secondary)]"
             >
-              <Icon size={13} className="text-[var(--gold)] shrink-0" />
+              <Icon size={13} className="text-[var(--foreground-muted)] shrink-0" />
               <span>{label}</span>
             </div>
           ))}

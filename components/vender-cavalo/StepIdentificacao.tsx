@@ -21,7 +21,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
   return (
     <div className="bg-[var(--background-secondary)]/50 cartao p-6">
       <h2 className="text-xl mb-6 flex items-center gap-3">
-        <span className="w-8 h-8 bg-[var(--gold)] rounded-full flex items-center justify-center text-black text-sm font-bold">
+        <span className="w-8 h-8 bg-[var(--foreground-strong)] rounded-full flex items-center justify-center text-black text-sm font-bold">
           2
         </span>
         {t.vender_cavalo.step_id_title}
@@ -412,7 +412,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
               type="checkbox"
               checked={formData.prova_aptidao_apsl}
               onChange={(e) => updateField("prova_aptidao_apsl", e.target.checked)}
-              className="w-5 h-5 accent-[var(--gold)]"
+              className="w-5 h-5 accent-[var(--foreground-strong)]"
             />
             <span className="text-sm">
               {tr(

@@ -30,7 +30,7 @@ export default function FormNavigation({ step, onPrev, onNext }: FormNavigationP
         {step < TOTAL_STEPS && (
           <button
             onClick={onNext}
-            className="px-6 py-3 bg-[var(--gold)] text-black font-medium rounded-lg hover:bg-[var(--gold-hover)] transition-colors touch-manipulation"
+            className="px-6 py-3 btn btn-primario rounded-full touch-manipulation"
           >
             {t.vender_cavalo.continue}
           </button>

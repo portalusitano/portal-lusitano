@@ -9,10 +9,7 @@ export default function NotFound() {
   return (
     <main className="min-h-screen bg-[var(--background)] flex items-center justify-center px-6 relative overflow-hidden">
       {/* Background decorativo */}
-      <div className="absolute inset-0 opacity-5" aria-hidden="true">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[var(--gold)] rounded-full blur-[150px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-[var(--gold)] rounded-full blur-[100px]" />
-      </div>
+      <div className="absolute inset-0 opacity-5" aria-hidden="true"></div>
 
       <div className="relative z-10 text-center max-w-2xl">
         {/* Numero 404 */}
@@ -24,7 +21,9 @@ export default function NotFound() {
             className="absolute inset-0 flex items-center justify-center opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
             style={{ animationDelay: "0.1s" }}
           >
-            <span className="text-6xl md:text-8xl text-[var(--gold)]">404</span>
+            <span className="text-6xl tabular-nums text-[var(--foreground-muted)] md:text-8xl">
+              404
+            </span>
           </div>
         </div>
 
@@ -51,10 +50,7 @@ export default function NotFound() {
           className="flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
           style={{ animationDelay: "0.25s" }}
         >
-          <LocalizedLink
-            href="/"
-            className="flex items-center gap-3 bg-[var(--gold)] text-black px-8 py-4 text-xs uppercase tracking-wide font-bold hover:bg-white transition-colors"
-          >
+          <LocalizedLink href="/" className="btn btn-primario gap-2 rounded-full">
             <Home size={16} />
             {t.not_found.back_home}
           </LocalizedLink>
@@ -83,11 +79,11 @@ export default function NotFound() {
           className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-4 opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
           style={{ animationDelay: "0.45s" }}
         >
-          <div className="w-12 h-[1px] bg-[var(--gold)]" />
+          <div className="w-12 h-[1px] bg-[var(--border)]" />
           <span className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)]">
             Portal Lusitano
           </span>
-          <div className="w-12 h-[1px] bg-[var(--gold)]" />
+          <div className="w-12 h-[1px] bg-[var(--border)]" />
         </div>
       </div>
     </main>

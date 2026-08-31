@@ -43,7 +43,7 @@ export default function HowItWorks() {
                   {number}
                 </span>
                 <div className="w-7 h-7 border border-[var(--border-soft)] flex items-center justify-center">
-                  <Icon size={13} className="text-[var(--gold)]" />
+                  <Icon size={13} className="text-[var(--foreground-muted)]" />
                 </div>
               </div>
               <div>

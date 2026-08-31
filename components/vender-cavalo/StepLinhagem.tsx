@@ -24,7 +24,7 @@ export default function StepLinhagem({
   return (
     <div className="bg-[var(--background-secondary)]/50 cartao p-6">
       <h2 className="text-xl mb-6 flex items-center gap-3">
-        <span className="w-8 h-8 bg-[var(--gold)] rounded-full flex items-center justify-center text-black text-sm font-bold">
+        <span className="w-8 h-8 bg-[var(--foreground-strong)] rounded-full flex items-center justify-center text-black text-sm font-bold">
           3
         </span>
         {t.vender_cavalo.step_lineage_title}
@@ -33,7 +33,9 @@ export default function StepLinhagem({
       <div className="space-y-6">
         {/* Pai */}
         <div>
-          <h3 className="text-sm font-medium text-[var(--gold)] mb-3">{t.vender_cavalo.sire}</h3>
+          <h3 className="text-sm font-medium text-[var(--foreground-muted)] mb-3">
+            {t.vender_cavalo.sire}
+          </h3>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label
@@ -73,7 +75,9 @@ export default function StepLinhagem({
 
         {/* Mãe */}
         <div>
-          <h3 className="text-sm font-medium text-[var(--gold)] mb-3">{t.vender_cavalo.dam}</h3>
+          <h3 className="text-sm font-medium text-[var(--foreground-muted)] mb-3">
+            {t.vender_cavalo.dam}
+          </h3>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label
@@ -281,7 +285,7 @@ export default function StepLinhagem({
         {/* Upload Documentos */}
         <div className="border-t border-[var(--border)] pt-6">
           <h3 className="text-sm font-medium text-[var(--foreground)] mb-4 flex items-center gap-2">
-            <FileText size={18} className="text-[var(--gold)]" />
+            <FileText size={18} className="text-[var(--foreground-muted)]" />
             {t.vender_cavalo.required_docs_upload}
           </h3>
 
