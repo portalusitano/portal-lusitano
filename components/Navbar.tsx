@@ -128,7 +128,7 @@ export default memo(function Navbar() {
           {/* A marca é o texto. Peso forte e tracking apertado dão-lhe presença
               sem precisar de tamanho — e sem a data por baixo, que roubava
               atenção ao nome e envelhece sozinha. */}
-          <span className="text-lg md:text-xl font-bold tracking-[0.01em] text-[var(--foreground-strong)] group-hover:text-[var(--gold)] transition-colors leading-none whitespace-nowrap">
+          <span className="text-lg md:text-xl font-bold tracking-[0.01em] text-[var(--foreground-strong)] group-hover:text-[var(--foreground-strong)] transition-colors leading-none whitespace-nowrap">
             PORTAL LUSITANO
           </span>
         </LocalizedLink>

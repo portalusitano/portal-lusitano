@@ -12,7 +12,10 @@ export default function CopyEmailButton() {
   };
 
   return (
-    <button onClick={copyEmail} className="rotulo hover:text-[var(--gold)] transition-colors">
+    <button
+      onClick={copyEmail}
+      className="rotulo hover:text-[var(--foreground-strong)] transition-colors"
+    >
       {copied ? "Copiado \u2713" : "Copiar email"}
     </button>
   );

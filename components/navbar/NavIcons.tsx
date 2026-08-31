@@ -33,7 +33,7 @@ export const NavIcons = memo(function NavIcons({
       {/* Pesquisa */}
       <button
         onClick={onSearchClick}
-        className="hidden lg:flex text-[var(--foreground-secondary)] hover:text-[var(--gold)] transition-colors p-2 min-w-[44px] min-h-[44px] items-center justify-center active:scale-95 touch-manipulation"
+        className="hidden lg:flex text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors p-2 min-w-[44px] min-h-[44px] items-center justify-center active:scale-95 touch-manipulation"
         aria-label={tr3(language, "Pesquisar", "Search", "Buscar")}
       >
         <Search size={20} strokeWidth={1.5} />
@@ -63,7 +63,7 @@ export const NavIcons = memo(function NavIcons({
       {/* Favoritos — hidden on mobile (accessible via BottomNav) */}
       <LocalizedLink
         href="/cavalos-favoritos"
-        className="hidden sm:flex text-[var(--foreground-secondary)] hover:text-[var(--gold)] transition-colors p-2 min-w-[44px] min-h-[44px] items-center justify-center relative active:scale-95 touch-manipulation"
+        className="hidden sm:flex text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors p-2 min-w-[44px] min-h-[44px] items-center justify-center relative active:scale-95 touch-manipulation"
         aria-label={
           language === "pt"
             ? "Cavalos Favoritos"
@@ -85,7 +85,7 @@ export const NavIcons = memo(function NavIcons({
       {porLer > 0 && (
         <LocalizedLink
           href="/minha-conta/mensagens"
-          className="hidden sm:flex text-[var(--foreground-secondary)] hover:text-[var(--gold)] transition-colors p-2 min-w-[44px] min-h-[44px] items-center justify-center relative active:scale-95 touch-manipulation"
+          className="hidden sm:flex text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors p-2 min-w-[44px] min-h-[44px] items-center justify-center relative active:scale-95 touch-manipulation"
           aria-label={tr3(
             language,
             `Mensagens (${porLer} por ler)`,
@@ -106,7 +106,7 @@ export const NavIcons = memo(function NavIcons({
       {/* Conta */}
       <LocalizedLink
         href="/minha-conta"
-        className="hidden md:flex text-[var(--foreground-secondary)] hover:text-[var(--gold)] transition-colors p-2 min-w-[44px] min-h-[44px] items-center justify-center active:scale-95 touch-manipulation"
+        className="hidden md:flex text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors p-2 min-w-[44px] min-h-[44px] items-center justify-center active:scale-95 touch-manipulation"
         aria-label={tr3(language, "Minha conta", "My account", "Mi cuenta")}
       >
         <User size={20} strokeWidth={1.5} />

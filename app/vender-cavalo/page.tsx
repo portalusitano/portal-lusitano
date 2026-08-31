@@ -394,7 +394,7 @@ export default function VenderCavaloPage() {
       {/* Auto-save indicator */}
       {restored && step === 1 && (
         <div className="max-w-3xl mx-auto mb-4">
-          <div className="flex items-center justify-between bg-[var(--gold)]/10 border border-[var(--gold)]/20 px-4 py-2 text-sm">
+          <div className="flex items-center justify-between bg-[var(--elevate-1)] border border-[var(--border-soft)] px-4 py-2 text-sm">
             <span className="text-[var(--foreground-secondary)]">
               {(t.vender_cavalo as Record<string, string>)?.draft_restored ||
                 "Rascunho restaurado automaticamente"}

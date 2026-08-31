@@ -11,7 +11,7 @@ export default function NotFound() {
       </p>
       <Link
         href="/comprar"
-        className="border border-[var(--gold)]/30 px-8 py-3 rotulo text-[var(--foreground)] hover:bg-[var(--gold)] hover:text-black transition-all duration-300"
+        className="border border-[var(--border-soft)] px-8 py-3 rotulo text-[var(--foreground)] hover:bg-[var(--gold)] hover:text-black transition-all duration-300"
       >
         Ver Todos os Anúncios
       </Link>

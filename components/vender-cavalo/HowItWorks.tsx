@@ -39,10 +39,10 @@ export default function HowItWorks() {
             <div className="cartao-seco__esbatido" />
             <div className="relative z-10 p-5 flex flex-col gap-3">
               <div className="flex items-center gap-3">
-                <span className="text-[var(--gold)]/40 text-2xl leading-none select-none">
+                <span className="text-[var(--foreground-muted)] text-2xl leading-none select-none">
                   {number}
                 </span>
-                <div className="w-7 h-7 border border-[var(--gold)]/30 flex items-center justify-center">
+                <div className="w-7 h-7 border border-[var(--border-soft)] flex items-center justify-center">
                   <Icon size={13} className="text-[var(--gold)]" />
                 </div>
               </div>

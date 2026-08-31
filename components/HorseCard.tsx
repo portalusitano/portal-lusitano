@@ -135,7 +135,7 @@ export default memo(function HorseCard({
             {Number(horse.preco).toLocaleString(locale)} €
           </p>
 
-          <h2 className="text-sm font-medium text-[var(--foreground)] line-clamp-1 group-hover:text-[var(--gold)] transition-colors">
+          <h2 className="text-sm font-medium text-[var(--foreground)] line-clamp-1 group-hover:text-[var(--foreground-strong)] transition-colors">
             {horse.nome_cavalo}
           </h2>
 

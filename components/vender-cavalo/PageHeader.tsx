@@ -17,7 +17,7 @@ export default function PageHeader() {
     <div className="max-w-3xl mx-auto mb-10">
       <LocalizedLink
         href="/comprar"
-        className="inline-flex items-center gap-2 text-[var(--foreground-secondary)] hover:text-[var(--gold)] transition-colors mb-8 touch-manipulation"
+        className="inline-flex items-center gap-2 text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors mb-8 touch-manipulation"
       >
         <ArrowLeft size={18} />
         <span className="text-sm">{t.vender_cavalo.back_marketplace}</span>

@@ -31,7 +31,7 @@ export default function MinhaContaError({
           </button>
           <LocalizedLink
             href="/"
-            className="text-[var(--foreground-muted)] text-sm hover:text-[var(--gold)] transition-colors"
+            className="text-[var(--foreground-muted)] text-sm hover:text-[var(--foreground-strong)] transition-colors"
           >
             Voltar ao início
           </LocalizedLink>

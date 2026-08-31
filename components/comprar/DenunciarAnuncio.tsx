@@ -49,8 +49,8 @@ export default function DenunciarAnuncio({ cavaloId }: { cavaloId: string }) {
 
   if (enviada) {
     return (
-      <p className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] pt-2">
-        <Check size={11} className="text-[var(--gold)]" />
+      <p className="rotulo flex items-center justify-center gap-2 pt-2">
+        <Check size={11} style={{ color: "var(--ok)" }} aria-hidden="true" />
         Denúncia registada. Obrigado.
       </p>
     );
@@ -60,7 +60,7 @@ export default function DenunciarAnuncio({ cavaloId }: { cavaloId: string }) {
     return (
       <button
         onClick={() => setAberto(true)}
-        className="flex items-center justify-center gap-2 w-full text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] hover:text-red-400 transition-colors pt-2"
+        className="rotulo flex w-full items-center justify-center gap-2 pt-2 transition-colors hover:text-[var(--foreground-strong)]"
       >
         <Flag size={11} />
         Denunciar anúncio
@@ -94,7 +94,7 @@ export default function DenunciarAnuncio({ cavaloId }: { cavaloId: string }) {
         maxLength={MAX_DETALHE}
         placeholder="Detalhes (opcional)"
         onChange={(e) => setDetalhe(e.target.value)}
-        className="w-full bg-transparent border border-[var(--border)] px-3 py-2 text-xs text-[var(--foreground)] focus:border-[var(--gold)]/50 focus:outline-none resize-y"
+        className="w-full bg-transparent border border-[var(--border)] px-3 py-2 text-xs text-[var(--foreground)] focus:border-[var(--border-hover)] focus:outline-none resize-y"
       />
 
       <div className="flex gap-2">

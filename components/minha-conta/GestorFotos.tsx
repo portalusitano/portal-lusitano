@@ -112,7 +112,7 @@ export default function GestorFotos({ anuncioId, fotos, onGuardado }: GestorFoto
                   onClick={() => setLista((prev) => definirPrincipal(prev, url))}
                   disabled={ocupado}
                   aria-label="Usar como fotografia de capa"
-                  className="p-1.5 bg-black/70 text-white hover:text-[var(--gold)] transition-colors disabled:opacity-40"
+                  className="p-1.5 bg-black/70 text-white hover:text-[var(--foreground-strong)] transition-colors disabled:opacity-40"
                 >
                   <Star size={12} />
                 </button>
@@ -135,7 +135,7 @@ export default function GestorFotos({ anuncioId, fotos, onGuardado }: GestorFoto
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={ocupado}
-            className="aspect-square border border-dashed border-[var(--border)] flex flex-col items-center justify-center gap-1 text-[var(--foreground-muted)] hover:text-[var(--gold)] hover:border-[var(--gold)]/40 transition-colors disabled:opacity-40"
+            className="aspect-square border border-dashed border-[var(--border)] flex flex-col items-center justify-center gap-1 text-[var(--foreground-muted)] hover:text-[var(--foreground-strong)] hover:border-[var(--border-hover)] transition-colors disabled:opacity-40"
           >
             {aCarregar ? <Loader2 size={16} className="animate-spin" /> : <ImagePlus size={16} />}
             <span className="text-[11px] uppercase tracking-wider">Adicionar</span>
@@ -163,7 +163,7 @@ export default function GestorFotos({ anuncioId, fotos, onGuardado }: GestorFoto
           type="button"
           onClick={guardar}
           disabled={ocupado || lista.length === 0}
-          className="inline-flex items-center gap-2 px-5 py-2.5 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors disabled:opacity-40"
+          className="inline-flex items-center gap-2 px-5 py-2.5 border border-[var(--border-soft)] rotulo-forte hover:bg-[var(--elevate-1)] transition-colors disabled:opacity-40"
         >
           {aGuardar ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
           Guardar fotografias

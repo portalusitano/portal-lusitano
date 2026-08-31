@@ -126,7 +126,7 @@ export default class ErrorBoundary extends Component<Props, State> {
 
               <LocalizedLink
                 href="/"
-                className="inline-flex items-center justify-center gap-2 border border-[var(--border-hover)] text-[var(--foreground)] px-6 py-3 text-xs uppercase tracking-wider hover:border-[var(--gold)] hover:text-[var(--gold)] transition-colors"
+                className="inline-flex items-center justify-center gap-2 border border-[var(--border-hover)] text-[var(--foreground)] px-6 py-3 text-xs uppercase tracking-wider hover:border-[var(--border-hover)] hover:text-[var(--foreground-strong)] transition-colors"
               >
                 <Home size={16} />
                 {t.home}

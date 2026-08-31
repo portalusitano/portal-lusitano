@@ -136,7 +136,7 @@ export default function EventosCalendar({
       <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
         <button
           onClick={onPrevMonth}
-          className="p-2 text-[var(--foreground-secondary)] hover:text-[var(--gold)] transition-colors"
+          className="p-2 text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors"
         >
           <ChevronLeft size={20} />
         </button>
@@ -147,7 +147,7 @@ export default function EventosCalendar({
         </h3>
         <button
           onClick={onNextMonth}
-          className="p-2 text-[var(--foreground-secondary)] hover:text-[var(--gold)] transition-colors"
+          className="p-2 text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors"
         >
           <ChevronRight size={20} />
         </button>

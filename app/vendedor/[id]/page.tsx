@@ -84,7 +84,7 @@ export default async function VendedorPage({ params }: { params: Promise<{ id: s
       <div className="max-w-4xl mx-auto">
         <header className="pb-8 border-b border-[var(--border)]">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-[var(--gold)]/12 flex items-center justify-center shrink-0">
+            <div className="w-16 h-16 rounded-full bg-[var(--elevate-1)] flex items-center justify-center shrink-0">
               <span className="text-[var(--gold)] text-xl font-normal">
                 {vendedor.nome.charAt(0).toUpperCase()}
               </span>
@@ -107,7 +107,7 @@ export default async function VendedorPage({ params }: { params: Promise<{ id: s
           </div>
         </header>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 bg-[var(--gold)]/8 gap-px mt-10">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 bg-[var(--elevate-1)] gap-px mt-10">
           {vendedor.anuncios.map((a) => (
             <LocalizedLink
               key={a.id}
@@ -131,7 +131,7 @@ export default async function VendedorPage({ params }: { params: Promise<{ id: s
                 )}
               </div>
               <div className="p-4">
-                <h2 className="text-sm text-[var(--foreground)] truncate group-hover:text-[var(--gold)] transition-colors">
+                <h2 className="text-sm text-[var(--foreground)] truncate group-hover:text-[var(--foreground-strong)] transition-colors">
                   {a.nome}
                 </h2>
                 <p className="text-sm text-[var(--gold)] mt-1">
@@ -148,7 +148,7 @@ export default async function VendedorPage({ params }: { params: Promise<{ id: s
         <div className="mt-12 text-center">
           <LocalizedLink
             href="/comprar"
-            className="inline-block px-6 py-3 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors"
+            className="inline-block px-6 py-3 border border-[var(--border-soft)] rotulo-forte hover:bg-[var(--elevate-1)] transition-colors"
           >
             Ver todos os cavalos
           </LocalizedLink>

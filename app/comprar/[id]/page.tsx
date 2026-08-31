@@ -259,9 +259,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
       {!encerrado && (
         <div className="lg:hidden fixed bottom-16 left-0 right-0 z-30 bg-[var(--background)]/95 backdrop-blur-md border-t border-[var(--border)] px-3 py-2.5 flex items-center gap-2">
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] uppercase tracking-wider text-[var(--foreground-muted)] leading-none mb-0.5">
-              Preço
-            </p>
+            <p className="rotulo mb-0.5 leading-none">Preço</p>
             <p className="preco text-base leading-none">
               {Number(cavalo.preco).toLocaleString("pt-PT")} €
             </p>
@@ -271,7 +269,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
               href={whatsappLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-4 py-2.5 text-[11px] uppercase font-bold tracking-wide rounded-lg touch-manipulation active:scale-95 whitespace-nowrap"
+              className="btn touch-manipulation gap-1.5 whitespace-nowrap rounded-full px-4 active:scale-95"
               style={{ background: "#25D366", color: "#fff" }}
             >
               <MessageCircle size={14} />
@@ -300,9 +298,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
             />
           ) : (
             <div className="w-full h-[55vw] lg:h-full flex items-center justify-center bg-[var(--background-secondary)]">
-              <span className="text-[var(--foreground-muted)] text-[10px] uppercase tracking-wider">
-                Sem Fotografia
-              </span>
+              <span className="rotulo">Sem Fotografia</span>
             </div>
           )}
         </div>
@@ -315,15 +311,15 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
               {encerrado && (
                 <div
                   role="status"
-                  className="flex items-start gap-3 border border-[var(--gold)]/30 bg-[var(--gold)]/5 px-4 py-3"
+                  className="flex items-start gap-3 border border-[var(--border-soft)] bg-[var(--elevate-1)] px-4 py-3"
                 >
                   <Clock
                     size={15}
                     aria-hidden="true"
-                    className="text-[var(--gold)] mt-0.5 flex-shrink-0"
+                    className="mt-0.5 flex-shrink-0 text-[var(--foreground-muted)]"
                   />
                   <div className="space-y-1">
-                    <p className="text-[11px] uppercase tracking-wider font-bold text-[var(--gold)]">
+                    <p className="rotulo-forte text-[var(--foreground-strong)]">
                       {visibilidade === "vendido" ? "Cavalo vendido" : "Anúncio terminado"}
                     </p>
                     <p className="text-xs text-[var(--foreground-secondary)] leading-relaxed">
@@ -333,7 +329,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                       {""}
                       <Link
                         href="/comprar"
-                        className="text-[var(--gold)] hover:underline underline-offset-2"
+                        className="text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-2 transition-colors hover:decoration-[var(--border-hover)]"
                       >
                         Ver cavalos disponíveis
                       </Link>
@@ -348,7 +344,10 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                 aria-label="Localização no site"
                 className="meta flex flex-wrap items-center gap-2"
               >
-                <Link href="/comprar" className="hover:text-[var(--gold)] transition-colors">
+                <Link
+                  href="/comprar"
+                  className="hover:text-[var(--foreground-strong)] transition-colors"
+                >
                   Comprar
                 </Link>
                 <ChevronRight size={10} aria-hidden="true" />
@@ -520,8 +519,8 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                   {/* Seller info chip */}
                   {cavalo.contacto_nome && (
                     <div className="flex items-center gap-3 px-4 py-3 bg-[var(--background-secondary)] border border-[var(--border)]">
-                      <div className="w-9 h-9 rounded-full bg-[var(--gold)]/15 flex items-center justify-center flex-shrink-0">
-                        <span className="text-[var(--gold)] text-sm font-bold">
+                      <div className="w-9 h-9 rounded-full bg-[var(--elevate-1)] flex items-center justify-center flex-shrink-0">
+                        <span className="text-sm font-bold text-[var(--foreground-strong)]">
                           {cavalo.contacto_nome.charAt(0).toUpperCase()}
                         </span>
                       </div>
@@ -532,14 +531,12 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                         {cavalo.user_id ? (
                           <a
                             href={`/vendedor/${cavalo.user_id}`}
-                            className="text-[10px] text-[var(--gold)]/70 hover:text-[var(--gold)] uppercase tracking-wide transition-colors"
+                            className="rotulo transition-colors hover:text-[var(--foreground-strong)]"
                           >
                             Ver outros anúncios deste vendedor →
                           </a>
                         ) : (
-                          <p className="text-[10px] text-[var(--foreground-muted)] uppercase tracking-wide">
-                            Vendedor verificado
-                          </p>
+                          <p className="rotulo">Vendedor verificado</p>
                         )}
                       </div>
                     </div>
@@ -557,7 +554,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                           Pode ver o que este vendedor tem à venda em{""}
                           <Link
                             href={`/vendedor/${cavalo.user_id}`}
-                            className="text-[var(--gold)] hover:underline underline-offset-2"
+                            className="text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-2 transition-colors hover:decoration-[var(--border-hover)]"
                           >
                             outros anúncios
                           </Link>

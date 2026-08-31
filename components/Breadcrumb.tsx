@@ -53,7 +53,7 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
               {item.href && !isLast ? (
                 <LocalizedLink
                   href={item.href}
-                  className="text-[var(--foreground-muted)] hover:text-[var(--gold)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--gold)]"
+                  className="text-[var(--foreground-muted)] hover:text-[var(--foreground-strong)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--gold)]"
                 >
                   {item.label}
                 </LocalizedLink>

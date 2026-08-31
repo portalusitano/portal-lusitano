@@ -50,15 +50,15 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         />
 
         {/* Floating decorative orbs */}
-        <div className="absolute top-[15%] right-[15%] w-32 h-32 rounded-full bg-[var(--gold)]/5 blur-2xl animate-auth-float" />
+        <div className="absolute top-[15%] right-[15%] w-32 h-32 rounded-full bg-[var(--elevate-1)] blur-2xl animate-auth-float" />
         <div
-          className="absolute bottom-[20%] left-[10%] w-24 h-24 rounded-full bg-[var(--gold)]/8 blur-xl animate-auth-float"
+          className="absolute bottom-[20%] left-[10%] w-24 h-24 rounded-full bg-[var(--elevate-1)] blur-xl animate-auth-float"
           style={{ animationDelay: "2s" }}
         />
 
         {/* Logo */}
         <Link href="/" className="relative z-10 inline-flex flex-col gap-1 group w-fit">
-          <span className="text-2xl text-[var(--foreground)] tracking-wider group-hover:text-[var(--gold)] transition-colors duration-300">
+          <span className="text-2xl text-[var(--foreground)] tracking-wider group-hover:text-[var(--foreground-strong)] transition-colors duration-300">
             PORTAL LUSITANO
           </span>
           <div className="flex items-center gap-3">
@@ -70,7 +70,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="relative z-10 flex-1 flex flex-col items-start justify-center gap-8 py-12">
           {/* Decorative horse silhouette mark — larger */}
           <div
-            className="w-20 h-20 rounded-2xl bg-[var(--gold)]/10 border border-[var(--gold)]/20 flex items-center justify-center backdrop-blur-sm shadow-lg shadow-[var(--gold)]/5 animate-auth-float"
+            className="w-20 h-20 rounded-2xl bg-[var(--elevate-1)] border border-[var(--border-soft)] flex items-center justify-center backdrop-blur-sm shadow-lg shadow-[var(--gold)]/5 animate-auth-float"
             style={{ animationDuration: "5s" }}
           >
             <svg
@@ -124,7 +124,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-3 group/item">
-                <div className="w-8 h-8 rounded-lg bg-[var(--gold)]/8 border border-[var(--gold)]/15 flex items-center justify-center shrink-0 group-hover/item:bg-[var(--gold)]/15 transition-colors">
+                <div className="w-8 h-8 rounded-lg bg-[var(--elevate-1)] border border-[var(--border-soft)] flex items-center justify-center shrink-0 group-hover/item:bg-[var(--elevate-1)] transition-colors">
                   <svg
                     viewBox="0 0 24 24"
                     width="14"
@@ -166,7 +166,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         {/* Bottom quote */}
-        <blockquote className="relative z-10 border-l-2 border-[var(--gold)]/40 pl-4">
+        <blockquote className="relative z-10 border-l-2 border-[var(--border-soft)] pl-4">
           <p className="text-xs text-[var(--foreground-muted)] italic leading-relaxed">
             &ldquo;A equitação é a arte de esconder a arte.&rdquo;
           </p>
@@ -180,7 +180,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-10 sm:px-8 lg:px-12 xl:px-16 min-h-screen lg:min-h-0">
         {/* Mobile-only logo */}
         <Link href="/" className="flex flex-col items-center mb-8 lg:hidden group" tabIndex={0}>
-          <span className="text-xl text-[var(--foreground)] tracking-wide group-hover:text-[var(--gold)] transition-colors">
+          <span className="text-xl text-[var(--foreground)] tracking-wide group-hover:text-[var(--foreground-strong)] transition-colors">
             PORTAL LUSITANO
           </span>
         </Link>
@@ -192,7 +192,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         <Link
           href="/"
-          className="mt-6 text-sm text-[var(--foreground-muted)] hover:text-[var(--gold)] transition-colors animate-auth-fadeInUp auth-stagger-7"
+          className="mt-6 text-sm text-[var(--foreground-muted)] hover:text-[var(--foreground-strong)] transition-colors animate-auth-fadeInUp auth-stagger-7"
         >
           ← Voltar ao Portal
         </Link>

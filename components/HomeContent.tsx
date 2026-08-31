@@ -75,7 +75,7 @@ function CartaoAnuncio({ a, grande = false }: { a: SellerListing; grande?: boole
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <ImageIcon size={20} className="text-[var(--gold)]/20" />
+            <ImageIcon size={20} className="text-[var(--foreground-muted)]" />
           </div>
         )}
 
@@ -91,7 +91,7 @@ function CartaoAnuncio({ a, grande = false }: { a: SellerListing; grande?: boole
 
       <div className="p-3 space-y-1">
         <p className={`preco ${grande ? "text-lg" : "text-base"}`}>{formatarPreco(a)}</p>
-        <h3 className="text-sm font-medium text-[var(--foreground)] line-clamp-1 group-hover:text-[var(--gold)] transition-colors">
+        <h3 className="text-sm font-medium text-[var(--foreground)] line-clamp-1 group-hover:text-[var(--foreground-strong)] transition-colors">
           {a.nome}
         </h3>
         <p className="meta line-clamp-1">
@@ -268,7 +268,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
                           className="group flex h-16 shrink-0 items-center justify-center px-6 md:px-9"
                         >
                           <span
-                            className={`whitespace-nowrap text-lg text-[var(--foreground)]/90 transition-colors duration-300 group-hover:text-[var(--gold)] ${c.classe}`}
+                            className={`whitespace-nowrap text-lg text-[var(--foreground)]/90 transition-colors duration-300 group-hover:text-[var(--foreground-strong)] ${c.classe}`}
                           >
                             {c.nome}
                           </span>

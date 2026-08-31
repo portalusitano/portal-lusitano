@@ -250,7 +250,7 @@ END:VCALENDAR`;
             </span>
 
             {evento.destaque && (
-              <span className="flex items-center gap-1.5 text-[var(--gold)] bg-[var(--gold)]/10 border border-[var(--gold)]/30 px-3 py-1.5 text-sm">
+              <span className="flex items-center gap-1.5 text-[var(--gold)] bg-[var(--elevate-1)] border border-[var(--border-soft)] px-3 py-1.5 text-sm">
                 <Star size={14} /> Destaque
               </span>
             )}
@@ -286,7 +286,7 @@ END:VCALENDAR`;
             style={{ animationDelay: "0.3s" }}
           >
             <div className="flex items-center gap-3 text-[var(--foreground-secondary)]">
-              <div className="w-10 h-10 bg-[var(--gold)]/10 border border-[var(--gold)]/30 flex items-center justify-center">
+              <div className="w-10 h-10 bg-[var(--elevate-1)] border border-[var(--border-soft)] flex items-center justify-center">
                 <Calendar size={20} className="text-[var(--gold)]" />
               </div>
               <div>
@@ -298,7 +298,7 @@ END:VCALENDAR`;
             </div>
 
             <div className="flex items-center gap-3 text-[var(--foreground-secondary)]">
-              <div className="w-10 h-10 bg-[var(--gold)]/10 border border-[var(--gold)]/30 flex items-center justify-center">
+              <div className="w-10 h-10 bg-[var(--elevate-1)] border border-[var(--border-soft)] flex items-center justify-center">
                 <MapPin size={20} className="text-[var(--gold)]" />
               </div>
               <div>
@@ -311,7 +311,7 @@ END:VCALENDAR`;
 
             {evento.hora_inicio && (
               <div className="flex items-center gap-3 text-[var(--foreground-secondary)]">
-                <div className="w-10 h-10 bg-[var(--gold)]/10 border border-[var(--gold)]/30 flex items-center justify-center">
+                <div className="w-10 h-10 bg-[var(--elevate-1)] border border-[var(--border-soft)] flex items-center justify-center">
                   <Clock size={20} className="text-[var(--gold)]" />
                 </div>
                 <div>
@@ -328,7 +328,7 @@ END:VCALENDAR`;
 
             {evento.preco_entrada && (
               <div className="flex items-center gap-3 text-[var(--foreground-secondary)]">
-                <div className="w-10 h-10 bg-[var(--gold)]/10 border border-[var(--gold)]/30 flex items-center justify-center">
+                <div className="w-10 h-10 bg-[var(--elevate-1)] border border-[var(--border-soft)] flex items-center justify-center">
                   <Euro size={20} className="text-[var(--gold)]" />
                 </div>
                 <div>
@@ -499,7 +499,7 @@ END:VCALENDAR`;
                   <LocalizedLink
                     key={rel.id}
                     href={`/eventos/${rel.slug}`}
-                    className="group bg-[var(--background-secondary)]/50 border border-[var(--border)] hover:border-[var(--gold)]/50 transition-all overflow-hidden"
+                    className="group bg-[var(--background-secondary)]/50 border border-[var(--border)] hover:border-[var(--border-hover)] transition-all overflow-hidden"
                   >
                     {rel.imagem_capa ? (
                       <div className="relative h-32">
@@ -521,7 +521,7 @@ END:VCALENDAR`;
                       <span className={`inline-block px-2 py-0.5 text-xs ${relTipo.color} mb-2`}>
                         {rel.tipo}
                       </span>
-                      <h3 className="text-[var(--foreground)] group-hover:text-[var(--gold)] transition-colors mb-2 line-clamp-2">
+                      <h3 className="text-[var(--foreground)] group-hover:text-[var(--foreground-strong)] transition-colors mb-2 line-clamp-2">
                         {rel.titulo}
                       </h3>
                       <p className="text-[var(--foreground-muted)] text-sm flex items-center gap-1">

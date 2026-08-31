@@ -30,7 +30,7 @@ export default function UserMenu() {
     return (
       <LocalizedLink
         href="/login"
-        className="hidden md:flex items-center gap-2 text-[var(--foreground-secondary)] hover:text-[var(--gold)] transition-colors text-sm"
+        className="hidden md:flex items-center gap-2 text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors text-sm"
       >
         <User size={18} />
         <span className="hidden xl:inline">{t.login.enter}</span>

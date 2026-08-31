@@ -57,7 +57,7 @@ export default function CavalosFavoritosPage() {
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8 sm:mb-16 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[var(--gold)]/10 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[var(--elevate-1)] rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
               <Heart className="text-[var(--gold)]" size={28} />
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl text-[var(--foreground)] mb-2 sm:mb-4">
@@ -167,7 +167,7 @@ export default function CavalosFavoritosPage() {
                     {/* Info */}
                     <div className="p-4 sm:p-5">
                       <LocalizedLink href={`/comprar/${horse.id}`}>
-                        <h3 className="text-lg sm:text-xl text-[var(--foreground)] mb-2 group-hover:text-[var(--gold)] transition-colors line-clamp-1">
+                        <h3 className="text-lg sm:text-xl text-[var(--foreground)] mb-2 group-hover:text-[var(--foreground-strong)] transition-colors line-clamp-1">
                           {horse.name}
                         </h3>
                       </LocalizedLink>
@@ -201,7 +201,7 @@ export default function CavalosFavoritosPage() {
                         </LocalizedLink>
                         <button
                           onClick={() => handleShare(horse)}
-                          className="w-12 border border-[var(--border)] text-[var(--foreground-secondary)] hover:text-[var(--gold)] hover:border-[var(--gold)]/50 transition-colors flex items-center justify-center active:scale-95 touch-manipulation"
+                          className="w-12 border border-[var(--border)] text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] hover:border-[var(--border-hover)] transition-colors flex items-center justify-center active:scale-95 touch-manipulation"
                           aria-label={txt.share}
                         >
                           <Share2 size={16} />
@@ -226,7 +226,7 @@ export default function CavalosFavoritosPage() {
               >
                 <LocalizedLink
                   href="/comprar"
-                  className="inline-flex items-center gap-2 text-[var(--foreground-muted)] hover:text-[var(--gold)] transition-colors text-sm"
+                  className="inline-flex items-center gap-2 text-[var(--foreground-muted)] hover:text-[var(--foreground-strong)] transition-colors text-sm"
                 >
                   <span>{txt.continue_exploring}</span>
                   <ExternalLink size={14} />

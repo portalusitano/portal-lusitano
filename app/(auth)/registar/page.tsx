@@ -27,8 +27,8 @@ function inputClass(hasError: boolean, isFocused?: boolean) {
     "w-full bg-[var(--background-card)] border rounded-xl pl-10 pr-4 py-3.5",
     "text-[var(--foreground)] placeholder:text-[var(--foreground-muted)]/60",
     "outline-none transition-all duration-200",
-    "focus:border-[var(--gold)]/60 focus:ring-2 focus:ring-[var(--gold)]/20 focus:bg-[var(--background-card)]/90",
-    isFocused ? "border-[var(--gold)]/40 shadow-sm shadow-[var(--gold)]/5" : "",
+    "focus:border-[var(--border-hover)] focus:ring-2 focus:ring-[var(--gold)]/20 focus:bg-[var(--background-card)]/90",
+    isFocused ? "border-[var(--border-soft)] shadow-sm shadow-[var(--gold)]/5" : "",
     hasError
       ? "border-red-500/60 focus:border-red-500/60 focus:ring-red-500/20"
       : "border-[var(--border)] hover:border-[var(--border-hover)]",
@@ -337,7 +337,7 @@ function RegistarContent() {
         {/* Info card */}
         <div className="bg-[var(--background-card)]/60 border border-[var(--border)]/50 rounded-xl p-4 mb-5 text-left animate-auth-fadeInUp auth-stagger-4">
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[var(--gold)]/10 flex items-center justify-center shrink-0 mt-0.5">
+            <div className="w-8 h-8 rounded-lg bg-[var(--elevate-1)] flex items-center justify-center shrink-0 mt-0.5">
               <Mail size={14} className="text-[var(--gold)]" aria-hidden="true" />
             </div>
             <div>
@@ -353,7 +353,7 @@ function RegistarContent() {
         </div>
 
         {toolParam && redirect && (
-          <div className="bg-[var(--gold)]/5 border border-[var(--gold)]/20 rounded-xl p-3 mb-5 animate-auth-fadeInUp auth-stagger-5">
+          <div className="bg-[var(--elevate-1)] border border-[var(--border-soft)] rounded-xl p-3 mb-5 animate-auth-fadeInUp auth-stagger-5">
             <p className="text-xs text-[var(--foreground-muted)]">
               Após confirmar o email e iniciar sessão, será redirecionado de volta à ferramenta com
               {""}
@@ -394,8 +394,8 @@ function RegistarContent() {
 
       {/* Tool redirect banner */}
       {toolParam && redirect && (
-        <div className="mb-5 flex items-start gap-3 p-3.5 bg-[var(--gold)]/5 border border-[var(--gold)]/20 rounded-xl animate-auth-fadeInUp auth-stagger-1">
-          <div className="w-8 h-8 rounded-lg bg-[var(--gold)]/10 flex items-center justify-center shrink-0 mt-0.5">
+        <div className="mb-5 flex items-start gap-3 p-3.5 bg-[var(--elevate-1)] border border-[var(--border-soft)] rounded-xl animate-auth-fadeInUp auth-stagger-1">
+          <div className="w-8 h-8 rounded-lg bg-[var(--elevate-1)] flex items-center justify-center shrink-0 mt-0.5">
             <Shield size={14} className="text-[var(--gold)]" aria-hidden="true" />
           </div>
           <div>
@@ -433,7 +433,7 @@ function RegistarContent() {
             htmlFor="reg-name"
             className="flex items-center gap-1.5 text-xs text-[var(--foreground-muted)] uppercase tracking-wider mb-2 font-medium"
           >
-            <User size={12} className="text-[var(--gold)]/70" aria-hidden="true" />
+            <User size={12} className="text-[var(--foreground-muted)]" aria-hidden="true" />
             {t.auth.full_name}
           </label>
           <div className="relative group">
@@ -468,7 +468,7 @@ function RegistarContent() {
             htmlFor="reg-email"
             className="flex items-center gap-1.5 text-xs text-[var(--foreground-muted)] uppercase tracking-wider mb-2 font-medium"
           >
-            <Mail size={12} className="text-[var(--gold)]/70" aria-hidden="true" />
+            <Mail size={12} className="text-[var(--foreground-muted)]" aria-hidden="true" />
             {t.auth.email}
           </label>
           <div className="relative group">
@@ -503,7 +503,7 @@ function RegistarContent() {
             htmlFor="reg-password"
             className="flex items-center gap-1.5 text-xs text-[var(--foreground-muted)] uppercase tracking-wider mb-2 font-medium"
           >
-            <Lock size={12} className="text-[var(--gold)]/70" aria-hidden="true" />
+            <Lock size={12} className="text-[var(--foreground-muted)]" aria-hidden="true" />
             {t.auth.password}
           </label>
           <div className="relative group">
@@ -563,7 +563,7 @@ function RegistarContent() {
             htmlFor="reg-confirm"
             className="flex items-center gap-1.5 text-xs text-[var(--foreground-muted)] uppercase tracking-wider mb-2 font-medium"
           >
-            <Lock size={12} className="text-[var(--gold)]/70" aria-hidden="true" />
+            <Lock size={12} className="text-[var(--foreground-muted)]" aria-hidden="true" />
             {t.auth.confirm_password}
           </label>
           <div className="relative group">
@@ -641,7 +641,7 @@ function RegistarContent() {
                     ? "bg-[var(--gold)] border-[var(--gold)] scale-100"
                     : fieldErrors.terms
                       ? "border-red-500/60 bg-[var(--background-card)]"
-                      : "border-[var(--border)] bg-[var(--background-card)] group-hover:border-[var(--gold)]/40"
+                      : "border-[var(--border)] bg-[var(--background-card)] group-hover:border-[var(--border-hover)]"
                 }`}
                 aria-hidden="true"
               >
@@ -662,7 +662,7 @@ function RegistarContent() {
               Aceito os{""}
               <LocalizedLink
                 href="/termos"
-                className="text-[var(--gold)] hover:text-[var(--gold-hover)] underline underline-offset-2"
+                className="text-[var(--gold)] hover:text-[var(--foreground-strong)] underline underline-offset-2"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -671,7 +671,7 @@ function RegistarContent() {
               {""}e a{""}
               <LocalizedLink
                 href="/privacidade"
-                className="text-[var(--gold)] hover:text-[var(--gold-hover)] underline underline-offset-2"
+                className="text-[var(--gold)] hover:text-[var(--foreground-strong)] underline underline-offset-2"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -728,7 +728,7 @@ function RegistarContent() {
           {""}
           <LocalizedLink
             href={redirect ? `/login?returnUrl=${encodeURIComponent(redirect)}` : "/login"}
-            className="text-[var(--gold)] hover:text-[var(--gold-hover)] font-medium transition-colors"
+            className="text-[var(--gold)] hover:text-[var(--foreground-strong)] font-medium transition-colors"
           >
             {t.auth.login_account}
           </LocalizedLink>

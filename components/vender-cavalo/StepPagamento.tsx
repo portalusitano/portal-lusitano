@@ -77,7 +77,7 @@ export default function StepPagamento({
       </div>
 
       {/* Resumo do Tier Seleccionado */}
-      <div className="border border-[var(--gold)]/30 rounded-lg p-4 mb-6">
+      <div className="border border-[var(--border-soft)] rounded-lg p-4 mb-6">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Star
@@ -88,7 +88,7 @@ export default function StepPagamento({
               {tr("Plano", "Plan", "Plan")} {tier.name}
             </span>
             {tier.badge && (
-              <span className="px-2 py-0.5 bg-[var(--gold)]/20 text-[var(--gold)] text-[10px] font-bold uppercase tracking-wider rounded">
+              <span className="px-2 py-0.5 bg-[var(--elevate-1)] text-[var(--gold)] text-[10px] font-bold uppercase tracking-wider rounded">
                 {tier.badge}
               </span>
             )}
@@ -114,7 +114,7 @@ export default function StepPagamento({
       </div>
 
       {/* Preço Total */}
-      <div className="bg-[var(--gold)]/10 border border-[var(--gold)]/30 rounded-lg p-4 mb-6">
+      <div className="bg-[var(--elevate-1)] border border-[var(--border-soft)] rounded-lg p-4 mb-6">
         <div className="flex items-center justify-between">
           <div>
             <span className="text-sm text-[var(--foreground-secondary)]">

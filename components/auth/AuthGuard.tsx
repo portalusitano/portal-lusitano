@@ -23,7 +23,7 @@ export default function AuthGuard({ children, fallback }: AuthGuardProps) {
     return (
       fallback || (
         <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-[var(--gold)]/30 border-t-[var(--gold)] rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-[var(--border-soft)] border-t-[var(--gold)] rounded-full animate-spin" />
         </div>
       )
     );

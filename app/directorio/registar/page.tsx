@@ -154,7 +154,7 @@ export default function RegistarCoudelariaPage() {
                   value={formData.nome}
                   onChange={handleInputChange}
                   placeholder={t.registar_coudelaria.field_name_placeholder}
-                  className="w-full bg-[var(--background-secondary)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none"
+                  className="w-full bg-[var(--background-secondary)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none"
                   required
                 />
               </div>
@@ -170,7 +170,7 @@ export default function RegistarCoudelariaPage() {
                   onChange={handleInputChange}
                   placeholder={t.registar_coudelaria.field_description_placeholder}
                   rows={4}
-                  className="w-full bg-[var(--background-secondary)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none resize-none"
+                  className="w-full bg-[var(--background-secondary)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none resize-none"
                   required
                 />
               </div>
@@ -192,7 +192,7 @@ export default function RegistarCoudelariaPage() {
                       value={formData.localizacao}
                       onChange={handleInputChange}
                       placeholder={t.registar_coudelaria.field_location_placeholder}
-                      className="w-full bg-[var(--background-secondary)] border border-[var(--border)] pl-10 pr-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none"
+                      className="w-full bg-[var(--background-secondary)] border border-[var(--border)] pl-10 pr-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none"
                       required
                     />
                   </div>
@@ -205,7 +205,7 @@ export default function RegistarCoudelariaPage() {
                     name="regiao"
                     value={formData.regiao}
                     onChange={handleInputChange}
-                    className="w-full bg-[var(--background-secondary)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--gold)] focus:outline-none"
+                    className="w-full bg-[var(--background-secondary)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--border-hover)] focus:outline-none"
                     required
                   >
                     <option value="">{t.registar_coudelaria.field_region_select}</option>
@@ -240,7 +240,7 @@ export default function RegistarCoudelariaPage() {
                         value={formData.telefone}
                         onChange={handleInputChange}
                         placeholder="+351 912 345 678"
-                        className="w-full bg-[var(--background-secondary)] border border-[var(--border)] pl-10 pr-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none"
+                        className="w-full bg-[var(--background-secondary)] border border-[var(--border)] pl-10 pr-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none"
                       />
                     </div>
                   </div>
@@ -259,7 +259,7 @@ export default function RegistarCoudelariaPage() {
                         value={formData.email}
                         onChange={handleInputChange}
                         placeholder="email@coudelaria.pt"
-                        className="w-full bg-[var(--background-secondary)] border border-[var(--border)] pl-10 pr-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none"
+                        className="w-full bg-[var(--background-secondary)] border border-[var(--border)] pl-10 pr-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none"
                       />
                     </div>
                   </div>
@@ -278,7 +278,7 @@ export default function RegistarCoudelariaPage() {
                         value={formData.website}
                         onChange={handleInputChange}
                         placeholder="https://www.coudelaria.pt"
-                        className="w-full bg-[var(--background-secondary)] border border-[var(--border)] pl-10 pr-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none"
+                        className="w-full bg-[var(--background-secondary)] border border-[var(--border)] pl-10 pr-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none"
                       />
                     </div>
                   </div>
@@ -297,7 +297,7 @@ export default function RegistarCoudelariaPage() {
                         value={formData.instagram}
                         onChange={handleInputChange}
                         placeholder="@coudelaria"
-                        className="w-full bg-[var(--background-secondary)] border border-[var(--border)] pl-10 pr-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none"
+                        className="w-full bg-[var(--background-secondary)] border border-[var(--border)] pl-10 pr-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none"
                       />
                     </div>
                   </div>
@@ -315,7 +315,7 @@ export default function RegistarCoudelariaPage() {
                   value={formData.num_cavalos}
                   onChange={handleInputChange}
                   placeholder={t.registar_coudelaria.field_num_horses_placeholder}
-                  className="w-full bg-[var(--background-secondary)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none"
+                  className="w-full bg-[var(--background-secondary)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none"
                 />
               </div>
 

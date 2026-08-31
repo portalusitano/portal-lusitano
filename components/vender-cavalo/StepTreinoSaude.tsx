@@ -621,7 +621,7 @@ export default function StepTreinoSaude({
                 <span className="text-sm font-medium">{t.vender_cavalo.vet_report}</span>
                 {documentos.exameVet && <CheckCircle size={18} className="text-green-400" />}
               </div>
-              <label className="flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-[var(--border)] rounded-lg cursor-pointer hover:border-[var(--gold)] transition-colors touch-manipulation">
+              <label className="flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-[var(--border)] rounded-lg cursor-pointer hover:border-[var(--border-hover)] transition-colors touch-manipulation">
                 <Upload size={18} className="text-[var(--foreground-muted)]" />
                 <span className="text-sm text-[var(--foreground-secondary)]">
                   {documentos.exameVet ? documentos.exameVet.name : t.vender_cavalo.attach_report}

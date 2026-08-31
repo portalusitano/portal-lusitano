@@ -133,7 +133,7 @@ export default function MensagensContent() {
               setAberta(null);
               setMensagens([]);
             }}
-            className="inline-flex items-center gap-2 rotulo hover:text-[var(--gold)] transition-colors mb-8"
+            className="inline-flex items-center gap-2 rotulo hover:text-[var(--foreground-strong)] transition-colors mb-8"
           >
             <ArrowLeft size={12} />
             Todas as mensagens
@@ -155,7 +155,7 @@ export default function MensagensContent() {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <ImageIcon size={14} className="text-[var(--gold)]/20" />
+                  <ImageIcon size={14} className="text-[var(--foreground-muted)]" />
                 </div>
               )}
             </div>
@@ -165,7 +165,7 @@ export default function MensagensContent() {
               </p>
               <LocalizedLink
                 href={`/comprar/${aberta.cavaloId}`}
-                className="text-[11px] text-[var(--gold)]/70 hover:text-[var(--gold)] transition-colors truncate block"
+                className="text-[11px] text-[var(--foreground-muted)] hover:text-[var(--foreground-strong)] transition-colors truncate block"
               >
                 {aberta.cavaloNome} →
               </LocalizedLink>
@@ -186,7 +186,7 @@ export default function MensagensContent() {
                   <div
                     className={`max-w-[80%] px-4 py-3 ${
                       m.minha
-                        ? "bg-[var(--gold)]/12 border border-[var(--gold)]/25"
+                        ? "bg-[var(--elevate-1)] border border-[var(--border-soft)]"
                         : "bg-[var(--background-secondary)]/40 border border-[var(--border)]"
                     }`}
                   >
@@ -217,12 +217,12 @@ export default function MensagensContent() {
                   enviar();
                 }
               }}
-              className="w-full bg-transparent border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--gold)]/50 focus:outline-none resize-y"
+              className="w-full bg-transparent border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--border-hover)] focus:outline-none resize-y"
             />
             <button
               onClick={enviar}
               disabled={aEnviar || rascunho.trim().length === 0}
-              className="inline-flex items-center gap-2 px-6 py-3 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors disabled:opacity-40"
+              className="inline-flex items-center gap-2 px-6 py-3 border border-[var(--border-soft)] rotulo-forte hover:bg-[var(--elevate-1)] transition-colors disabled:opacity-40"
             >
               {aEnviar ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
               Enviar
@@ -239,7 +239,7 @@ export default function MensagensContent() {
       <div className="max-w-3xl mx-auto">
         <LocalizedLink
           href="/minha-conta"
-          className="inline-flex items-center gap-2 rotulo hover:text-[var(--gold)] transition-colors mb-10"
+          className="inline-flex items-center gap-2 rotulo hover:text-[var(--foreground-strong)] transition-colors mb-10"
         >
           <ArrowLeft size={12} />A minha conta
         </LocalizedLink>
@@ -265,7 +265,7 @@ export default function MensagensContent() {
             <p className="text-sm text-[var(--foreground-muted)]">{erro}</p>
             <button
               onClick={carregarConversas}
-              className="mt-5 rotulo-forte hover:text-[var(--gold)]/70 transition-colors"
+              className="mt-5 rotulo-forte hover:text-[var(--foreground-strong)]/70 transition-colors"
             >
               Tentar novamente
             </button>
@@ -274,7 +274,7 @@ export default function MensagensContent() {
 
         {!loading && !erro && conversas.length === 0 && (
           <div className="cartao p-10 text-center">
-            <MessagesSquare size={22} className="mx-auto text-[var(--gold)]/25 mb-4" />
+            <MessagesSquare size={22} className="mx-auto text-[var(--foreground-muted)] mb-4" />
             <p className="text-sm text-[var(--foreground)]">Ainda não tem mensagens.</p>
             <p className="text-xs text-[var(--foreground-muted)] mt-2 max-w-sm mx-auto">
               Quando contactar um vendedor, ou alguém se interessar por um anúncio seu, a conversa
@@ -282,7 +282,7 @@ export default function MensagensContent() {
             </p>
             <LocalizedLink
               href="/comprar"
-              className="inline-block mt-7 px-6 py-3 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors"
+              className="inline-block mt-7 px-6 py-3 border border-[var(--border-soft)] rotulo-forte hover:bg-[var(--elevate-1)] transition-colors"
             >
               Ver cavalos à venda
             </LocalizedLink>
@@ -290,7 +290,7 @@ export default function MensagensContent() {
         )}
 
         {!loading && !erro && conversas.length > 0 && (
-          <div className="space-y-px bg-[var(--gold)]/8">
+          <div className="space-y-px bg-[var(--elevate-1)]">
             {conversas.map((c) => (
               <button
                 key={c.id}
@@ -308,7 +308,7 @@ export default function MensagensContent() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <ImageIcon size={14} className="text-[var(--gold)]/20" />
+                      <ImageIcon size={14} className="text-[var(--foreground-muted)]" />
                     </div>
                   )}
                 </div>
@@ -320,7 +320,7 @@ export default function MensagensContent() {
                       {formatarData(c.ultimaMensagemAt)}
                     </span>
                   </div>
-                  <p className="text-[11px] text-[var(--gold)]/60 truncate mt-0.5">
+                  <p className="text-[11px] text-[var(--foreground-muted)] truncate mt-0.5">
                     {c.cavaloNome}
                   </p>
                   {c.ultimaMensagem && (

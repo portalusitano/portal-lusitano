@@ -123,7 +123,7 @@ function PerfilContent() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-3 py-1.5 text-sm flex-1 focus:border-[var(--gold)] outline-none"
+                    className="bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-3 py-1.5 text-sm flex-1 focus:border-[var(--border-hover)] outline-none"
                   />
                   <button
                     onClick={handleSaveName}
@@ -138,7 +138,7 @@ function PerfilContent() {
                   <span className="text-lg font-medium">{name || t.profile.no_name}</span>
                   <button
                     onClick={() => setEditingName(true)}
-                    className="text-[var(--foreground-muted)] hover:text-[var(--gold)] transition-colors"
+                    className="text-[var(--foreground-muted)] hover:text-[var(--foreground-strong)] transition-colors"
                   >
                     <Pencil size={14} />
                   </button>
@@ -210,7 +210,7 @@ function PerfilContent() {
           {favoritesCount > 0 && (
             <LocalizedLink
               href="/comprar"
-              className="mt-3 text-sm text-[var(--foreground-muted)] hover:text-[var(--gold)] transition-colors inline-block"
+              className="mt-3 text-sm text-[var(--foreground-muted)] hover:text-[var(--foreground-strong)] transition-colors inline-block"
             >
               {tr("Ver cavalos guardados →", "View saved horses →", "Ver caballos guardados →")}
             </LocalizedLink>

@@ -61,7 +61,7 @@ export default function NotFound() {
 
           <LocalizedLink
             href="/comprar"
-            className="flex items-center gap-3 border border-[var(--border-hover)] text-[var(--foreground)] px-8 py-4 text-xs uppercase tracking-wide hover:border-[var(--gold)] hover:text-[var(--gold)] transition-colors"
+            className="flex items-center gap-3 border border-[var(--border-hover)] text-[var(--foreground)] px-8 py-4 text-xs uppercase tracking-wide hover:border-[var(--border-hover)] hover:text-[var(--foreground-strong)] transition-colors"
           >
             <Search size={16} />
             {t.not_found.explore_shop}
@@ -71,7 +71,7 @@ export default function NotFound() {
         {/* Link de voltar */}
         <button
           onClick={() => window.history.back()}
-          className="mt-12 inline-flex items-center gap-2 text-[var(--foreground-muted)] hover:text-[var(--gold)] transition-colors text-sm opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
+          className="mt-12 inline-flex items-center gap-2 text-[var(--foreground-muted)] hover:text-[var(--foreground-strong)] transition-colors text-sm opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
           style={{ animationDelay: "0.35s" }}
         >
           <ArrowLeft size={14} />

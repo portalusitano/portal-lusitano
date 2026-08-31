@@ -211,7 +211,7 @@ export default function BulkActionsAdvanced({
                         <p className="text-sm text-gray-400">{String(item.email)}</p>
                       )}
                       {Boolean(item.status) && (
-                        <span className="inline-block mt-2 px-2 py-1 bg-[var(--gold)]/20 text-[var(--gold)] text-xs rounded">
+                        <span className="inline-block mt-2 px-2 py-1 bg-[var(--elevate-1)] text-[var(--gold)] text-xs rounded">
                           {String(item.status)}
                         </span>
                       )}
@@ -327,7 +327,7 @@ export default function BulkActionsAdvanced({
                     <button
                       onClick={() => handleUndo(entry)}
                       disabled={loading}
-                      className="px-4 py-2 bg-[var(--gold)]/20 hover:bg-[var(--gold)]/30 text-[var(--gold)] rounded-lg font-semibold transition-all disabled:opacity-50 flex items-center gap-2"
+                      className="px-4 py-2 bg-[var(--elevate-1)] hover:bg-[var(--elevate-1)] text-[var(--gold)] rounded-lg font-semibold transition-all disabled:opacity-50 flex items-center gap-2"
                     >
                       <RotateCcw className="w-4 h-4" />
                       Reverter

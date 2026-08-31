@@ -27,7 +27,7 @@ const LeafletMap = dynamic(() => import("@/components/LeafletMap"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center bg-[var(--background-secondary)]/80 rounded-2xl">
-      <Compass className="text-[var(--gold)] animate-spin" size={32} />
+      <Compass className="text-[var(--foreground-muted)]" size={32} aria-hidden="true" />
     </div>
   ),
 });
@@ -82,7 +82,7 @@ const StatCard = memo(function StatCard({
   color: string;
 }) {
   return (
-    <div className="relative px-5 py-4 bg-[var(--background-secondary)]/80 backdrop-blur-sm border border-[var(--border)] hover:border-[var(--gold)]/50 transition-colors">
+    <div className="relative px-5 py-4 bg-[var(--background-secondary)]/80 backdrop-blur-sm border border-[var(--border)] hover:border-[var(--border-hover)] transition-colors">
       <div
         className={`absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-gradient-to-r ${color} flex items-center justify-center shadow-lg`}
       >
@@ -112,7 +112,7 @@ const CoudelariaCard = memo(function CoudelariaCard({
   return (
     <button
       onClick={onSelect}
-      className={`w-full text-left p-3 border rounded-lg transition-all ${isSelected ? "bg-[var(--gold)]/10 border-[var(--gold)]" : "bg-[var(--background-secondary)]/60 border-[var(--border)] hover:border-[var(--gold)]/30"}`}
+      className={`w-full text-left p-3 border rounded-lg transition-all ${isSelected ? "bg-[var(--elevate-1)] border-[var(--border-hover)]" : "bg-[var(--background-secondary)]/60 border-[var(--border)] hover:border-[var(--border-hover)]"}`}
     >
       <div className="flex items-start gap-3">
         <div className="relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-[var(--background-card)]">
@@ -125,7 +125,7 @@ const CoudelariaCard = memo(function CoudelariaCard({
             loading="lazy"
           />
           {coudelaria.destaque && (
-            <div className="absolute top-0.5 right-0.5 w-4 h-4 bg-[var(--gold)] rounded-full flex items-center justify-center">
+            <div className="absolute top-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--foreground-strong)]">
               <Star size={8} className="text-black" />
             </div>
           )}
@@ -133,12 +133,12 @@ const CoudelariaCard = memo(function CoudelariaCard({
         <div className="flex-1 min-w-0">
           <h3 className="text-[var(--foreground)] text-sm truncate">{coudelaria.nome}</h3>
           <p className="text-[var(--foreground-muted)] text-xs flex items-center gap-1">
-            <MapPin size={10} className="text-[var(--gold)]" />
+            <MapPin size={10} className="text-[var(--foreground-muted)]" aria-hidden="true" />
             {coudelaria.localizacao}
           </p>
         </div>
         <ChevronRight
-          className={`flex-shrink-0 ${isSelected ? "text-[var(--gold)]" : "text-[var(--foreground-muted)]"}`}
+          className={`flex-shrink-0 ${isSelected ? "text-[var(--foreground-strong)]" : "text-[var(--foreground-muted)]"}`}
           size={16}
         />
       </div>
@@ -158,7 +158,7 @@ const GridCard = memo(function GridCard({
   return (
     <LocalizedLink
       href={`/directorio/${coudelaria.slug}`}
-      className="group block bg-[var(--background-secondary)]/60 border border-[var(--border)] rounded-xl overflow-hidden hover:border-[var(--gold)]/30 transition-colors"
+      className="group block bg-[var(--background-secondary)]/60 border border-[var(--border)] rounded-xl overflow-hidden hover:border-[var(--border-hover)] transition-colors"
     >
       <div className="relative h-44 overflow-hidden bg-[var(--background-card)]">
         <Image
@@ -176,12 +176,12 @@ const GridCard = memo(function GridCard({
           </div>
         )}
         <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/60 text-white px-2 py-1 text-[10px] rounded-full">
-          <MapPin size={10} className="text-[var(--gold)]" />
+          <MapPin size={10} className="text-[var(--foreground-muted)]" aria-hidden="true" />
           {coudelaria.regiao}
         </div>
       </div>
       <div className="p-3">
-        <h3 className="text-[var(--foreground)] group-hover:text-[var(--gold)] transition-colors">
+        <h3 className="text-[var(--foreground)] group-hover:text-[var(--foreground-strong)] transition-colors">
           {coudelaria.nome}
         </h3>
         <p className="text-[var(--foreground-muted)] text-xs mb-1">{coudelaria.localizacao}</p>
@@ -255,19 +255,26 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
     <main className="min-h-screen bg-[var(--background)]">
       {/* Background */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[var(--gold)]/5 via-transparent to-transparent" />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage:
+              "radial-gradient(ellipse 70% 50% at 50% 0%, var(--elevate-1), transparent 70%)",
+          }}
+        />
       </div>
 
       {/* Hero */}
       <section className="relative pt-28 pb-6">
         <div className="max-w-7xl mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-2 mb-4 px-5 py-2 bg-[var(--gold)]/10 border border-[var(--gold)]/30 rounded-full">
-            <Compass className="text-[var(--gold)]" size={16} />
+          <div className="inline-flex items-center gap-2 mb-4 px-5 py-2 bg-[var(--elevate-1)] border border-[var(--border-soft)] rounded-full">
+            <Compass className="text-[var(--foreground-muted)]" size={16} aria-hidden="true" />
             <span className="rotulo-forte">{t.mapa.badge}</span>
           </div>
           <h1 className="text-2xl sm:text-4xl md:text-6xl mb-4 text-[var(--foreground)]">
             {t.mapa.title.split("Portugal")[0]}
-            <span className="text-[var(--gold)]">Portugal</span>
+            <span className="text-[var(--foreground-strong)]">Portugal</span>
             {t.mapa.title.split("Portugal")[1]}
           </h1>
           <p className="text-[var(--foreground-secondary)] max-w-xl mx-auto mb-8">
@@ -278,7 +285,7 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
               icon={MapPin}
               label={t.mapa.stat_studs}
               value={stats.total}
-              color="from-[var(--gold)] to-[#E8D5A3]"
+              color="from-[var(--elevate-2)] to-[var(--elevate-1)]"
             />
             <StatCard
               icon={Map}
@@ -302,13 +309,13 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
           <div className="flex items-center gap-1 p-1 bg-black/40 rounded-lg">
             <button
               onClick={() => setViewMode("map")}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm transition-colors ${viewMode === "map" ? "bg-[var(--gold)] text-black" : "text-[var(--foreground-secondary)] hover:text-[var(--foreground)]"}`}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm transition-colors ${viewMode === "map" ? "bg-[var(--foreground-strong)] text-black" : "text-[var(--foreground-secondary)] hover:text-[var(--foreground)]"}`}
             >
               <Layers size={16} /> {t.mapa.view_map}
             </button>
             <button
               onClick={() => setViewMode("list")}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm transition-colors ${viewMode === "list" ? "bg-[var(--gold)] text-black" : "text-[var(--foreground-secondary)] hover:text-[var(--foreground)]"}`}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm transition-colors ${viewMode === "list" ? "bg-[var(--foreground-strong)] text-black" : "text-[var(--foreground-secondary)] hover:text-[var(--foreground)]"}`}
             >
               <List size={16} /> {t.mapa.view_list}
             </button>
@@ -325,7 +332,7 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
                 placeholder={t.mapa.search_placeholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 bg-black/40 border border-[var(--border)] rounded-lg text-white text-sm placeholder-[var(--foreground-muted)] focus:outline-none focus:border-[var(--gold)]/50"
+                className="w-full pl-10 pr-3 py-2 bg-black/40 border border-[var(--border)] rounded-lg text-white text-sm placeholder-[var(--foreground-muted)] focus:outline-none focus:border-[var(--border-hover)]"
               />
             </div>
           </div>
@@ -348,15 +355,13 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
             <div className="lg:col-span-4">
               {selectedRegiao ? (
                 <div className="sticky top-28 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
-                  <div className="mb-4 p-4 bg-[var(--background-secondary)]/80 border border-[var(--gold)]/30 rounded-xl">
+                  <div className="mb-4 p-4 bg-[var(--background-secondary)]/80 border border-[var(--border-soft)] rounded-xl">
                     <div className="flex items-start justify-between">
                       <div>
-                        <span className="text-[11px] text-[var(--gold)] uppercase tracking-wider">
-                          {t.mapa.region}
-                        </span>
+                        <span className="rotulo">{t.mapa.region}</span>
                         <h2 className="text-xl text-[var(--foreground)]">{selectedRegiao}</h2>
                         <p className="text-[var(--foreground-secondary)] text-sm">
-                          <span className="text-[var(--gold)] font-bold">
+                          <span className="font-bold tabular-nums text-[var(--foreground-strong)]">
                             {coudelariasPorRegiao[selectedRegiao]?.length || 0}
                           </span>
                           {""}
@@ -387,7 +392,11 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
                 <div className="sticky top-28 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
                   <div className="mb-4 p-4 bg-[var(--background-secondary)]/80 border border-[var(--border)] rounded-xl">
                     <div className="flex items-center gap-2 mb-1">
-                      <Layers className="text-[var(--gold)]" size={16} />
+                      <Layers
+                        className="text-[var(--foreground-muted)]"
+                        size={16}
+                        aria-hidden="true"
+                      />
                       <h2 className="text-[var(--foreground)]">{t.mapa.explore_regions}</h2>
                     </div>
                     <p className="text-[var(--foreground-muted)] text-xs">
@@ -401,12 +410,16 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
                         <button
                           key={regiao}
                           onClick={() => handleSelectRegiao(regiao)}
-                          className="w-full p-3 bg-[var(--background-secondary)]/60 border border-[var(--border)] rounded-lg hover:border-[var(--gold)]/30 transition-colors text-left"
+                          className="w-full p-3 bg-[var(--background-secondary)]/60 border border-[var(--border)] rounded-lg hover:border-[var(--border-hover)] transition-colors text-left"
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 bg-[var(--gold)]/20 rounded-lg flex items-center justify-center">
-                                <MapPin className="text-[var(--gold)]" size={16} />
+                              <div className="w-9 h-9 bg-[var(--elevate-1)] rounded-lg flex items-center justify-center">
+                                <MapPin
+                                  className="text-[var(--foreground-muted)]"
+                                  size={16}
+                                  aria-hidden="true"
+                                />
                               </div>
                               <div>
                                 <h3 className="text-[var(--foreground)] text-sm">{regiao}</h3>
@@ -428,7 +441,9 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
           <div>
             {searchQuery && (
               <p className="mb-4 text-[var(--foreground-secondary)] text-sm">
-                <span className="text-[var(--gold)] font-bold">{filteredCoudelarias.length}</span>
+                <span className="font-bold tabular-nums text-[var(--foreground-strong)]">
+                  {filteredCoudelarias.length}
+                </span>
                 {""}
                 resultados
               </p>
@@ -476,7 +491,7 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
               <div className="p-5">
                 <h3 className="text-xl text-[var(--foreground)] mb-1">{selectedCoudelaria.nome}</h3>
                 <p className="text-[var(--foreground-secondary)] text-sm flex items-center gap-1 mb-3">
-                  <MapPin size={12} className="text-[var(--gold)]" />
+                  <MapPin size={12} className="text-[var(--foreground-muted)]" aria-hidden="true" />
                   {selectedCoudelaria.localizacao}, {selectedCoudelaria.regiao}
                 </p>
                 <p className="text-[var(--foreground-secondary)] text-sm mb-4">
@@ -488,7 +503,11 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
                       href={`tel:${selectedCoudelaria.telefone}`}
                       className="flex flex-col items-center p-2 bg-[var(--background-card)] rounded-lg text-center"
                     >
-                      <Phone size={16} className="text-[var(--gold)] mb-1" />
+                      <Phone
+                        size={16}
+                        className="mb-1 text-[var(--foreground-muted)]"
+                        aria-hidden="true"
+                      />
                       <span className="text-[10px] text-[var(--foreground-secondary)]">
                         {t.mapa.call}
                       </span>
@@ -499,7 +518,11 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
                       href={`mailto:${selectedCoudelaria.email}`}
                       className="flex flex-col items-center p-2 bg-[var(--background-card)] rounded-lg text-center"
                     >
-                      <Mail size={16} className="text-[var(--gold)] mb-1" />
+                      <Mail
+                        size={16}
+                        className="mb-1 text-[var(--foreground-muted)]"
+                        aria-hidden="true"
+                      />
                       <span className="text-[10px] text-[var(--foreground-secondary)]">
                         {t.mapa.email}
                       </span>
@@ -512,7 +535,11 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
                       rel="noopener noreferrer"
                       className="flex flex-col items-center p-2 bg-[var(--background-card)] rounded-lg text-center"
                     >
-                      <Globe size={16} className="text-[var(--gold)] mb-1" />
+                      <Globe
+                        size={16}
+                        className="mb-1 text-[var(--foreground-muted)]"
+                        aria-hidden="true"
+                      />
                       <span className="text-[10px] text-[var(--foreground-secondary)]">
                         {t.mapa.website}
                       </span>
@@ -521,7 +548,7 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
                 </div>
                 <LocalizedLink
                   href={`/directorio/${selectedCoudelaria.slug}`}
-                  className="flex items-center justify-center gap-2 w-full bg-[var(--gold)] text-black py-2.5 font-bold rounded-lg hover:bg-[var(--gold-hover)] transition-colors"
+                  className="btn btn-primario w-full gap-2 rounded-full"
                 >
                   <Navigation size={16} /> {t.mapa.view_page}
                 </LocalizedLink>

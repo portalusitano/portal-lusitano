@@ -79,7 +79,8 @@ export default function Error({
             className="text-[var(--foreground-muted)] text-xs mb-6 font-mono opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
             style={{ animationDelay: "0.25s" }}
           >
-            {t.error_page.reference} <span className="text-[var(--gold)]/70">{error.digest}</span>
+            {t.error_page.reference}{" "}
+            <span className="text-[var(--foreground-muted)]">{error.digest}</span>
           </p>
         )}
 
@@ -98,7 +99,7 @@ export default function Error({
 
           <LocalizedLink
             href="/"
-            className="flex items-center gap-3 border border-[var(--border-hover)] text-[var(--foreground)] px-8 py-4 text-xs uppercase tracking-wide hover:border-[var(--gold)] hover:text-[var(--gold)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+            className="flex items-center gap-3 border border-[var(--border-hover)] text-[var(--foreground)] px-8 py-4 text-xs uppercase tracking-wide hover:border-[var(--border-hover)] hover:text-[var(--foreground-strong)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
           >
             {t.error_page.back_home}
           </LocalizedLink>

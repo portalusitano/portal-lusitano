@@ -61,8 +61,13 @@ export default function ContactarVendedor({ cavaloId, cavaloNome }: Props) {
 
   if (enviada) {
     return (
-      <div className="border border-[var(--gold)]/30 bg-[var(--gold)]/5 px-4 py-4 text-center">
-        <Check size={18} className="mx-auto text-[var(--gold)] mb-2" />
+      <div className="border border-[var(--border-soft)] bg-[var(--elevate-1)] px-4 py-4 text-center">
+        <Check
+          size={18}
+          className="mx-auto mb-2"
+          style={{ color: "var(--ok)" }}
+          aria-hidden="true"
+        />
         <p className="text-sm text-[var(--foreground)]">Mensagem enviada</p>
         <a href="/minha-conta/mensagens" className="inline-block mt-3 rotulo-forte hover:underline">
           Ver as minhas mensagens →
@@ -75,7 +80,7 @@ export default function ContactarVendedor({ cavaloId, cavaloNome }: Props) {
     return (
       <button
         onClick={() => setAberto(true)}
-        className="flex w-full items-center justify-center gap-3 bg-[var(--gold)] text-black py-4 text-[12px] uppercase font-bold tracking-wide hover:bg-[var(--gold-hover)] transition-all duration-300 shadow-[0_0_30px_rgb(var(--gold-rgb) / 0.2)]"
+        className="btn btn-primario w-full gap-3 rounded-full py-4"
       >
         <MessagesSquare size={16} aria-hidden="true" />
         Mensagem no portal
@@ -101,19 +106,19 @@ export default function ContactarVendedor({ cavaloId, cavaloNome }: Props) {
         value={mensagem}
         maxLength={MAX_MENSAGEM}
         onChange={(e) => setMensagem(e.target.value)}
-        className="w-full bg-transparent border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--gold)]/50 focus:outline-none resize-y"
+        className="w-full bg-transparent border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--border-hover)] focus:outline-none resize-y"
       />
 
       <button
         onClick={enviar}
         disabled={aEnviar}
-        className="flex w-full items-center justify-center gap-2 bg-[var(--gold)] text-black py-3 text-[11px] uppercase font-bold tracking-wide hover:bg-[var(--gold-hover)] transition-colors disabled:opacity-40"
+        className="btn btn-primario w-full gap-2 rounded-full py-3"
       >
         {aEnviar ? <Loader2 size={14} className="animate-spin" /> : <MessagesSquare size={14} />}
         Enviar
       </button>
 
-      <p className="text-center text-[11px] text-[var(--foreground-muted)] uppercase tracking-wider">
+      <p className="rotulo text-center">
         A conversa fica no portal · O seu contacto não é partilhado
       </p>
     </div>

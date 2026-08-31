@@ -20,9 +20,9 @@ export default function ContactoPage() {
         {/* Cards */}
         <div className="grid sm:grid-cols-2 gap-4 mb-16">
           {/* Email */}
-          <div className="border border-[var(--border)] p-6 space-y-3 hover:border-[var(--gold)]/40 transition-colors">
+          <div className="border border-[var(--border)] p-6 space-y-3 hover:border-[var(--border-hover)] transition-colors">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 border border-[var(--gold)]/30 flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 border border-[var(--border-soft)] flex items-center justify-center flex-shrink-0">
                 <Mail size={15} className="text-[var(--gold)]" />
               </div>
               <span className="rotulo-forte font-medium">Email</span>
@@ -34,9 +34,9 @@ export default function ContactoPage() {
           </div>
 
           {/* Morada */}
-          <div className="border border-[var(--border)] p-6 space-y-3 hover:border-[var(--gold)]/40 transition-colors">
+          <div className="border border-[var(--border)] p-6 space-y-3 hover:border-[var(--border-hover)] transition-colors">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 border border-[var(--gold)]/30 flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 border border-[var(--border-soft)] flex items-center justify-center flex-shrink-0">
                 <MapPin size={15} className="text-[var(--gold)]" />
               </div>
               <span className="rotulo-forte font-medium">Sede</span>
@@ -51,9 +51,9 @@ export default function ContactoPage() {
           </div>
 
           {/* Tempo de resposta */}
-          <div className="border border-[var(--border)] p-6 space-y-3 hover:border-[var(--gold)]/40 transition-colors">
+          <div className="border border-[var(--border)] p-6 space-y-3 hover:border-[var(--border-hover)] transition-colors">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 border border-[var(--gold)]/30 flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 border border-[var(--border-soft)] flex items-center justify-center flex-shrink-0">
                 <Clock size={15} className="text-[var(--gold)]" />
               </div>
               <span className="rotulo-forte font-medium">Tempo de Resposta</span>
@@ -67,9 +67,9 @@ export default function ContactoPage() {
           </div>
 
           {/* Identificação fiscal */}
-          <div className="border border-[var(--border)] p-6 space-y-3 hover:border-[var(--gold)]/40 transition-colors">
+          <div className="border border-[var(--border)] p-6 space-y-3 hover:border-[var(--border-hover)] transition-colors">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 border border-[var(--gold)]/30 flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 border border-[var(--border-soft)] flex items-center justify-center flex-shrink-0">
                 <FileText size={15} className="text-[var(--gold)]" />
               </div>
               <span className="rotulo-forte font-medium">Identificação Legal</span>
@@ -120,7 +120,7 @@ export default function ContactoPage() {
                 href={`mailto:portal.lusitano2023@gmail.com?subject=${encodeURIComponent(item.assunto)}`}
                 className="cartao cartao-interactivo p-4 hover:bg-[var(--gold)]/[0.03] group"
               >
-                <p className="text-[var(--foreground)] text-xs font-medium group-hover:text-[var(--gold)] transition-colors mb-1">
+                <p className="text-[var(--foreground)] text-xs font-medium group-hover:text-[var(--foreground-strong)] transition-colors mb-1">
                   {item.assunto}
                 </p>
                 <p className="text-[var(--foreground-muted)] text-[11px]">{item.detalhe}</p>
@@ -148,7 +148,7 @@ export default function ContactoPage() {
               href="https://ec.europa.eu/consumers/odr"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rotulo hover:text-[var(--gold)] hover:underline underline-offset-4 transition-all"
+              className="inline-flex items-center gap-1.5 rotulo hover:text-[var(--foreground-strong)] hover:underline underline-offset-4 transition-all"
             >
               Resolução de Litígios UE
               <ExternalLink size={10} />

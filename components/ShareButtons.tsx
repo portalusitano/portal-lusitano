@@ -182,7 +182,7 @@ export default function ShareButtons({
         className={`p-2.5 rounded-lg border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] ${
           copied
             ? "bg-green-600/20 border-green-500/30 text-green-400"
-            : "bg-[var(--background-secondary)] border-[var(--border)] hover:bg-[var(--gold)]/10 hover:border-[var(--gold)]/30 text-[var(--foreground-secondary)] hover:text-[var(--gold)]"
+            : "bg-[var(--background-secondary)] border-[var(--border)] hover:bg-[var(--elevate-1)] hover:border-[var(--border-hover)] text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)]"
         }`}
         aria-label={copied ? "Link copiado" : "Copiar link de partilha"}
       >
@@ -193,7 +193,7 @@ export default function ShareButtons({
       {hasNativeShare && (
         <button
           onClick={handleNativeShare}
-          className="p-2.5 rounded-lg bg-[var(--background-secondary)] border border-[var(--border)] hover:bg-[var(--gold)]/10 hover:border-[var(--gold)]/30 text-[var(--foreground-secondary)] hover:text-[var(--gold)] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] sm:hidden"
+          className="p-2.5 rounded-lg bg-[var(--background-secondary)] border border-[var(--border)] hover:bg-[var(--elevate-1)] hover:border-[var(--border-hover)] text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] sm:hidden"
           aria-label="Mais opcoes de partilha"
         >
           <Share2 size={16} aria-hidden="true" />
@@ -323,7 +323,7 @@ export default function ShareButtons({
                 className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
                   copied
                     ? "bg-green-500/20 text-green-400"
-                    : "bg-[var(--gold)]/10 text-[var(--gold)] group-hover:bg-[var(--gold)]/20"
+                    : "bg-[var(--elevate-1)] text-[var(--gold)] group-hover:bg-[var(--elevate-1)]"
                 }`}
               >
                 {copied ? (
@@ -348,7 +348,7 @@ export default function ShareButtons({
               className={`flex-shrink-0 px-3 py-1.5 rounded text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] ${
                 copied
                   ? "bg-green-500/20 text-green-400"
-                  : "bg-[var(--gold)]/10 text-[var(--gold)] hover:bg-[var(--gold)]/20"
+                  : "bg-[var(--elevate-1)] text-[var(--gold)] hover:bg-[var(--elevate-1)]"
               }`}
             >
               {copied ? "Copiado" : "Copiar"}

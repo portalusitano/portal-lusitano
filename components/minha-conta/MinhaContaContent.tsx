@@ -124,7 +124,7 @@ function SubscriptionSection() {
   if (loading)
     return (
       <div className="border border-[var(--border)] p-6 flex items-center justify-center h-24">
-        <Loader2 size={16} className="animate-spin text-[var(--gold)]/40" />
+        <Loader2 size={16} className="animate-spin text-[var(--foreground-muted)]" />
       </div>
     );
 
@@ -158,7 +158,7 @@ function SubscriptionSection() {
             <button
               onClick={handleManagePortal}
               disabled={portalLoading}
-              className="inline-flex items-center gap-2 text-[10px] uppercase tracking-wider text-[var(--gold)] hover:text-[var(--gold-hover)] transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-2 text-[10px] uppercase tracking-wider text-[var(--gold)] hover:text-[var(--foreground-strong)] transition-colors disabled:opacity-50"
             >
               {portalLoading ? (
                 <Loader2 size={12} className="animate-spin" />
@@ -218,20 +218,20 @@ function RecentFavorites({ delay }: { delay: number }) {
         <span className="h-[1px] flex-1 bg-[var(--border)]" />
         <LocalizedLink
           href="/cavalos-favoritos"
-          className="text-[var(--gold)]/60 hover:text-[var(--gold)] transition-colors normal-case tracking-normal text-[10px]"
+          className="text-[var(--foreground-muted)] hover:text-[var(--foreground-strong)] transition-colors normal-case tracking-normal text-[10px]"
         >
           Ver todos →
         </LocalizedLink>
       </h2>
 
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-4 bg-[var(--gold)]/8 gap-px">
+        <div className="grid grid-cols-2 sm:grid-cols-4 bg-[var(--elevate-1)] gap-px">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="bg-[var(--background)] h-20 animate-pulse" />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-4 bg-[var(--gold)]/8 gap-px">
+        <div className="grid grid-cols-2 sm:grid-cols-4 bg-[var(--elevate-1)] gap-px">
           {items.map((fav) => {
             const nome =
               fav.item_type === "cavalo" ? fav.cavalos_venda?.nome : fav.coudelarias?.nome;
@@ -260,19 +260,22 @@ function RecentFavorites({ delay }: { delay: number }) {
                   </>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-[var(--background-secondary)]/30">
-                    <Heart size={14} className="text-[var(--gold)]/20" />
+                    <Heart size={14} className="text-[var(--foreground-muted)]" />
                   </div>
                 )}
                 <div className="absolute bottom-0 left-0 right-0 p-2.5">
                   <p className="text-[10px] uppercase tracking-wider text-white/80 truncate">
                     {nome}
                   </p>
-                  <p className="text-[10px] text-[var(--gold)]/60 uppercase tracking-wider mt-0.5">
+                  <p className="text-[10px] text-[var(--foreground-muted)] uppercase tracking-wider mt-0.5">
                     {fav.item_type === "cavalo" ? "Cavalo" : "Coudelaria"}
                   </p>
                 </div>
                 <div className="absolute top-2 right-2">
-                  <Heart size={10} className="text-[var(--gold)]/70 fill-[var(--gold)]/40" />
+                  <Heart
+                    size={10}
+                    className="text-[var(--foreground-muted)] fill-[var(--gold)]/40"
+                  />
                 </div>
               </LocalizedLink>
             );
@@ -405,11 +408,11 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
 
           {/* Stats bar */}
           <div
-            className="opacity-0 translate-y-5 transition-all duration-700 mt-8 sm:mt-10 grid grid-cols-3 bg-[var(--gold)]/8 divide-x divide-[var(--gold)]/10 border border-[var(--gold)]/10"
+            className="opacity-0 translate-y-5 transition-all duration-700 mt-8 sm:mt-10 grid grid-cols-3 bg-[var(--elevate-1)] divide-x divide-[var(--gold)]/10 border border-[var(--border-soft)]"
             style={{ transitionDelay: "120ms" }}
             data-animate
           >
-            <div className="px-4 sm:px-7 py-3.5 sm:py-5 group hover:bg-[var(--gold)]/5 transition-colors">
+            <div className="px-4 sm:px-7 py-3.5 sm:py-5 group hover:bg-[var(--elevate-1)] transition-colors">
               <p className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] mb-1">
                 Plano
               </p>
@@ -419,7 +422,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                 {isActive ? "PRO" : "Basico"}
               </p>
             </div>
-            <div className="px-4 sm:px-7 py-3.5 sm:py-5 hover:bg-[var(--gold)]/5 transition-colors">
+            <div className="px-4 sm:px-7 py-3.5 sm:py-5 hover:bg-[var(--elevate-1)] transition-colors">
               <p className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] mb-1">
                 Email
               </p>
@@ -427,7 +430,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                 {customer.email}
               </p>
             </div>
-            <div className="px-4 sm:px-7 py-3.5 sm:py-5 hover:bg-[var(--gold)]/5 transition-colors">
+            <div className="px-4 sm:px-7 py-3.5 sm:py-5 hover:bg-[var(--elevate-1)] transition-colors">
               <p className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] mb-1">
                 Membro desde
               </p>
@@ -449,11 +452,11 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
             data-animate
           >
             {/* Profile card */}
-            <div className="border border-[var(--border)] bg-[var(--background-secondary)]/20 p-6 hover:border-[var(--gold)]/20 transition-colors">
+            <div className="border border-[var(--border)] bg-[var(--background-secondary)]/20 p-6 hover:border-[var(--border-hover)] transition-colors">
               <h3 className="rotulo mb-5">{t.account.profile}</h3>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-7 h-7 rounded-full bg-[var(--gold)]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-7 h-7 rounded-full bg-[var(--elevate-1)] flex items-center justify-center flex-shrink-0 mt-0.5">
                     <Mail size={12} className="text-[var(--gold)]" />
                   </div>
                   <div className="min-w-0">
@@ -466,7 +469,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-7 h-7 rounded-full bg-[var(--gold)]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-7 h-7 rounded-full bg-[var(--elevate-1)] flex items-center justify-center flex-shrink-0 mt-0.5">
                     <CheckCircle size={12} className="text-emerald-400" />
                   </div>
                   <div>
@@ -485,13 +488,13 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
             {/* Alertas shortcut */}
             <LocalizedLink
               href="/minha-conta/alertas"
-              className="flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
+              className="flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--border-hover)] hover:bg-[var(--elevate-1)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
             >
               <span className="flex items-center gap-3 text-[11px] uppercase tracking-wider text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
                 <BellRing size={13} className="text-[var(--gold)]" />
                 Os meus Alertas
               </span>
-              <span className="text-[var(--gold)]/40 group-hover:text-[var(--gold)] transition-colors text-sm">
+              <span className="text-[var(--foreground-muted)] group-hover:text-[var(--foreground-strong)] transition-colors text-sm">
                 →
               </span>
             </LocalizedLink>
@@ -499,13 +502,13 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
             {/* Mensagens shortcut */}
             <LocalizedLink
               href="/minha-conta/mensagens"
-              className="flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
+              className="flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--border-hover)] hover:bg-[var(--elevate-1)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
             >
               <span className="flex items-center gap-3 text-[11px] uppercase tracking-wider text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
                 <MessagesSquare size={13} className="text-[var(--gold)]" />
                 As minhas Mensagens
               </span>
-              <span className="text-[var(--gold)]/40 group-hover:text-[var(--gold)] transition-colors text-sm">
+              <span className="text-[var(--foreground-muted)] group-hover:text-[var(--foreground-strong)] transition-colors text-sm">
                 →
               </span>
             </LocalizedLink>
@@ -513,13 +516,13 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
             {/* Os meus anúncios shortcut */}
             <LocalizedLink
               href="/minha-conta/anuncios"
-              className="flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
+              className="flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--border-hover)] hover:bg-[var(--elevate-1)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
             >
               <span className="flex items-center gap-3 text-[11px] uppercase tracking-wider text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
                 <Tag size={13} className="text-[var(--gold)]" />
                 Os meus Anúncios
               </span>
-              <span className="text-[var(--gold)]/40 group-hover:text-[var(--gold)] transition-colors text-sm">
+              <span className="text-[var(--foreground-muted)] group-hover:text-[var(--foreground-strong)] transition-colors text-sm">
                 →
               </span>
             </LocalizedLink>
@@ -527,13 +530,13 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
             {/* Favoritos shortcut */}
             <LocalizedLink
               href="/cavalos-favoritos"
-              className="flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
+              className="flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--border-hover)] hover:bg-[var(--elevate-1)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
             >
               <span className="flex items-center gap-3 text-[11px] uppercase tracking-wider text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
                 <Heart size={13} className="text-[var(--gold)]" />
                 Os meus Favoritos
               </span>
-              <span className="text-[var(--gold)]/40 group-hover:text-[var(--gold)] transition-colors text-sm">
+              <span className="text-[var(--foreground-muted)] group-hover:text-[var(--foreground-strong)] transition-colors text-sm">
                 →
               </span>
             </LocalizedLink>
@@ -556,16 +559,16 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                 Explorar Portal
                 <span className="h-[1px] flex-1 bg-[var(--border)]" />
               </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 bg-[var(--gold)]/8 gap-px">
+              <div className="grid grid-cols-2 sm:grid-cols-4 bg-[var(--elevate-1)] gap-px">
                 {explore.map(({ href, icon: Icon, label }) => (
                   <LocalizedLink
                     key={href}
                     href={href}
-                    className="flex items-center gap-2.5 px-4 py-4 bg-[var(--background)] hover:bg-[var(--gold)]/5 hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgb(var(--gold-rgb) / 0.08)] transition-all duration-200 group"
+                    className="flex items-center gap-2.5 px-4 py-4 bg-[var(--background)] hover:bg-[var(--elevate-1)] hover:-translate-y-0.5 hover:shadow-[0_4px_16px_rgb(var(--gold-rgb) / 0.08)] transition-all duration-200 group"
                   >
                     <Icon
                       size={13}
-                      className="text-[var(--gold)]/60 group-hover:text-[var(--gold)] transition-colors flex-shrink-0"
+                      className="text-[var(--foreground-muted)] group-hover:text-[var(--foreground-strong)] transition-colors flex-shrink-0"
                     />
                     <span className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] group-hover:text-[var(--foreground-secondary)] transition-colors">
                       {label}

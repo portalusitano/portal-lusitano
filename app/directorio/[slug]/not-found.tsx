@@ -35,7 +35,7 @@ export default function NotFound() {
           </Link>
           <Link
             href="/"
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--background-secondary)] border border-[var(--gold)]/30 text-[var(--gold)] font-bold uppercase text-sm tracking-wide hover:bg-[var(--gold)] hover:text-black transition-all"
+            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[var(--background-secondary)] border border-[var(--border-soft)] text-[var(--gold)] font-bold uppercase text-sm tracking-wide hover:bg-[var(--gold)] hover:text-black transition-all"
           >
             Página Inicial
           </Link>

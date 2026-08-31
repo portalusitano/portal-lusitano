@@ -135,7 +135,7 @@ export default function AIAssistant({
       case "suggest_subject":
         return (
           <div className="space-y-4">
-            <div className="bg-gradient-to-br from-[var(--gold)]/10 to-[var(--gold-hover)]/10 border border-[var(--gold)]/20 rounded-lg p-4">
+            <div className="bg-gradient-to-br from-[var(--gold)]/10 to-[var(--gold-hover)]/10 border border-[var(--border-soft)] rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-semibold text-[var(--gold)]">
                   📧 Subject Recomendado

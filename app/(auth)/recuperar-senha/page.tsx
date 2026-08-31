@@ -50,7 +50,7 @@ export default function RecuperarSenhaPage() {
   if (sent) {
     return (
       <div className="text-center py-6">
-        <div className="w-16 h-16 bg-[var(--gold)]/10 border border-[var(--gold)]/25 rounded-full flex items-center justify-center mx-auto mb-5">
+        <div className="w-16 h-16 bg-[var(--elevate-1)] border border-[var(--border-soft)] rounded-full flex items-center justify-center mx-auto mb-5">
           <CheckCircle className="text-[var(--gold)]" size={32} aria-hidden="true" />
         </div>
         <h2 className="text-xl text-[var(--foreground)] mb-2">{t.auth.email_sent}</h2>
@@ -63,7 +63,7 @@ export default function RecuperarSenhaPage() {
         </p>
         <LocalizedLink
           href="/login"
-          className="inline-flex items-center gap-2 text-sm text-[var(--gold)] hover:text-[var(--gold-hover)] transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-[var(--gold)] hover:text-[var(--foreground-strong)] transition-colors"
         >
           <ArrowLeft size={16} aria-hidden="true" />
           {t.auth.back_to_login}
@@ -125,7 +125,7 @@ export default function RecuperarSenhaPage() {
                 "w-full bg-[var(--background-card)] border rounded-lg pl-10 pr-4 py-3",
                 "text-[var(--foreground)] placeholder:text-[var(--foreground-muted)]",
                 "outline-none transition-colors",
-                "focus:border-[var(--gold)]/50 focus:ring-1 focus:ring-[var(--gold)]/30",
+                "focus:border-[var(--border-hover)] focus:ring-1 focus:ring-[var(--gold)]/30",
                 error
                   ? "border-red-500/60 focus:border-red-500/60 focus:ring-red-500/20"
                   : "border-[var(--border)]",
@@ -162,7 +162,7 @@ export default function RecuperarSenhaPage() {
       <p className="mt-6 text-center">
         <LocalizedLink
           href="/login"
-          className="text-sm text-[var(--foreground-muted)] hover:text-[var(--gold)] transition-colors inline-flex items-center justify-center gap-2"
+          className="text-sm text-[var(--foreground-muted)] hover:text-[var(--foreground-strong)] transition-colors inline-flex items-center justify-center gap-2"
         >
           <ArrowLeft size={14} aria-hidden="true" />
           {t.auth.back_to_login}

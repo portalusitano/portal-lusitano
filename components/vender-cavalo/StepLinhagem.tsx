@@ -295,7 +295,7 @@ export default function StepLinhagem({
               <p className="text-xs text-[var(--foreground-muted)] mb-3">
                 {t.vender_cavalo.blue_book_desc}
               </p>
-              <label className="flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-[var(--border)] rounded-lg cursor-pointer hover:border-[var(--gold)] transition-colors touch-manipulation">
+              <label className="flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-[var(--border)] rounded-lg cursor-pointer hover:border-[var(--border-hover)] transition-colors touch-manipulation">
                 <Upload size={18} className="text-[var(--foreground-muted)]" />
                 <span className="text-sm text-[var(--foreground-secondary)]">
                   {documentos.livroAzul ? documentos.livroAzul.name : t.vender_cavalo.choose_file}
@@ -320,7 +320,7 @@ export default function StepLinhagem({
               <p className="text-xs text-[var(--foreground-muted)] mb-3">
                 {t.vender_cavalo.equine_passport_desc}
               </p>
-              <label className="flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-[var(--border)] rounded-lg cursor-pointer hover:border-[var(--gold)] transition-colors touch-manipulation">
+              <label className="flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-[var(--border)] rounded-lg cursor-pointer hover:border-[var(--border-hover)] transition-colors touch-manipulation">
                 <Upload size={18} className="text-[var(--foreground-muted)]" />
                 <span className="text-sm text-[var(--foreground-secondary)]">
                   {documentos.passaporte

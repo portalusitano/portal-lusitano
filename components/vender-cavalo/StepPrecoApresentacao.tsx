@@ -95,7 +95,7 @@ export default function StepPrecoApresentacao({
                 min={0}
                 value={formData.preco}
                 onChange={(e) => updateField("preco", e.target.value)}
-                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)] transition-colors"
+                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-[var(--border-hover)] transition-colors"
                 placeholder="25000"
               />
             </div>
@@ -372,7 +372,7 @@ export default function StepPrecoApresentacao({
                 min={0}
                 value={formData.preco_cobricao}
                 onChange={(e) => updateField("preco_cobricao", e.target.value)}
-                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)] transition-colors"
+                className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-[var(--border-hover)] transition-colors"
                 placeholder="500"
               />
             </div>
@@ -536,8 +536,8 @@ export default function StepPrecoApresentacao({
               onDrop={handleDrop}
               className={`flex flex-col items-center justify-center gap-3 w-full py-8 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 touch-manipulation ${
                 isDragging
-                  ? "border-[var(--gold)] bg-[var(--gold)]/5"
-                  : "border-[var(--border)] hover:border-[var(--gold)]/50 hover:bg-[var(--background-card)]/50"
+                  ? "border-[var(--gold)] bg-[var(--elevate-1)]"
+                  : "border-[var(--border)] hover:border-[var(--border-hover)] hover:bg-[var(--background-card)]/50"
               }`}
             >
               <div className="w-10 h-10 border border-[var(--border)] rounded-lg flex items-center justify-center">

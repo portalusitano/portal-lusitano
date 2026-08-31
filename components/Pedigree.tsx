@@ -10,10 +10,10 @@ const AncestorCard = ({ type, name, reg, isFemale = false }: AncestorCardProps) 
     className={`
     relative p-4 border transition-all duration-500 group min-w-[180px]
     ${isFemale ? "border-[var(--background-secondary)] bg-[var(--background)]/30" : "border-[var(--border)] bg-[var(--background)]/60"}
-    hover:border-[var(--gold)] hover:bg-[var(--background-secondary)]
+    hover:border-[var(--border-hover)] hover:bg-[var(--background-secondary)]
   `}
   >
-    <span className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] block mb-1 group-hover:text-[var(--gold)] transition-colors">
+    <span className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] block mb-1 group-hover:text-[var(--foreground-strong)] transition-colors">
       {type}
     </span>
     <p className="font-normal text-[var(--foreground)] text-sm whitespace-nowrap overflow-hidden text-ellipsis">
@@ -41,7 +41,7 @@ export default function Pedigree({ cavalo }: PedigreeProps) {
       <div className="flex items-center justify-center w-full min-w-0 gap-2 sm:gap-4 md:gap-8 px-4 sm:px-6 md:px-8">
         {/* COLUNA 1: O Cavalo (HERÓI) */}
         <div className="flex flex-col justify-center">
-          <div className="border border-[var(--gold)] bg-[var(--gold)]/10 p-4 sm:p-6 min-w-[140px] sm:min-w-[200px] relative">
+          <div className="border border-[var(--gold)] bg-[var(--elevate-1)] p-4 sm:p-6 min-w-[140px] sm:min-w-[200px] relative">
             <span className="text-[var(--gold)] rotulo font-bold block mb-2">O Exemplar</span>
             <h3 className="text-xl font-normal text-[var(--foreground)]">{cavalo.nome_cavalo}</h3>
             <div className="absolute -left-3 top-1/2 w-3 h-px bg-[var(--gold)]"></div>

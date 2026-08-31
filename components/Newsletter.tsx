@@ -122,7 +122,7 @@ export default function Newsletter() {
               id="newsletter-email"
               type="email"
               placeholder={tx(nl.placeholder, language)}
-              className="bg-[var(--background)] border border-[var(--border)] px-6 py-4 text-[var(--foreground)] w-full md:w-96 focus:border-[var(--gold)] outline-none transition"
+              className="bg-[var(--background)] border border-[var(--border)] px-6 py-4 text-[var(--foreground)] w-full md:w-96 focus:border-[var(--border-hover)] outline-none transition"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required

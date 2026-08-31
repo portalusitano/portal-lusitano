@@ -59,7 +59,7 @@ export default function StepIndicator({ currentStep }: StepIndicatorProps) {
                   isCurrent
                     ? "bg-[var(--gold)] text-black ring-2 ring-[var(--gold)]/30 ring-offset-2 ring-offset-[var(--background)]"
                     : isCompleted
-                      ? "bg-[var(--gold)]/20 text-[var(--gold)] border border-[var(--gold)]/40"
+                      ? "bg-[var(--elevate-1)] text-[var(--gold)] border border-[var(--border-soft)]"
                       : "bg-[var(--background-card)] text-[var(--foreground-muted)] border border-[var(--border)]"
                 }`}
                 aria-current={isCurrent ? "step" : undefined}

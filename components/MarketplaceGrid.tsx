@@ -322,7 +322,7 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
  vale a pena guardar como alerta. */}
             <LocalizedLink
               href={hrefAlerta}
-              className="btn btn-sm border-[var(--gold)]/40 text-[var(--gold)] hover:bg-[var(--gold)]/10"
+              className="btn btn-sm border-[var(--border-soft)] text-[var(--gold)] hover:bg-[var(--elevate-1)]"
             >
               <BellRing size={11} />
               Guardar esta pesquisa
@@ -334,7 +334,7 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
       {/* ── Resultados ── */}
       {pagina.total === 0 ? (
         <div className="cartao p-10 text-center">
-          <Search size={20} className="mx-auto text-[var(--gold)]/25 mb-4" />
+          <Search size={20} className="mx-auto text-[var(--foreground-muted)] mb-4" />
           <p className="text-sm text-[var(--foreground)]">Nenhum cavalo corresponde à pesquisa.</p>
           <p className="text-xs text-[var(--foreground-muted)] mt-2 max-w-sm mx-auto">
             Alargue os filtros, ou guarde esta pesquisa e avisamos assim que aparecer um cavalo
@@ -346,7 +346,7 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
             </button>
             <LocalizedLink
               href={hrefAlerta}
-              className="btn border-[var(--gold)]/40 text-[var(--gold)] hover:bg-[var(--gold)]/10"
+              className="btn border-[var(--border-soft)] text-[var(--gold)] hover:bg-[var(--elevate-1)]"
             >
               <BellRing size={11} />
               Criar alerta

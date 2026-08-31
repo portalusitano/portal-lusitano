@@ -167,7 +167,7 @@ export default function DevolucoesPage() {
                 href="https://www.livroreclamacoes.pt"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 border border-[var(--gold)]/40 px-4 py-2.5 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors"
+                className="inline-flex items-center gap-2 border border-[var(--border-soft)] px-4 py-2.5 rotulo-forte hover:bg-[var(--elevate-1)] transition-colors"
               >
                 Livro de Reclamações
               </a>
@@ -175,7 +175,7 @@ export default function DevolucoesPage() {
                 href="https://ec.europa.eu/consumers/odr"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 border border-[var(--border)] px-4 py-2.5 rotulo hover:border-[var(--gold)]/40 hover:text-[var(--gold)] transition-colors"
+                className="inline-flex items-center gap-2 border border-[var(--border)] px-4 py-2.5 rotulo hover:border-[var(--border-hover)] hover:text-[var(--foreground-strong)] transition-colors"
               >
                 Resolução de Litígios UE (ODR)
               </a>

@@ -22,7 +22,7 @@ export default function Loading() {
                 <div key={i} className="h-4 bg-[var(--surface-hover)] rounded w-full" />
               ))}
             </div>
-            <div className="h-14 bg-[var(--gold)]/20 rounded-xl w-full mt-4" />
+            <div className="h-14 bg-[var(--elevate-1)] rounded-xl w-full mt-4" />
           </div>
         </div>
       </div>

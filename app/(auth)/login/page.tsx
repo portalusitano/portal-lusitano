@@ -14,7 +14,7 @@ function inputClass(hasError: boolean) {
     "w-full bg-[var(--background-card)] border rounded-lg pl-10 pr-4 py-3",
     "text-[var(--foreground)] placeholder:text-[var(--foreground-muted)]",
     "outline-none transition-colors",
-    "focus:border-[var(--gold)]/50 focus:ring-1 focus:ring-[var(--gold)]/30",
+    "focus:border-[var(--border-hover)] focus:ring-1 focus:ring-[var(--gold)]/30",
     hasError
       ? "border-red-500/60 focus:border-red-500/60 focus:ring-red-500/20"
       : "border-[var(--border)]",
@@ -208,7 +208,7 @@ function LoginContent() {
         <div className="flex justify-end">
           <LocalizedLink
             href="/recuperar-senha"
-            className="text-xs text-[var(--foreground-muted)] hover:text-[var(--gold)] transition-colors"
+            className="text-xs text-[var(--foreground-muted)] hover:text-[var(--foreground-strong)] transition-colors"
           >
             {t.auth.forgot_password}
           </LocalizedLink>
@@ -238,7 +238,7 @@ function LoginContent() {
           href={
             returnUrl !== "/" ? `/registar?redirect=${encodeURIComponent(returnUrl)}` : "/registar"
           }
-          className="text-[var(--gold)] hover:text-[var(--gold-hover)] font-medium transition-colors"
+          className="text-[var(--gold)] hover:text-[var(--foreground-strong)] font-medium transition-colors"
         >
           {t.auth.create_account}
         </LocalizedLink>

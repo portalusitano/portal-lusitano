@@ -27,7 +27,6 @@ import Pagination from "@/components/ui/Pagination";
 import RevealOnScroll from "@/components/ui/RevealOnScroll";
 import AnimatedCounter from "@/components/ui/AnimatedCounter";
 import HorizontalScrollGallery from "@/components/ui/HorizontalScrollGallery";
-import ParallaxSection from "@/components/ui/ParallaxSection";
 import MagneticButton from "@/components/ui/MagneticButton";
 import EventosCalendar from "@/components/eventos/EventosCalendar";
 import EventosMap from "@/components/eventos/EventosMap";
@@ -248,51 +247,22 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
         suppressHydrationWarning
         className="relative min-h-[55vh] flex flex-col items-center justify-center text-center px-4 overflow-hidden noise-overlay"
       >
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[var(--gold)]/[0.06] via-[var(--background)] to-[var(--background)]" />
-
-        {/* Floating gold orbs with parallax + gentle float */}
-        <ParallaxSection speed={0.15} className="absolute inset-0 pointer-events-none">
-          <div
-            className=""
-            style={{
-              width: 500,
-              height: 500,
-              background: "var(--gold)",
-              top: "15%",
-              left: "-180px",
-            }}
-          />
-          <div
-            className=""
-            style={{
-              width: 400,
-              height: 400,
-              background: "var(--gold)",
-              bottom: "10%",
-              right: "-140px",
-              animationDelay: "-3s",
-            }}
-          />
-          <div
-            className=""
-            style={{
-              width: 300,
-              height: 300,
-              background: "var(--gold)",
-              top: "60%",
-              left: "50%",
-              animationDelay: "-5s",
-              opacity: 0.03,
-            }}
-          />
-        </ParallaxSection>
+        {/* O mesmo halo da página inicial. Aqui estavam um véu dourado e
+            três esferas douradas de 500px com paralaxe — decoração de um
+            desenho que o site já não usa, e as esferas custavam trabalho de
+            composição em cada scroll para não se verem quase. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage:
+              "radial-gradient(ellipse 70% 50% at 50% 0%, var(--elevate-1), transparent 70%)",
+          }}
+        />
 
         {/* Content */}
         <div className="relative z-10 max-w-4xl mx-auto space-y-6 pt-28 pb-12">
-          <p className="text-[10px] md:text-xs uppercase tracking-wider text-[var(--gold)]">
-            {t.eventos.badge}
-          </p>
+          <p className="rotulo">{t.eventos.badge}</p>
           {/* Sem `TextSplit`: o gradiente do título pinta-se na caixa do h1 e
               corta-se ao texto, mas o TextSplit parte o texto em `inline-block`
               que herdam o preenchimento transparente sem herdar o gradiente —
@@ -300,10 +270,6 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
           <h1 className="titulo-gradiente text-4xl font-normal leading-[100%] tracking-[-0.01em] sm:text-5xl md:text-[4rem]">
             {t.eventos.title}
           </h1>
-          <div
-            className="w-24 h-[1px] bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent mx-auto"
-            style={{ animationDelay: "0.35s" }}
-          />
           <p
             className="text-sm md:text-base text-[var(--foreground-secondary)] max-w-lg mx-auto"
             style={{ animationDelay: "0.4s" }}
@@ -325,7 +291,7 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
             <RevealOnScroll variant="fade-up" className="text-center mb-8">
               <span className="rotulo-forte block mb-2">{t.eventos.next_event}</span>
               <h3
-                className="text-lg sm:text-xl text-[var(--foreground)] cursor-pointer hover:text-[var(--gold)] transition-colors"
+                className="text-lg sm:text-xl text-[var(--foreground)] cursor-pointer hover:text-[var(--foreground-strong)] transition-colors"
                 onClick={() => setSelectedEvento(nextEvento)}
               >
                 {nextEvento.titulo}
@@ -345,9 +311,9 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
               ].map((unit) => (
                 <div
                   key={unit.label}
-                  className="bg-[var(--background-card)] border border-[var(--gold)]/20 px-3 sm:px-5 py-3 min-w-[60px] sm:min-w-[75px] text-center "
+                  className="bg-[var(--background-card)] border border-[var(--border-soft)] px-3 sm:px-5 py-3 min-w-[60px] sm:min-w-[75px] text-center "
                 >
-                  <span className="text-2xl sm:text-3xl text-[var(--gold)]">
+                  <span className="text-2xl tabular-nums text-[var(--foreground-strong)] sm:text-3xl">
                     {String(unit.value).padStart(2, "0")}
                   </span>
                   <span className="block rotulo mt-1">{unit.label}</span>
@@ -365,12 +331,10 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
               ].map((stat, i) => (
                 <RevealOnScroll key={stat.label} delay={i * 100} variant="fade-up">
                   <div className="text-center">
-                    <div className="text-3xl sm:text-4xl text-[var(--gold)] mb-1">
+                    <div className="mb-1 text-3xl tabular-nums text-[var(--foreground-strong)] sm:text-4xl">
                       <AnimatedCounter end={stat.value} duration={2000 + i * 300} />
                     </div>
-                    <p className="text-[var(--foreground-muted)] text-[10px] sm:text-xs uppercase tracking-wide">
-                      {stat.label}
-                    </p>
+                    <p className="rotulo">{stat.label}</p>
                   </div>
                 </RevealOnScroll>
               ))}
@@ -410,7 +374,6 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
               <h2 className="text-2xl sm:text-3xl text-gradient-gold inline-block">
                 {t.eventos.featured}
               </h2>
-              <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent mx-auto mt-4" />
             </RevealOnScroll>
 
             <HorizontalScrollGallery>
@@ -437,7 +400,7 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t.eventos.search_placeholder}
-            className="w-full pl-11 pr-10 py-3 bg-[var(--background-secondary)]/50 border border-[var(--border)] text-[var(--foreground)] text-sm placeholder-[var(--foreground-muted)] focus:outline-none focus:border-[var(--gold)]/50 transition-colors"
+            className="w-full pl-11 pr-10 py-3 bg-[var(--background-secondary)]/50 border border-[var(--border)] text-[var(--foreground)] text-sm placeholder-[var(--foreground-muted)] focus:outline-none focus:border-[var(--border-hover)] transition-colors"
           />
           {searchQuery && (
             <button
@@ -470,16 +433,17 @@ export default function EventosContent({ eventos }: { eventos: Evento[] }) {
             <div className="flex items-center justify-between bg-[var(--background-secondary)]/50 border border-[var(--border)] p-4 mb-8">
               <button
                 onClick={() => navigateMonth(-1)}
-                className="p-2 text-[var(--foreground-secondary)] hover:text-[var(--gold)] transition-colors"
+                className="p-2 text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors"
               >
                 <ChevronLeft size={24} />
               </button>
               <h3 className="text-xl text-[var(--foreground)]">
-                <span className="text-[var(--gold)]">{meses[currentMonth]}</span> {currentYear}
+                <span className="text-[var(--foreground-strong)]">{meses[currentMonth]}</span>{" "}
+                {currentYear}
               </h3>
               <button
                 onClick={() => navigateMonth(1)}
-                className="p-2 text-[var(--foreground-secondary)] hover:text-[var(--gold)] transition-colors"
+                className="p-2 text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors"
               >
                 <ChevronRight size={24} />
               </button>
@@ -583,7 +547,7 @@ function EventoDestaqueCardPremium({
     <div style={{ transition: "transform 0.1s ease" }}>
       <button
         onClick={onClick}
-        className="text-left relative w-[320px] sm:w-[400px] h-80 overflow-hidden group card-premium  animated-border border border-[var(--gold)]/20 hover:border-[var(--gold)]/50 transition-all duration-500 flex-shrink-0"
+        className="text-left relative w-[320px] sm:w-[400px] h-80 overflow-hidden group card-premium  animated-border border border-[var(--border-soft)] hover:border-[var(--border-hover)] transition-all duration-500 flex-shrink-0"
         style={{ animationDelay: `${index * 0.08}s` }}
       >
         {/* Image */}
@@ -595,7 +559,7 @@ function EventoDestaqueCardPremium({
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-[var(--gold)]/20 via-[var(--background-card)] to-[var(--background-secondary)]">
+          <div className="absolute inset-0 bg-[var(--background-card)]">
             <span className="absolute inset-0 flex items-center justify-center text-7xl opacity-15">
               {getTipoIcon(evento.tipo)}
             </span>
@@ -605,25 +569,23 @@ function EventoDestaqueCardPremium({
 
         {/* Type badge */}
         <div className="absolute top-4 left-4">
-          <span
-            className={`px-3 py-1 text-[10px] uppercase tracking-wider border ${getTipoColor(evento.tipo)}`}
-          >
+          <span className={`selo border ${getTipoColor(evento.tipo)}`}>
             {getTipoIcon(evento.tipo)} {evento.tipo}
           </span>
         </div>
 
         {/* Destaque star */}
         <div className="absolute top-4 right-4">
-          <Star size={18} className="text-[var(--gold)] fill-[var(--gold)]/30" />
+          <Star size={18} className="text-[var(--gold)]" aria-hidden="true" />
         </div>
 
         {/* Content */}
         <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6">
-          <div className="flex items-center gap-2 text-[var(--gold)] text-sm mb-2">
+          <div className="mb-2 flex items-center gap-2 text-sm text-[var(--foreground-secondary)]">
             <Calendar size={14} />
             {formatDateRange(evento.data_inicio, evento.data_fim)}
           </div>
-          <h3 className="text-lg sm:text-xl text-white group-hover:text-[var(--gold)] transition-colors mb-2 line-clamp-2">
+          <h3 className="text-lg sm:text-xl text-white group-hover:text-[var(--foreground-strong)] transition-colors mb-2 line-clamp-2">
             {evento.titulo}
           </h3>
           <div className="flex items-center gap-2 text-[var(--foreground-secondary)] text-sm">
@@ -657,7 +619,7 @@ function EventoCard({
     <RevealOnScroll delay={index * 60} variant="fade-up">
       <button
         onClick={onClick}
-        className="w-full text-left flex items-stretch bg-[var(--background-card)] border border-[var(--gold)]/10 hover:border-[var(--gold)]/40 transition-all duration-300 group card-premium overflow-hidden"
+        className="w-full text-left flex items-stretch bg-[var(--background-card)] border border-[var(--border-soft)] hover:border-[var(--border-hover)] transition-all duration-300 group card-premium overflow-hidden"
       >
         {/* Image thumbnail */}
         {evento.imagem_capa && (
@@ -674,10 +636,10 @@ function EventoCard({
 
         {/* Date column */}
         <div className="w-20 sm:w-24 flex-shrink-0 flex flex-col items-center justify-center p-3 border-r border-[var(--border)]/50">
-          <span className="text-3xl text-[var(--gold)]">{date.getDate()}</span>
-          <span className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)]">
-            {date.toLocaleDateString("pt-PT", { month: "short" })}
+          <span className="text-3xl tabular-nums text-[var(--foreground-strong)]">
+            {date.getDate()}
           </span>
+          <span className="rotulo">{date.toLocaleDateString("pt-PT", { month: "short" })}</span>
           <span className="text-[11px] text-[var(--foreground-muted)] mt-0.5">
             {date.getFullYear()}
           </span>
@@ -686,9 +648,7 @@ function EventoCard({
         {/* Content */}
         <div className="flex-1 p-4 min-w-0">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <span
-              className={`px-2 py-0.5 text-[10px] uppercase tracking-wider border ${getTipoColor(evento.tipo)}`}
-            >
+            <span className={`selo border ${getTipoColor(evento.tipo)}`}>
               {getTipoIcon(evento.tipo)} {evento.tipo}
             </span>
             {evento.destaque && <Star size={14} className="text-[var(--gold)]" />}
@@ -703,7 +663,7 @@ function EventoCard({
               );
             })()}
           </div>
-          <h3 className="text-base sm:text-lg text-[var(--foreground)] group-hover:text-[var(--gold)] transition-colors mb-1 line-clamp-1">
+          <h3 className="text-base sm:text-lg text-[var(--foreground)] group-hover:text-[var(--foreground-strong)] transition-colors mb-1 line-clamp-1">
             {evento.titulo}
           </h3>
           <p className="text-sm text-[var(--foreground-muted)] line-clamp-1 mb-2 hidden sm:block">
@@ -724,7 +684,7 @@ function EventoCard({
         </div>
 
         {/* Arrow */}
-        <div className="flex items-center px-3 sm:px-4 text-[var(--foreground-muted)] group-hover:text-[var(--gold)] transition-colors">
+        <div className="flex items-center px-3 sm:px-4 text-[var(--foreground-muted)] group-hover:text-[var(--foreground-strong)] transition-colors">
           <ChevronRight size={20} />
         </div>
       </button>
@@ -776,7 +736,7 @@ function EventoModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header image (21:9) */}
-        <div className="aspect-[21/9] relative overflow-hidden bg-gradient-to-br from-[var(--gold)]/20 to-[var(--background-card)]">
+        <div className="aspect-[21/9] relative overflow-hidden bg-[var(--background-card)]">
           {evento.imagem_capa ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -788,7 +748,7 @@ function EventoModal({
               <div className="absolute inset-0 bg-gradient-to-t from-[var(--background-secondary)] via-transparent to-black/20" />
             </>
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[var(--gold)]/15 via-[var(--background-card)] to-[var(--background-secondary)]">
+            <div className="absolute inset-0 flex items-center justify-center bg-[var(--background-card)]">
               <span className="text-[80px] opacity-15">{getTipoIcon(evento.tipo)}</span>
             </div>
           )}
@@ -804,9 +764,7 @@ function EventoModal({
 
           {/* Badges at bottom of image */}
           <div className="absolute bottom-4 left-4 flex gap-2 flex-wrap">
-            <span
-              className={`px-3 py-1 text-[10px] uppercase tracking-wider border backdrop-blur-sm ${getTipoColor(evento.tipo)}`}
-            >
+            <span className={`selo border backdrop-blur-sm ${getTipoColor(evento.tipo)}`}>
               {getTipoIcon(evento.tipo)} {evento.tipo}
             </span>
             {evento.destaque && <span className="selo selo-destaque">{t.eventos.highlight}</span>}
@@ -834,13 +792,11 @@ function EventoModal({
           {/* Info grid */}
           <div className="grid sm:grid-cols-2 gap-3 mb-6">
             <div className="flex items-center gap-3 p-3 bg-[var(--background-card)]/50 border border-[var(--border)]/50">
-              <div className="w-10 h-10 bg-[var(--gold)]/10 flex items-center justify-center flex-shrink-0">
-                <Calendar size={18} className="text-[var(--gold)]" />
+              <div className="w-10 h-10 bg-[var(--elevate-1)] flex items-center justify-center flex-shrink-0">
+                <Calendar size={18} className="text-[var(--foreground-muted)]" aria-hidden="true" />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)]">
-                  {t.eventos.date_label}
-                </p>
+                <p className="rotulo">{t.eventos.date_label}</p>
                 <p className="text-sm text-[var(--foreground)]">
                   {formatDateRange(evento.data_inicio, evento.data_fim)}
                 </p>
@@ -848,13 +804,11 @@ function EventoModal({
             </div>
             {evento.hora_inicio && (
               <div className="flex items-center gap-3 p-3 bg-[var(--background-card)]/50 border border-[var(--border)]/50">
-                <div className="w-10 h-10 bg-[var(--gold)]/10 flex items-center justify-center flex-shrink-0">
-                  <Clock size={18} className="text-[var(--gold)]" />
+                <div className="w-10 h-10 bg-[var(--elevate-1)] flex items-center justify-center flex-shrink-0">
+                  <Clock size={18} className="text-[var(--foreground-muted)]" aria-hidden="true" />
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)]">
-                    {t.eventos.time_label}
-                  </p>
+                  <p className="rotulo">{t.eventos.time_label}</p>
                   <p className="text-sm text-[var(--foreground)]">
                     {evento.hora_inicio}
                     {evento.hora_fim && ` - ${evento.hora_fim}`}
@@ -863,25 +817,21 @@ function EventoModal({
               </div>
             )}
             <div className="flex items-center gap-3 p-3 bg-[var(--background-card)]/50 border border-[var(--border)]/50">
-              <div className="w-10 h-10 bg-[var(--gold)]/10 flex items-center justify-center flex-shrink-0">
-                <MapPin size={18} className="text-[var(--gold)]" />
+              <div className="w-10 h-10 bg-[var(--elevate-1)] flex items-center justify-center flex-shrink-0">
+                <MapPin size={18} className="text-[var(--foreground-muted)]" aria-hidden="true" />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)]">
-                  {t.eventos.location_label}
-                </p>
+                <p className="rotulo">{t.eventos.location_label}</p>
                 <p className="text-sm text-[var(--foreground)]">{evento.localizacao}</p>
               </div>
             </div>
             {evento.preco_entrada && (
               <div className="flex items-center gap-3 p-3 bg-[var(--background-card)]/50 border border-[var(--border)]/50">
-                <div className="w-10 h-10 bg-[var(--gold)]/10 flex items-center justify-center flex-shrink-0">
-                  <Euro size={18} className="text-[var(--gold)]" />
+                <div className="w-10 h-10 bg-[var(--elevate-1)] flex items-center justify-center flex-shrink-0">
+                  <Euro size={18} className="text-[var(--foreground-muted)]" aria-hidden="true" />
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)]">
-                    {t.eventos.price_label}
-                  </p>
+                  <p className="rotulo">{t.eventos.price_label}</p>
                   <p className="text-sm text-[var(--foreground)]">{evento.preco_entrada}</p>
                 </div>
               </div>

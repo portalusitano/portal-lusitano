@@ -78,7 +78,7 @@ function ComprarContentInner({
           <div className="flex items-center gap-2 flex-shrink-0">
             <LocalizedLink
               href="/minha-conta/alertas"
-              className="inline-flex items-center gap-2 px-4 py-2.5 border border-[var(--border)] text-[var(--foreground-secondary)] hover:border-[var(--gold)]/50 hover:text-[var(--gold)] transition-colors text-sm touch-manipulation"
+              className="inline-flex items-center gap-2 px-4 py-2.5 border border-[var(--border)] text-[var(--foreground-secondary)] hover:border-[var(--border-hover)] hover:text-[var(--foreground-strong)] transition-colors text-sm touch-manipulation"
             >
               <Scale className="w-4 h-4" />
               <span className="hidden sm:inline">

@@ -76,7 +76,7 @@ function UnsubscribeContent() {
             </button>
             <LocalizedLink
               href="/"
-              className="block mt-4 text-[var(--foreground-muted)] text-sm hover:text-[var(--gold)] transition-colors"
+              className="block mt-4 text-[var(--foreground-muted)] text-sm hover:text-[var(--foreground-strong)] transition-colors"
             >
               {t.unsubscribe_page.no_continue}
             </LocalizedLink>

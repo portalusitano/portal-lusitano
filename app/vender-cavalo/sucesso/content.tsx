@@ -39,7 +39,7 @@ export default function VenderCavaloSucessoContent() {
         <div className="space-y-4 mb-8">
           <div className="bg-[var(--background-secondary)] cartao p-6">
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--gold)]/20 flex items-center justify-center">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--elevate-1)] flex items-center justify-center">
                 <Mail className="w-5 h-5 text-[var(--gold)]" />
               </div>
               <div className="flex-1">
@@ -53,7 +53,7 @@ export default function VenderCavaloSucessoContent() {
 
           <div className="bg-[var(--background-secondary)] cartao p-6">
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--gold)]/20 flex items-center justify-center">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--elevate-1)] flex items-center justify-center">
                 <Clock className="w-5 h-5 text-[var(--gold)]" />
               </div>
               <div className="flex-1">
@@ -67,7 +67,7 @@ export default function VenderCavaloSucessoContent() {
 
           <div className="bg-[var(--background-secondary)] cartao p-6">
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--gold)]/20 flex items-center justify-center">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--elevate-1)] flex items-center justify-center">
                 <Eye className="w-5 h-5 text-[var(--gold)]" />
               </div>
               <div className="flex-1">

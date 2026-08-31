@@ -45,7 +45,7 @@ interface EditState {
 const STATUS_STYLES: Record<string, string> = {
   active: "text-emerald-400/90 border-emerald-400/30",
   reservado: "text-amber-400/90 border-amber-400/30",
-  vendido: "text-[var(--gold)]/90 border-[var(--gold)]/30",
+  vendido: "text-[var(--foreground-muted)] border-[var(--border-soft)]",
   pending: "text-sky-400/90 border-sky-400/30",
   inativo: "text-[var(--foreground-muted)] border-[var(--border)]",
 };
@@ -186,7 +186,7 @@ export default function MeusAnunciosContent() {
       <div className="max-w-4xl mx-auto">
         <LocalizedLink
           href="/minha-conta"
-          className="inline-flex items-center gap-2 rotulo hover:text-[var(--gold)] transition-colors mb-10"
+          className="inline-flex items-center gap-2 rotulo hover:text-[var(--foreground-strong)] transition-colors mb-10"
         >
           <ArrowLeft size={12} />A minha conta
         </LocalizedLink>
@@ -201,7 +201,7 @@ export default function MeusAnunciosContent() {
         </header>
 
         {resumo && resumo.total > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 bg-[var(--gold)]/8 gap-px mb-10">
+          <div className="grid grid-cols-2 sm:grid-cols-4 bg-[var(--elevate-1)] gap-px mb-10">
             {[
               { label: "Publicados", valor: resumo.publicados },
               { label: "Em aprovação", valor: resumo.emAprovacao },
@@ -228,7 +228,7 @@ export default function MeusAnunciosContent() {
             <p className="text-sm text-[var(--foreground-muted)]">{erro}</p>
             <button
               onClick={carregar}
-              className="mt-5 rotulo-forte hover:text-[var(--gold)]/70 transition-colors"
+              className="mt-5 rotulo-forte hover:text-[var(--foreground-strong)]/70 transition-colors"
             >
               Tentar novamente
             </button>
@@ -237,14 +237,14 @@ export default function MeusAnunciosContent() {
 
         {!loading && !erro && anuncios.length === 0 && (
           <div className="cartao p-10 text-center">
-            <ImageIcon size={22} className="mx-auto text-[var(--gold)]/25 mb-4" />
+            <ImageIcon size={22} className="mx-auto text-[var(--foreground-muted)] mb-4" />
             <p className="text-sm text-[var(--foreground)]">Ainda não tem anúncios publicados.</p>
             <p className="text-xs text-[var(--foreground-muted)] mt-2 max-w-sm mx-auto">
               Publique o seu primeiro cavalo e chegue a compradores em todo o país.
             </p>
             <LocalizedLink
               href="/vender-cavalo"
-              className="inline-flex items-center gap-2 mt-7 px-6 py-3 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors"
+              className="inline-flex items-center gap-2 mt-7 px-6 py-3 border border-[var(--border-soft)] rotulo-forte hover:bg-[var(--elevate-1)] transition-colors"
             >
               <Plus size={12} />
               Publicar anúncio
@@ -253,7 +253,7 @@ export default function MeusAnunciosContent() {
         )}
 
         {!loading && !erro && anuncios.length > 0 && (
-          <div className="space-y-px bg-[var(--gold)]/8">
+          <div className="space-y-px bg-[var(--elevate-1)]">
             {anuncios.map((anuncio) => {
               const emEdicao = aEditar === anuncio.id;
               const bloqueado = ocupado === anuncio.id;
@@ -273,7 +273,7 @@ export default function MeusAnunciosContent() {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <ImageIcon size={16} className="text-[var(--gold)]/20" />
+                          <ImageIcon size={16} className="text-[var(--foreground-muted)]" />
                         </div>
                       )}
                     </div>
@@ -357,7 +357,7 @@ export default function MeusAnunciosContent() {
                             min="0"
                             value={edicao.preco}
                             onChange={(e) => setEdicao({ ...edicao, preco: e.target.value })}
-                            className="mt-2 w-full bg-transparent border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--gold)]/50 focus:outline-none"
+                            className="mt-2 w-full bg-transparent border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--border-hover)] focus:outline-none"
                           />
                         </label>
                         <label className="block">
@@ -366,7 +366,7 @@ export default function MeusAnunciosContent() {
                             type="text"
                             value={edicao.localizacao}
                             onChange={(e) => setEdicao({ ...edicao, localizacao: e.target.value })}
-                            className="mt-2 w-full bg-transparent border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--gold)]/50 focus:outline-none"
+                            className="mt-2 w-full bg-transparent border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--border-hover)] focus:outline-none"
                           />
                         </label>
                         <label className="block">
@@ -377,7 +377,7 @@ export default function MeusAnunciosContent() {
                             onChange={(e) =>
                               setEdicao({ ...edicao, vendedor_telefone: e.target.value })
                             }
-                            className="mt-2 w-full bg-transparent border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--gold)]/50 focus:outline-none"
+                            className="mt-2 w-full bg-transparent border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--border-hover)] focus:outline-none"
                           />
                         </label>
                         <label className="block">
@@ -388,7 +388,7 @@ export default function MeusAnunciosContent() {
                             onChange={(e) =>
                               setEdicao({ ...edicao, vendedor_whatsapp: e.target.value })
                             }
-                            className="mt-2 w-full bg-transparent border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--gold)]/50 focus:outline-none"
+                            className="mt-2 w-full bg-transparent border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--border-hover)] focus:outline-none"
                           />
                         </label>
                       </div>
@@ -399,7 +399,7 @@ export default function MeusAnunciosContent() {
                           rows={5}
                           value={edicao.descricao}
                           onChange={(e) => setEdicao({ ...edicao, descricao: e.target.value })}
-                          className="mt-2 w-full bg-transparent border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--gold)]/50 focus:outline-none resize-y"
+                          className="mt-2 w-full bg-transparent border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--border-hover)] focus:outline-none resize-y"
                         />
                       </label>
 
@@ -437,7 +437,7 @@ export default function MeusAnunciosContent() {
                         <button
                           onClick={() => guardarEdicao(anuncio.id)}
                           disabled={bloqueado}
-                          className="inline-flex items-center gap-2 px-5 py-2.5 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors disabled:opacity-40"
+                          className="inline-flex items-center gap-2 px-5 py-2.5 border border-[var(--border-soft)] rotulo-forte hover:bg-[var(--elevate-1)] transition-colors disabled:opacity-40"
                         >
                           {bloqueado ? (
                             <Loader2 size={12} className="animate-spin" />
@@ -464,7 +464,7 @@ export default function MeusAnunciosContent() {
                       {anuncio.publico && (
                         <LocalizedLink
                           href={`/comprar/${anuncio.id}`}
-                          className="px-4 py-2 border border-[var(--border)] rotulo hover:text-[var(--gold)] hover:border-[var(--gold)]/40 transition-colors"
+                          className="px-4 py-2 border border-[var(--border)] rotulo hover:text-[var(--foreground-strong)] hover:border-[var(--border-hover)] transition-colors"
                         >
                           Ver anúncio
                         </LocalizedLink>
@@ -473,7 +473,7 @@ export default function MeusAnunciosContent() {
                       <button
                         onClick={() => abrirEditor(anuncio)}
                         disabled={bloqueado}
-                        className="inline-flex items-center gap-2 px-4 py-2 border border-[var(--border)] rotulo hover:text-[var(--gold)] hover:border-[var(--gold)]/40 transition-colors disabled:opacity-40"
+                        className="inline-flex items-center gap-2 px-4 py-2 border border-[var(--border)] rotulo hover:text-[var(--foreground-strong)] hover:border-[var(--border-hover)] transition-colors disabled:opacity-40"
                       >
                         <Pencil size={11} />
                         Editar
@@ -522,7 +522,7 @@ export default function MeusAnunciosContent() {
                             )
                           }
                           disabled={bloqueado}
-                          className="px-4 py-2 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors disabled:opacity-40"
+                          className="px-4 py-2 border border-[var(--border-soft)] rotulo-forte hover:bg-[var(--elevate-1)] transition-colors disabled:opacity-40"
                         >
                           Marcar vendido
                         </button>
@@ -605,7 +605,7 @@ export default function MeusAnunciosContent() {
           <div className="mt-10 text-center">
             <LocalizedLink
               href="/vender-cavalo"
-              className="inline-flex items-center gap-2 px-6 py-3 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 border border-[var(--border-soft)] rotulo-forte hover:bg-[var(--elevate-1)] transition-colors"
             >
               <Plus size={12} />
               Publicar novo anúncio

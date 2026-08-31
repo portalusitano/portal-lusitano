@@ -377,7 +377,7 @@ export default function CoudelariaDetail({
                     {coudelaria.especialidades.map((esp) => (
                       <span
                         key={esp}
-                        className="px-4 py-2 bg-[var(--gold)]/10 border border-[var(--gold)]/30 text-[var(--gold)] text-sm hover:bg-[var(--gold)]/15 transition-colors"
+                        className="px-4 py-2 bg-[var(--elevate-1)] border border-[var(--border-soft)] text-[var(--gold)] text-sm hover:bg-[var(--elevate-1)] transition-colors"
                       >
                         {esp}
                       </span>
@@ -485,7 +485,7 @@ export default function CoudelariaDetail({
                     {coudelaria.premios.map((premio) => (
                       <div
                         key={premio}
-                        className="flex items-start gap-3 p-4 bg-[var(--background-secondary)]/50 border border-[var(--border)] hover:border-[var(--gold)]/30 transition-colors"
+                        className="flex items-start gap-3 p-4 bg-[var(--background-secondary)]/50 border border-[var(--border)] hover:border-[var(--border-hover)] transition-colors"
                       >
                         <Award
                           className="text-[var(--gold)] flex-shrink-0 mt-0.5"
@@ -519,7 +519,7 @@ export default function CoudelariaDetail({
                           className={`p-5 border transition-colors ${
                             cavalo.vendido
                               ? "bg-[var(--background-secondary)]/20 border-[var(--border)] opacity-55"
-                              : "bg-[var(--background-secondary)]/50 border-[var(--border)] hover:border-[var(--gold)]/30"
+                              : "bg-[var(--background-secondary)]/50 border-[var(--border)] hover:border-[var(--border-hover)]"
                           }`}
                         >
                           <div className="flex justify-between items-start mb-3">
@@ -577,7 +577,7 @@ export default function CoudelariaDetail({
                     {coudelaria.testemunhos.map((test) => (
                       <blockquote
                         key={`${test.autor}-${test.data}`}
-                        className="p-4 sm:p-6 bg-[var(--background-secondary)]/50 border border-[var(--border)] hover:border-[var(--gold)]/20 transition-colors"
+                        className="p-4 sm:p-6 bg-[var(--background-secondary)]/50 border border-[var(--border)] hover:border-[var(--border-hover)] transition-colors"
                       >
                         <p className="text-[var(--foreground-secondary)] italic mb-4 leading-relaxed">
                           {`\u201C${test.texto}\u201D`}
@@ -608,7 +608,7 @@ export default function CoudelariaDetail({
                       {t.directorio.reviews}
                     </h2>
                     {reviewStats.total > 0 && (
-                      <span className="text-sm bg-[var(--gold)]/15 text-[var(--gold)] border border-[var(--gold)]/20 px-2.5 py-0.5">
+                      <span className="text-sm bg-[var(--elevate-1)] text-[var(--gold)] border border-[var(--border-soft)] px-2.5 py-0.5">
                         {reviewStats.total}
                       </span>
                     )}
@@ -646,7 +646,7 @@ export default function CoudelariaDetail({
                   <AnimateOnScroll>
                     <form
                       onSubmit={submitReview}
-                      className="mb-6 sm:mb-8 p-4 sm:p-6 bg-[var(--background-secondary)]/50 border border-[var(--gold)]/25"
+                      className="mb-6 sm:mb-8 p-4 sm:p-6 bg-[var(--background-secondary)]/50 border border-[var(--border-soft)]"
                       aria-label={t.directorio.share_experience}
                     >
                       <h3 className="text-lg text-[var(--foreground)] mb-5">
@@ -662,7 +662,7 @@ export default function CoudelariaDetail({
                             setReviewForm({ ...reviewForm, autor_nome: e.target.value })
                           }
                           required
-                          className="bg-[var(--background-card)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none transition-colors"
+                          className="bg-[var(--background-card)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none transition-colors"
                         />
                         <input
                           type="email"
@@ -671,7 +671,7 @@ export default function CoudelariaDetail({
                           onChange={(e) =>
                             setReviewForm({ ...reviewForm, autor_email: e.target.value })
                           }
-                          className="bg-[var(--background-card)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none transition-colors"
+                          className="bg-[var(--background-card)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none transition-colors"
                         />
                       </div>
 
@@ -683,7 +683,7 @@ export default function CoudelariaDetail({
                           onChange={(e) =>
                             setReviewForm({ ...reviewForm, autor_localizacao: e.target.value })
                           }
-                          className="bg-[var(--background-card)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none transition-colors"
+                          className="bg-[var(--background-card)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none transition-colors"
                         />
                         <select
                           value={reviewForm.tipo_visita}
@@ -691,7 +691,7 @@ export default function CoudelariaDetail({
                             setReviewForm({ ...reviewForm, tipo_visita: e.target.value })
                           }
                           aria-label={t.directorio.visit_type}
-                          className="bg-[var(--background-card)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--gold)] focus:outline-none transition-colors appearance-none"
+                          className="bg-[var(--background-card)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--border-hover)] focus:outline-none transition-colors appearance-none"
                         >
                           <option value="visita">{t.directorio.visit}</option>
                           <option value="compra">{t.directorio.purchase}</option>
@@ -720,7 +720,7 @@ export default function CoudelariaDetail({
                                 className={
                                   star <= reviewForm.avaliacao
                                     ? "text-[var(--gold)] fill-[var(--gold)]"
-                                    : "text-[var(--foreground-muted)] hover:text-[var(--gold)] transition-colors"
+                                    : "text-[var(--foreground-muted)] hover:text-[var(--foreground-strong)] transition-colors"
                                 }
                                 aria-hidden="true"
                               />
@@ -734,7 +734,7 @@ export default function CoudelariaDetail({
                         placeholder={t.directorio.review_title_optional}
                         value={reviewForm.titulo}
                         onChange={(e) => setReviewForm({ ...reviewForm, titulo: e.target.value })}
-                        className="w-full bg-[var(--background-card)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none transition-colors mb-4"
+                        className="w-full bg-[var(--background-card)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none transition-colors mb-4"
                       />
 
                       <textarea
@@ -745,7 +745,7 @@ export default function CoudelariaDetail({
                         }
                         required
                         rows={4}
-                        className="w-full bg-[var(--background-card)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none transition-colors mb-4 resize-none"
+                        className="w-full bg-[var(--background-card)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none transition-colors mb-4 resize-none"
                       />
 
                       <label className="flex items-center gap-3 mb-6 cursor-pointer">
@@ -784,7 +784,7 @@ export default function CoudelariaDetail({
                     {reviews.map((review) => (
                       <article
                         key={review.id}
-                        className="p-4 sm:p-6 bg-[var(--background-secondary)]/50 border border-[var(--border)] hover:border-[var(--gold)]/20 transition-colors"
+                        className="p-4 sm:p-6 bg-[var(--background-secondary)]/50 border border-[var(--border)] hover:border-[var(--border-hover)] transition-colors"
                       >
                         <header
                           data-revelar=""
@@ -852,7 +852,7 @@ export default function CoudelariaDetail({
             <div className="sticky top-32 space-y-5">
               {/* Contact card */}
               <AnimateOnScroll delay={100}>
-                <div className="bg-[var(--background-secondary)]/60 border border-[var(--border)] hover:border-[var(--gold)]/30 transition-colors p-4 sm:p-6">
+                <div className="bg-[var(--background-secondary)]/60 border border-[var(--border)] hover:border-[var(--border-hover)] transition-colors p-4 sm:p-6">
                   <h3 className="text-base font-semibold text-[var(--foreground)] mb-5 pb-4 border-b border-[var(--border)]">
                     {t.directorio.contact_info}
                   </h3>
@@ -860,9 +860,9 @@ export default function CoudelariaDetail({
                     {coudelaria.telefone && (
                       <a
                         href={`tel:${coudelaria.telefone}`}
-                        className="flex items-center gap-3 min-w-0 text-[var(--foreground-secondary)] hover:text-[var(--gold)] transition-colors group"
+                        className="flex items-center gap-3 min-w-0 text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors group"
                       >
-                        <span className="w-9 h-9 bg-[var(--gold)]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--gold)]/20 transition-colors">
+                        <span className="w-9 h-9 bg-[var(--elevate-1)] flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--elevate-1)] transition-colors">
                           <Phone size={16} className="text-[var(--gold)]" aria-hidden="true" />
                         </span>
                         <span className="text-sm">{coudelaria.telefone}</span>
@@ -871,9 +871,9 @@ export default function CoudelariaDetail({
                     {coudelaria.email && (
                       <a
                         href={`mailto:${coudelaria.email}`}
-                        className="flex items-center gap-3 min-w-0 text-[var(--foreground-secondary)] hover:text-[var(--gold)] transition-colors group"
+                        className="flex items-center gap-3 min-w-0 text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors group"
                       >
-                        <span className="w-9 h-9 bg-[var(--gold)]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--gold)]/20 transition-colors">
+                        <span className="w-9 h-9 bg-[var(--elevate-1)] flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--elevate-1)] transition-colors">
                           <Mail size={16} className="text-[var(--gold)]" aria-hidden="true" />
                         </span>
                         <span className="text-sm truncate min-w-0">{coudelaria.email}</span>
@@ -884,9 +884,9 @@ export default function CoudelariaDetail({
                         href={coudelaria.website}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 min-w-0 text-[var(--foreground-secondary)] hover:text-[var(--gold)] transition-colors group"
+                        className="flex items-center gap-3 min-w-0 text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors group"
                       >
-                        <span className="w-9 h-9 bg-[var(--gold)]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--gold)]/20 transition-colors">
+                        <span className="w-9 h-9 bg-[var(--elevate-1)] flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--elevate-1)] transition-colors">
                           <Globe size={16} className="text-[var(--gold)]" aria-hidden="true" />
                         </span>
                         <span className="text-sm flex items-center gap-1">
@@ -900,9 +900,9 @@ export default function CoudelariaDetail({
                         href={`https://www.google.com/maps/dir/?api=1&destination=${coudelaria.coordenadas_lat},${coudelaria.coordenadas_lng}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 min-w-0 text-[var(--foreground-secondary)] hover:text-[var(--gold)] transition-colors group"
+                        className="flex items-center gap-3 min-w-0 text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors group"
                       >
-                        <span className="w-9 h-9 bg-[var(--gold)]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--gold)]/20 transition-colors">
+                        <span className="w-9 h-9 bg-[var(--elevate-1)] flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--elevate-1)] transition-colors">
                           <Navigation size={16} className="text-[var(--gold)]" aria-hidden="true" />
                         </span>
                         <span className="text-sm flex items-center gap-1">
@@ -975,7 +975,7 @@ export default function CoudelariaDetail({
               {/* Servicos */}
               {Array.isArray(coudelaria.servicos) && coudelaria.servicos.length > 0 && (
                 <AnimateOnScroll delay={150}>
-                  <div className="bg-[var(--background-secondary)]/60 border border-[var(--border)] hover:border-[var(--gold)]/30 transition-colors p-4 sm:p-6">
+                  <div className="bg-[var(--background-secondary)]/60 border border-[var(--border)] hover:border-[var(--border-hover)] transition-colors p-4 sm:p-6">
                     <h3 className="text-base font-semibold text-[var(--foreground)] mb-4 pb-4 border-b border-[var(--border)]">
                       {t.directorio.services}
                     </h3>
@@ -1001,7 +1001,7 @@ export default function CoudelariaDetail({
               {/* Linhagens */}
               {Array.isArray(coudelaria.linhagens) && coudelaria.linhagens.length > 0 && (
                 <AnimateOnScroll delay={200}>
-                  <div className="bg-[var(--background-secondary)]/60 border border-[var(--border)] hover:border-[var(--gold)]/30 transition-colors p-4 sm:p-6">
+                  <div className="bg-[var(--background-secondary)]/60 border border-[var(--border)] hover:border-[var(--border-hover)] transition-colors p-4 sm:p-6">
                     <h3 className="text-base font-semibold text-[var(--foreground)] mb-4 pb-4 border-b border-[var(--border)]">
                       {t.directorio.lineages}
                     </h3>
@@ -1009,7 +1009,7 @@ export default function CoudelariaDetail({
                       {coudelaria.linhagens.map((linhagem) => (
                         <span
                           key={linhagem}
-                          className="px-3 py-1 bg-[var(--background-card)] border border-[var(--border)] text-[var(--foreground-secondary)] text-xs hover:border-[var(--gold)]/30 transition-colors"
+                          className="px-3 py-1 bg-[var(--background-card)] border border-[var(--border)] text-[var(--foreground-secondary)] text-xs hover:border-[var(--border-hover)] transition-colors"
                         >
                           {linhagem}
                         </span>
@@ -1046,7 +1046,7 @@ export default function CoudelariaDetail({
 
               {/* CTA */}
               <AnimateOnScroll delay={300}>
-                <div className="bg-gradient-to-br from-[var(--gold)]/15 to-[var(--gold)]/5 border border-[var(--gold)]/25 p-4 sm:p-6">
+                <div className="bg-gradient-to-br from-[var(--gold)]/15 to-[var(--gold)]/5 border border-[var(--border-soft)] p-4 sm:p-6">
                   <h3 className="text-base font-semibold text-[var(--foreground)] mb-2">
                     {t.directorio.has_stud_sidebar}
                   </h3>

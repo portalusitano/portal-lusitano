@@ -274,7 +274,7 @@ export function SearchModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                   onClick={() => setActiveFilter(tab.key)}
                   className={`px-4 py-2 text-xs rounded-full transition-colors whitespace-nowrap touch-manipulation ${
                     activeFilter === tab.key
-                      ? "bg-[var(--gold)]/20 text-[var(--gold)] border border-[var(--gold)]/30"
+                      ? "bg-[var(--elevate-1)] text-[var(--gold)] border border-[var(--border-soft)]"
                       : "text-[var(--foreground-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)] border border-transparent"
                   }`}
                 >
@@ -318,11 +318,11 @@ export function SearchModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                         onClick={handleResultClick}
                         className={`flex items-center gap-4 px-4 py-3 transition-colors ${
                           index === selectedIndex
-                            ? "bg-[var(--gold)]/10 border-l-2 border-[var(--gold)]"
+                            ? "bg-[var(--elevate-1)] border-l-2 border-[var(--gold)]"
                             : "hover:bg-[var(--surface-hover)]"
                         }`}
                       >
-                        <div className="w-8 h-8 rounded bg-[var(--gold)]/10 flex items-center justify-center flex-shrink-0">
+                        <div className="w-8 h-8 rounded bg-[var(--elevate-1)] flex items-center justify-center flex-shrink-0">
                           <span className="text-[var(--gold)] text-xs uppercase font-medium">
                             {typeInfo.badge}
                           </span>

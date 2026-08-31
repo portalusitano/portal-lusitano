@@ -104,8 +104,8 @@ function TierCard({
       onClick={onClick}
       className={`relative flex flex-col p-4 sm:p-5 rounded-xl border-2 transition-all duration-300 text-left cursor-pointer touch-manipulation ${
         isSelected
-          ? "border-[var(--gold)] bg-[var(--gold)]/10 shadow-[0_0_20px_rgb(var(--gold-rgb) / 0.15)]"
-          : "border-[var(--border)] bg-[var(--background-secondary)]/50 hover:border-[var(--gold)]/40"
+          ? "border-[var(--gold)] bg-[var(--elevate-1)] shadow-[0_0_20px_rgb(var(--gold-rgb) / 0.15)]"
+          : "border-[var(--border)] bg-[var(--background-secondary)]/50 hover:border-[var(--border-hover)]"
       }`}
     >
       {/* Popular badge */}
@@ -133,7 +133,7 @@ function TierCard({
         </span>
         <span className="font-semibold text-sm sm:text-base">{tier.name}</span>
         {tier.badge && (
-          <span className="px-1.5 py-0.5 bg-[var(--gold)]/20 text-[var(--gold)] text-[11px] font-bold uppercase tracking-wider rounded">
+          <span className="px-1.5 py-0.5 bg-[var(--elevate-1)] text-[var(--gold)] text-[11px] font-bold uppercase tracking-wider rounded">
             {tier.badge}
           </span>
         )}

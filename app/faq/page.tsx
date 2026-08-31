@@ -13,7 +13,7 @@ export default async function FAQPage() {
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
-          <div className="w-16 h-16 bg-[var(--gold)]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-16 h-16 bg-[var(--elevate-1)] rounded-full flex items-center justify-center mx-auto mb-6">
             <HelpCircle className="text-[var(--gold)]" size={32} />
           </div>
           <span className="text-xs uppercase tracking-wider text-[var(--gold)] block mb-4">

@@ -179,7 +179,7 @@ export default function AlertasContent() {
         type={tipo}
         value={form[chave]}
         onChange={(e) => setForm({ ...form, [chave]: e.target.value })}
-        className="mt-2 w-full bg-transparent border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--gold)]/50 focus:outline-none"
+        className="mt-2 w-full bg-transparent border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--border-hover)] focus:outline-none"
       />
     </label>
   );
@@ -189,7 +189,7 @@ export default function AlertasContent() {
       <div className="max-w-3xl mx-auto">
         <LocalizedLink
           href="/minha-conta"
-          className="inline-flex items-center gap-2 rotulo hover:text-[var(--gold)] transition-colors mb-10"
+          className="inline-flex items-center gap-2 rotulo hover:text-[var(--foreground-strong)] transition-colors mb-10"
         >
           <ArrowLeft size={12} />A minha conta
         </LocalizedLink>
@@ -214,7 +214,10 @@ export default function AlertasContent() {
           <div className="border border-red-400/30 p-8 text-center">
             <AlertTriangle size={18} className="mx-auto text-red-400/70 mb-3" />
             <p className="text-sm text-[var(--foreground-muted)]">{erro}</p>
-            <button onClick={carregar} className="mt-5 rotulo-forte hover:text-[var(--gold)]/70">
+            <button
+              onClick={carregar}
+              className="mt-5 rotulo-forte hover:text-[var(--foreground-strong)]/70"
+            >
               Tentar novamente
             </button>
           </div>
@@ -243,7 +246,7 @@ export default function AlertasContent() {
                     <select
                       value={form.sexo}
                       onChange={(e) => setForm({ ...form, sexo: e.target.value })}
-                      className="mt-2 w-full bg-[var(--background)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--gold)]/50 focus:outline-none"
+                      className="mt-2 w-full bg-[var(--background)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--border-hover)] focus:outline-none"
                     >
                       {SEXOS.map((s) => (
                         <option key={s} value={s}>
@@ -258,7 +261,7 @@ export default function AlertasContent() {
                     <select
                       value={form.regiao}
                       onChange={(e) => setForm({ ...form, regiao: e.target.value })}
-                      className="mt-2 w-full bg-[var(--background)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--gold)]/50 focus:outline-none"
+                      className="mt-2 w-full bg-[var(--background)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--border-hover)] focus:outline-none"
                     >
                       {REGIOES.map((r) => (
                         <option key={r} value={r}>
@@ -281,7 +284,7 @@ export default function AlertasContent() {
                   <select
                     value={form.frequencia}
                     onChange={(e) => setForm({ ...form, frequencia: e.target.value })}
-                    className="mt-2 w-full bg-[var(--background)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--gold)]/50 focus:outline-none"
+                    className="mt-2 w-full bg-[var(--background)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--border-hover)] focus:outline-none"
                   >
                     {FREQUENCIAS.map((f) => (
                       <option key={f.id} value={f.id}>
@@ -294,7 +297,7 @@ export default function AlertasContent() {
                 <button
                   onClick={criar}
                   disabled={aGuardar}
-                  className="inline-flex items-center gap-2 px-6 py-3 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors disabled:opacity-40"
+                  className="inline-flex items-center gap-2 px-6 py-3 border border-[var(--border-soft)] rotulo-forte hover:bg-[var(--elevate-1)] transition-colors disabled:opacity-40"
                 >
                   {aGuardar ? (
                     <Loader2 size={12} className="animate-spin" />
@@ -308,7 +311,7 @@ export default function AlertasContent() {
               alertas.length < maximo && (
                 <button
                   onClick={() => setACriar(true)}
-                  className="inline-flex items-center gap-2 px-6 py-3 border border-[var(--gold)]/40 rotulo-forte hover:bg-[var(--gold)]/10 transition-colors mb-10"
+                  className="inline-flex items-center gap-2 px-6 py-3 border border-[var(--border-soft)] rotulo-forte hover:bg-[var(--elevate-1)] transition-colors mb-10"
                 >
                   <Plus size={12} />
                   Novo alerta
@@ -318,7 +321,7 @@ export default function AlertasContent() {
 
             {alertas.length === 0 ? (
               <div className="cartao p-10 text-center">
-                <BellRing size={22} className="mx-auto text-[var(--gold)]/25 mb-4" />
+                <BellRing size={22} className="mx-auto text-[var(--foreground-muted)] mb-4" />
                 <p className="text-sm text-[var(--foreground)]">Ainda não tem alertas.</p>
                 <p className="text-xs text-[var(--foreground-muted)] mt-2 max-w-sm mx-auto">
                   O cavalo certo raramente está à venda no dia em que procuramos. Guarde a pesquisa
@@ -326,7 +329,7 @@ export default function AlertasContent() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-px bg-[var(--gold)]/8">
+              <div className="space-y-px bg-[var(--elevate-1)]">
                 {alertas.map((a) => (
                   <article key={a.id} className="bg-[var(--background)] p-5">
                     <div className="flex items-start justify-between gap-3">
@@ -360,7 +363,7 @@ export default function AlertasContent() {
                       <button
                         onClick={() => alternar(a)}
                         disabled={ocupado === a.id}
-                        className="px-4 py-2 border border-[var(--border)] rotulo hover:text-[var(--gold)] hover:border-[var(--gold)]/40 transition-colors disabled:opacity-40"
+                        className="px-4 py-2 border border-[var(--border)] rotulo hover:text-[var(--foreground-strong)] hover:border-[var(--border-hover)] transition-colors disabled:opacity-40"
                       >
                         {a.ativo ? "Pausar" : "Reactivar"}
                       </button>

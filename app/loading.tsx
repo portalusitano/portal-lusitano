@@ -4,7 +4,7 @@ export default function Loading() {
       {/* Logo Animation */}
       <div className="relative opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
         {/* Outer Ring */}
-        <div className="w-16 h-16 border border-[var(--gold)]/30 rounded-full animate-[spin-slow_3s_linear_infinite]" />
+        <div className="w-16 h-16 border border-[var(--border-soft)] rounded-full animate-[spin-slow_3s_linear_infinite]" />
 
         {/* Inner Ring */}
         <div className="absolute inset-2 border border-[var(--gold)] rounded-full animate-[spin-slow-reverse_2s_linear_infinite]" />

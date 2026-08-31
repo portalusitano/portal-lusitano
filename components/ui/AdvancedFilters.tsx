@@ -171,7 +171,7 @@ export default function AdvancedFilters({
               <>
                 <button
                   onClick={() => setShowSaveModal(true)}
-                  className="px-3 py-1.5 bg-[var(--gold)]/20 text-[var(--gold)] rounded-lg text-sm font-medium hover:bg-[var(--gold)]/30 transition-all flex items-center gap-2"
+                  className="px-3 py-1.5 bg-[var(--elevate-1)] text-[var(--gold)] rounded-lg text-sm font-medium hover:bg-[var(--elevate-1)] transition-all flex items-center gap-2"
                   aria-label="Guardar filtros actuais como preset"
                 >
                   <Save className="w-4 h-4" />
@@ -220,7 +220,7 @@ export default function AdvancedFilters({
                   value={filters.search}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   placeholder="Pesquisar..."
-                  className="w-full pl-9 pr-3 py-2 bg-[var(--surface-hover)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:outline-none focus:border-[var(--gold)] transition-colors"
+                  className="w-full pl-9 pr-3 py-2 bg-[var(--surface-hover)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:outline-none focus:border-[var(--border-hover)] transition-colors"
                 />
               </div>
             </div>
@@ -240,7 +240,7 @@ export default function AdvancedFilters({
                     value={filters.dateFrom}
                     onChange={(e) => handleDateFromChange(e.target.value)}
                     aria-label="Data de inicio"
-                    className="w-full pl-9 pr-2 py-2 bg-[var(--surface-hover)] border border-[var(--border)] rounded-lg text-[var(--foreground)] text-sm focus:outline-none focus:border-[var(--gold)] transition-colors [color-scheme:dark]"
+                    className="w-full pl-9 pr-2 py-2 bg-[var(--surface-hover)] border border-[var(--border)] rounded-lg text-[var(--foreground)] text-sm focus:outline-none focus:border-[var(--border-hover)] transition-colors [color-scheme:dark]"
                   />
                 </div>
                 <span className="text-[var(--foreground-muted)] text-sm shrink-0">ate</span>
@@ -249,7 +249,7 @@ export default function AdvancedFilters({
                   value={filters.dateTo}
                   onChange={(e) => handleDateToChange(e.target.value)}
                   aria-label="Data de fim"
-                  className="flex-1 px-3 py-2 bg-[var(--surface-hover)] border border-[var(--border)] rounded-lg text-[var(--foreground)] text-sm focus:outline-none focus:border-[var(--gold)] transition-colors [color-scheme:dark]"
+                  className="flex-1 px-3 py-2 bg-[var(--surface-hover)] border border-[var(--border)] rounded-lg text-[var(--foreground)] text-sm focus:outline-none focus:border-[var(--border-hover)] transition-colors [color-scheme:dark]"
                 />
               </div>
             </div>
@@ -268,7 +268,7 @@ export default function AdvancedFilters({
                 id="filter-status"
                 value={filters.status}
                 onChange={(e) => handleStatusChange(e.target.value)}
-                className="w-full px-3 py-2 bg-[var(--surface-hover)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:border-[var(--gold)] transition-colors"
+                className="w-full px-3 py-2 bg-[var(--surface-hover)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:border-[var(--border-hover)] transition-colors"
               >
                 {resolvedStatusOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -292,7 +292,7 @@ export default function AdvancedFilters({
                 id="filter-type"
                 value={filters.type}
                 onChange={(e) => handleTypeChange(e.target.value)}
-                className="w-full px-3 py-2 bg-[var(--surface-hover)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:border-[var(--gold)] transition-colors"
+                className="w-full px-3 py-2 bg-[var(--surface-hover)] border border-[var(--border)] rounded-lg text-[var(--foreground)] focus:outline-none focus:border-[var(--border-hover)] transition-colors"
               >
                 <option value="">Todos</option>
                 {typeOptions.map((opt) => (
@@ -310,7 +310,7 @@ export default function AdvancedFilters({
           <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-[var(--border)]">
             <span className="text-xs text-[var(--foreground-muted)]">Filtros activos:</span>
             {filters.search && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--gold)]/10 text-[var(--gold)] text-xs rounded-full">
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--elevate-1)] text-[var(--gold)] text-xs rounded-full">
                 Pesquisa: &quot;{filters.search}&quot;
                 <button
                   onClick={() => handleSearchChange("")}
@@ -322,7 +322,7 @@ export default function AdvancedFilters({
               </span>
             )}
             {filters.dateFrom && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--gold)]/10 text-[var(--gold)] text-xs rounded-full">
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--elevate-1)] text-[var(--gold)] text-xs rounded-full">
                 De: {filters.dateFrom}
                 <button
                   onClick={() => handleDateFromChange("")}
@@ -334,7 +334,7 @@ export default function AdvancedFilters({
               </span>
             )}
             {filters.dateTo && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--gold)]/10 text-[var(--gold)] text-xs rounded-full">
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--elevate-1)] text-[var(--gold)] text-xs rounded-full">
                 Ate: {filters.dateTo}
                 <button
                   onClick={() => handleDateToChange("")}
@@ -346,7 +346,7 @@ export default function AdvancedFilters({
               </span>
             )}
             {filters.status && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--gold)]/10 text-[var(--gold)] text-xs rounded-full">
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--elevate-1)] text-[var(--gold)] text-xs rounded-full">
                 Estado:{" "}
                 {resolvedStatusOptions.find((o) => o.value === filters.status)?.label ||
                   filters.status}
@@ -360,7 +360,7 @@ export default function AdvancedFilters({
               </span>
             )}
             {filters.type && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--gold)]/10 text-[var(--gold)] text-xs rounded-full">
+              <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--elevate-1)] text-[var(--gold)] text-xs rounded-full">
                 Tipo: {typeOptions?.find((o) => o.value === filters.type)?.label || filters.type}
                 <button
                   onClick={() => handleTypeChange("")}
@@ -419,7 +419,7 @@ export default function AdvancedFilters({
               value={presetName}
               onChange={(e) => setPresetName(e.target.value)}
               placeholder="Nome do preset..."
-              className="w-full px-4 py-2 bg-[var(--surface-hover)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder-[var(--foreground-muted)] mb-4 focus:outline-none focus:border-[var(--gold)]"
+              className="w-full px-4 py-2 bg-[var(--surface-hover)] border border-[var(--border)] rounded-lg text-[var(--foreground)] placeholder-[var(--foreground-muted)] mb-4 focus:outline-none focus:border-[var(--border-hover)]"
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === "Enter") savePreset();

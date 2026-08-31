@@ -104,7 +104,7 @@ export default function EventosMap({ eventos, onEventClick }: EventosMapProps) {
               onClick={handleAllRegions}
               className={`w-full text-left flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors ${
                 !selectedRegiao
-                  ? "bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/30"
+                  ? "bg-[var(--elevate-1)] text-[var(--gold)] border border-[var(--border-soft)]"
                   : "text-[var(--foreground-secondary)] hover:bg-[var(--background-card)] hover:text-[var(--foreground)]"
               }`}
             >
@@ -121,7 +121,7 @@ export default function EventosMap({ eventos, onEventClick }: EventosMapProps) {
                   onClick={() => handleRegionClick(regiao)}
                   className={`w-full text-left flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors ${
                     selectedRegiao === regiao.name
-                      ? "bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/30"
+                      ? "bg-[var(--elevate-1)] text-[var(--gold)] border border-[var(--border-soft)]"
                       : "text-[var(--foreground-secondary)] hover:bg-[var(--background-card)] hover:text-[var(--foreground)]"
                   }`}
                 >
