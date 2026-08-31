@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, Suspense } from "react";
 import LocalizedLink from "@/components/LocalizedLink";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
+import EntrarComConta from "@/components/auth/EntrarComConta";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
 import { Mail, Lock, Eye, EyeOff, LogIn, Loader2, AlertCircle } from "lucide-react";
@@ -40,6 +41,11 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnUrl = searchParams.get("returnUrl") || "/";
+
+  /* Quem chega de uma entrada com conta externa que correu mal vem com a
+     razão no URL. Mostrada aqui, é a diferença entre «não deu» e saber
+     porquê. */
+  const erroDeRegresso = searchParams.get("error");
   const { t, language } = useLanguage();
   const tr = createTranslator(language);
 
@@ -101,8 +107,10 @@ function LoginContent() {
       <h1 className="titulo-pagina mb-1 text-2xl">{t.auth.login_account}</h1>
       <p className="mb-7 text-sm text-[var(--foreground-secondary)]">{t.auth.login_desc}</p>
 
+      <EntrarComConta regressarA={returnUrl} />
+
       {/* Global error banner */}
-      {globalError && (
+      {(globalError || erroDeRegresso) && (
         <div
           role="alert"
           className="mb-5 flex items-start gap-2.5 rounded-lg border p-3.5 text-sm text-[var(--erro)]"
@@ -112,7 +120,7 @@ function LoginContent() {
           }}
         >
           <AlertCircle size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
-          <span>{globalError}</span>
+          <span>{globalError || erroDeRegresso}</span>
         </div>
       )}
 

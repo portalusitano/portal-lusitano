@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { destinoSeguro } from "@/lib/destino-seguro";
 
 /**
  * Auth callback route for Supabase email confirmation.
@@ -16,7 +17,19 @@ import type { NextRequest } from "next/server";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
+
+  // Ver `destinoSeguro`: o `next` vem do URL e vai ser colado ao origin.
+  const next = destinoSeguro(searchParams.get("next"));
+
+  /* Quando é o próprio fornecedor que recusa — a conta Google não está
+     ligada no Supabase, a pessoa cancelou —, o regresso traz `error` e não
+     traz `code`. Vale a pena passar a razão adiante em vez de a engolir. */
+  const recusa = searchParams.get("error_description") || searchParams.get("error");
+  if (recusa) {
+    return NextResponse.redirect(
+      `${origin}/login?error=${encodeURIComponent(recusa.slice(0, 200))}`
+    );
+  }
 
   if (code) {
     const cookieStore = await cookies();

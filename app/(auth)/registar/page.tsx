@@ -20,6 +20,7 @@ import {
   Shield,
   ArrowRight,
 } from "lucide-react";
+import EntrarComConta from "@/components/auth/EntrarComConta";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 /* Ver a nota igual no login: o campo é o do sistema, e o `pl-10` abre espaço
@@ -385,6 +386,8 @@ function RegistarContent() {
           Junta-te à maior comunidade equestre de Portugal
         </p>
       </div>
+
+      <EntrarComConta regressarA={redirect || "/"} />
 
       {/* Tool redirect banner */}
       {toolParam && redirect && (
