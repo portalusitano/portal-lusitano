@@ -28,7 +28,7 @@ function FAQAccordion({
           style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}
         >
           <ChevronDown
-            className={`${isOpen ? "text-[var(--gold)]" : "text-[var(--foreground-muted)]"} transition-colors`}
+            className={`${isOpen ? "text-[var(--foreground-muted)]" : "text-[var(--foreground-muted)]"} transition-colors`}
             size={20}
           />
         </div>

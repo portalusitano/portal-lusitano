@@ -79,7 +79,7 @@ export default memo(function MobileBottomNav() {
               }
               className={`flex flex-col items-center justify-center gap-1 min-w-[64px] min-h-[56px] rounded-xl transition-all active:scale-90 touch-manipulation focus-visible:ring-2 focus-visible:ring-[var(--gold)] ${
                 item.isActive
-                  ? "text-[var(--gold)]"
+                  ? "text-[var(--foreground-muted)]"
                   : "text-[var(--foreground-muted)] hover:text-[var(--foreground-secondary)]"
               }`}
             >
@@ -88,14 +88,14 @@ export default memo(function MobileBottomNav() {
                 {item.distintivo ? (
                   <span
                     aria-hidden="true"
-                    className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 bg-[var(--gold)] text-black rounded-full flex items-center justify-center text-[10px] font-bold"
+                    className="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 bg-[var(--foreground-strong)] text-black rounded-full flex items-center justify-center text-[10px] font-bold"
                   >
                     {item.distintivo > 9 ? "9+" : item.distintivo}
                   </span>
                 ) : null}
               </div>
               <span
-                className={`text-[10px] font-medium ${item.isActive ? "text-[var(--gold)]" : ""}`}
+                className={`text-[10px] font-medium ${item.isActive ? "text-[var(--foreground-muted)]" : ""}`}
               >
                 {item.label}
               </span>

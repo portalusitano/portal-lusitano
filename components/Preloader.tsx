@@ -39,10 +39,10 @@ export default function Preloader() {
         <h1 className="text-4xl md:text-5xl text-[var(--foreground)] tracking-wide">
           PORTAL LUSITANO
         </h1>
-        <div className="absolute -bottom-2 left-0 h-[1px] bg-[var(--gold)] w-full preloader-line" />
+        <div className="absolute -bottom-2 left-0 h-[1px] bg-[var(--foreground-strong)] w-full preloader-line" />
       </div>
       <div className="w-48 h-[1px] bg-[var(--background-elevated)] overflow-hidden">
-        <div className="h-full w-full bg-[var(--gold)] preloader-bar" />
+        <div className="h-full w-full bg-[var(--foreground-strong)] preloader-bar" />
       </div>
     </div>
   );

@@ -23,7 +23,7 @@ const AncestorCard = ({ type, name, reg, isFemale = false }: AncestorCardProps) 
     <p className="text-[10px] text-[var(--foreground-muted)] font-mono mt-1">{reg || "N/A"}</p>
 
     {/* Ponto de Conexão Visual */}
-    <div className="absolute -right-3 top-1/2 w-3 h-px bg-[var(--border)] group-hover:bg-[var(--gold)] transition-colors"></div>
+    <div className="absolute -right-3 top-1/2 w-3 h-px bg-[var(--border)] group-hover:bg-[var(--foreground-strong)] transition-colors"></div>
   </div>
 );
 
@@ -41,10 +41,10 @@ export default function Pedigree({ cavalo }: PedigreeProps) {
       <div className="flex items-center justify-center w-full min-w-0 gap-2 sm:gap-4 md:gap-8 px-4 sm:px-6 md:px-8">
         {/* COLUNA 1: O Cavalo (HERÓI) */}
         <div className="flex flex-col justify-center">
-          <div className="border border-[var(--gold)] bg-[var(--elevate-1)] p-4 sm:p-6 min-w-[140px] sm:min-w-[200px] relative">
-            <span className="text-[var(--gold)] rotulo font-bold block mb-2">O Exemplar</span>
+          <div className="border border-[var(--foreground-strong)] bg-[var(--elevate-1)] p-4 sm:p-6 min-w-[140px] sm:min-w-[200px] relative">
+            <span className="rotulo mb-2 block">O Exemplar</span>
             <h3 className="text-xl font-normal text-[var(--foreground)]">{cavalo.nome_cavalo}</h3>
-            <div className="absolute -left-3 top-1/2 w-3 h-px bg-[var(--gold)]"></div>
+            <div className="absolute -left-3 top-1/2 w-3 h-px bg-[var(--border)]"></div>
           </div>
         </div>
 

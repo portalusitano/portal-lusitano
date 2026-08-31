@@ -118,7 +118,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={this.handleRetry}
-                className="inline-flex items-center justify-center gap-2 bg-[var(--gold)] text-black px-6 py-3 text-xs uppercase tracking-wider font-bold hover:bg-white transition-colors"
+                className="btn btn-primario gap-2 rounded-full tracking-wider font-bold hover:bg-white transition-colors"
               >
                 <RefreshCw size={16} />
                 {t.retry}

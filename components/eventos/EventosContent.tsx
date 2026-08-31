@@ -576,7 +576,7 @@ function EventoDestaqueCardPremium({
 
         {/* Destaque star */}
         <div className="absolute top-4 right-4">
-          <Star size={18} className="text-[var(--gold)]" aria-hidden="true" />
+          <Star size={18} className="text-[var(--foreground-muted)]" aria-hidden="true" />
         </div>
 
         {/* Content */}
@@ -651,7 +651,7 @@ function EventoCard({
             <span className={`selo border ${getTipoColor(evento.tipo)}`}>
               {getTipoIcon(evento.tipo)} {evento.tipo}
             </span>
-            {evento.destaque && <Star size={14} className="text-[var(--gold)]" />}
+            {evento.destaque && <Star size={14} className="text-[var(--foreground-muted)]" />}
             {(() => {
               const badge = getConfirmacaoBadge(evento.confirmado);
               if (!badge) return null;

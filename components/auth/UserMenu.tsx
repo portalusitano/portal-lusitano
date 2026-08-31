@@ -48,7 +48,7 @@ export default function UserMenu() {
         onClick={() => setOpen(!open)}
         className="flex items-center gap-2 text-[var(--foreground-secondary)] hover:text-[var(--foreground)] transition-colors"
       >
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--gold)] to-[#8B7355] flex items-center justify-center text-black text-sm font-bold">
+        <div className="w-8 h-8 rounded-full bg-[var(--foreground-strong)] flex items-center justify-center text-black text-sm font-bold">
           {initial}
         </div>
         <span className="hidden xl:block text-sm max-w-[80px] sm:max-w-[100px] md:max-w-none truncate">
@@ -87,7 +87,7 @@ export default function UserMenu() {
             <LocalizedLink
               href="/minha-conta/anuncios"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--gold)] hover:bg-[var(--surface-hover)] transition-colors"
+              className="flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--foreground-muted)] hover:bg-[var(--surface-hover)] transition-colors"
             >
               <Crown size={16} />
               {t.nav.tools} PRO

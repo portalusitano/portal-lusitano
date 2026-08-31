@@ -9,7 +9,7 @@ const LeafletMap = dynamic(() => import("@/components/LeafletMap"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center bg-[var(--background-secondary)]/80 rounded-2xl">
-      <MapIcon className="text-[var(--gold)] animate-pulse" size={28} />
+      <MapIcon className="text-[var(--foreground-muted)]" size={28} />
     </div>
   ),
 });
@@ -95,7 +95,7 @@ export default function EventosMap({ eventos, onEventClick }: EventosMapProps) {
       <div className="lg:col-span-3">
         <div className="bg-[var(--background-secondary)]/50 border border-[var(--border)] rounded-xl p-4">
           <h3 className="text-sm font-medium text-[var(--foreground)] mb-4 flex items-center gap-2">
-            <MapPin size={14} className="text-[var(--gold)]" />
+            <MapPin size={14} className="text-[var(--foreground-muted)]" />
             {t.eventos.map_regions}
           </h3>
 
@@ -104,7 +104,7 @@ export default function EventosMap({ eventos, onEventClick }: EventosMapProps) {
               onClick={handleAllRegions}
               className={`w-full text-left flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors ${
                 !selectedRegiao
-                  ? "bg-[var(--elevate-1)] text-[var(--gold)] border border-[var(--border-soft)]"
+                  ? "bg-[var(--elevate-1)] text-[var(--foreground-secondary)] border border-[var(--border-soft)]"
                   : "text-[var(--foreground-secondary)] hover:bg-[var(--background-card)] hover:text-[var(--foreground)]"
               }`}
             >
@@ -121,7 +121,7 @@ export default function EventosMap({ eventos, onEventClick }: EventosMapProps) {
                   onClick={() => handleRegionClick(regiao)}
                   className={`w-full text-left flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors ${
                     selectedRegiao === regiao.name
-                      ? "bg-[var(--elevate-1)] text-[var(--gold)] border border-[var(--border-soft)]"
+                      ? "bg-[var(--elevate-1)] text-[var(--foreground-secondary)] border border-[var(--border-soft)]"
                       : "text-[var(--foreground-secondary)] hover:bg-[var(--background-card)] hover:text-[var(--foreground)]"
                   }`}
                 >

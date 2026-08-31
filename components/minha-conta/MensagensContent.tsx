@@ -295,7 +295,7 @@ export default function MensagensContent() {
               <button
                 key={c.id}
                 onClick={() => abrir(c.id)}
-                className="w-full bg-[var(--background)] p-5 flex items-center gap-4 text-left hover:bg-[var(--gold)]/[0.03] transition-colors"
+                className="w-full bg-[var(--background)] p-5 flex items-center gap-4 text-left hover:bg-[var(--elevate-1)] transition-colors"
               >
                 <div className="relative w-14 h-14 shrink-0 bg-[var(--background-secondary)]/30">
                   {c.cavaloFoto ? (
@@ -331,7 +331,7 @@ export default function MensagensContent() {
                 </div>
 
                 {c.porLer > 0 && (
-                  <span className="shrink-0 min-w-[20px] h-5 px-1.5 flex items-center justify-center bg-[var(--gold)] text-black text-[10px] font-bold rounded-full">
+                  <span className="shrink-0 min-w-[20px] h-5 px-1.5 flex items-center justify-center bg-[var(--foreground-strong)] text-black text-[10px] font-bold rounded-full">
                     {c.porLer}
                   </span>
                 )}

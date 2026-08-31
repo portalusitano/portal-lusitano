@@ -243,7 +243,7 @@ export function SearchModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
               placeholder={t.search.placeholder}
               className="flex-1 bg-transparent text-[var(--foreground)] placeholder-[var(--foreground-muted)] outline-none text-lg"
             />
-            {isLoading && <Loader2 size={20} className="text-[var(--gold)] animate-spin" />}
+            {isLoading && <Loader2 size={20} className="text-[var(--foreground-muted)]" />}
             {query.length > 0 && !isLoading && (
               <button
                 onClick={() => {
@@ -274,7 +274,7 @@ export function SearchModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                   onClick={() => setActiveFilter(tab.key)}
                   className={`px-4 py-2 text-xs rounded-full transition-colors whitespace-nowrap touch-manipulation ${
                     activeFilter === tab.key
-                      ? "bg-[var(--elevate-1)] text-[var(--gold)] border border-[var(--border-soft)]"
+                      ? "bg-[var(--elevate-1)] text-[var(--foreground-secondary)] border border-[var(--border-soft)]"
                       : "text-[var(--foreground-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)] border border-transparent"
                   }`}
                 >
@@ -318,14 +318,12 @@ export function SearchModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                         onClick={handleResultClick}
                         className={`flex items-center gap-4 px-4 py-3 transition-colors ${
                           index === selectedIndex
-                            ? "bg-[var(--elevate-1)] border-l-2 border-[var(--gold)]"
+                            ? "bg-[var(--elevate-1)] border-l-2 border-[var(--foreground-strong)]"
                             : "hover:bg-[var(--surface-hover)]"
                         }`}
                       >
                         <div className="w-8 h-8 rounded bg-[var(--elevate-1)] flex items-center justify-center flex-shrink-0">
-                          <span className="text-[var(--gold)] text-xs uppercase font-medium">
-                            {typeInfo.badge}
-                          </span>
+                          <span className="rotulo">{typeInfo.badge}</span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-[var(--foreground)] font-medium truncate">
@@ -351,7 +349,7 @@ export function SearchModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                 {activeFilter !== "all" && (
                   <button
                     onClick={() => setActiveFilter("all")}
-                    className="mt-2 text-sm text-[var(--gold)] hover:underline"
+                    className="mt-2 text-sm text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-2 hover:decoration-[var(--border-hover)]"
                   >
                     {t.search.search_all}
                   </button>

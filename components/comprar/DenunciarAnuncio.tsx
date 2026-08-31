@@ -81,7 +81,7 @@ export default function DenunciarAnuncio({ cavaloId }: { cavaloId: string }) {
               value={m.id}
               checked={motivo === m.id}
               onChange={(e) => setMotivo(e.target.value)}
-              className="accent-[var(--gold)]"
+              className="accent-[var(--foreground-strong)]"
             />
             <span className="text-xs text-[var(--foreground-secondary)]">{m.label}</span>
           </label>

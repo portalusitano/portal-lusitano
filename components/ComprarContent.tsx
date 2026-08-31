@@ -63,7 +63,7 @@ function ComprarContentInner({
                   ? t.comprar_page.horse_available
                   : t.comprar_page.horses_available}
                 {""}·{""}
-                <span className="text-[var(--gold)]">
+                <span className="text-[var(--foreground-muted)]">
                   {language === "en"
                     ? "Verified listings"
                     : language === "es"

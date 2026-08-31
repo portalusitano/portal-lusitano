@@ -222,7 +222,7 @@ END:VCALENDAR`;
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/80 to-[var(--background)]" />
           </div>
         ) : (
-          <div className="absolute inset-0 h-96 bg-gradient-to-b from-[var(--gold)]/10 to-transparent" />
+          <div className="absolute inset-0 h-96 bg-gradient-to-b from-[var(--elevate-1)] to-transparent" />
         )}
 
         <div className="relative max-w-4xl mx-auto px-6 pt-16">
@@ -250,7 +250,7 @@ END:VCALENDAR`;
             </span>
 
             {evento.destaque && (
-              <span className="flex items-center gap-1.5 text-[var(--gold)] bg-[var(--elevate-1)] border border-[var(--border-soft)] px-3 py-1.5 text-sm">
+              <span className="flex items-center gap-1.5 text-[var(--foreground-secondary)] bg-[var(--elevate-1)] border border-[var(--border-soft)] px-3 py-1.5 text-sm">
                 <Star size={14} /> Destaque
               </span>
             )}
@@ -287,7 +287,7 @@ END:VCALENDAR`;
           >
             <div className="flex items-center gap-3 text-[var(--foreground-secondary)]">
               <div className="w-10 h-10 bg-[var(--elevate-1)] border border-[var(--border-soft)] flex items-center justify-center">
-                <Calendar size={20} className="text-[var(--gold)]" />
+                <Calendar size={20} className="text-[var(--foreground-muted)]" />
               </div>
               <div>
                 <span className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider">
@@ -299,7 +299,7 @@ END:VCALENDAR`;
 
             <div className="flex items-center gap-3 text-[var(--foreground-secondary)]">
               <div className="w-10 h-10 bg-[var(--elevate-1)] border border-[var(--border-soft)] flex items-center justify-center">
-                <MapPin size={20} className="text-[var(--gold)]" />
+                <MapPin size={20} className="text-[var(--foreground-muted)]" />
               </div>
               <div>
                 <span className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider">
@@ -312,7 +312,7 @@ END:VCALENDAR`;
             {evento.hora_inicio && (
               <div className="flex items-center gap-3 text-[var(--foreground-secondary)]">
                 <div className="w-10 h-10 bg-[var(--elevate-1)] border border-[var(--border-soft)] flex items-center justify-center">
-                  <Clock size={20} className="text-[var(--gold)]" />
+                  <Clock size={20} className="text-[var(--foreground-muted)]" />
                 </div>
                 <div>
                   <span className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider">
@@ -329,7 +329,7 @@ END:VCALENDAR`;
             {evento.preco_entrada && (
               <div className="flex items-center gap-3 text-[var(--foreground-secondary)]">
                 <div className="w-10 h-10 bg-[var(--elevate-1)] border border-[var(--border-soft)] flex items-center justify-center">
-                  <Euro size={20} className="text-[var(--gold)]" />
+                  <Euro size={20} className="text-[var(--foreground-muted)]" />
                 </div>
                 <div>
                   <span className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider">
@@ -379,7 +379,7 @@ END:VCALENDAR`;
             {evento.organizador && (
               <div className="bg-[var(--background-secondary)]/50 border border-[var(--border)] p-6">
                 <h3 className="text-lg text-[var(--foreground)] mb-2 flex items-center gap-2">
-                  <Users size={18} className="text-[var(--gold)]" />
+                  <Users size={18} className="text-[var(--foreground-muted)]" />
                   Organizador
                 </h3>
                 <p className="text-[var(--foreground-secondary)]">{evento.organizador}</p>
@@ -397,7 +397,7 @@ END:VCALENDAR`;
               {/* Adicionar ao Calend\u00e1rio */}
               <button
                 onClick={generateICS}
-                className="w-full flex items-center justify-center gap-2 bg-[var(--gold)] text-black py-3 font-bold uppercase tracking-wider hover:bg-white transition-colors"
+                className="w-full flex items-center justify-center gap-2 btn btn-primario w-full rounded-full"
               >
                 <Download size={18} />
                 Adicionar ao Calend\u00e1rio
@@ -513,7 +513,7 @@ END:VCALENDAR`;
                         <div className="absolute inset-0 bg-gradient-to-t from-[var(--background-secondary)] to-transparent" />
                       </div>
                     ) : (
-                      <div className="h-32 bg-gradient-to-br from-[var(--gold)]/10 to-transparent flex items-center justify-center">
+                      <div className="h-32 bg-[var(--elevate-1)] flex items-center justify-center">
                         <span className="text-4xl">{relTipo.icon}</span>
                       </div>
                     )}

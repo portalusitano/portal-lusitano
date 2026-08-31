@@ -53,7 +53,7 @@ export default memo(function BottomNav() {
                 href={tab.href}
                 className={`relative flex-1 flex flex-col items-center justify-center gap-[3px] transition-colors touch-manipulation active:scale-95 ${
                   active
-                    ? "text-[var(--gold)]"
+                    ? "text-[var(--foreground-muted)]"
                     : "text-[var(--foreground-muted)] hover:text-[var(--foreground-secondary)]"
                 }`}
               >

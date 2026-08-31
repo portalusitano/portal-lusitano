@@ -47,7 +47,7 @@ export const DesktopMenu = memo(function DesktopMenu({ t }: DesktopMenuProps) {
             aria-current={active ? "page" : undefined}
             className={`ligacao-nav rotulo relative group py-2 ${
               active
-                ? "text-[var(--gold)]"
+                ? "text-[var(--foreground-muted)]"
                 : "text-[var(--foreground-secondary)] hover:text-[var(--foreground)]"
             }`}
           >

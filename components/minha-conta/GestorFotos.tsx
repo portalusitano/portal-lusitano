@@ -98,7 +98,7 @@ export default function GestorFotos({ anuncioId, fotos, onGuardado }: GestorFoto
           <div
             key={url}
             className={`relative aspect-square overflow-hidden border ${
-              indice === 0 ? "border-[var(--gold)]" : "border-[var(--border)]"
+              indice === 0 ? "border-[var(--foreground-strong)]" : "border-[var(--border)]"
             }`}
           >
             <Image src={url} alt="" fill sizes="120px" className="object-cover" />

@@ -132,15 +132,10 @@ function SubscriptionSection() {
     <div
       className={`relative overflow-hidden ${isActive ? "pro-border-active" : "border border-[var(--border)]"} bg-[var(--background-secondary)]/20 p-6`}
     >
-      {isActive && (
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--gold)]/5 to-transparent animate-[proShimmerSweep_8s_ease-in-out_infinite]" />
-        </div>
-      )}
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-4">
           <h3 className="rotulo flex items-center gap-2">
-            <Crown size={11} className="text-[var(--gold)]" />
+            <Crown size={11} className="text-[var(--foreground-muted)]" />
             Ferramentas PRO
           </h3>
           {isActive && (
@@ -158,7 +153,7 @@ function SubscriptionSection() {
             <button
               onClick={handleManagePortal}
               disabled={portalLoading}
-              className="inline-flex items-center gap-2 text-[10px] uppercase tracking-wider text-[var(--gold)] hover:text-[var(--foreground-strong)] transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-2 text-[10px] uppercase tracking-wider btn btn-subtil text-sm disabled:opacity-50"
             >
               {portalLoading ? (
                 <Loader2 size={12} className="animate-spin" />
@@ -172,12 +167,12 @@ function SubscriptionSection() {
           <>
             <p className="text-[11px] text-[var(--foreground-secondary)] mb-4 leading-relaxed">
               Desbloqueie todas as ferramentas por{""}
-              <span className="text-[var(--gold)] font-semibold">9,99 EUR/mes</span>.
+              <span className="text-[var(--foreground-strong)] font-semibold">9,99 EUR/mes</span>.
             </p>
             <button
               onClick={handleSubscribe}
               disabled={portalLoading}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[var(--gold)] to-[#B8956F] text-black text-[10px] uppercase tracking-wider font-bold hover:from-[var(--gold-hover)] hover:to-[var(--gold)] transition-all disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2 btn btn-primario btn-sm rounded-full"
             >
               {portalLoading ? <Loader2 size={12} className="animate-spin" /> : <Crown size={12} />}
               Subscrever PRO
@@ -272,10 +267,7 @@ function RecentFavorites({ delay }: { delay: number }) {
                   </p>
                 </div>
                 <div className="absolute top-2 right-2">
-                  <Heart
-                    size={10}
-                    className="text-[var(--foreground-muted)] fill-[var(--gold)]/40"
-                  />
+                  <Heart size={10} className="text-[var(--foreground-muted)]" />
                 </div>
               </LocalizedLink>
             );
@@ -340,11 +332,11 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
         />
 
         {/* Gradient orbs */}
-        <div className="w-[600px] h-[600px] bg-[var(--gold)] top-[-240px] left-[-120px] opacity-[0.07]" />
+        <div className="w-[600px] h-[600px] bg-[var(--elevate-2)] top-[-240px] left-[-120px] opacity-[0.5]" />
         <div className="w-[400px] h-[400px] bg-purple-700 top-[-180px] right-[-60px] opacity-[0.04]" />
 
         {/* Fine top rule */}
-        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[var(--gold)]/30 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-[var(--border-soft)]" />
 
         <div className="max-w-6xl mx-auto">
           <div
@@ -357,14 +349,14 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
               <div className="flex items-end gap-5 sm:gap-6">
                 {/* Avatar */}
                 <div className="relative flex-shrink-0">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[var(--gold)] to-[#7A5A20] flex items-center justify-center shadow-[0_0_50px_rgb(var(--gold-rgb) / 0.3)]">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[var(--foreground-strong)] flex items-center justify-center">
                     <span className="text-xl sm:text-2xl font-bold text-black tracking-wider select-none">
                       {initials}
                     </span>
                   </div>
                   {isActive && (
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[var(--background)] flex items-center justify-center ring-1 ring-[var(--gold)]/40">
-                      <Crown size={10} className="text-[var(--gold)]" />
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[var(--background)] flex items-center justify-center ring-1 ring-[var(--border)]">
+                      <Crown size={10} className="text-[var(--foreground-muted)]" />
                     </div>
                   )}
                 </div>
@@ -372,7 +364,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                 {/* Name + editorial accent */}
                 <div className="relative pl-4">
                   {/* Vertical gold line */}
-                  <div className="absolute left-0 top-[4px] bottom-[4px] w-[2px] bg-gradient-to-b from-transparent via-[var(--gold)]/50 to-transparent" />
+                  <div className="absolute left-0 top-[4px] bottom-[4px] w-[2px] bg-[var(--border)]" />
 
                   <span className="block rotulo-forte mb-2">{t.account.private_area}</span>
 
@@ -382,7 +374,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                       {t.account.hello}, {customer.firstName || "Membro"}
                     </h1>
                     <span
-                      className="absolute bottom-0 left-0 h-[1px] bg-gradient-to-r from-[var(--gold)]/60 to-transparent"
+                      className="absolute bottom-0 left-0 h-[1px] bg-gradient-to-r from-[var(--foreground-strong)] to-transparent"
                       style={{
                         width: visible ? "100%" : "0%",
                         transition: "width 1s ease-out 0.4s",
@@ -408,7 +400,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
 
           {/* Stats bar */}
           <div
-            className="opacity-0 translate-y-5 transition-all duration-700 mt-8 sm:mt-10 grid grid-cols-3 bg-[var(--elevate-1)] divide-x divide-[var(--gold)]/10 border border-[var(--border-soft)]"
+            className="opacity-0 translate-y-5 transition-all duration-700 mt-8 sm:mt-10 grid grid-cols-3 bg-[var(--elevate-1)] divide-x divide-[var(--border-soft)] border border-[var(--border-soft)]"
             style={{ transitionDelay: "120ms" }}
             data-animate
           >
@@ -417,7 +409,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                 Plano
               </p>
               <p
-                className={`text-sm font-semibold ${isActive ? "text-[var(--gold)]" : "text-[var(--foreground-secondary)]"}`}
+                className={`text-sm font-semibold ${isActive ? "text-[var(--foreground-muted)]" : "text-[var(--foreground-secondary)]"}`}
               >
                 {isActive ? "PRO" : "Basico"}
               </p>
@@ -457,7 +449,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <div className="w-7 h-7 rounded-full bg-[var(--elevate-1)] flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Mail size={12} className="text-[var(--gold)]" />
+                    <Mail size={12} className="text-[var(--foreground-muted)]" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[11px] uppercase tracking-wider text-[var(--foreground-muted)] mb-0.5">
@@ -491,7 +483,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
               className="flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--border-hover)] hover:bg-[var(--elevate-1)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
             >
               <span className="flex items-center gap-3 text-[11px] uppercase tracking-wider text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
-                <BellRing size={13} className="text-[var(--gold)]" />
+                <BellRing size={13} className="text-[var(--foreground-muted)]" />
                 Os meus Alertas
               </span>
               <span className="text-[var(--foreground-muted)] group-hover:text-[var(--foreground-strong)] transition-colors text-sm">
@@ -505,7 +497,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
               className="flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--border-hover)] hover:bg-[var(--elevate-1)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
             >
               <span className="flex items-center gap-3 text-[11px] uppercase tracking-wider text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
-                <MessagesSquare size={13} className="text-[var(--gold)]" />
+                <MessagesSquare size={13} className="text-[var(--foreground-muted)]" />
                 As minhas Mensagens
               </span>
               <span className="text-[var(--foreground-muted)] group-hover:text-[var(--foreground-strong)] transition-colors text-sm">
@@ -519,7 +511,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
               className="flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--border-hover)] hover:bg-[var(--elevate-1)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
             >
               <span className="flex items-center gap-3 text-[11px] uppercase tracking-wider text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
-                <Tag size={13} className="text-[var(--gold)]" />
+                <Tag size={13} className="text-[var(--foreground-muted)]" />
                 Os meus Anúncios
               </span>
               <span className="text-[var(--foreground-muted)] group-hover:text-[var(--foreground-strong)] transition-colors text-sm">
@@ -533,7 +525,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
               className="flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--border-hover)] hover:bg-[var(--elevate-1)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
             >
               <span className="flex items-center gap-3 text-[11px] uppercase tracking-wider text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
-                <Heart size={13} className="text-[var(--gold)]" />
+                <Heart size={13} className="text-[var(--foreground-muted)]" />
                 Os meus Favoritos
               </span>
               <span className="text-[var(--foreground-muted)] group-hover:text-[var(--foreground-strong)] transition-colors text-sm">

@@ -111,7 +111,7 @@ export default function PhotoGallery({ photos, alt, backHref, destaque }: PhotoG
                 onClick={() => setActiveIndex(i)}
                 className={`relative flex-shrink-0 w-16 h-12 overflow-hidden border-2 transition-all touch-manipulation ${
                   i === activeIndex
-                    ? "border-[var(--gold)] opacity-100"
+                    ? "border-[var(--foreground-strong)] opacity-100"
                     : "border-transparent opacity-50 hover:opacity-80"
                 }`}
                 aria-label={`Foto ${i + 1}`}

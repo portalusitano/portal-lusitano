@@ -101,7 +101,9 @@ export default function AIAssistant({
           <div className="space-y-4">
             <div className="bg-white/5 border border-white/10 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-[var(--gold)]">Descrição Gerada</span>
+                <span className="text-sm font-semibold text-[var(--foreground-muted)]">
+                  Descrição Gerada
+                </span>
                 <button
                   onClick={() => result.text && copyToClipboard(result.text)}
                   className="p-2 hover:bg-white/5 rounded-lg transition-all"
@@ -135,9 +137,9 @@ export default function AIAssistant({
       case "suggest_subject":
         return (
           <div className="space-y-4">
-            <div className="bg-gradient-to-br from-[var(--gold)]/10 to-[var(--gold-hover)]/10 border border-[var(--border-soft)] rounded-lg p-4">
+            <div className="bg-[var(--elevate-1)] border border-[var(--border-soft)] rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-[var(--gold)]">
+                <span className="text-sm font-semibold text-[var(--foreground-muted)]">
                   📧 Subject Recomendado
                 </span>
                 <button

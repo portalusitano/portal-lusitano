@@ -74,7 +74,7 @@ export const NavIcons = memo(function NavIcons({
       >
         <Heart size={20} strokeWidth={1.5} />
         {favoritesCount > 0 && (
-          <span className="absolute top-0.5 right-0.5 w-5 h-5 bg-[var(--gold)] rounded-full flex items-center justify-center text-[10px] text-black font-bold">
+          <span className="absolute top-0.5 right-0.5 w-5 h-5 bg-[var(--foreground-strong)] rounded-full flex items-center justify-center text-[10px] text-black font-bold">
             {favoritesCount}
           </span>
         )}
@@ -96,7 +96,7 @@ export const NavIcons = memo(function NavIcons({
           <MessagesSquare size={20} strokeWidth={1.5} />
           <span
             aria-hidden="true"
-            className="absolute top-0.5 right-0.5 min-w-[20px] h-5 px-1 bg-[var(--gold)] rounded-full flex items-center justify-center text-[10px] text-black font-bold"
+            className="absolute top-0.5 right-0.5 min-w-[20px] h-5 px-1 bg-[var(--foreground-strong)] rounded-full flex items-center justify-center text-[10px] text-black font-bold"
           >
             {porLer > 9 ? "9+" : porLer}
           </span>

@@ -43,7 +43,7 @@ export default function VistosRecentemente({
       <div className="flex items-center justify-between gap-4 mb-6">
         <h2
           id="vistos-recentemente-heading"
-          className="flex items-center gap-2 text-[var(--gold)] uppercase tracking-wider text-[10px] font-bold"
+          className="flex items-center gap-2 text-[var(--foreground-muted)] uppercase tracking-wider text-[10px] font-bold"
         >
           <History size={13} aria-hidden="true" />
           Vistos recentemente

@@ -177,7 +177,7 @@ export default function EventosCalendar({
               key={i}
               className={`min-h-[80px] sm:min-h-[100px] border-b border-r border-[var(--border)] p-1 sm:p-2 transition-colors duration-200 ${
                 day === null ? "bg-[var(--background)]/30" : ""
-              } ${hasEvents ? "bg-[var(--gold)]/[0.03] hover:bg-[var(--gold)]/[0.06]" : ""} ${
+              } ${hasEvents ? "bg-[var(--elevate-1)] hover:bg-[var(--elevate-2)]" : ""} ${
                 isToday ? "ring-1 ring-inset ring-[var(--gold)]/30" : ""
               }`}
             >
@@ -187,7 +187,7 @@ export default function EventosCalendar({
                     <span
                       className={`text-xs sm:text-sm ${
                         isToday
-                          ? "w-6 h-6 flex items-center justify-center rounded-full bg-[var(--gold)] text-black font-bold shadow-[0_0_12px_rgb(var(--gold-rgb) / 0.4)]"
+                          ? "w-6 h-6 flex items-center justify-center rounded-full bg-[var(--foreground-strong)] text-black font-bold"
                           : "text-[var(--foreground-muted)]"
                       }`}
                     >

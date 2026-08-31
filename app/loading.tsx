@@ -7,7 +7,7 @@ export default function Loading() {
         <div className="w-16 h-16 border border-[var(--border-soft)] rounded-full animate-[spin-slow_3s_linear_infinite]" />
 
         {/* Inner Ring */}
-        <div className="absolute inset-2 border border-[var(--gold)] rounded-full animate-[spin-slow-reverse_2s_linear_infinite]" />
+        <div className="absolute inset-2 border border-[var(--foreground-strong)] rounded-full animate-[spin-slow-reverse_2s_linear_infinite]" />
 
         {/* Center Dot */}
         <div className="absolute inset-0 flex items-center justify-center animate-[pulse-scale_1.5s_ease-in-out_infinite]">

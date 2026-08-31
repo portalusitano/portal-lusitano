@@ -43,7 +43,7 @@ const LeafletMap = dynamic(() => import("@/components/LeafletMap"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center bg-[var(--background-secondary)]/80">
-      <Loader2 className="text-[var(--gold)] animate-spin" size={28} />
+      <Loader2 className="text-[var(--foreground-muted)]" size={28} />
     </div>
   ),
 });
@@ -128,7 +128,7 @@ function StarRow({ value, max = 5, size = 16 }: { value: number; max?: number; s
           size={size}
           className={
             i < Math.round(value)
-              ? "text-[var(--gold)] fill-[var(--gold)]"
+              ? "text-[var(--foreground-muted)]"
               : "text-[var(--foreground-muted)]"
           }
           aria-hidden="true"
@@ -143,9 +143,9 @@ function StarRow({ value, max = 5, size = 16 }: { value: number; max?: number; s
 function SectionTitle({ icon, title }: { icon?: React.ReactNode; title: string }) {
   return (
     <div className="flex items-center gap-2.5 mb-4 sm:mb-6 min-w-0">
-      <span className="w-px h-5 sm:h-6 bg-[var(--gold)] flex-shrink-0" aria-hidden="true" />
+      <span className="w-px h-5 sm:h-6 bg-[var(--border)] flex-shrink-0" aria-hidden="true" />
       {icon && (
-        <span className="text-[var(--gold)] flex-shrink-0" aria-hidden="true">
+        <span className="text-[var(--foreground-muted)] flex-shrink-0" aria-hidden="true">
           {icon}
         </span>
       )}
@@ -298,7 +298,7 @@ export default function CoudelariaDetail({
         {/* Destaque + Verified badges */}
         <div className="absolute top-28 right-4 sm:right-6 z-10 flex flex-col gap-2 items-end">
           {coudelaria.destaque && (
-            <div className="flex items-center gap-1.5 bg-gradient-to-r from-[var(--gold)] to-[#E8D5A3] text-black px-3 py-1.5 text-xs font-bold uppercase tracking-wide">
+            <div className="flex items-center gap-1.5 selo selo-forte">
               <Star size={13} aria-hidden="true" />
               {t.directorio.highlight}
             </div>
@@ -314,7 +314,7 @@ export default function CoudelariaDetail({
           <div className="max-w-6xl mx-auto">
             <AnimateOnScroll>
               {coudelaria.ano_fundacao && (
-                <span className="text-[var(--gold)] text-xs uppercase tracking-wider mb-3 block">
+                <span className="rotulo mb-3 block">
                   {t.directorio.founded} {coudelaria.ano_fundacao}
                 </span>
               )}
@@ -323,12 +323,16 @@ export default function CoudelariaDetail({
               </h1>
               <div className="flex flex-wrap items-center gap-4 text-white/70 text-sm">
                 <span className="flex items-center gap-2">
-                  <MapPin size={15} className="text-[var(--gold)]" aria-hidden="true" />
+                  <MapPin size={15} className="text-[var(--foreground-muted)]" aria-hidden="true" />
                   {coudelaria.localizacao}, {coudelaria.regiao}
                 </span>
                 {coudelaria.num_cavalos && (
                   <span className="flex items-center gap-2">
-                    <Users size={15} className="text-[var(--gold)]" aria-hidden="true" />
+                    <Users
+                      size={15}
+                      className="text-[var(--foreground-muted)]"
+                      aria-hidden="true"
+                    />
                     {coudelaria.num_cavalos} {t.directorio.horses}
                   </span>
                 )}
@@ -377,7 +381,7 @@ export default function CoudelariaDetail({
                     {coudelaria.especialidades.map((esp) => (
                       <span
                         key={esp}
-                        className="px-4 py-2 bg-[var(--elevate-1)] border border-[var(--border-soft)] text-[var(--gold)] text-sm hover:bg-[var(--elevate-1)] transition-colors"
+                        className="px-4 py-2 bg-[var(--elevate-1)] border border-[var(--border-soft)] text-[var(--foreground-strong)] text-sm hover:bg-[var(--elevate-1)] transition-colors"
                       >
                         {esp}
                       </span>
@@ -457,7 +461,7 @@ export default function CoudelariaDetail({
                           aria-selected={activeImage === i}
                           className={`flex-shrink-0 w-20 h-14 overflow-hidden border-2 transition-all relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] ${
                             activeImage === i
-                              ? "border-[var(--gold)] opacity-100"
+                              ? "border-[var(--foreground-strong)] opacity-100"
                               : "border-transparent opacity-50 hover:opacity-80"
                           }`}
                         >
@@ -488,7 +492,7 @@ export default function CoudelariaDetail({
                         className="flex items-start gap-3 p-4 bg-[var(--background-secondary)]/50 border border-[var(--border)] hover:border-[var(--border-hover)] transition-colors"
                       >
                         <Award
-                          className="text-[var(--gold)] flex-shrink-0 mt-0.5"
+                          className="text-[var(--foreground-muted)] flex-shrink-0 mt-0.5"
                           size={18}
                           aria-hidden="true"
                         />
@@ -553,7 +557,7 @@ export default function CoudelariaDetail({
                             </div>
                           </dl>
                           {cavalo.preco && !cavalo.vendido && (
-                            <div className="text-[var(--gold)] font-bold text-lg">
+                            <div className="text-[var(--foreground-strong)] font-bold text-lg tabular-nums">
                               {cavalo.preco.toLocaleString(locale)}
                             </div>
                           )}
@@ -583,7 +587,7 @@ export default function CoudelariaDetail({
                           {`\u201C${test.texto}\u201D`}
                         </p>
                         <footer className="flex items-center justify-between">
-                          <cite className="text-[var(--gold)] font-medium not-italic">
+                          <cite className="text-[var(--foreground-strong)] font-medium not-italic">
                             — {test.autor}
                           </cite>
                           <time className="text-[var(--foreground-muted)] text-sm">
@@ -602,13 +606,17 @@ export default function CoudelariaDetail({
               <section data-revelar="" suppressHydrationWarning aria-label={t.directorio.reviews}>
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                   <div className="flex items-center gap-3">
-                    <span className="w-px h-6 bg-[var(--gold)]" aria-hidden="true" />
-                    <MessageSquare className="text-[var(--gold)]" size={22} aria-hidden="true" />
+                    <span className="w-px h-6 bg-[var(--border)]" aria-hidden="true" />
+                    <MessageSquare
+                      className="text-[var(--foreground-muted)]"
+                      size={22}
+                      aria-hidden="true"
+                    />
                     <h2 className="text-xl sm:text-2xl text-[var(--foreground)]">
                       {t.directorio.reviews}
                     </h2>
                     {reviewStats.total > 0 && (
-                      <span className="text-sm bg-[var(--elevate-1)] text-[var(--gold)] border border-[var(--border-soft)] px-2.5 py-0.5">
+                      <span className="text-sm bg-[var(--elevate-1)] text-[var(--foreground-secondary)] border border-[var(--border-soft)] px-2.5 py-0.5">
                         {reviewStats.total}
                       </span>
                     )}
@@ -628,7 +636,7 @@ export default function CoudelariaDetail({
                   <div className="flex items-center gap-6 mb-6 p-5 bg-[var(--background-secondary)]/50 border border-[var(--border)]">
                     <div className="text-center">
                       <div
-                        className="text-4xl text-[var(--gold)]"
+                        className="text-4xl text-[var(--foreground-muted)]"
                         aria-label={`${reviewStats.media} estrelas`}
                       >
                         {reviewStats.media}
@@ -719,7 +727,7 @@ export default function CoudelariaDetail({
                                 size={30}
                                 className={
                                   star <= reviewForm.avaliacao
-                                    ? "text-[var(--gold)] fill-[var(--gold)]"
+                                    ? "text-[var(--foreground-muted)]"
                                     : "text-[var(--foreground-muted)] hover:text-[var(--foreground-strong)] transition-colors"
                                 }
                                 aria-hidden="true"
@@ -755,7 +763,7 @@ export default function CoudelariaDetail({
                           onChange={(e) =>
                             setReviewForm({ ...reviewForm, recomenda: e.target.checked })
                           }
-                          className="w-4 h-4 accent-[var(--gold)]"
+                          className="w-4 h-4 accent-[var(--foreground-strong)]"
                         />
                         <span className="text-[var(--foreground-secondary)] text-sm">
                           {t.directorio.recommend}
@@ -863,7 +871,11 @@ export default function CoudelariaDetail({
                         className="flex items-center gap-3 min-w-0 text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors group"
                       >
                         <span className="w-9 h-9 bg-[var(--elevate-1)] flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--elevate-1)] transition-colors">
-                          <Phone size={16} className="text-[var(--gold)]" aria-hidden="true" />
+                          <Phone
+                            size={16}
+                            className="text-[var(--foreground-muted)]"
+                            aria-hidden="true"
+                          />
                         </span>
                         <span className="text-sm">{coudelaria.telefone}</span>
                       </a>
@@ -874,7 +886,11 @@ export default function CoudelariaDetail({
                         className="flex items-center gap-3 min-w-0 text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors group"
                       >
                         <span className="w-9 h-9 bg-[var(--elevate-1)] flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--elevate-1)] transition-colors">
-                          <Mail size={16} className="text-[var(--gold)]" aria-hidden="true" />
+                          <Mail
+                            size={16}
+                            className="text-[var(--foreground-muted)]"
+                            aria-hidden="true"
+                          />
                         </span>
                         <span className="text-sm truncate min-w-0">{coudelaria.email}</span>
                       </a>
@@ -887,7 +903,11 @@ export default function CoudelariaDetail({
                         className="flex items-center gap-3 min-w-0 text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors group"
                       >
                         <span className="w-9 h-9 bg-[var(--elevate-1)] flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--elevate-1)] transition-colors">
-                          <Globe size={16} className="text-[var(--gold)]" aria-hidden="true" />
+                          <Globe
+                            size={16}
+                            className="text-[var(--foreground-muted)]"
+                            aria-hidden="true"
+                          />
                         </span>
                         <span className="text-sm flex items-center gap-1">
                           Website
@@ -903,7 +923,11 @@ export default function CoudelariaDetail({
                         className="flex items-center gap-3 min-w-0 text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors group"
                       >
                         <span className="w-9 h-9 bg-[var(--elevate-1)] flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--elevate-1)] transition-colors">
-                          <Navigation size={16} className="text-[var(--gold)]" aria-hidden="true" />
+                          <Navigation
+                            size={16}
+                            className="text-[var(--foreground-muted)]"
+                            aria-hidden="true"
+                          />
                         </span>
                         <span className="text-sm flex items-center gap-1">
                           Como chegar
@@ -926,7 +950,7 @@ export default function CoudelariaDetail({
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label="Instagram"
-                            className="w-9 h-9 bg-[var(--background-card)] hover:bg-[var(--gold)] text-[var(--foreground-secondary)] hover:text-black flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+                            className="w-9 h-9 bg-[var(--background-card)] hover:bg-[var(--foreground-strong)] text-black flex items-center justify-center transition-colors"
                           >
                             <Instagram size={16} aria-hidden="true" />
                           </a>
@@ -937,7 +961,7 @@ export default function CoudelariaDetail({
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label="Facebook"
-                            className="w-9 h-9 bg-[var(--background-card)] hover:bg-[var(--gold)] text-[var(--foreground-secondary)] hover:text-black flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+                            className="w-9 h-9 bg-[var(--background-card)] hover:bg-[var(--foreground-strong)] text-black flex items-center justify-center transition-colors"
                           >
                             <Facebook size={16} aria-hidden="true" />
                           </a>
@@ -948,7 +972,7 @@ export default function CoudelariaDetail({
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label="YouTube"
-                            className="w-9 h-9 bg-[var(--background-card)] hover:bg-[var(--gold)] text-[var(--foreground-secondary)] hover:text-black flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]"
+                            className="w-9 h-9 bg-[var(--background-card)] hover:bg-[var(--foreground-strong)] text-black flex items-center justify-center transition-colors"
                           >
                             <Youtube size={16} aria-hidden="true" />
                           </a>
@@ -960,7 +984,11 @@ export default function CoudelariaDetail({
                     {coudelaria.horario && (
                       <div className="pt-4 border-t border-[var(--border)]">
                         <div className="flex items-center gap-2 text-[var(--foreground-secondary)] mb-2">
-                          <Clock size={15} className="text-[var(--gold)]" aria-hidden="true" />
+                          <Clock
+                            size={15}
+                            className="text-[var(--foreground-muted)]"
+                            aria-hidden="true"
+                          />
                           <span className="text-sm font-medium">{t.directorio.schedule}</span>
                         </div>
                         <p className="text-[var(--foreground-muted)] text-sm leading-relaxed">
@@ -1046,7 +1074,7 @@ export default function CoudelariaDetail({
 
               {/* CTA */}
               <AnimateOnScroll delay={300}>
-                <div className="bg-gradient-to-br from-[var(--gold)]/15 to-[var(--gold)]/5 border border-[var(--border-soft)] p-4 sm:p-6">
+                <div className="cartao p-4 sm:p-6">
                   <h3 className="text-base font-semibold text-[var(--foreground)] mb-2">
                     {t.directorio.has_stud_sidebar}
                   </h3>
@@ -1055,7 +1083,7 @@ export default function CoudelariaDetail({
                   </p>
                   <LocalizedLink
                     href="/directorio/registar"
-                    className="block w-full bg-[var(--gold)] text-black py-3 text-sm font-bold uppercase tracking-wider hover:bg-[var(--gold-hover)] active:scale-95 transition-all text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+                    className="block w-full btn btn-primario w-full rounded-full active:scale-95"
                   >
                     {t.directorio.register_stud}
                   </LocalizedLink>
@@ -1082,7 +1110,7 @@ export default function CoudelariaDetail({
               <a
                 href={`tel:${coudelaria.telefone}`}
                 aria-label="Ligar"
-                className="flex items-center justify-center w-10 h-10 bg-[var(--background-card)] border border-[var(--border)] rounded-lg text-[var(--gold)] touch-manipulation active:scale-95 transition-transform"
+                className="flex items-center justify-center w-10 h-10 bg-[var(--background-card)] border border-[var(--border)] rounded-lg text-[var(--foreground-strong)] touch-manipulation active:scale-95 transition-transform"
               >
                 <Phone size={16} />
               </a>
@@ -1091,7 +1119,7 @@ export default function CoudelariaDetail({
               <a
                 href={`mailto:${coudelaria.email}`}
                 aria-label="Enviar email"
-                className="flex items-center justify-center w-10 h-10 bg-[var(--background-card)] border border-[var(--border)] rounded-lg text-[var(--gold)] touch-manipulation active:scale-95 transition-transform"
+                className="flex items-center justify-center w-10 h-10 bg-[var(--background-card)] border border-[var(--border)] rounded-lg text-[var(--foreground-strong)] touch-manipulation active:scale-95 transition-transform"
               >
                 <Mail size={16} />
               </a>

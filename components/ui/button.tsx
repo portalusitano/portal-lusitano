@@ -8,7 +8,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 const variantStyles: Record<string, string> = {
-  default: "bg-[var(--gold)] text-black hover:bg-[var(--elevate-1)]",
+  default: "bg-[var(--foreground-strong)] text-black hover:bg-[var(--foreground)]",
   outline: "border border-[var(--border)] bg-transparent hover:bg-[var(--surface-hover)]",
   ghost: "bg-transparent hover:bg-[var(--surface-hover)]",
   destructive: "bg-red-600 text-white hover:bg-red-700",

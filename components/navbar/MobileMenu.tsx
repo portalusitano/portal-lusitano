@@ -218,7 +218,7 @@ export const MobileMenu = memo(function MobileMenu({
                   aria-expanded={grupo === d.id}
                   className={`${linhaGrande} ${
                     d.filhos.some((f) => naRota(f.href))
-                      ? "text-[var(--gold)]"
+                      ? "text-[var(--foreground-muted)]"
                       : "text-[var(--foreground-strong)] hover:text-[var(--foreground-secondary)]"
                   }`}
                 >
@@ -233,7 +233,7 @@ export const MobileMenu = memo(function MobileMenu({
                   aria-current={naRota(d.href) ? "page" : undefined}
                   className={`${linhaGrande} ${
                     naRota(d.href)
-                      ? "text-[var(--gold)]"
+                      ? "text-[var(--foreground-muted)]"
                       : "text-[var(--foreground-strong)] hover:text-[var(--foreground-secondary)]"
                   }`}
                 >
@@ -311,7 +311,7 @@ export const MobileMenu = memo(function MobileMenu({
                   aria-current={naRota(f.href) ? "page" : undefined}
                   className={`${linhaGrande} ${
                     naRota(f.href)
-                      ? "text-[var(--gold)]"
+                      ? "text-[var(--foreground-muted)]"
                       : "text-[var(--foreground-strong)] hover:text-[var(--foreground-secondary)]"
                   }`}
                 >

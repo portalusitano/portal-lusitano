@@ -284,7 +284,7 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
             <SlidersHorizontal size={12} />
             Filtros
             {activos > 0 && (
-              <span className="w-4 h-4 rounded-full bg-[var(--gold)] text-black text-[10px] flex items-center justify-center font-bold">
+              <span className="w-4 h-4 rounded-full bg-[var(--foreground-strong)] text-black text-[10px] flex items-center justify-center font-bold">
                 {activos}
               </span>
             )}
@@ -322,7 +322,7 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
  vale a pena guardar como alerta. */}
             <LocalizedLink
               href={hrefAlerta}
-              className="btn btn-sm border-[var(--border-soft)] text-[var(--gold)] hover:bg-[var(--elevate-1)]"
+              className="btn btn-sm border-[var(--border-soft)] text-[var(--foreground-strong)] hover:bg-[var(--elevate-1)]"
             >
               <BellRing size={11} />
               Guardar esta pesquisa
@@ -346,7 +346,7 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
             </button>
             <LocalizedLink
               href={hrefAlerta}
-              className="btn border-[var(--border-soft)] text-[var(--gold)] hover:bg-[var(--elevate-1)]"
+              className="btn border-[var(--border-soft)] text-[var(--foreground-strong)] hover:bg-[var(--elevate-1)]"
             >
               <BellRing size={11} />
               Criar alerta

@@ -85,7 +85,7 @@ export default async function VendedorPage({ params }: { params: Promise<{ id: s
         <header className="pb-8 border-b border-[var(--border)]">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-[var(--elevate-1)] flex items-center justify-center shrink-0">
-              <span className="text-[var(--gold)] text-xl font-normal">
+              <span className="text-[var(--foreground-muted)] text-xl font-normal">
                 {vendedor.nome.charAt(0).toUpperCase()}
               </span>
             </div>
@@ -100,7 +100,7 @@ export default async function VendedorPage({ params }: { params: Promise<{ id: s
                 </span>
                 {vendedor.vendidos > 0 && <span>{vendedor.vendidos} vendidos</span>}
                 {vendedor.verificado && (
-                  <span className="text-[var(--gold)]">Vendedor verificado</span>
+                  <span className="text-[var(--foreground-muted)]">Vendedor verificado</span>
                 )}
               </div>
             </div>
@@ -134,7 +134,7 @@ export default async function VendedorPage({ params }: { params: Promise<{ id: s
                 <h2 className="text-sm text-[var(--foreground)] truncate group-hover:text-[var(--foreground-strong)] transition-colors">
                   {a.nome}
                 </h2>
-                <p className="text-sm text-[var(--gold)] mt-1">
+                <p className="text-sm text-[var(--foreground-muted)] mt-1">
                   {formatarPreco(a.preco, a.precoSobConsulta)}
                 </p>
                 <p className="rotulo mt-2">

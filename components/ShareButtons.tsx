@@ -323,7 +323,7 @@ export default function ShareButtons({
                 className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
                   copied
                     ? "bg-green-500/20 text-green-400"
-                    : "bg-[var(--elevate-1)] text-[var(--gold)] group-hover:bg-[var(--elevate-1)]"
+                    : "bg-[var(--elevate-1)] text-[var(--foreground-muted)] group-hover:bg-[var(--elevate-1)]"
                 }`}
               >
                 {copied ? (
@@ -348,7 +348,7 @@ export default function ShareButtons({
               className={`flex-shrink-0 px-3 py-1.5 rounded text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] ${
                 copied
                   ? "bg-green-500/20 text-green-400"
-                  : "bg-[var(--elevate-1)] text-[var(--gold)] hover:bg-[var(--elevate-1)]"
+                  : "bg-[var(--elevate-1)] text-[var(--foreground-strong)] hover:bg-[var(--elevate-1)]"
               }`}
             >
               {copied ? "Copiado" : "Copiar"}

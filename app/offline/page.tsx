@@ -38,7 +38,7 @@ export default function OfflinePage() {
       className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center px-6 text-center"
     >
       {/* Linha decorativa */}
-      <div className="w-px h-16 bg-gradient-to-b from-transparent via-[var(--gold)] to-transparent mb-10" />
+      <div className="w-px h-16 bg-gradient-to-b from-transparent via-[var(--border)] to-transparent mb-10" />
 
       <span className="rotulo-forte mb-6 block">{t.badge}</span>
 
@@ -66,11 +66,11 @@ export default function OfflinePage() {
       </div>
 
       <div className="mt-20 flex items-center gap-4">
-        <div className="w-8 h-px bg-[var(--gold)]" />
+        <div className="w-8 h-px bg-[var(--border)]" />
         <span className="text-[10px] sm:text-[11px] uppercase tracking-wider text-[var(--foreground-muted)]">
           Portal Lusitano
         </span>
-        <div className="w-8 h-px bg-[var(--gold)]" />
+        <div className="w-8 h-px bg-[var(--border)]" />
       </div>
     </main>
   );

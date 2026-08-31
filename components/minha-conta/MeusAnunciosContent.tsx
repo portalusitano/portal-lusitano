@@ -209,7 +209,7 @@ export default function MeusAnunciosContent() {
               { label: "Visualizações", valor: resumo.totalVisualizacoes },
             ].map((stat) => (
               <div key={stat.label} className="bg-[var(--background)] p-5 text-center">
-                <p className="text-xl font-normal text-[var(--gold)]">{stat.valor}</p>
+                <p className="text-xl font-normal text-[var(--foreground-muted)]">{stat.valor}</p>
                 <p className="rotulo mt-1.5">{stat.label}</p>
               </div>
             ))}
@@ -284,7 +284,7 @@ export default function MeusAnunciosContent() {
                           <h2 className="text-base font-normal text-[var(--foreground)] truncate">
                             {anuncio.nome}
                           </h2>
-                          <p className="text-sm text-[var(--gold)] mt-1">
+                          <p className="text-sm text-[var(--foreground-muted)] mt-1">
                             {formatPreco(anuncio)}
                             {anuncio.precoNegociavel && (
                               <span className="text-[var(--foreground-muted)] text-xs ml-2">
@@ -336,7 +336,7 @@ export default function MeusAnunciosContent() {
                           O período do anúncio terminou.{""}
                           <LocalizedLink
                             href="/vender-cavalo"
-                            className="text-[var(--gold)] hover:underline"
+                            className="text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-2 hover:decoration-[var(--border-hover)]"
                           >
                             Publique novamente
                           </LocalizedLink>
@@ -410,7 +410,7 @@ export default function MeusAnunciosContent() {
                           onChange={(e) =>
                             setEdicao({ ...edicao, preco_negociavel: e.target.checked })
                           }
-                          className="accent-[var(--gold)]"
+                          className="accent-[var(--foreground-strong)]"
                         />
                         <span className="text-xs text-[var(--foreground-muted)]">
                           Preço negociável

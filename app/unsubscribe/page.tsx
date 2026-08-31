@@ -54,7 +54,7 @@ function UnsubscribeContent() {
       >
         <h1 className="text-2xl text-[var(--foreground)] mb-4">{t.unsubscribe_page.title}</h1>
 
-        <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent mx-auto mb-8"></div>
+        <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-[var(--border)] to-transparent mx-auto mb-8"></div>
 
         {status === "idle" && (
           <>
@@ -85,7 +85,7 @@ function UnsubscribeContent() {
 
         {status === "loading" && (
           <div className="py-8">
-            <div className="w-8 h-8 border-2 border-[var(--gold)] border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <div className="w-8 h-8 border-2 border-[var(--foreground-strong)] border-t-transparent rounded-full animate-spin mx-auto"></div>
             <p className="text-[var(--foreground-secondary)] mt-4">
               {t.unsubscribe_page.processing}
             </p>

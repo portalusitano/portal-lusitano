@@ -49,8 +49,23 @@ classe no sistema — acrescenta-se lá.
 
 `.btn` + `.btn-primario` / `.btn-acento` / `.btn-secundario` / `.btn-subtil`,
 `.btn-sm`. `.campo` para entradas. `.chip` / `.chip-activo` para filtros.
-`.selo` + variantes para distintivos sobre fotografia. `.cartao` para
-superfícies simples.
+`.selo` + `.selo-destaque` / `.selo-novo` / `.selo-neutro` / `.selo-forte` para
+distintivos sobre fotografia. `.cartao` para superfícies simples.
+
+**Estado escolhido é branco, não dourado.** Vale para o filtro activo
+(`.chip-activo`), para as caixas de selecção e interruptores, para o botão por
+omissão, para o dia de hoje no calendário, para a página actual na paginação e
+para os contadores de favoritos e mensagens por ler. O `.rotulo-forte` também
+deixou de ser dourado: numa página com seis rótulos destes o acento deixava de
+ser acento. Sobre preto, quem assinala uma escolha é o contraste.
+
+O `.selo-destaque` é o dourado, e é para o que é raro — um plano recomendado,
+um evento em destaque. Num distintivo que aparece em quase todos os cartões de
+uma grelha usa-se `.selo-forte`, branco.
+
+Onde o dourado fica, e mais em lado nenhum: a ferradura da marca, o sublinhado
+do item de navegação activo, o CTA de publicar anúncio, o `.selo-destaque`, e
+os graus «Ouro» e «Prata» do pedigree — nesse caso o dourado é o próprio dado.
 
 Vivem em `@layer components` **de propósito**: as utilidades do Tailwind estão
 numa camada posterior, por isso um `pl-11` ou um `h-12` numa página ganham
