@@ -68,7 +68,7 @@ export function LanguageProvider({
     } else {
       setT(translationsCache[language]!);
     }
-  }, [language]);  
+  }, [language]);
 
   // Read locale from cookie on mount — allows root layout to be static (no cookies() call)
   // while still picking up the locale set by middleware for /en/* and /es/* routes.
