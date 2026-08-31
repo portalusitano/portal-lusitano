@@ -143,12 +143,18 @@ As durações e as curvas são medidas, não inventadas. Vivem em tokens no
   confusão.
 - Botões de contorno invertem no hover — fundo cheio, texto preto, 200ms.
   Mudar só a cor da borda quase não se via sobre preto.
-- **Dois ciclos infinitos em todo o site**, e não mais: o ponto verde da
-  contagem de anúncios (`pulsar-ponto`) e o muro de coudelarias
-  (`.muro__pista`, 45s lineares). O muro pára ao passar o rato e é anulado
-  por `prefers-reduced-motion`. Antes a regra era um só; passou a dois
-  quando o muro deixou de ser uma grelha parada. Um terceiro precisa de
-  razão escrita.
+- **Três ciclos infinitos em todo o site**, e não mais: o ponto verde da
+  contagem de anúncios (`pulsar-ponto`), o muro de coudelarias
+  (`.muro__pista`, 45s lineares) e os três previews da página inicial, que
+  rodam entre conjuntos de dados de 6,5 em 6,5 segundos e se reescrevem a
+  cada mudança. A razão escrita do terceiro: aqui o que se mexe é o
+  conteúdo, não um adorno — um painel que mostra sempre as mesmas cinco
+  linhas parece uma captura de ecrã, e a rodar lê-se como o produto a
+  funcionar. Pára fora do ecrã, pára com o separador escondido e não
+  arranca com `prefers-reduced-motion` (`usePassoVivo`). O muro pára ao
+  passar o rato e é anulado por `prefers-reduced-motion`. A regra foi um só,
+  depois dois, agora três — e cada degrau custou uma razão escrita. Um
+  quarto custa outra.
   Os esqueletos de carregamento usam `animate-pulse` do Tailwind: são a
   excepção aceite, porque só existem enquanto o conteúdo não chegou.
   O globo do mapa também não faz excepção: roda de oeste até Portugal e

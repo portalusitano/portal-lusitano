@@ -1303,6 +1303,15 @@ body {
     transition: border-color 0.15s ease;
   }
 
+  /* O mesmo chão de toque que o `.btn` já tinha. Sem ele, afinar um campo
+     que está ao lado de um botão desalinhava os dois em ecrãs de toque — o
+     botão parava nos 44px e o campo não. */
+  @media (pointer: coarse) {
+    .campo {
+      min-height: 44px;
+    }
+  }
+
   .campo::placeholder {
     color: var(--foreground-muted);
   }

@@ -7,6 +7,7 @@ import LocalizedLink from "@/components/LocalizedLink";
 import { useMaquinaDeEscrever } from "@/components/ui/useMaquinaDeEscrever";
 import Revelar from "@/components/Revelar";
 import PainelEscrito from "@/components/ui/PainelEscrito";
+import { usePassoVivo } from "@/components/ui/usePassoVivo";
 import { ImageIcon, Search } from "lucide-react";
 import type { SellerListing } from "@/lib/marketplace-listings";
 
@@ -119,17 +120,21 @@ function Preview({
   children,
   colunas,
   atraso = 0,
+  chave,
 }: {
   children: React.ReactNode;
   colunas: string;
   atraso?: number;
+  chave?: string | number;
 }) {
   return (
     <div className="relative z-10 h-[280px] overflow-hidden rounded-t-[24px] px-5 pt-5">
       {/* Esbate o preview para o fundo em vez de o cortar a direito. */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-40 bg-gradient-to-t from-[var(--background)] to-transparent" />
       <div className="w-full overflow-hidden" style={{ ["--cols" as string]: colunas }}>
-        <PainelEscrito atraso={atraso}>{children}</PainelEscrito>
+        <PainelEscrito atraso={atraso} chave={chave}>
+          {children}
+        </PainelEscrito>
       </div>
     </div>
   );
@@ -165,6 +170,95 @@ function CorpoCartao({
   );
 }
 
+/* ── Os painéis vivos ──────────────────────────────────────────────────────
+   Os três previews não mostram sempre a mesma coisa: rodam entre conjuntos
+   e reescrevem-se a cada mudança. É o terceiro ciclo infinito do site — os
+   outros dois são o ponto verde da contagem e o muro de coudelarias — e a
+   razão escrita é esta: aqui o que se mexe é o conteúdo, não um adorno. Um
+   painel que mostra sempre as mesmas cinco linhas parece uma captura de
+   ecrã; a rodar, lê-se como o produto a funcionar. Pára fora do ecrã, pára
+   com o separador escondido e não arranca com `prefers-reduced-motion`. */
+
+const ANUNCIOS: string[][][] = [
+  [
+    ["Ícaro do Vale", "Vale", "6 anos", "Activo"],
+    ["Nobreza da Ribeira", "Ribeira", "4 anos", "Activo"],
+    ["Quixote MB", "M. Branco", "9 anos", "Reservado"],
+    ["Zambujeiro do Freixo", "Freixo", "3 anos", "Activo"],
+    ["Duquesa dos Pinheiros", "Pinheiros", "11 anos", "Vendido"],
+  ],
+  [
+    ["Bailarina de Alter", "Alter", "5 anos", "Activo"],
+    ["Sultão da Coudelaria", "Veiga", "8 anos", "Activo"],
+    ["Miragem do Tejo", "Tejo", "2 anos", "Activo"],
+    ["Cavaleiro de Évora", "Évora", "7 anos", "Reservado"],
+    ["Estrela da Golegã", "Golegã", "10 anos", "Vendido"],
+  ],
+  [
+    ["Firmamento MV", "M. Veiga", "4 anos", "Activo"],
+    ["Aurora do Sorraia", "Sorraia", "6 anos", "Activo"],
+    ["Trovador da Chamusca", "Chamusca", "9 anos", "Activo"],
+    ["Infanta de Arraiolos", "Arraiolos", "3 anos", "Reservado"],
+    ["Barroco do Ribatejo", "Ribatejo", "12 anos", "Vendido"],
+  ],
+];
+
+type Mensagem = {
+  de: string;
+  texto: string;
+  cavalo: string;
+  orcamento: string;
+  disciplina: string;
+};
+
+const MENSAGENS: Mensagem[] = [
+  {
+    de: "Ana Ferreira · Sevilha",
+    cavalo: "Ícaro do Vale",
+    texto: "Procuro cavalo para equitação de trabalho, nível médio.",
+    orcamento: "15–25 k€",
+    disciplina: "Trabalho",
+  },
+  {
+    de: "Pieter de Vries · Utreque",
+    cavalo: "Bailarina de Alter",
+    texto: "Égua para dressage, com provas feitas. Posso ver esta semana?",
+    orcamento: "30–45 k€",
+    disciplina: "Dressage",
+  },
+  {
+    de: "Marta Ribeiro · Golegã",
+    cavalo: "Firmamento MV",
+    texto: "Poldro para criação, linhagem Veiga. Tem radiografias?",
+    orcamento: "8–14 k€",
+    disciplina: "Criação",
+  },
+];
+
+const PEDIGREES: [string, string, string, boolean][][] = [
+  [
+    ["Pai — Vencedor MB", "Veiga", "Ouro", true],
+    ["Mãe — Aurora do Vale", "Andrade", "Prata", true],
+    ["Avô paterno — Falcão", "Veiga", "Ouro", false],
+    ["Avó paterna — Nau", "Veiga", "—", false],
+    ["Avô materno — Zambujeiro", "Andrade", "Prata", false],
+  ],
+  [
+    ["Pai — Nicolau XII", "Alter Real", "Ouro", true],
+    ["Mãe — Bailarina", "Veiga", "Ouro", true],
+    ["Avô paterno — Regedor", "Alter Real", "Prata", false],
+    ["Avó paterna — Fidalga", "Alter Real", "—", false],
+    ["Avô materno — Ídolo", "Veiga", "Ouro", false],
+  ],
+  [
+    ["Pai — Trovador", "Andrade", "Prata", true],
+    ["Mãe — Infanta do Tejo", "Coimbra", "Ouro", true],
+    ["Avô paterno — Batuque", "Andrade", "—", false],
+    ["Avó paterna — Serena", "Andrade", "Prata", false],
+    ["Avô materno — Cartucho", "Coimbra", "Ouro", false],
+  ],
+];
+
 export default function HomeContent({ destaques, recentes, totalAtivos }: Props) {
   const router = useRouter();
   const [termo, setTermo] = useState("");
@@ -184,6 +278,12 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
 
   const semAnuncios = destaques.length === 0 && recentes.length === 0;
   const grelhaCols = "1fr 96px 74px 62px";
+
+  // Os previews rodam entre conjuntos e reescrevem-se a cada mudança.
+  const { passo, alvo: painelVivo } = usePassoVivo(6500);
+  const anuncios = ANUNCIOS[passo % ANUNCIOS.length];
+  const mensagem = MENSAGENS[passo % MENSAGENS.length];
+  const pedigree = PEDIGREES[passo % PEDIGREES.length];
 
   return (
     <main className="bg-[var(--background)]">
@@ -221,7 +321,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
               <div className="flex flex-col gap-2 sm:flex-row">
                 <div className="relative flex-1">
                   <Search
-                    size={18}
+                    size={16}
                     aria-hidden="true"
                     className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]"
                   />
@@ -238,13 +338,10 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
                       aEscrever === null ? "Linhagem, coudelaria, disciplina ou nome" : aEscrever
                     }
                     aria-label="Procurar cavalos"
-                    className="campo h-11 pl-11 text-sm sm:h-12 sm:text-base"
+                    className="campo h-10 pl-10 text-sm"
                   />
                 </div>
-                <button
-                  type="submit"
-                  className="btn btn-primario h-11 shrink-0 px-6 text-sm sm:h-12"
-                >
+                <button type="submit" className="btn btn-primario h-10 shrink-0 px-6 text-sm">
                   Procurar
                 </button>
               </div>
@@ -334,23 +431,17 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
           </p>
         </Revelar>
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <div ref={painelVivo} className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           <Revelar y={20} atraso={0}>
             <CartaoSeco>
-              <Preview colunas={grelhaCols} atraso={150}>
+              <Preview colunas={grelhaCols} atraso={150} chave={passo}>
                 <div className="cabeca-ui" style={{ gridTemplateColumns: grelhaCols }}>
                   <span>Cavalo</span>
                   <span>Coudelaria</span>
                   <span>Idade</span>
                   <span className="text-right">Estado</span>
                 </div>
-                {[
-                  ["Ícaro do Vale", "Vale", "6 anos", "Activo"],
-                  ["Nobreza da Ribeira", "Ribeira", "4 anos", "Activo"],
-                  ["Quixote MB", "M. Branco", "9 anos", "Reservado"],
-                  ["Zambujeiro do Freixo", "Freixo", "3 anos", "Activo"],
-                  ["Duquesa dos Pinheiros", "Pinheiros", "11 anos", "Vendido"],
-                ].map(([nome, coudelaria, idade, estado]) => (
+                {anuncios.map(([nome, coudelaria, idade, estado]) => (
                   <div key={nome} className="linha-ui" style={{ gridTemplateColumns: grelhaCols }}>
                     <span className="truncate pr-2 text-[11px] font-medium text-[var(--foreground-strong)]">
                       {nome}
@@ -382,7 +473,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
 
           <Revelar y={20} atraso={100}>
             <CartaoSeco>
-              <Preview colunas="1fr" atraso={250}>
+              <Preview colunas="1fr" atraso={250} chave={passo}>
                 <div
                   className="rounded-xl border p-3"
                   style={{ borderColor: "var(--border-soft)" }}
@@ -403,17 +494,17 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
                     </span>
                   </div>
                   <p className="bloco-ui mb-1 text-[11px] font-medium text-[var(--foreground-strong)]">
-                    Ana Ferreira · Sevilha
+                    {mensagem.de}
                   </p>
                   <p className="bloco-ui mb-3 text-[11px] leading-relaxed text-[var(--foreground-muted)]">
-                    Interessada no{" "}
-                    <span className="text-[var(--foreground-strong)]">Ícaro do Vale</span>. Procuro
-                    cavalo para equitação de trabalho, nível médio.
+                    Interessado no{" "}
+                    <span className="text-[var(--foreground-strong)]">{mensagem.cavalo}</span>.{" "}
+                    {mensagem.texto}
                   </p>
                   <div className="bloco-ui mb-3 grid grid-cols-2 gap-2">
                     {[
-                      ["Orçamento", "15–25 k€"],
-                      ["Disciplina", "Trabalho"],
+                      ["Orçamento", mensagem.orcamento],
+                      ["Disciplina", mensagem.disciplina],
                     ].map(([rot, val]) => (
                       <div
                         key={rot}
@@ -450,19 +541,13 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
 
           <Revelar y={20} atraso={200}>
             <CartaoSeco>
-              <Preview colunas="1fr 84px 64px" atraso={350}>
+              <Preview colunas="1fr 84px 64px" atraso={350} chave={passo}>
                 <div className="cabeca-ui" style={{ gridTemplateColumns: "1fr 84px 64px" }}>
                   <span>Ascendência</span>
                   <span>Linhagem</span>
                   <span className="text-right">Grau</span>
                 </div>
-                {[
-                  ["Pai — Vencedor MB", "Veiga", "Ouro", true],
-                  ["Mãe — Aurora do Vale", "Andrade", "Prata", true],
-                  ["Avô paterno — Falcão", "Veiga", "Ouro", false],
-                  ["Avó paterna — Nau", "Veiga", "—", false],
-                  ["Avô materno — Zambujeiro", "Andrade", "Prata", false],
-                ].map(([nome, linhagem, grau, forte]) => (
+                {pedigree.map(([nome, linhagem, grau, forte]) => (
                   <div
                     key={String(nome)}
                     className="linha-ui"

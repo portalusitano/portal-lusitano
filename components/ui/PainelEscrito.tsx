@@ -18,10 +18,13 @@ export default function PainelEscrito({
   children,
   atraso = 0,
   duracao = 1500,
+  chave,
 }: {
   children: React.ReactNode;
   atraso?: number;
   duracao?: number;
+  /** Muda quando o conteúdo muda: é o sinal para reescrever tudo de novo. */
+  chave?: string | number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -99,7 +102,9 @@ export default function PainelEscrito({
       clearTimeout(temporizador);
       repor();
     };
-  }, [atraso, duracao]);
+    // `chave` entra de propósito: quando o conteúdo do painel muda, o efeito
+    // volta a correr e o texto novo escreve-se em vez de aparecer feito.
+  }, [atraso, duracao, chave]);
 
   return (
     <div ref={ref} className="painel-escrito">

@@ -24,14 +24,6 @@ export default async function PrivacidadePage() {
               <p>{t.privacy.intro_text}</p>
             </section>
 
-            {/* Responsável */}
-            <section data-revelar="" suppressHydrationWarning>
-              <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
-                {t.privacy.controller}
-              </h2>
-              <p>{t.privacy.controller_text}</p>
-            </section>
-
             {/* Dados Recolhidos */}
             <section data-revelar="" suppressHydrationWarning>
               <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
