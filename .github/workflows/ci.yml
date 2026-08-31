@@ -89,6 +89,12 @@ jobs:
           name: build
           path: .next/
           retention-days: 7
+          # `.next` começa por ponto, e a v4 desta acção ignora ficheiros
+          # ocultos por omissão — a pasta inteira conta como oculta. O passo
+          # dava sucesso em zero segundos sem carregar nada, e a auditoria do
+          # Lighthouse, que precisa deste artefacto, morria em «Artifact not
+          # found for name: build».
+          include-hidden-files: true
 
   # ===== LIGHTHOUSE =====
   lighthouse:
