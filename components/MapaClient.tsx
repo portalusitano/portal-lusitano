@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, memo } from "react";
+import { useState, useMemo, memo, useRef, useEffect, useLayoutEffect, useCallback } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import dynamic from "next/dynamic";
 import {
@@ -8,19 +8,28 @@ import {
   Phone,
   Mail,
   Globe,
-  Star,
   ChevronRight,
+  ChevronLeft,
   X,
-  Compass,
   List,
   Navigation,
   Search,
-  Crown,
   Map,
   Layers,
+  SearchX,
 } from "lucide-react";
 import LocalizedLink from "@/components/LocalizedLink";
+import Revelar, { atrasoEmGrelha } from "@/components/Revelar";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import Image from "next/image";
+import {
+  filtrar,
+  filtrarPorTexto,
+  contarPorRegiao,
+  formatarNumero,
+  partirTitulo,
+} from "@/lib/mapa-coudelarias";
+import { capaDoCartao, iniciaisDe } from "@/lib/directorio-capas";
 
 // O globo desenha-se em canvas e mede o elemento onde está: só no cliente.
 // A cena 3D só se carrega nesta página, e só quando é precisa.
@@ -48,211 +57,351 @@ export interface Coudelaria {
   especialidades?: string[];
 }
 
-// Coordenadas centrais por região (para fly-to)
-const regiaoCoords: Record<string, [number, number]> = {
-  Minho: [41.7, -8.3],
-  Douro: [41.2, -7.8],
-  Porto: [41.15, -8.6],
-  Centro: [40.2, -8.2],
-  Ribatejo: [39.3, -8.5],
-  Lisboa: [38.75, -9.15],
-  Alentejo: [38.0, -7.9],
-  Algarve: [37.1, -8.0],
-};
+/* ── A capa ──────────────────────────────────────────────────────────────
+   Estavam aqui três fotografias do Unsplash, servidas à vez a todos os
+   cartões: nenhuma das vinte e nove tem `foto_capa` na base, por isso era o
+   que toda a gente via — um cavalo qualquer apresentado como sendo daquela
+   coudelaria. É a mesma classe de afirmação falsa que o «20 Cavalos» do topo,
+   e em imagem é pior, porque uma fotografia não se lê como uma aproximação.
 
-const placeholderImages = [
-  "https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=400",
-  "https://images.unsplash.com/photo-1534307671554-9a6d81f4d629?w=400",
-  "https://images.unsplash.com/photo-1598974357801-cbca100e65d3?w=400",
-];
-
-// Stat Card
-/* As bolhas de gradiente verde e roxa que aqui estavam eram as únicas duas
-   cores do site fora do sistema, e ainda por cima flutuavam por cima do
-   canto do cartão. O número é que é o dado: fica ele em primeiro, com
-   `tabular-nums` para alinhar entre os três, e o ícone reduz-se a uma marca
-   ténue à esquerda. */
-const StatCard = memo(function StatCard({
-  icon: Icon,
-  label,
-  value,
+   Entretanto havia fotografias verdadeiras que ninguém usava, em
+   `public/images/coudelarias/<slug>/`. Quem as escolhe é o `directorio-capas`,
+   no servidor, a partir do que está mesmo em disco — o mesmo módulo que o
+   `/directorio` usa, para não haver duas regras para a mesma coisa. Vinte e
+   oito das vinte e nove passam a ter fotografia sua; a que sobra mostra uma
+   chapa tipográfica, que não promete nada. */
+const Capa = memo(function Capa({
+  coudelaria,
+  capa,
+  className = "",
+  sizes,
 }: {
-  icon: React.ElementType;
-  label: string;
-  value: number;
+  coudelaria: Coudelaria;
+  capa: string | null;
+  className?: string;
+  sizes: string;
 }) {
+  if (capa) {
+    return (
+      <Image
+        src={capa}
+        alt={coudelaria.nome}
+        fill
+        sizes={sizes}
+        className={`object-cover ${className}`}
+        loading="lazy"
+      />
+    );
+  }
   return (
-    <div className="flex items-center gap-3 px-6 py-3.5">
-      <Icon size={15} className="shrink-0 text-[var(--foreground-muted)]" aria-hidden="true" />
-      <div className="text-left">
-        <div className="text-xl leading-none tabular-nums text-[var(--foreground-strong)]">
-          {value}
-        </div>
-        <div className="rotulo mt-1.5">{label}</div>
-      </div>
+    <div
+      aria-hidden="true"
+      className="absolute inset-0 flex items-center justify-center bg-[var(--background-elevated)]"
+    >
+      <span className="font-mono text-xs tracking-wide text-[var(--foreground-muted)]">
+        {iniciaisDe(coudelaria.nome)}
+      </span>
     </div>
   );
 });
 
-// Sidebar Card
-const CoudelariaCard = memo(function CoudelariaCard({
+/* ── Linha de coudelaria ─────────────────────────────────────────────────
+   Era um botão que abria uma janela, e da janela é que se ia à ficha: dois
+   toques para chegar ao sítio a que a pessoa vinha. Passa a ser um link
+   directo. A janela continua a existir, mas só para o alfinete do globo, que
+   não tem outra maneira de se apresentar. */
+const LinhaCoudelaria = memo(function LinhaCoudelaria({
   coudelaria,
-  index,
-  onSelect,
-  isSelected,
+  capa,
+  horsesLabel,
 }: {
   coudelaria: Coudelaria;
-  index: number;
-  onSelect: () => void;
-  isSelected: boolean;
+  capa: string | null;
+  horsesLabel: string;
 }) {
-  const image = coudelaria.foto_capa || placeholderImages[index % placeholderImages.length];
   return (
-    <button
-      onClick={onSelect}
-      className={`w-full text-left p-3 border rounded-lg transition-all ${isSelected ? "bg-[var(--elevate-1)] border-[var(--border-hover)]" : "cartao hover:border-[var(--border-hover)]"}`}
+    <LocalizedLink
+      href={`/directorio/${coudelaria.slug}`}
+      className="group flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-[var(--elevate-1)]"
     >
-      <div className="flex items-start gap-3">
-        <div className="relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-[var(--background-card)]">
-          <Image
-            src={image}
-            alt={coudelaria.nome}
-            fill
-            sizes="56px"
-            className="object-cover"
-            loading="lazy"
-          />
-          {coudelaria.destaque && (
-            <div className="absolute top-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--foreground-strong)]">
-              <Star size={8} className="text-black" />
-            </div>
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-[var(--foreground)] text-sm truncate">{coudelaria.nome}</h3>
-          <p className="text-[var(--foreground-muted)] text-xs flex items-center gap-1">
-            <MapPin size={10} className="text-[var(--foreground-muted)]" aria-hidden="true" />
-            {coudelaria.localizacao}
-          </p>
-        </div>
-        <ChevronRight
-          className={`flex-shrink-0 ${isSelected ? "text-[var(--foreground-strong)]" : "text-[var(--foreground-muted)]"}`}
-          size={16}
-        />
+      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg">
+        <Capa coudelaria={coudelaria} capa={capa} sizes="40px" />
       </div>
-    </button>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm text-[var(--foreground)] group-hover:text-[var(--foreground-strong)]">
+          {coudelaria.nome}
+        </div>
+        <div className="meta truncate">{coudelaria.localizacao}</div>
+      </div>
+      {typeof coudelaria.num_cavalos === "number" && (
+        <span className="meta hidden shrink-0 font-mono tabular-nums sm:block">
+          {coudelaria.num_cavalos} <span className="sr-only">{horsesLabel}</span>
+        </span>
+      )}
+      <ChevronRight
+        size={14}
+        aria-hidden="true"
+        className="shrink-0 text-[var(--foreground-muted)] transition-colors group-hover:text-[var(--foreground-strong)]"
+      />
+    </LocalizedLink>
   );
 });
 
-// Grid Card
-const GridCard = memo(function GridCard({
+/* ── Cartão da grelha ────────────────────────────────────────────────────
+   Duas mudanças, e as duas por regras que já existiam.
+
+   O distintivo era `.selo-destaque`, o dourado. Vinte das vinte e nove
+   coudelarias são «destaque»: sessenta e nove por cento da grelha vestida com
+   o acento é o acento a deixar de assinalar seja o que for. Passa a
+   `.selo-forte`, branco, como manda o sistema.
+
+   E a faixa da fotografia só existe quando há fotografia mesmo — a de disco
+   ou a da base, nunca uma emprestada. A coudelaria que não tem nenhuma não
+   ganha 144 pixéis de banda cinzenta a segurar duas letras: fica um cartão de
+   texto, mais denso, e a chapa das iniciais guarda-se para o quadrado de 40px
+   da lista, onde se lê como marca e não como fotografia falhada. */
+const CartaoGrelha = memo(function CartaoGrelha({
   coudelaria,
-  index,
+  capa,
+  featuredLabel,
+  horsesLabel,
 }: {
   coudelaria: Coudelaria;
-  index: number;
+  capa: string | null;
+  featuredLabel: string;
+  horsesLabel: string;
 }) {
-  const image = coudelaria.foto_capa || placeholderImages[index % placeholderImages.length];
   return (
     <LocalizedLink
       href={`/directorio/${coudelaria.slug}`}
       className="group block cartao transition-colors hover:border-[var(--border-hover)]"
     >
-      <div className="relative h-44 overflow-hidden bg-[var(--background-card)]">
-        <Image
-          src={image}
-          alt={coudelaria.nome}
-          fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-          className="object-cover group-hover:scale-105 transition-transform duration-500"
-          loading="lazy"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-        {coudelaria.destaque && (
-          <div className="selo selo-destaque absolute top-2 left-2 rounded-full">
-            <Star size={10} /> Destaque
+      {capa && (
+        <div className="relative h-36 overflow-hidden bg-[var(--background-card)]">
+          <Capa
+            coudelaria={coudelaria}
+            capa={capa}
+            className="transition-transform duration-500 group-hover:scale-105"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+          />
+          {coudelaria.destaque && (
+            <div className="selo selo-forte absolute left-2 top-2 rounded-full">
+              {featuredLabel}
+            </div>
+          )}
+          <div className="selo selo-neutro absolute bottom-2 left-2 rounded-full">
+            <MapPin size={10} aria-hidden="true" />
+            {coudelaria.regiao}
+          </div>
+        </div>
+      )}
+      <div className="p-3">
+        {!capa && (
+          <div className="mb-2 flex flex-wrap items-center gap-1.5">
+            <span className="selo rounded-full border border-[var(--border-soft)] text-[var(--foreground-secondary)]">
+              <MapPin size={10} aria-hidden="true" />
+              {coudelaria.regiao}
+            </span>
+            {coudelaria.destaque && (
+              <span className="selo selo-forte rounded-full">{featuredLabel}</span>
+            )}
           </div>
         )}
-        <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/60 text-white px-2 py-1 text-[10px] rounded-full">
-          <MapPin size={10} className="text-[var(--foreground-muted)]" aria-hidden="true" />
-          {coudelaria.regiao}
-        </div>
-      </div>
-      <div className="p-3">
-        <h3 className="text-[var(--foreground)] group-hover:text-[var(--foreground-strong)] transition-colors">
+        <h3 className="truncate text-sm text-[var(--foreground)] transition-colors group-hover:text-[var(--foreground-strong)]">
           {coudelaria.nome}
         </h3>
-        <p className="text-[var(--foreground-muted)] text-xs mb-1">{coudelaria.localizacao}</p>
-        <p className="text-[var(--foreground-secondary)] text-xs line-clamp-2">
+        <p className="meta mb-1 truncate">{coudelaria.localizacao}</p>
+        <p className="line-clamp-2 text-xs text-[var(--foreground-secondary)]">
           {coudelaria.descricao}
         </p>
+        {typeof coudelaria.num_cavalos === "number" && (
+          <p className="meta mt-2 font-mono tabular-nums">
+            {coudelaria.num_cavalos} {horsesLabel}
+          </p>
+        )}
       </div>
     </LocalizedLink>
   );
 });
 
+/* ── Nada encontrado ─────────────────────────────────────────────────────
+   Escrever «xpto» apagava as vinte e nove luzes do globo e não dizia nada:
+   ficava um planeta vazio e um painel de regiões a prometer treze no
+   Alentejo. Um ecrã que não encontrou tem de o dizer, dizer o que procurou,
+   e dar a saída. */
+const SemResultados = memo(function SemResultados({
+  titulo,
+  dica,
+  termo,
+  aoLimpar,
+  limparLabel,
+}: {
+  titulo: string;
+  dica: string;
+  termo: string;
+  aoLimpar: () => void;
+  limparLabel: string;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 px-8 py-12 text-center">
+      <SearchX size={22} className="text-[var(--foreground-muted)]" aria-hidden="true" />
+      <p className="titulo-seccao">{titulo}</p>
+      <p className="meta max-w-[38ch]">
+        {termo && (
+          <>
+            <span className="font-mono text-[var(--foreground-secondary)]">“{termo}”</span> —{" "}
+          </>
+        )}
+        {dica}
+      </p>
+      <button type="button" onClick={aoLimpar} className="btn btn-secundario btn-sm mt-1">
+        {limparLabel}
+      </button>
+    </div>
+  );
+});
+
 interface MapaClientProps {
   coudelarias: Coudelaria[];
+  /** slug → caminho da capa que existe em disco, escolhido no servidor. */
+  capas?: Record<string, string>;
+  /** Filtros vindos da query, já validados no servidor. */
+  inicial?: { procura: string; regiao: string | null; vista: "globo" | "list" };
 }
 
-export default function MapaClient({ coudelarias }: MapaClientProps) {
-  const { t } = useLanguage();
-  const [selectedRegiao, setSelectedRegiao] = useState<string | null>(null);
-  const [selectedCoudelaria, setSelectedCoudelaria] = useState<Coudelaria | null>(null);
-  /* Três vistas. O globo é a entrada — diz de onde é que o portal fala
-     antes de dizer o quê. Quem quiser nomes de terras carrega em «Mapa»,
-     ou aproxima-se no globo até ele próprio entregar o ecrã aos tiles. */
-  const [viewMode, setViewMode] = useState<"globo" | "list">("globo");
-  const [searchQuery, setSearchQuery] = useState("");
+/* ── A pilha de níveis ────────────────────────────────────────────────────
+ * Escolher uma região deixa de ser marcar uma caixa e passa a ser entrar num
+ * sítio: a lista de regiões sai, a lista da região entra, e as duas ocupam o
+ * mesmo lugar. É o idioma dos submenus do menu de ecrã inteiro — está no
+ * CLAUDE.md — reaproveitado aqui em vez de se inventar um segundo.
+ *
+ * A altura é medida e escrita numa variável, para a caixa crescer de cinco
+ * regiões para treze coudelarias em vez de saltar. Mede-se no
+ * `useLayoutEffect`, antes da pintura, senão vê-se um quadro com a altura
+ * antiga; e observa-se com um `ResizeObserver` porque o conteúdo do nível
+ * também muda de altura sozinho (a pesquisa esvazia linhas).
+ */
+function Pilha({
+  nivel,
+  children,
+}: {
+  nivel: number;
+  children: [React.ReactNode, React.ReactNode];
+}) {
+  const caixa = useRef<HTMLDivElement>(null);
+  const niveis = useRef<(HTMLDivElement | null)[]>([]);
 
-  const coudelariasPorRegiao = useMemo(
-    () =>
-      coudelarias.reduce(
-        (acc, c) => {
-          if (!acc[c.regiao]) acc[c.regiao] = [];
-          acc[c.regiao].push(c);
-          return acc;
-        },
-        {} as Record<string, Coudelaria[]>
-      ),
-    [coudelarias]
+  useLayoutEffect(() => {
+    const activo = niveis.current[nivel];
+    const alvo = caixa.current;
+    if (!activo || !alvo) return;
+    const medir = () => {
+      alvo.style.setProperty("--altura-pilha", `${activo.offsetHeight}px`);
+    };
+    medir();
+    const observador = new ResizeObserver(medir);
+    observador.observe(activo);
+    return () => observador.disconnect();
+  }, [nivel, children]);
+
+  return (
+    <div ref={caixa} className="pilha">
+      {children.map((conteudo, i) => (
+        <div
+          key={i}
+          ref={(n) => {
+            niveis.current[i] = n;
+          }}
+          className="pilha__nivel"
+          data-fora={i === nivel ? "nao" : "sim"}
+          data-lado={i < nivel ? "atras" : "frente"}
+          aria-hidden={i === nivel ? undefined : true}
+          inert={i === nivel ? undefined : true}
+        >
+          {conteudo}
+        </div>
+      ))}
+    </div>
   );
+}
 
-  const filteredCoudelarias = useMemo(() => {
-    if (!searchQuery.trim()) return coudelarias;
-    const q = searchQuery.toLowerCase();
-    return coudelarias.filter(
-      (c) =>
-        c.nome.toLowerCase().includes(q) ||
-        c.localizacao.toLowerCase().includes(q) ||
-        c.regiao.toLowerCase().includes(q)
+export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaClientProps) {
+  const { t, language } = useLanguage();
+  const [regiao, setRegiao] = useState<string | null>(inicial?.regiao ?? null);
+  const [procura, setProcura] = useState(inicial?.procura ?? "");
+  const [aberta, setAberta] = useState<Coudelaria | null>(null);
+  const [viewMode, setViewMode] = useState<"globo" | "list">(inicial?.vista ?? "globo");
+
+  /* ── Um funil só ───────────────────────────────────────────────────────
+     A pesquisa filtrava o globo e a lista; o painel de regiões contava por
+     sua conta e nunca ouvia a pesquisa. Com «xpto» escrito, o globo tinha
+     zero pontos e o painel continuava a dizer «Alentejo 13». Agora as duas
+     coisas saem do mesmo sítio: `porTexto` alimenta as contagens do painel
+     (para uma região poder aparecer a zero em vez de mentir) e `visiveis`
+     alimenta o globo, a lista e o contador. */
+  const porTexto = useMemo(() => filtrarPorTexto(coudelarias, procura), [coudelarias, procura]);
+  const visiveis = useMemo(
+    () => filtrar(coudelarias, { procura, regiao }),
+    [coudelarias, procura, regiao]
+  );
+  const regioes = useMemo(() => contarPorRegiao(coudelarias, porTexto), [coudelarias, porTexto]);
+
+  const temFiltro = procura.trim() !== "" || regiao !== null;
+  const limpar = useCallback(() => {
+    setProcura("");
+    setRegiao(null);
+  }, []);
+
+  /* ── A vista é partilhável ─────────────────────────────────────────────
+     Quem encontrava as treze do Alentejo e mandava o link mandava a página em
+     branco. O estado inicial vem do servidor (`/mapa` já é servida a pedido,
+     por isso ler a query não custa render nenhum) e a partir daí é escrito na
+     barra de endereço com `replaceState`: sem navegação, sem
+     `useSearchParams` — que obrigaria a um limite de Suspense — e sem voltar
+     a montar o globo a cada tecla. */
+  useEffect(() => {
+    const p = new URLSearchParams();
+    if (procura.trim()) p.set("q", procura.trim());
+    if (regiao) p.set("regiao", regiao);
+    if (viewMode === "list") p.set("vista", "lista");
+    const busca = p.toString();
+    window.history.replaceState(
+      null,
+      "",
+      busca ? `${window.location.pathname}?${busca}` : window.location.pathname
     );
-  }, [coudelarias, searchQuery]);
+  }, [procura, regiao, viewMode]);
 
-  const stats = useMemo(
-    () => ({
-      total: coudelarias.length,
-      regioes: Object.keys(coudelariasPorRegiao).length,
-      destaque: coudelarias.filter((c) => c.destaque).length,
-    }),
-    [coudelarias, coudelariasPorRegiao]
+  /* ── A janela do alfinete ──────────────────────────────────────────────
+     Não tinha papel de diálogo, nem `Escape`, nem laço de foco, e ao fechar
+     o foco caía no princípio da página. `useFocusTrap` trata das três. */
+  const janela = useRef<HTMLDivElement>(null);
+  useFocusTrap(janela, aberta !== null, () => setAberta(null));
+
+  const contagem = `${formatarNumero(visiveis.length, language)} ${
+    visiveis.length === 1 ? t.mapa.result_one : t.mapa.results
+  }`;
+
+  const titulo = useMemo(
+    () => partirTitulo(t.mapa.title, t.mapa.title_highlight),
+    [t.mapa.title, t.mapa.title_highlight]
   );
 
-  const handleSelectRegiao = (regiao: string | null) => {
-    setSelectedRegiao(regiao);
-    if (regiao && regiaoCoords[regiao]) {
-    } else {
-    }
-  };
+  const capaAberta = aberta ? capaDoCartao(aberta.foto_capa, aberta.slug, capas) : null;
 
-  const handleMarkerClick = (c: Coudelaria) => {
-    setSelectedCoudelaria(c);
-  };
+  /* Uma linha da lista. A cascata de entrada é da pilha, que sabe qual é o
+     nível que está a entrar; a linha só sabe desenhar-se. */
+  const linhaDaLista = (c: Coudelaria) => (
+    <LinhaCoudelaria
+      coudelaria={c}
+      capa={capaDoCartao(c.foto_capa, c.slug, capas)}
+      horsesLabel={t.mapa.horses}
+    />
+  );
 
   return (
     <main className="min-h-screen bg-[var(--background)]">
-      {/* Background */}
-      <div className="fixed inset-0 pointer-events-none">
+      <div className="pointer-events-none fixed inset-0">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0"
@@ -263,294 +412,445 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
         />
       </div>
 
-      {/* Hero */}
-      <section className="relative pt-28 pb-6">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-2 mb-4 px-5 py-2 bg-[var(--elevate-1)] border border-[var(--border-soft)] rounded-full">
-            <Compass className="text-[var(--foreground-muted)]" size={16} aria-hidden="true" />
-            <span className="rotulo-forte">{t.mapa.badge}</span>
-          </div>
-          <h1 className="text-2xl sm:text-4xl md:text-6xl mb-4 text-[var(--foreground)]">
-            {t.mapa.title.split("Portugal")[0]}
-            <span className="text-[var(--foreground-strong)]">Portugal</span>
-            {t.mapa.title.split("Portugal")[1]}
+      {/* ── Cabeçalho ────────────────────────────────────────────────────
+          Em telemóvel o que estava acima do globo comia 410 dos 700 pixéis
+          do ecrã, e com a barra de cookies em cima sobravam 128 de mapa.
+
+          O herói é só o título e uma linha: o distintivo «Mapa interactivo»
+          saiu — dizia por palavras o que o globo já mostra — e a faixa de
+          estatísticas também. Três números acima do mapa empurravam-no para
+          baixo da dobra para dizer o que a página inteira diz a seguir; o
+          contador de resultados, esse, fica ao pé da lista, que é onde
+          alguém o procura. O subtítulo só aparece a partir de `sm`. */}
+      <section className="relative pb-4 pt-16 sm:pb-6 sm:pt-28">
+        <div className="mx-auto max-w-7xl px-4 text-center sm:px-6">
+          {/* A palavra acesa vem do dicionário (`title_highlight`). Estava
+              escrita à mão aqui dentro, num `split("Portugal")` que só
+              funcionava enquanto as três traduções tivessem a palavra. */}
+          <h1 className="mb-3 text-2xl text-[var(--foreground)] sm:mb-4 sm:text-4xl md:text-6xl">
+            {titulo.antes}
+            {titulo.meio && <span className="text-[var(--foreground-strong)]">{titulo.meio}</span>}
+            {titulo.depois}
           </h1>
-          <p className="text-[var(--foreground-secondary)] max-w-xl mx-auto mb-8">
+          <p className="mx-auto mb-6 hidden max-w-xl text-[var(--foreground-secondary)] sm:mb-8 sm:block">
             {t.mapa.subtitle}
           </p>
-          {/* Três cartões soltos leem-se como três coisas; divididos por uma
-              hairline, leem-se como um instrumento só — que é o que são. */}
-          <div className="cartao mx-auto inline-flex divide-x divide-[var(--border-soft)] overflow-hidden">
-            <StatCard icon={MapPin} label={t.mapa.stat_studs} value={stats.total} />
-            <StatCard icon={Map} label={t.mapa.stat_regions} value={stats.regioes} />
-            <StatCard icon={Crown} label={t.mapa.stat_horses} value={stats.destaque} />
-          </div>
         </div>
       </section>
 
-      <div className="max-w-[1400px] mx-auto px-4 md:px-6 pb-16">
-        {/* Controls */}
-        <div className="cartao mb-6 flex flex-wrap items-center justify-between gap-3 p-3">
-          <div className="flex items-center gap-1.5">
+      <div className="mx-auto max-w-[1400px] px-4 pb-16 md:px-6">
+        {/* ── Comandos ─────────────────────────────────────────────────
+            Numa linha só. Com `min-w-[12rem]` na caixa de pesquisa o cartão
+            partia-se em duas linhas a 390px e custava 58 pixéis de mapa; a
+            caixa passa a `min-w-0` e reparte o que sobra com os dois chips. */}
+        <div className="cartao mb-3 flex flex-nowrap items-center gap-2 p-3 sm:gap-3">
+          <div
+            className="flex shrink-0 items-center gap-1.5"
+            role="group"
+            aria-label={t.mapa.view_switch}
+          >
             <button
+              type="button"
               onClick={() => setViewMode("globo")}
+              aria-pressed={viewMode === "globo"}
               className={`chip gap-1.5 ${viewMode === "globo" ? "chip-activo" : ""}`}
             >
-              <Globe size={16} /> {t.mapa.view_map}
+              <Globe size={16} aria-hidden="true" /> {t.mapa.view_map}
             </button>
             <button
+              type="button"
               onClick={() => setViewMode("list")}
+              aria-pressed={viewMode === "list"}
               className={`chip gap-1.5 ${viewMode === "list" ? "chip-activo" : ""}`}
             >
-              <List size={16} /> {t.mapa.view_list}
+              <List size={16} aria-hidden="true" /> {t.mapa.view_list}
             </button>
           </div>
 
-          <div className="flex-1 max-w-sm mx-3">
-            <div className="relative">
-              <Search
-                size={16}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]"
-              />
-              <input
-                type="text"
-                placeholder={t.mapa.search_placeholder}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="campo h-10 pl-10 text-sm"
-              />
-            </div>
+          <div className="relative min-w-0 flex-1 sm:max-w-sm">
+            <label htmlFor="mapa-procura" className="sr-only">
+              {t.mapa.search_label}
+            </label>
+            <Search
+              size={16}
+              aria-hidden="true"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]"
+            />
+            <input
+              id="mapa-procura"
+              type="search"
+              placeholder={t.mapa.search_placeholder}
+              value={procura}
+              onChange={(e) => setProcura(e.target.value)}
+              className="campo h-10 pl-10 pr-9 text-sm"
+            />
+            {procura && (
+              <button
+                type="button"
+                onClick={() => setProcura("")}
+                aria-label={t.mapa.clear_search}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-[var(--foreground-muted)] transition-colors hover:text-[var(--foreground-strong)]"
+              >
+                <X size={14} aria-hidden="true" />
+              </button>
+            )}
           </div>
         </div>
 
-        {viewMode === "globo" ? (
-          <div className="grid lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-8">
-              <div className="relative z-0 h-[520px] overflow-hidden rounded-2xl border border-[var(--border)] bg-black sm:h-[620px] lg:h-[720px]">
-                <div className="cartao-seco__costura z-10" />
-                <GloboTerra
-                  coudelarias={searchQuery ? filteredCoudelarias : coudelarias}
-                  aoEscolher={handleMarkerClick}
-                />
-                <p className="pointer-events-none absolute inset-x-0 bottom-5 z-10 text-center text-[11px] text-[var(--foreground-muted)]">
-                  {t.mapa.globe_hint}
-                </p>
-              </div>
-            </div>
-
-            {/* Side Panel */}
-            <div className="lg:col-span-4">
-              {selectedRegiao ? (
-                <div className="sticky top-28 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
-                  <div className="mb-4 p-4 cartao">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span className="rotulo">{t.mapa.region}</span>
-                        <h2 className="text-xl text-[var(--foreground)]">{selectedRegiao}</h2>
-                        <p className="text-[var(--foreground-secondary)] text-sm">
-                          <span className="font-medium tabular-nums text-[var(--foreground-strong)]">
-                            {coudelariasPorRegiao[selectedRegiao]?.length || 0}
-                          </span>{" "}
-                          {t.mapa.studs_count}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => handleSelectRegiao(null)}
-                        className="p-1.5 text-[var(--foreground-muted)] hover:text-[var(--foreground)] bg-[var(--surface-hover)] rounded-lg"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
-                    {coudelariasPorRegiao[selectedRegiao]?.map((c, i) => (
-                      <CoudelariaCard
-                        key={c.id}
-                        coudelaria={c}
-                        index={i}
-                        onSelect={() => setSelectedCoudelaria(c)}
-                        isSelected={selectedCoudelaria?.id === c.id}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="sticky top-28 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
-                  <div className="mb-4 p-4 cartao">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Layers
-                        className="text-[var(--foreground-muted)]"
-                        size={16}
-                        aria-hidden="true"
-                      />
-                      <h2 className="text-[var(--foreground)]">{t.mapa.explore_regions}</h2>
-                    </div>
-                    <p className="text-[var(--foreground-muted)] text-xs">
-                      {t.mapa.select_region_hint}
-                    </p>
-                  </div>
-                  {/* Seis cartões com um ícone de 36px cada eram seis
-                      superfícies para cinco nomes de região. Passa a ser um
-                      cartão só com linhas divididas por hairline, e a
-                      contagem em mono alinha em coluna — que é o que permite
-                      comparar as regiões de relance. */}
-                  <div className="cartao divide-y divide-[var(--border-soft)]">
-                    {Object.entries(coudelariasPorRegiao)
-                      .sort((a, b) => b[1].length - a[1].length)
-                      .map(([regiao, list], i) => (
-                        <button
-                          key={regiao}
-                          onClick={() => handleSelectRegiao(regiao)}
-                          className="group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--elevate-1)]"
-                          style={{
-                            animation: `fadeSlideIn 480ms var(--ease-out) ${i * 70}ms both`,
-                          }}
-                        >
-                          <MapPin
-                            className="shrink-0 text-[var(--foreground-muted)]"
-                            size={14}
-                            aria-hidden="true"
-                          />
-                          <span className="flex-1 truncate text-sm text-[var(--foreground)]">
-                            {regiao}
-                          </span>
-                          <span className="font-mono text-xs tabular-nums text-[var(--foreground-muted)]">
-                            {list.length}
-                          </span>
-                          <ChevronRight
-                            className="shrink-0 text-[var(--foreground-muted)] transition-colors group-hover:text-[var(--foreground-strong)]"
-                            size={14}
-                          />
-                        </button>
-                      ))}
-                  </div>
-
-                  {/* Debaixo da lista sobrava meia página vazia. Uma saída
-                      para o directório é o que faz falta a quem chegou aqui
-                      e não quer escolher por região. */}
-                  <LocalizedLink
-                    href="/directorio"
-                    className="btn btn-subtil btn-sm mt-4 w-full rounded-xl"
-                  >
-                    Ver todas as coudelarias
-                  </LocalizedLink>
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div>
-            {searchQuery && (
-              <p className="mb-4 text-[var(--foreground-secondary)] text-sm">
-                <span className="font-medium tabular-nums text-[var(--foreground-strong)]">
-                  {filteredCoudelarias.length}
-                </span>{" "}
-                resultados
-              </p>
+        {/* ── Barra de resultados ──────────────────────────────────────
+            O único sítio onde o estado do funil se lê por extenso. Antes não
+            existia: dava-se por um filtro estar activo pelo que faltava no
+            ecrã, e por a pesquisa não ter dado nada por o globo estar vazio.
+            Aqui está sempre escrito quantas se vêem, de quantas, e com que
+            filtros — cada um removível onde está. */}
+        <div
+          className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 px-1"
+          role="status"
+          aria-live="polite"
+        >
+          <p className="meta">
+            <span className="tabular-nums text-[var(--foreground-strong)]">{contagem}</span>
+            {temFiltro && (
+              <>
+                {" "}
+                {t.mapa.of}{" "}
+                <span className="tabular-nums">{formatarNumero(coudelarias.length, language)}</span>
+              </>
             )}
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {(searchQuery ? filteredCoudelarias : coudelarias).map((c, i) => (
-                <GridCard key={c.id} coudelaria={c} index={i} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Modal de detalhe */}
-        {selectedCoudelaria && (
-          <div
-            className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]"
-            onClick={() => setSelectedCoudelaria(null)}
-          >
-            <div
-              className="cartao w-full max-w-md opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]"
-              style={{ animationDelay: "0.1s" }}
-              onClick={(e) => e.stopPropagation()}
+          </p>
+          {regiao && (
+            <button
+              type="button"
+              onClick={() => setRegiao(null)}
+              className="chip chip-activo gap-1.5"
             >
-              <div className="relative h-40">
-                <Image
-                  src={selectedCoudelaria.foto_capa || placeholderImages[0]}
-                  alt={selectedCoudelaria.nome}
-                  fill
-                  sizes="(max-width: 448px) 100vw, 448px"
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent" />
-                <button
-                  onClick={() => setSelectedCoudelaria(null)}
-                  className="absolute top-3 right-3 p-1.5 bg-black/50 text-white rounded-full"
-                >
-                  <X size={18} />
-                </button>
-                {selectedCoudelaria.destaque && (
-                  <div className="selo selo-destaque absolute top-3 left-3 rounded-full">
-                    <Star size={12} /> Destaque
+              {regiao}
+              <X size={12} aria-hidden="true" />
+              <span className="sr-only">{t.mapa.clear_filters}</span>
+            </button>
+          )}
+          {procura.trim() && (
+            <button
+              type="button"
+              onClick={() => setProcura("")}
+              className="chip chip-activo gap-1.5"
+            >
+              <span className="font-mono">{procura.trim()}</span>
+              <X size={12} aria-hidden="true" />
+              <span className="sr-only">{t.mapa.clear_search}</span>
+            </button>
+          )}
+          {temFiltro && (
+            <button
+              type="button"
+              onClick={limpar}
+              className="btn btn-subtil btn-sm ml-auto rounded-full"
+            >
+              {t.mapa.clear_filters}
+            </button>
+          )}
+        </div>
+
+        {/* A `key` é o que faz a animação voltar a correr: sem ela o React
+            reaproveita o nó e a animação, que já correu, não se repete — a
+            troca lia-se como um corte de montagem. */}
+        {viewMode === "globo" ? (
+          <div key="globo" className="vista-troca grid gap-4 lg:grid-cols-12 lg:gap-6">
+            <div className="min-w-0 lg:col-span-8">
+              {/* Sem nada para acender, a moldura encolhe. Manter 680px de
+                  preto à volta de uma frase de duas linhas é pedir a quem não
+                  encontrou nada que role meio ecrã para ler que não encontrou
+                  nada. */}
+              <div
+                className={`relative z-0 w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-black ${
+                  visiveis.length > 0 ? "h-[460px] sm:h-[560px] lg:h-[680px]" : "h-[260px]"
+                }`}
+              >
+                <div className="cartao-seco__costura z-10" />
+                {visiveis.length > 0 ? (
+                  <>
+                    {/* Antes recebia `searchQuery ? filtradas : todas`, o que
+                        deixava a região escolhida sem efeito nenhum sobre o
+                        globo: carregava-se em «Alentejo 13» e as vinte e nove
+                        continuavam acesas. Agora recebe o que o funil deu. */}
+                    <GloboTerra
+                      coudelarias={visiveis}
+                      aoEscolher={(c) => setAberta(c as Coudelaria)}
+                    />
+                    <p className="pointer-events-none absolute inset-x-0 bottom-4 z-10 px-6 text-center text-xs text-[var(--foreground-muted)]">
+                      {t.mapa.globe_hint}
+                    </p>
+                  </>
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <SemResultados
+                      titulo={t.mapa.empty_title}
+                      dica={regiao ? t.mapa.empty_region : t.mapa.empty_hint}
+                      termo={procura.trim()}
+                      aoLimpar={limpar}
+                      limparLabel={t.mapa.clear_filters}
+                    />
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* ── Painel lateral ─────────────────────────────────────────
+                Eram duas listas para a mesma coisa e nenhuma falava com a
+                outra. Passam a ser duas partes de uma: em cima escolhe-se a
+                região (e o globo obedece), em baixo estão as coudelarias que
+                a escolha deixou — com link directo à ficha. */}
+            <div className="min-w-0 lg:col-span-4">
+              <div className="lg:sticky lg:top-24">
+                <Revelar direccao="up" className="mb-3">
+                  <div className="cartao overflow-hidden">
+                    <Pilha nivel={regiao === null ? 0 : 1}>
+                      {[
+                        /* Nível 0 — as regiões */
+                        <div key="regioes">
+                          <div className="flex items-center gap-2 border-b border-[var(--border-soft)] px-4 py-3">
+                            <Layers
+                              className="shrink-0 text-[var(--foreground-muted)]"
+                              size={15}
+                              aria-hidden="true"
+                            />
+                            <h2 className="titulo-seccao min-w-0 flex-1 truncate">
+                              {t.mapa.explore_regions}
+                            </h2>
+                            <span className="meta font-mono tabular-nums">{porTexto.length}</span>
+                          </div>
+                          <div className="divide-y divide-[var(--border-soft)]">
+                            {regioes.map(({ regiao: nome, total }, i) => {
+                              /* Uma região que a pesquisa esvaziou fica visível
+                                 mas inerte: escondê-la esconderia que existe;
+                                 deixá-la clicável prometeria o que não há. */
+                              const vazia = total === 0;
+                              return (
+                                <button
+                                  key={nome}
+                                  type="button"
+                                  disabled={vazia}
+                                  onClick={() => setRegiao(nome)}
+                                  style={{ "--i": i } as React.CSSProperties}
+                                  className="linha-cascata group flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-[var(--elevate-1)] disabled:pointer-events-none disabled:opacity-40"
+                                >
+                                  <MapPin
+                                    className="shrink-0 text-[var(--foreground-muted)] transition-colors group-hover:text-[var(--foreground-strong)]"
+                                    size={14}
+                                    aria-hidden="true"
+                                  />
+                                  <span className="min-w-0 flex-1 truncate text-sm text-[var(--foreground)]">
+                                    {nome}
+                                  </span>
+                                  <span className="font-mono text-xs tabular-nums text-[var(--foreground-muted)]">
+                                    {total}
+                                  </span>
+                                  <ChevronRight
+                                    size={14}
+                                    aria-hidden="true"
+                                    className="shrink-0 text-[var(--foreground-muted)] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-[var(--foreground-strong)]"
+                                  />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>,
+
+                        /* Nível 1 — dentro de uma região */
+                        <div key="dentro">
+                          <button
+                            type="button"
+                            onClick={() => setRegiao(null)}
+                            className="group flex w-full items-center gap-2 border-b border-[var(--border-soft)] px-4 py-3 text-left transition-colors hover:bg-[var(--elevate-1)]"
+                          >
+                            <ChevronLeft
+                              size={15}
+                              aria-hidden="true"
+                              className="shrink-0 text-[var(--foreground-muted)] transition-transform duration-200 group-hover:-translate-x-0.5 group-hover:text-[var(--foreground-strong)]"
+                            />
+                            <h2 className="titulo-seccao min-w-0 flex-1 truncate">
+                              {regiao ?? t.mapa.explore_regions}
+                            </h2>
+                            <span className="meta font-mono tabular-nums">{visiveis.length}</span>
+                          </button>
+                          <div className="no-scrollbar divide-y divide-[var(--border-soft)] lg:max-h-[calc(680px-11rem)] lg:overflow-y-auto">
+                            {visiveis.map((c, i) => (
+                              <div
+                                key={c.id}
+                                className="linha-cascata"
+                                style={{ "--i": i } as React.CSSProperties}
+                              >
+                                {linhaDaLista(c)}
+                              </div>
+                            ))}
+                          </div>
+                          {visiveis.length === 0 && (
+                            <p className="meta px-4 py-6 text-center">{t.mapa.empty_region}</p>
+                          )}
+                        </div>,
+                      ]}
+                    </Pilha>
+                  </div>
+                </Revelar>
+
+                <LocalizedLink
+                  href="/directorio"
+                  className="btn btn-subtil btn-sm w-full rounded-xl"
+                >
+                  {t.mapa.all_studs}
+                </LocalizedLink>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div key="lista" className="vista-troca">
+            {visiveis.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 lg:gap-4">
+                {/* Não é `<Revelar>`: esse dispara ao entrar no ecrã e, ao
+                    trocar de vista, os cartões já lá estão — nunca disparava.
+                    A cascata é do CSS e corre com a vista. */}
+                {visiveis.map((c, i) => (
+                  <div
+                    key={c.id}
+                    className="cartao-cascata"
+                    style={{ "--i": i } as React.CSSProperties}
+                  >
+                    <CartaoGrelha
+                      coudelaria={c}
+                      capa={capaDoCartao(c.foto_capa, c.slug, capas)}
+                      featuredLabel={t.mapa.featured}
+                      horsesLabel={t.mapa.horses}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="cartao">
+                <SemResultados
+                  titulo={t.mapa.empty_title}
+                  dica={regiao ? t.mapa.empty_region : t.mapa.empty_hint}
+                  termo={procura.trim()}
+                  aoLimpar={limpar}
+                  limparLabel={t.mapa.clear_filters}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Janela do alfinete ─────────────────────────────────────── */}
+        {aberta && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+            onClick={() => setAberta(null)}
+          >
+            <div
+              ref={janela}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="mapa-janela-titulo"
+              className="cartao anim-crescer w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* A faixa da fotografia só se abre quando há fotografia; sem
+                  ela ficava uma banda cinzenta de 144px a segurar duas letras.
+                  O botão de fechar sai da faixa e passa a viver ao lado do
+                  título, que é onde continua a estar quando não há faixa. */}
+              {capaAberta && (
+                <div className="relative h-36">
+                  <Capa
+                    coudelaria={aberta}
+                    capa={capaAberta}
+                    sizes="(max-width: 448px) 100vw, 448px"
+                  />
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-0 bg-gradient-to-t from-[var(--background-card)] to-transparent"
+                  />
+                </div>
+              )}
               <div className="p-5">
-                <h3 className="text-xl text-[var(--foreground)] mb-1">{selectedCoudelaria.nome}</h3>
-                <p className="text-[var(--foreground-secondary)] text-sm flex items-center gap-1 mb-3">
+                <div className="mb-2 flex items-start gap-3">
+                  <h3
+                    id="mapa-janela-titulo"
+                    className="min-w-0 flex-1 text-xl text-[var(--foreground)]"
+                  >
+                    {aberta.nome}
+                  </h3>
+                  {aberta.destaque && (
+                    <span className="selo selo-forte mt-1 shrink-0 rounded-full">
+                      {t.mapa.featured}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setAberta(null)}
+                    aria-label={t.mapa.dialog_close}
+                    className="-mr-1 -mt-1 shrink-0 rounded-full p-1.5 text-[var(--foreground-muted)] transition-colors hover:bg-[var(--elevate-1)] hover:text-[var(--foreground-strong)]"
+                  >
+                    <X size={18} aria-hidden="true" />
+                  </button>
+                </div>
+                <p className="mb-3 flex items-center gap-1 text-sm text-[var(--foreground-secondary)]">
                   <MapPin size={12} className="text-[var(--foreground-muted)]" aria-hidden="true" />
-                  {selectedCoudelaria.localizacao}, {selectedCoudelaria.regiao}
+                  {aberta.localizacao}, {aberta.regiao}
                 </p>
-                <p className="text-[var(--foreground-secondary)] text-sm mb-4">
-                  {selectedCoudelaria.descricao}
+                <p className="mb-4 line-clamp-4 text-sm text-[var(--foreground-secondary)]">
+                  {aberta.descricao}
                 </p>
-                <div className="grid grid-cols-3 gap-2 mb-4">
-                  {selectedCoudelaria.telefone && (
+                {typeof aberta.num_cavalos === "number" && (
+                  <p className="meta mb-4 font-mono tabular-nums">
+                    {aberta.num_cavalos} {t.mapa.horses}
+                  </p>
+                )}
+                <div className="mb-4 grid grid-cols-3 gap-2">
+                  {aberta.telefone && (
                     <a
-                      href={`tel:${selectedCoudelaria.telefone}`}
-                      className="flex flex-col items-center p-2 bg-[var(--background-card)] rounded-lg text-center"
+                      href={`tel:${aberta.telefone}`}
+                      className="flex flex-col items-center rounded-lg bg-[var(--elevate-1)] p-2 text-center transition-colors hover:bg-[var(--elevate-2)]"
                     >
                       <Phone
                         size={16}
                         className="mb-1 text-[var(--foreground-muted)]"
                         aria-hidden="true"
                       />
-                      <span className="text-[10px] text-[var(--foreground-secondary)]">
-                        {t.mapa.call}
-                      </span>
+                      <span className="meta">{t.mapa.call}</span>
                     </a>
                   )}
-                  {selectedCoudelaria.email && (
+                  {aberta.email && (
                     <a
-                      href={`mailto:${selectedCoudelaria.email}`}
-                      className="flex flex-col items-center p-2 bg-[var(--background-card)] rounded-lg text-center"
+                      href={`mailto:${aberta.email}`}
+                      className="flex flex-col items-center rounded-lg bg-[var(--elevate-1)] p-2 text-center transition-colors hover:bg-[var(--elevate-2)]"
                     >
                       <Mail
                         size={16}
                         className="mb-1 text-[var(--foreground-muted)]"
                         aria-hidden="true"
                       />
-                      <span className="text-[10px] text-[var(--foreground-secondary)]">
-                        {t.mapa.email}
-                      </span>
+                      <span className="meta">{t.mapa.email}</span>
                     </a>
                   )}
-                  {selectedCoudelaria.website && (
+                  {aberta.website && (
                     <a
-                      href={selectedCoudelaria.website}
+                      href={aberta.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex flex-col items-center p-2 bg-[var(--background-card)] rounded-lg text-center"
+                      className="flex flex-col items-center rounded-lg bg-[var(--elevate-1)] p-2 text-center transition-colors hover:bg-[var(--elevate-2)]"
                     >
                       <Globe
                         size={16}
                         className="mb-1 text-[var(--foreground-muted)]"
                         aria-hidden="true"
                       />
-                      <span className="text-[10px] text-[var(--foreground-secondary)]">
-                        {t.mapa.website}
-                      </span>
+                      <span className="meta">{t.mapa.website}</span>
                     </a>
                   )}
                 </div>
                 <LocalizedLink
-                  href={`/directorio/${selectedCoudelaria.slug}`}
+                  href={`/directorio/${aberta.slug}`}
                   className="btn btn-primario w-full gap-2 rounded-full"
                 >
-                  <Navigation size={16} /> {t.mapa.view_page}
+                  <Navigation size={16} aria-hidden="true" /> {t.mapa.view_page}
                 </LocalizedLink>
               </div>
             </div>

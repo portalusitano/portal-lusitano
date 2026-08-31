@@ -1,25 +1,33 @@
 "use client";
 
-import { useState, useMemo, useCallback, useRef, useDeferredValue, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import {
-  MapPin,
-  Search,
-  Crown,
-  ArrowRight,
-  Plus,
-  Users,
-  Star,
-  X,
-  CheckCircle,
-  Map,
-} from "lucide-react";
+import { useCallback, useEffect, useMemo, useState, Suspense } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { ArrowRight, Map, MapPin, Search, X } from "lucide-react";
 import LocalizedLink from "@/components/LocalizedLink";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import Pagination from "@/components/ui/Pagination";
-import { AnimateOnScroll } from "@/components/AnimateOnScroll";
+import Revelar, { atrasoEmGrelha } from "@/components/Revelar";
+import Seleccao from "@/components/ui/Seleccao";
 import { useLanguage } from "@/context/LanguageContext";
+import { capaDoCartao, iniciaisDe } from "@/lib/directorio-capas";
+import {
+  ORDENACOES,
+  POR_PAGINA,
+  aplicarFiltros,
+  contarFiltrosActivos,
+  escreverFiltros,
+  especialidadesDisponiveis,
+  estatisticas,
+  lerFiltros,
+  ordenar,
+  paginar,
+  regioesDisponiveis,
+  temFiltrosActivos,
+  FILTROS_VAZIOS,
+  type FiltrosDirectorio,
+  type Ordenacao,
+} from "@/lib/directorio-filtros";
 
 const GloboMapa = dynamic(() => import("@/components/GloboMapa"), {
   ssr: false,
@@ -30,178 +38,217 @@ const GloboMapa = dynamic(() => import("@/components/GloboMapa"), {
   ),
 });
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ─── Tipos ───────────────────────────────────────────────────────────────────
 
-interface Coudelaria {
+export interface Coudelaria {
   id: string;
   nome: string;
   slug: string;
-  descricao: string;
-  localizacao: string;
-  regiao: string;
-  telefone?: string;
-  email?: string;
-  website?: string;
-  instagram?: string;
-  foto_capa?: string;
-  num_cavalos?: number;
-  ano_fundacao?: number;
-  especialidades: string[];
-  linhagens?: string[];
-  premios?: string[];
-  is_pro: boolean;
-  destaque: boolean;
-  views_count: number;
-  coordenadas_lat?: number;
-  coordenadas_lng?: number;
+  descricao?: string | null;
+  localizacao?: string | null;
+  regiao?: string | null;
+  foto_capa?: string | null;
+  num_cavalos?: number | null;
+  ano_fundacao?: number | null;
+  especialidades?: string[] | null;
+  linhagens?: string[] | null;
+  is_pro?: boolean | null;
+  destaque?: boolean | null;
+  views_count?: number | null;
+  coordenadas_lat?: number | null;
+  coordenadas_lng?: number | null;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+type Dicionario = ReturnType<typeof useLanguage>["t"];
 
-const REGIAO_VALUES = [
-  "Todas",
-  "Ribatejo",
-  "Alentejo",
-  "Lisboa",
-  "Porto",
-  "Minho",
-  "Douro",
-  "Centro",
-] as const;
+/** `{n}` é o único marcador usado nestas frases. */
+function comN(modelo: string, n: number): string {
+  return modelo.replace("{n}", String(n));
+}
 
-const PLACEHOLDER_IMAGES = [
-  "https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=800",
-  "https://images.unsplash.com/photo-1534307671554-9a6d81f4d629?w=800",
-  "https://images.unsplash.com/photo-1598974357801-cbca100e65d3?w=800",
-  "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800",
-  "https://images.unsplash.com/photo-1450052590821-8bf91254a353?w=800",
-];
+// ─── O que fica no HTML estático ─────────────────────────────────────────────
 
-const ITENS_POR_PAGINA = 10;
+/**
+ * A lista, sem filtros, tal como sai do servidor.
+ *
+ * O interior da página lê o URL com `useSearchParams`, e numa rota
+ * prerenderizada isso obriga o Next a escrever no HTML **o fallback do
+ * `Suspense`**, não a lista. Enquanto esse fallback era um esqueleto a pulsar,
+ * quem chegasse sem JavaScript — ou o rastreador que não o executa — recebia
+ * um directório sem uma única coudelaria lá dentro.
+ *
+ * Por isso o fallback passa a ser a própria lista: os mesmos cartões, a mesma
+ * primeira página, sem os controlos que precisam de estado. Ao hidratar, a
+ * versão interactiva toma o lugar desta com o mesmo conteúdo por baixo.
+ */
+function ListaEstatica({
+  coudelarias,
+  capas,
+}: {
+  coudelarias: Coudelaria[];
+  capas: Record<string, string>;
+}) {
+  const { t } = useLanguage();
+  const numeros = estatisticas(coudelarias);
+  const primeiros = coudelarias.slice(0, POR_PAGINA);
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
-
-function SkeletonGrid() {
   return (
-    <div>
-      <div className="h-8 w-48 bg-[var(--background-elevated)] rounded animate-pulse mb-8" />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-[400px] bg-[var(--background-elevated)] animate-pulse" />
-        ))}
+    <div className="min-h-screen bg-[var(--background)]">
+      <section
+        className="relative overflow-hidden pt-20 pb-10 sm:pt-32 sm:pb-14"
+        aria-label={t.directorio.hero_aria}
+      >
+        <div className="relative mx-auto max-w-7xl px-4 text-center sm:px-6">
+          <span className="rotulo mb-5 block">{t.directorio.badge}</span>
+          <h1 className="titulo-gradiente mb-5 text-[2rem] leading-[120%] font-normal tracking-tighter md:text-[3.5rem]">
+            {t.directorio.title}
+          </h1>
+          <p className="mx-auto max-w-2xl text-base leading-relaxed text-[var(--foreground-secondary)] sm:text-lg">
+            {t.directorio.subtitle}
+          </p>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-7xl px-4 pb-20 sm:px-6">
+        <h2 className="titulo-seccao mb-6 border-t border-[var(--border-soft)] pt-4">
+          {numeros.coudelarias === 1
+            ? t.directorio.results_count_one
+            : comN(t.directorio.results_count_many, numeros.coudelarias)}
+        </h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {primeiros.map((c) => (
+            <Cartao
+              key={c.id}
+              coudelaria={c}
+              capa={capaDoCartao(c.foto_capa, c.slug, capas)}
+              t={t}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
+// ─── Página ──────────────────────────────────────────────────────────────────
 
-function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) {
+function DirectorioInterior({
+  coudelarias,
+  capas,
+}: {
+  coudelarias: Coudelaria[];
+  capas: Record<string, string>;
+}) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const currentPage = Number(searchParams.get("page")) || 1;
   const { t } = useLanguage();
 
-  const regioes = useMemo(() => {
-    const r = [...REGIAO_VALUES] as string[];
-    r[0] = t.directorio.region_all;
-    return r;
-  }, [t]);
+  // O URL é a fonte de verdade: a pesquisa fica partilhável, entra nos
+  // favoritos e o botão «anterior» desfaz um filtro de cada vez. Antes disto,
+  // a região e o texto viviam em `useState` e só a página ia para o URL — o
+  // que dava o pior dos dois mundos: um link que não reproduzia o que se via
+  // e, ao estreitar o filtro na página 3, um ecrã vazio.
+  const filtros = useMemo(() => lerFiltros(searchParams), [searchParams]);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [selectedRegiao, setSelectedRegiao] = useState("Todas");
+  // A caixa de texto é o único controlo que não pode ler directamente do URL:
+  // escrever uma entrada de histórico por tecla estragava o botão «anterior».
+  const [rascunho, setRascunho] = useState(filtros.search);
+  const [pesquisaNoUrl, setPesquisaNoUrl] = useState(filtros.search);
+  if (filtros.search !== pesquisaNoUrl) {
+    setPesquisaNoUrl(filtros.search);
+    setRascunho(filtros.search);
+  }
 
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleSearchChange = useCallback((value: string) => {
-    setSearchTerm(value);
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => setDebouncedSearch(value), 300);
-  }, []);
-
-  const clearSearch = useCallback(() => {
-    setSearchTerm("");
-    setDebouncedSearch("");
-  }, []);
-  const clearAll = useCallback(() => {
-    setSearchTerm("");
-    setDebouncedSearch("");
-    setSelectedRegiao("Todas");
-  }, []);
-
-  // Client-side filtering
-  const filtered = useMemo(() => {
-    let result = coudelarias;
-    if (selectedRegiao !== "Todas") {
-      result = result.filter((c) => c.regiao === selectedRegiao);
-    }
-    if (debouncedSearch) {
-      const term = debouncedSearch.toLowerCase();
-      result = result.filter(
-        (c) =>
-          c.nome.toLowerCase().includes(term) ||
-          c.localizacao?.toLowerCase().includes(term) ||
-          c.descricao?.toLowerCase().includes(term)
-      );
-    }
-    return result;
-  }, [coudelarias, selectedRegiao, debouncedSearch]);
-
-  // Defer grid re-render so filter inputs stay responsive during heavy lists
-  const deferredFiltered = useDeferredValue(filtered);
-
-  // Pagination
-  const totalPaginas = Math.ceil(deferredFiltered.length / ITENS_POR_PAGINA);
-  const inicio = (currentPage - 1) * ITENS_POR_PAGINA;
-  const paginadas = deferredFiltered.slice(inicio, inicio + ITENS_POR_PAGINA);
-
-  const handlePageChange = useCallback(
-    (page: number) => {
-      const p = new URLSearchParams(searchParams.toString());
-      p.set("page", page.toString());
-      router.push(`?${p.toString()}`, { scroll: true });
-      window.scrollTo({ top: 0, behavior: "smooth" });
+  const navegar = useCallback(
+    (novos: Partial<FiltrosDirectorio>) => {
+      // Mexer no que se procura volta à página 1: ficar na página 3 de um
+      // conjunto que já só tem uma mostra um ecrã vazio sem explicar porquê.
+      const mudouPesquisa = Object.keys(novos).some((k) => k !== "pagina");
+      const query = escreverFiltros({
+        ...filtros,
+        ...novos,
+        pagina: novos.pagina ?? (mudouPesquisa ? 1 : filtros.pagina),
+      });
+      router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
     },
-    [router, searchParams]
+    [filtros, pathname, router]
   );
 
-  const hasActiveFilters = searchTerm || selectedRegiao !== "Todas";
+  useEffect(() => {
+    if (rascunho === filtros.search) return;
+    const relogio = setTimeout(() => navegar({ search: rascunho }), 300);
+    return () => clearTimeout(relogio);
+  }, [rascunho, filtros.search, navegar]);
 
-  const [showMap, setShowMap] = useState(false);
-  const [flyTo, setFlyTo] = useState<[number, number] | null>(null);
+  // As facetas saem dos dados, não de uma lista escrita à mão: assim não há
+  // pastilhas que não dão resultado nenhum nem regiões fora do alcance do filtro.
+  const regioes = useMemo(() => regioesDisponiveis(coudelarias), [coudelarias]);
+  const especialidades = useMemo(() => especialidadesDisponiveis(coudelarias), [coudelarias]);
+  const numeros = useMemo(() => estatisticas(coudelarias), [coudelarias]);
 
-  const mapCoudelarias = useMemo(
+  const resultados = useMemo(
+    () => ordenar(aplicarFiltros(coudelarias, filtros), filtros.ordenar),
+    [coudelarias, filtros]
+  );
+  const pagina = useMemo(
+    () => paginar(resultados, filtros.pagina, POR_PAGINA),
+    [resultados, filtros.pagina]
+  );
+
+  const nActivos = contarFiltrosActivos(filtros);
+  const temFiltros = temFiltrosActivos(filtros);
+  const limpar = useCallback(() => router.push(pathname, { scroll: false }), [router, pathname]);
+
+  const [mapaAberto, setMapaAberto] = useState(false);
+  const noMapa = useMemo(
     () =>
-      deferredFiltered
-        .filter((c) => c.coordenadas_lat && c.coordenadas_lng)
+      resultados
+        .filter((c) => c.coordenadas_lat != null && c.coordenadas_lng != null)
         .map((c) => ({
           id: c.id,
           nome: c.nome,
           slug: c.slug,
-          descricao: c.descricao,
-          localizacao: c.localizacao,
-          regiao: c.regiao,
-          foto_capa: c.foto_capa,
-          is_pro: c.is_pro,
-          destaque: c.destaque,
-          coordenadas_lat: c.coordenadas_lat,
-          coordenadas_lng: c.coordenadas_lng,
+          descricao: c.descricao ?? "",
+          localizacao: c.localizacao ?? "",
+          regiao: c.regiao ?? "",
+          foto_capa: c.foto_capa ?? undefined,
+          is_pro: Boolean(c.is_pro),
+          destaque: Boolean(c.destaque),
+          coordenadas_lat: c.coordenadas_lat as number,
+          coordenadas_lng: c.coordenadas_lng as number,
         })),
-    [deferredFiltered]
+    [resultados]
   );
 
+  const rotuloOrdenacao: Record<Ordenacao, string> = {
+    recomendadas: t.directorio.sort_recomendadas,
+    nome: t.directorio.sort_nome,
+    antiguidade: t.directorio.sort_antiguidade,
+    cavalos: t.directorio.sort_cavalos,
+  };
+
+  // O painel do topo só mostra o que se conta. O terceiro número era «1000+»,
+  // escrito à mão; agora é o ano de fundação mais antigo, e desaparece quando
+  // nenhuma linha o tem em vez de se inventar um valor para encher a grelha.
+  const painel = [
+    { valor: String(numeros.coudelarias), rotulo: t.directorio.stat_coudelarias },
+    { valor: String(numeros.regioes), rotulo: t.directorio.stat_regioes },
+    ...(numeros.maisAntiga !== null
+      ? [{ valor: String(numeros.maisAntiga), rotulo: t.directorio.stat_mais_antiga }]
+      : []),
+  ];
+
   return (
-    <main className="min-h-screen bg-[var(--background)]">
-      {/* ── Hero ── */}
+    // O `<main>` já é o do `layout.tsx`; um segundo aqui dentro dava dois
+    // marcos de conteúdo principal no mesmo documento, e um leitor de ecrã
+    // que salta para o conteúdo passa a ter duas hipóteses para o mesmo sítio.
+    <div className="min-h-screen bg-[var(--background)]">
+      {/* ── Cabeçalho ── */}
       <section
-        data-revelar=""
-        suppressHydrationWarning
-        className="relative pt-20 sm:pt-32 pb-16 overflow-hidden"
-        aria-label="Cabeçalho do directório"
+        className="relative overflow-hidden pt-20 pb-10 sm:pt-32 sm:pb-14"
+        aria-label={t.directorio.hero_aria}
       >
-        {/* O mesmo halo da página inicial: luz que vem de cima e se dissolve,
-            em vez do véu dourado e do risco vertical que aqui estavam. */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0"
@@ -211,48 +258,206 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
           }}
         />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative">
-          <AnimateOnScroll className="text-center">
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
+          <Revelar className="text-center">
             <span className="rotulo mb-5 block">{t.directorio.badge}</span>
-            <h1 className="titulo-gradiente mb-5 text-[2rem] font-normal leading-[120%] tracking-tighter md:text-[3.5rem]">
+            <h1 className="titulo-gradiente mb-5 text-[2rem] leading-[120%] font-normal tracking-tighter md:text-[3.5rem]">
               {t.directorio.title}
             </h1>
-            <p className="text-[var(--foreground-secondary)] max-w-2xl mx-auto text-lg leading-relaxed">
+            <p className="mx-auto max-w-2xl text-base leading-relaxed text-[var(--foreground-secondary)] sm:text-lg">
               {t.directorio.subtitle}
             </p>
-          </AnimateOnScroll>
+          </Revelar>
 
-          {/* Stats */}
-          <AnimateOnScroll delay={100} className="grid grid-cols-3 gap-4 max-w-xl mx-auto mt-12">
-            {[
-              {
-                value: `${coudelarias.length}+`,
-                label: t.directorio.coudelarias,
-              },
-              { value: String(REGIAO_VALUES.length - 1), label: t.directorio.regioes },
-              { value: "1000+", label: t.directorio.cavalos },
-            ].map(({ value, label }) => (
-              <div
-                key={label}
-                className="cartao p-4 text-center transition-colors hover:border-[var(--border-hover)]"
-              >
-                <div className="text-3xl tabular-nums text-[var(--foreground-strong)]">{value}</div>
-                <div className="meta mt-1">{label}</div>
-              </div>
-            ))}
-          </AnimateOnScroll>
+          <Revelar atraso={100}>
+            <div
+              className={`mx-auto mt-10 grid max-w-lg gap-3 ${
+                painel.length === 3 ? "grid-cols-3" : "grid-cols-2"
+              }`}
+            >
+              {painel.map(({ valor, rotulo }) => (
+                <div key={rotulo} className="cartao px-3 py-4 text-center">
+                  <div className="font-mono text-2xl tabular-nums text-[var(--foreground-strong)] sm:text-3xl">
+                    {valor}
+                  </div>
+                  <div className="meta mt-1">{rotulo}</div>
+                </div>
+              ))}
+            </div>
+          </Revelar>
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-20">
-        {/* ── CTA Banner ── */}
-        <AnimateOnScroll delay={150}>
-          {/* A coroa dourada num quadrado de 64px e o botão dourado de
-              largura inteira gastavam o acento duas vezes na mesma faixa. O
-              que a faixa precisa é de se ler, e isso faz-se com uma
-              superfície elevada e um botão branco. */}
-          <div className="cartao mb-12 p-6 sm:p-8">
-            <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+      <div className="mx-auto max-w-7xl px-4 pb-20 sm:px-6">
+        {/* ── Filtros ── */}
+        <Revelar atraso={150}>
+          <div
+            className="mb-8 space-y-4"
+            role="search"
+            aria-label={t.directorio.search_placeholder}
+          >
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="relative min-w-0 flex-1">
+                <Search
+                  className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-[var(--foreground-muted)]"
+                  size={16}
+                  aria-hidden="true"
+                />
+                <input
+                  type="search"
+                  placeholder={t.directorio.search_placeholder}
+                  value={rascunho}
+                  onChange={(e) => setRascunho(e.target.value)}
+                  aria-label={t.directorio.search_placeholder}
+                  className="campo h-12 pr-10 pl-10 text-sm"
+                />
+                {rascunho && (
+                  <button
+                    type="button"
+                    onClick={() => setRascunho("")}
+                    aria-label={t.directorio.search_clear}
+                    className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-1 text-[var(--foreground-muted)] transition-colors hover:text-[var(--foreground-strong)]"
+                  >
+                    <X size={14} aria-hidden="true" />
+                  </button>
+                )}
+              </div>
+
+              {/* O `<Seleccao>` põe a `className` no botão, não na sua raiz: a
+                  medida tem de vir de fora, senão um `w-full` no botão estica a
+                  raiz e esmaga a caixa de pesquisa ao lado. */}
+              <div className="w-full shrink-0 sm:w-56">
+                <Seleccao
+                  value={filtros.ordenar}
+                  onChange={(e) => navegar({ ordenar: e.target.value as Ordenacao })}
+                  aria-label={t.directorio.sort_label}
+                  className="campo h-12 w-full text-sm"
+                >
+                  {ORDENACOES.map((o) => (
+                    <option key={o} value={o}>
+                      {rotuloOrdenacao[o]}
+                    </option>
+                  ))}
+                </Seleccao>
+              </div>
+            </div>
+
+            <FaixaDeChips
+              rotulo={t.directorio.filter_region}
+              todos={t.directorio.region_all}
+              valor={filtros.regiao}
+              facetas={regioes}
+              aoEscolher={(v) => navegar({ regiao: v })}
+            />
+
+            {especialidades.length > 1 && (
+              <FaixaDeChips
+                rotulo={t.directorio.filter_specialty}
+                todos={t.directorio.region_all}
+                valor={filtros.especialidade}
+                facetas={especialidades}
+                aoEscolher={(v) => navegar({ especialidade: v })}
+              />
+            )}
+          </div>
+        </Revelar>
+
+        {/* ── Barra de resultados ── */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border-soft)] pt-4">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <h2 className="titulo-seccao">
+              {pagina.total === 1
+                ? t.directorio.results_count_one
+                : comN(t.directorio.results_count_many, pagina.total)}
+            </h2>
+            {temFiltros && (
+              <>
+                <span className="meta">
+                  {nActivos === 1
+                    ? t.directorio.filters_active_one
+                    : comN(t.directorio.filters_active_many, nActivos)}
+                </span>
+                <button type="button" onClick={limpar} className="btn btn-subtil btn-sm">
+                  {t.directorio.clear_filters}
+                </button>
+              </>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setMapaAberto((v) => !v)}
+              aria-expanded={mapaAberto}
+              disabled={noMapa.length === 0}
+              className="btn btn-secundario btn-sm gap-2 rounded-full disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Map size={14} aria-hidden="true" />
+              {mapaAberto ? t.directorio.map_hide : t.directorio.map_show}
+              <span className="font-mono tabular-nums text-[var(--foreground-muted)]">
+                {noMapa.length}
+              </span>
+            </button>
+            <LocalizedLink href="/mapa" className="btn btn-subtil btn-sm">
+              {t.directorio.map_full}
+            </LocalizedLink>
+          </div>
+        </div>
+
+        {mapaAberto && noMapa.length > 0 && (
+          <div
+            className="relative z-0 mb-8 overflow-hidden rounded-[var(--raio-lg)] border border-[var(--border-soft)]"
+            style={{ height: 420 }}
+            aria-label={t.directorio.map_label}
+          >
+            <GloboMapa
+              coudelarias={noMapa}
+              onMarkerClick={(c) => router.push(`/directorio/${c.slug}`)}
+            />
+          </div>
+        )}
+
+        {/* ── Grelha ── */}
+        {pagina.itens.length > 0 ? (
+          <section aria-label={t.directorio.results_aria}>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              {pagina.itens.map((c, i) => (
+                <Revelar key={c.id} atraso={atrasoEmGrelha(i)} className="h-full">
+                  <Cartao coudelaria={c} capa={capaDoCartao(c.foto_capa, c.slug, capas)} t={t} />
+                </Revelar>
+              ))}
+            </div>
+            <Pagination
+              currentPage={pagina.pagina}
+              totalPages={pagina.totalPaginas}
+              onPageChange={(p) => {
+                navegar({ pagina: p });
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="mt-10"
+            />
+          </section>
+        ) : (
+          <Vazio
+            t={t}
+            regioes={regioes.slice(0, 4).map((r) => r.valor)}
+            aoEscolherRegiao={(r) =>
+              router.push(`${pathname}?${escreverFiltros({ ...FILTROS_VAZIOS, regiao: r })}`, {
+                scroll: false,
+              })
+            }
+            aoLimpar={limpar}
+            temFiltros={temFiltros}
+          />
+        )}
+
+        {/* ── Registo ──
+            A faixa estava por cima dos filtros, a empurrar a lista para baixo
+            numa página cujo trabalho é mostrar coudelarias. Quem procura uma
+            coudelaria não a quer ali; quem *tem* uma chega ao fim da lista. */}
+        <Revelar>
+          <div className="cartao mt-12 p-5 sm:p-6">
+            <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
               <div>
                 <h2 className="titulo-seccao mb-1">{t.directorio.has_stud}</h2>
                 <p className="text-sm text-[var(--foreground-secondary)]">
@@ -261,309 +466,277 @@ function DirectorioContentInner({ coudelarias }: { coudelarias: Coudelaria[] }) 
               </div>
               <LocalizedLink
                 href="/directorio/registar"
-                className="btn btn-primario shrink-0 rounded-full px-6"
+                className="btn btn-primario btn-sm shrink-0 rounded-full px-5"
               >
                 {t.directorio.register_btn}
               </LocalizedLink>
             </div>
           </div>
-        </AnimateOnScroll>
-
-        {/* ── Filters ── */}
-        <AnimateOnScroll delay={200}>
-          <div
-            className="mb-10 space-y-4"
-            role="search"
-            aria-label={t.directorio.search_placeholder}
-          >
-            {/* Search bar */}
-            <div className="relative group">
-              <Search
-                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]"
-                size={18}
-                aria-hidden="true"
-              />
-              <input
-                type="text"
-                placeholder={t.directorio.search_placeholder}
-                value={searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                aria-label={t.directorio.search_placeholder}
-                className="campo h-14 pl-11 pr-11 text-base"
-              />
-              {searchTerm && (
-                <button
-                  onClick={clearSearch}
-                  aria-label={t.directorio.search_clear}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-[var(--foreground-muted)] transition-colors hover:text-[var(--foreground-strong)]"
-                >
-                  <X size={16} aria-hidden="true" />
-                </button>
-              )}
-            </div>
-
-            {/* Region pills */}
-            <div
-              className="flex flex-wrap gap-2"
-              role="group"
-              aria-label={t.directorio.filter_region}
-            >
-              {regioes.map((regiao, i) => {
-                const value = i === 0 ? "Todas" : regiao;
-                const isActive = selectedRegiao === value;
-                return (
-                  <button
-                    key={regiao}
-                    onClick={() => setSelectedRegiao(value)}
-                    aria-pressed={isActive}
-                    className={`chip ${isActive ? "chip-activo" : ""}`}
-                  >
-                    {regiao}
-                    {isActive && i !== 0 && (
-                      <CheckCircle size={12} className="inline ml-1.5 -mt-0.5" aria-hidden="true" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Active filter summary + clear */}
-            {hasActiveFilters && (
-              <div className="flex items-center justify-between pt-1">
-                <p className="text-sm text-[var(--foreground-muted)]">
-                  {`${deferredFiltered.length} ${
-                    deferredFiltered.length === 1
-                      ? t.directorio.coudelaria_single
-                      : t.directorio.coudelarias_plural
-                  }`}
-                </p>
-                <button onClick={clearAll} className="btn btn-subtil text-sm">
-                  {t.directorio.clear_filters}
-                </button>
-              </div>
-            )}
-          </div>
-        </AnimateOnScroll>
-
-        {/* ── Map toggle ── */}
-        <AnimateOnScroll delay={250}>
-          <div className="mb-10">
-            <button
-              onClick={() => setShowMap((v) => !v)}
-              className="btn btn-secundario gap-2 rounded-full"
-            >
-              <Map size={16} />
-              {showMap ? "Ocultar Mapa" : "Ver no Mapa"}
-              <span className="text-[var(--foreground-muted)] text-xs">
-                ({mapCoudelarias.length})
-              </span>
-            </button>
-            {showMap && (
-              <div
-                className="relative z-0 mt-4 overflow-hidden rounded-2xl border border-[var(--border-soft)]"
-                style={{ height: 450 }}
-              >
-                <GloboMapa
-                  coudelarias={mapCoudelarias}
-                  flyTo={flyTo}
-                  onMarkerClick={(c) => {
-                    router.push(`/directorio/${c.slug}`);
-                  }}
-                />
-              </div>
-            )}
-          </div>
-        </AnimateOnScroll>
-
-        {/* ── Results ── */}
-        <div className="space-y-12">
-          {paginadas.length > 0 && (
-            <section data-revelar="" suppressHydrationWarning aria-label={t.directorio.coudelarias}>
-              <AnimateOnScroll>
-                <div className="flex items-center justify-between mb-8">
-                  <h2 className="titulo-seccao text-2xl">
-                    {t.directorio.coudelarias}
-                    <span className="ml-3 text-base font-normal tabular-nums text-[var(--foreground-muted)]">
-                      ({deferredFiltered.length})
-                    </span>
-                  </h2>
-                </div>
-              </AnimateOnScroll>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {paginadas.map((c, i) => (
-                  <CoudelariaCard key={c.id} coudelaria={c} index={i} t={t} />
-                ))}
-              </div>
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPaginas}
-                onPageChange={handlePageChange}
-                className="mt-12"
-              />
-            </section>
-          )}
-
-          {/* Empty state */}
-          {deferredFiltered.length === 0 && (
-            <AnimateOnScroll>
-              <div className="text-center py-24">
-                <div
-                  className="w-20 h-20 bg-[var(--background-secondary)] border border-[var(--border)] flex items-center justify-center mx-auto mb-6"
-                  aria-hidden="true"
-                >
-                  <Search className="text-[var(--foreground-muted)]" size={32} />
-                </div>
-                <h3 className="text-xl text-[var(--foreground)] mb-2">{t.directorio.no_results}</h3>
-                <p className="text-[var(--foreground-muted)] max-w-sm mx-auto">
-                  {t.directorio.no_results_hint}
-                </p>
-                {hasActiveFilters && (
-                  <button onClick={clearAll} className="btn btn-secundario mt-6 gap-2 rounded-full">
-                    <X size={14} aria-hidden="true" />
-                    {t.directorio.clear_filters}
-                  </button>
-                )}
-              </div>
-            </AnimateOnScroll>
-          )}
-        </div>
+        </Revelar>
       </div>
-    </main>
+    </div>
   );
 }
 
-// ─── Card (formato único para todas as coudelarias) ─────────────────────────
+// ─── Faixa de pastilhas ──────────────────────────────────────────────────────
 
-function CoudelariaCard({
-  coudelaria,
-  index,
+/**
+ * Uma linha de filtros. As pastilhas trazem a contagem que as sustenta, o que
+ * de caminho diz quanto vale carregar nelas — e o escolhido é branco
+ * (`.chip-activo`), não dourado.
+ */
+function FaixaDeChips({
+  rotulo,
+  todos,
+  valor,
+  facetas,
+  aoEscolher,
+}: {
+  rotulo: string;
+  todos: string;
+  valor: string;
+  facetas: { valor: string; n: number }[];
+  aoEscolher: (v: string) => void;
+}) {
+  if (facetas.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="rotulo mr-1 w-full sm:w-auto">{rotulo}</span>
+      <div className="flex flex-wrap gap-2" role="group" aria-label={rotulo}>
+        <button
+          type="button"
+          onClick={() => aoEscolher("")}
+          aria-pressed={valor === ""}
+          className={`chip ${valor === "" ? "chip-activo" : ""}`}
+        >
+          {todos}
+        </button>
+        {facetas.map((f) => (
+          <button
+            key={f.valor}
+            type="button"
+            onClick={() => aoEscolher(valor === f.valor ? "" : f.valor)}
+            aria-pressed={valor === f.valor}
+            className={`chip ${valor === f.valor ? "chip-activo" : ""}`}
+          >
+            {f.valor}
+            <span className="font-mono tabular-nums opacity-60">{f.n}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Cartão ──────────────────────────────────────────────────────────────────
+
+/**
+ * O cartão de uma coudelaria.
+ *
+ * Mostra o que ajuda a escolher uma para visitar — onde é, desde quando, que
+ * efectivo declara, em que trabalha e de que linhagens cria — em vez de uma
+ * fotografia de 400px de altura com o nome por cima. A descrição saiu: nesta
+ * base de dados é a mesma frase em todas as vinte e nove, e uma frase igual
+ * em todos os cartões ocupa espaço sem separar nenhum deles.
+ *
+ * Quando não há fotografia **não se empresta uma**: desenha-se uma chapa com
+ * as iniciais, do mesmo tamanho, para a grelha não ficar aos degraus.
+ */
+function Cartao({
+  coudelaria: c,
+  capa,
   t,
 }: {
   coudelaria: Coudelaria;
-  index: number;
-  t: ReturnType<typeof useLanguage>["t"];
+  capa: string | null;
+  t: Dicionario;
 }) {
-  const localWebp = `/images/coudelarias/${coudelaria.slug}/capa.webp`;
-  const localJpg = `/images/coudelarias/${coudelaria.slug}/capa.jpg`;
-  const placeholder = PLACEHOLDER_IMAGES[index % PLACEHOLDER_IMAGES.length];
-  const [imgSrc, setImgSrc] = useState<string>(coudelaria.foto_capa || localWebp);
-  // Track fallback step via ref so onError always sees the latest value
-  // If foto_capa is null we already show localWebp, so skip to step 1 on error
-  const fallbackStep = useRef(coudelaria.foto_capa ? 0 : 1);
-
-  const handleError = () => {
-    const step = fallbackStep.current;
-    fallbackStep.current += 1;
-    if (step === 0) setImgSrc(localWebp);
-    else if (step === 1) setImgSrc(localJpg);
-    else setImgSrc(placeholder);
-  };
+  const especialidades = (c.especialidades ?? []).filter(Boolean);
+  const linhagens = (c.linhagens ?? []).filter(Boolean);
+  const sitio = [c.localizacao, c.regiao].filter(Boolean).join(", ");
 
   return (
-    <AnimateOnScroll delay={index * 50}>
-      <LocalizedLink
-        href={`/directorio/${coudelaria.slug}`}
-        className="group relative block h-[280px] overflow-hidden rounded-2xl border border-[var(--border-soft)] transition-colors duration-300 hover:border-[var(--border-hover)] sm:h-[400px]"
-        aria-label={`${coudelaria.nome}, ${coudelaria.localizacao}`}
-      >
-        <Image
-          src={imgSrc}
-          alt={coudelaria.nome}
-          fill
-          sizes="(max-width: 1024px) 100vw, 50vw"
-          className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
-          onError={handleError}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-        {/* Overlay  on hover */}
-
-        {/* Top badges */}
-        <div className="absolute top-4 left-4 right-4 flex items-start justify-between">
-          <div className="flex items-center gap-2">
-            {coudelaria.destaque && (
-              <span className="selo selo-forte">
-                <Star size={12} aria-hidden="true" />
-                {t.directorio.highlight}
-              </span>
-            )}
-            {coudelaria.ano_fundacao && (
-              <span className="selo selo-neutro">
-                {t.directorio.since} {coudelaria.ano_fundacao}
-              </span>
-            )}
-          </div>
-          <span className="selo selo-neutro">
-            <CheckCircle size={10} style={{ color: "var(--ok)" }} aria-hidden="true" />
-            {t.directorio.verified}
-          </span>
-        </div>
-
-        {/* Content (bottom overlay) */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
-          <h3 className="mb-1.5 line-clamp-1 text-base text-[var(--foreground-strong)] transition-colors duration-300 sm:mb-2 sm:line-clamp-none sm:text-2xl">
-            {coudelaria.nome}
-          </h3>
-
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-white/70 text-xs sm:text-sm mb-2 sm:mb-3">
-            <span className="flex items-center gap-1">
-              <MapPin
-                size={11}
-                className="flex-shrink-0 text-[var(--foreground-muted)]"
-                aria-hidden="true"
-              />
-              {coudelaria.localizacao}, {coudelaria.regiao}
-            </span>
-            {coudelaria.num_cavalos && (
-              <span className="hidden sm:flex items-center gap-1.5">
-                <Users size={13} className="text-[var(--foreground-muted)]" aria-hidden="true" />
-                {coudelaria.num_cavalos} {t.directorio.horses}
-              </span>
-            )}
-          </div>
-
-          <p className="text-white/60 line-clamp-1 sm:line-clamp-2 mb-2 sm:mb-4 text-xs sm:text-sm leading-relaxed">
-            {coudelaria.descricao}
-          </p>
-
-          {/* Especialidades — hidden on mobile */}
-          {coudelaria.especialidades?.length > 0 && (
-            <div className="hidden sm:flex flex-wrap gap-1.5 mb-4">
-              {coudelaria.especialidades.slice(0, 3).map((esp) => (
-                <span
-                  key={esp}
-                  className="text-xs bg-white/10 backdrop-blur-sm text-white/80 px-2.5 py-1 border border-white/10"
-                >
-                  {esp}
-                </span>
-              ))}
-              {coudelaria.especialidades.length > 3 && (
-                <span className="text-xs text-white/50 px-2.5 py-1">
-                  +{coudelaria.especialidades.length - 3}
-                </span>
-              )}
-            </div>
-          )}
-
-          <div className="flex items-center gap-1.5 text-xs font-medium text-[var(--foreground-strong)] sm:text-sm">
-            {t.directorio.view_stud || t.directorio.view_details}
-            <ArrowRight
-              size={13}
-              className="group-hover:translate-x-1.5 transition-transform duration-300"
+    <LocalizedLink
+      href={`/directorio/${c.slug}`}
+      className="cartao cartao-interactivo group flex h-full flex-col focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground-strong)]"
+      aria-label={sitio ? `${c.nome} — ${sitio}` : c.nome}
+    >
+      <div className="relative aspect-[16/10] w-full overflow-hidden bg-[var(--background-elevated)]">
+        {capa ? (
+          <Image
+            src={capa}
+            alt=""
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+            className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+          />
+        ) : (
+          <div
+            className="flex h-full w-full items-center justify-center"
+            style={{ background: "var(--elevate-1)" }}
+          >
+            <span
+              className="font-mono text-3xl tracking-widest text-[var(--foreground-muted)]"
               aria-hidden="true"
-            />
+            >
+              {iniciaisDe(c.nome)}
+            </span>
+            <span className="sr-only">{t.directorio.no_photo}</span>
           </div>
-        </div>
-      </LocalizedLink>
-    </AnimateOnScroll>
+        )}
+      </div>
+
+      <div className="flex flex-1 flex-col gap-1.5 p-3">
+        <h3 className="line-clamp-2 text-sm leading-snug text-[var(--foreground-strong)]">
+          {c.nome}
+        </h3>
+
+        {sitio && (
+          <p className="meta flex items-start gap-1.5">
+            <MapPin size={12} className="mt-px shrink-0" aria-hidden="true" />
+            <span className="line-clamp-1">{sitio}</span>
+          </p>
+        )}
+
+        {(c.ano_fundacao || c.num_cavalos) && (
+          <p className="meta font-mono tabular-nums">
+            {[
+              c.ano_fundacao ? `${t.directorio.since} ${c.ano_fundacao}` : null,
+              c.num_cavalos
+                ? c.num_cavalos === 1
+                  ? t.directorio.horses_one
+                  : comN(t.directorio.horses_many, c.num_cavalos)
+                : null,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
+        )}
+
+        {especialidades.length > 0 && (
+          <ul className="flex flex-wrap gap-1">
+            {especialidades.slice(0, 2).map((e) => (
+              <li
+                key={e}
+                className="meta rounded-[var(--raio-sm)] border border-[var(--border-soft)] px-1.5 py-0.5 text-[var(--foreground-secondary)]"
+              >
+                {e}
+              </li>
+            ))}
+            {especialidades.length > 2 && (
+              <li
+                className="meta rounded-[var(--raio-sm)] border border-[var(--border-soft)] px-1.5 py-0.5 font-mono"
+                title={especialidades.slice(2).join(", ")}
+              >
+                +{especialidades.length - 2}
+              </li>
+            )}
+          </ul>
+        )}
+
+        {/* O rótulo em cima e os valores por baixo: em linha, numa coluna de
+            173px de telemóvel, sobrava «LINHAGENS Veiga,…» — o rótulo comia o
+            dado que era suposto apresentar. */}
+        {linhagens.length > 0 && (
+          <p>
+            <span className="rotulo block">{t.directorio.lineages_short}</span>
+            <span className="meta line-clamp-1">{linhagens.slice(0, 3).join(", ")}</span>
+          </p>
+        )}
+
+        <span className="mt-auto flex items-center gap-1.5 pt-2 text-xs text-[var(--foreground-strong)]">
+          {t.directorio.view_stud}
+          <ArrowRight
+            size={12}
+            className="transition-transform duration-200 group-hover:translate-x-1"
+            aria-hidden="true"
+          />
+        </span>
+      </div>
+    </LocalizedLink>
   );
 }
 
-// ─── Export (with Suspense for useSearchParams) ──────────────────────────────
+// ─── Estado vazio ────────────────────────────────────────────────────────────
 
-export default function DirectorioContent({ coudelarias }: { coudelarias: Coudelaria[] }) {
+/**
+ * O ecrã que aparece quando a pesquisa não dá nada.
+ *
+ * Antes era um ícone e uma frase no meio de vinte e quatro rem de vazio, sem
+ * saída nenhuma. Quem chega aqui precisa de duas coisas: desfazer o que
+ * estreitou a lista e, se não souber por onde recomeçar, uma região onde há
+ * mesmo coudelarias.
+ */
+function Vazio({
+  t,
+  regioes,
+  aoEscolherRegiao,
+  aoLimpar,
+  temFiltros,
+}: {
+  t: Dicionario;
+  regioes: string[];
+  aoEscolherRegiao: (r: string) => void;
+  aoLimpar: () => void;
+  temFiltros: boolean;
+}) {
   return (
-    <Suspense fallback={<SkeletonGrid />}>
-      <DirectorioContentInner coudelarias={coudelarias} />
+    <div className="cartao mx-auto max-w-xl px-6 py-12 text-center">
+      <Search
+        className="mx-auto mb-4 text-[var(--foreground-muted)]"
+        size={22}
+        aria-hidden="true"
+      />
+      <h3 className="titulo-seccao mb-2">{t.directorio.no_results}</h3>
+      <p className="mx-auto mb-6 max-w-sm text-sm text-[var(--foreground-secondary)]">
+        {t.directorio.no_results_hint}
+      </p>
+
+      {temFiltros && (
+        <button type="button" onClick={aoLimpar} className="btn btn-primario btn-sm gap-2">
+          <X size={13} aria-hidden="true" />
+          {t.directorio.clear_filters}
+        </button>
+      )}
+
+      {regioes.length > 0 && (
+        <div className="mt-8 border-t border-[var(--border-soft)] pt-6">
+          <p className="rotulo mb-3">{t.directorio.empty_try_region}</p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {regioes.map((r) => (
+              <button key={r} type="button" onClick={() => aoEscolherRegiao(r)} className="chip">
+                {r}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <p className="mt-8 border-t border-[var(--border-soft)] pt-6">
+        <LocalizedLink
+          href="/directorio/registar"
+          className="text-sm text-[var(--foreground-strong)] underline underline-offset-4"
+        >
+          {t.directorio.empty_register}
+        </LocalizedLink>
+      </p>
+    </div>
+  );
+}
+
+// ─── Saída (Suspense por causa do useSearchParams) ───────────────────────────
+
+export default function DirectorioContent({
+  coudelarias,
+  capas = {},
+}: {
+  coudelarias: Coudelaria[];
+  capas?: Record<string, string>;
+}) {
+  return (
+    <Suspense fallback={<ListaEstatica coudelarias={coudelarias} capas={capas} />}>
+      <DirectorioInterior coudelarias={coudelarias} capas={capas} />
     </Suspense>
   );
 }

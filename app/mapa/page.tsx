@@ -1,8 +1,49 @@
+import { readdirSync } from "node:fs";
+import { join } from "node:path";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { logger } from "@/lib/logger";
+import { PASTA_CAPAS, mapaDeCapas } from "@/lib/directorio-capas";
 import MapaClient from "@/components/MapaClient";
 import type { Coudelaria } from "@/components/MapaClient";
 
-export default async function MapaPage() {
+/**
+ * Que fotografias existem mesmo em `public/images/coudelarias/`.
+ *
+ * O mapa mostrava três fotografias do Unsplash à vez em todos os cartões,
+ * apresentadas como sendo daquela coudelaria. Havia 24 capas verdadeiras no
+ * repositório que ninguém usava. A escolha é a mesma do `/directorio` e vem
+ * do mesmo módulo — não se escreve aqui uma segunda regra para a mesma coisa.
+ *
+ * Se a pasta não estiver onde se espera, devolve-se um mapa vazio e os cartões
+ * desenham a chapa tipográfica: nunca deixa de haver página por uma leitura
+ * de disco.
+ */
+function lerCapasEmDisco(): Record<string, string> {
+  try {
+    const raiz = join(process.cwd(), "public", PASTA_CAPAS);
+    const pastas: Record<string, string[]> = {};
+    for (const entrada of readdirSync(raiz, { withFileTypes: true })) {
+      if (!entrada.isDirectory()) continue;
+      pastas[entrada.name] = readdirSync(join(raiz, entrada.name));
+    }
+    return mapaDeCapas(pastas);
+  } catch (error) {
+    logger.warn("[MapaPage] sem capas em disco:", error);
+    return {};
+  }
+}
+
+/**
+ * A página é servida a pedido (`ƒ`), por isso ler a query não lhe custa
+ * render nenhum — e é aqui que os filtros de um link partilhado têm de ser
+ * lidos. Feito no cliente dentro de um efeito, a primeira pintura mostrava o
+ * país inteiro e só depois é que encolhia para a região pedida.
+ */
+export default async function MapaPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const supabase = await createSupabaseServerClient();
 
   const { data } = await supabase
@@ -33,5 +74,23 @@ export default async function MapaPage() {
     especialidades: c.especialidades ?? undefined,
   }));
 
-  return <MapaClient coudelarias={coudelarias} />;
+  const params = await searchParams;
+  const texto = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
+
+  // A região só passa se existir mesmo nos dados: `?regiao=<qualquer coisa>`
+  // não deve conseguir pôr a página a mostrar zero coudelarias sem explicação.
+  const pedida = texto(params.regiao);
+  const regiao = coudelarias.some((c) => c.regiao === pedida) ? pedida : null;
+
+  return (
+    <MapaClient
+      coudelarias={coudelarias}
+      capas={lerCapasEmDisco()}
+      inicial={{
+        procura: texto(params.q).slice(0, 80),
+        regiao,
+        vista: texto(params.vista) === "lista" ? "list" : "globo",
+      }}
+    />
+  );
 }

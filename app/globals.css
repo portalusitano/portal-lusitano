@@ -2712,3 +2712,118 @@ body {
     }
   }
 }
+
+/* ── Pilha de níveis: entrar numa região ──────────────────────────────────
+ * Escolher uma região não é filtrar uma lista, é entrar num sítio. O site já
+ * tem um idioma para isso — os submenus do menu de ecrã inteiro —, e é esse
+ * que se repete aqui em vez de se inventar outro: os níveis empilham-se no
+ * mesmo sítio, o que entra vem da direita uma largura inteira enquanto o que
+ * fica se apaga sem se mexer. São os dois ao mesmo tempo que se leem como
+ * profundidade; qualquer um deles sozinho lê-se como um corte.
+ *
+ * A altura da caixa é animada a partir da altura medida do nível activo. Sem
+ * isso, passar de cinco regiões para treze coudelarias dá um salto no
+ * documento e o que está por baixo pula.
+ * ------------------------------------------------------------------------ */
+@layer components {
+  .pilha {
+    position: relative;
+    overflow: hidden;
+    height: var(--altura-pilha, auto);
+    transition: height var(--d-drill) var(--ease-in-out-cubic);
+  }
+
+  .pilha__nivel {
+    transition:
+      transform var(--d-drill) var(--ease-in-out-cubic),
+      opacity var(--d-drill) var(--ease-in-out-cubic);
+  }
+
+  /* O nível que está fora não pode apanhar o rato nem o foco: uma lista
+     invisível a receber tabulações é pior do que não existir. */
+  .pilha__nivel[data-fora="sim"] {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  /* Quem fica para trás não desliza — só se apaga. É essa quietude que faz o
+     outro parecer vir de cima. */
+  .pilha__nivel[data-fora="sim"][data-lado="atras"] {
+    transform: scale(0.97);
+  }
+
+  .pilha__nivel[data-fora="sim"][data-lado="frente"] {
+    transform: translateX(12%);
+  }
+
+  .pilha__nivel[data-fora="nao"] {
+    position: relative;
+    opacity: 1;
+    transform: none;
+  }
+
+  /* As linhas do nível que entra compõem-se em cascata, 45ms a 45ms. É curto
+     de propósito: com treze coudelarias, 100ms por linha punha a última a
+     aparecer 1,3s depois da primeira, e quem entra numa região quer a lista,
+     não um espectáculo. */
+  @keyframes linha-entrar {
+    from {
+      opacity: 0;
+      transform: translateX(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .pilha__nivel[data-fora="nao"] .linha-cascata {
+    animation: linha-entrar var(--d-fast) var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * 45ms);
+  }
+
+  /* ── Trocar de vista: globo ↔ lista ─────────────────────────────────────
+   * A troca era instantânea e lia-se como um corte de montagem: o globo
+   * desaparecia e uma grelha aparecia no mesmo instante, sem nada dizer que
+   * era a mesma informação vista de outra maneira. Um esbatimento curto com
+   * um resto de escala diz que o conteúdo é o mesmo e mudou de forma.
+   * --------------------------------------------------------------------- */
+  @keyframes vista-entrar {
+    from {
+      opacity: 0;
+      transform: scale(0.985) translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .vista-troca {
+    animation: vista-entrar var(--d-menu) var(--ease-out) both;
+  }
+
+  /* Os cartões da lista entram atrás da vista, em cascata. O tecto está em
+     dez: passados dez, o atraso deixa de se ler como ordem e passa a
+     leitura-a-conta-gotas. */
+  .vista-troca .cartao-cascata {
+    animation: vista-entrar var(--d-fast) var(--ease-out) both;
+    animation-delay: calc(120ms + min(var(--i, 0), 10) * 40ms);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pilha,
+  .pilha__nivel,
+  .pilha__nivel[data-fora="nao"] .linha-cascata,
+  .vista-troca,
+  .vista-troca .cartao-cascata {
+    animation: none !important;
+    transition: none !important;
+  }
+  .pilha {
+    height: auto !important;
+  }
+}

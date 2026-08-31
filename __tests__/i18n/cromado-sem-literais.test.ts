@@ -37,6 +37,23 @@ const FICHEIROS_CROMADO = [
   "components/navbar/LusitanoDropdown.tsx",
   "components/navbar/BotaoIdioma.tsx",
   "components/navbar/navData.ts",
+  // A listagem do directório. Entrou por o «Ver no Mapa» e o «Ocultar Mapa»
+  // estarem escritos dentro do componente enquanto o título ao lado vinha do
+  // dicionário — a mesma mistura que o rodapé tinha, na mesma página.
+  "components/directorio/DirectorioContent.tsx",
+  // A página do mapa. Entrou por ter o «Portugal» do título escrito à mão no
+  // `split`, enquanto o resto da frase vinha do dicionário.
+  "components/MapaClient.tsx",
+  // A ficha da coudelaria e as peças que só ela usa.
+  "app/directorio/[slug]/NaoEncontrada.tsx",
+  "components/directorio/ficha/FichaCoudelaria.tsx",
+  "components/directorio/ficha/AccoesCoudelaria.tsx",
+  "components/directorio/ficha/Avaliacoes.tsx",
+  "components/directorio/ficha/Estrelas.tsx",
+  "components/directorio/ficha/Galeria.tsx",
+  "components/directorio/ficha/MapaDaCoudelaria.tsx",
+  "components/directorio/ficha/PainelIdentidade.tsx",
+  "components/directorio/ficha/Partilhar.tsx",
 ];
 
 const ATRIBUTOS_DE_TEXTO = new Set([
@@ -63,6 +80,8 @@ const NAO_E_TRADUZIVEL = new Set([
   "Instagram",
   "Facebook",
   "TikTok",
+  "WhatsApp",
+  "YouTube",
   "Email",
   "Google Analytics",
   "Google AdSense",

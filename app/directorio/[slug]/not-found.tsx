@@ -1,50 +1,5 @@
-import Link from "next/link";
-import { MapPin, ArrowLeft, Search } from "lucide-react";
+import NaoEncontrada from "./NaoEncontrada";
 
 export default function NotFound() {
-  return (
-    <main className="min-h-screen bg-[var(--background)] flex items-center justify-center px-6">
-      <div className="max-w-2xl w-full text-center">
-        {/* Icon */}
-        <div className="mb-8 flex justify-center">
-          <div className="relative">
-            <MapPin className="text-[var(--foreground-muted)]" size={80} aria-hidden="true" />
-            <div className="absolute -bottom-2 -right-2 bg-[var(--background-secondary)] rounded-full p-2">
-              <Search className="text-[var(--foreground-muted)]" size={24} />
-            </div>
-          </div>
-        </div>
-
-        {/* Error Code */}
-        <h1 className="titulo-gradiente text-7xl font-normal tracking-tighter mb-4">404</h1>
-
-        {/* Message */}
-        <h2 className="text-3xl text-[var(--foreground)] mb-4">Coudelaria não encontrada</h2>
-        <p className="text-[var(--foreground-secondary)] text-lg mb-8 max-w-md mx-auto">
-          A coudelaria que procura não existe ou foi removida do nosso diretório.
-        </p>
-
-        {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/directorio" className="btn btn-primario gap-2 rounded-full">
-            <ArrowLeft size={18} />
-            Ver Diretório
-          </Link>
-          <Link href="/" className="btn btn-secundario gap-2 rounded-full px-8">
-            Página Inicial
-          </Link>
-        </div>
-
-        {/* Suggestion */}
-        <div className="mt-12 pt-8 border-t border-[var(--border)]">
-          <p className="text-[var(--foreground-muted)] text-sm mb-4">Sugestões:</p>
-          <ul className="text-[var(--foreground-secondary)] text-sm space-y-2">
-            <li>• Verifique se o endereço está correto</li>
-            <li>• Explore o nosso diretório completo de coudelarias</li>
-            <li>• Use a pesquisa para encontrar coudelarias específicas</li>
-          </ul>
-        </div>
-      </div>
-    </main>
-  );
+  return <NaoEncontrada />;
 }

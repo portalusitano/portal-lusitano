@@ -2,41 +2,57 @@ import { ImageResponse } from "next/og";
 import { supabase } from "@/lib/supabase-admin";
 
 export const runtime = "edge";
-
-export const alt = "Coudelaria - Portal Lusitano";
-export const size = {
-  width: 1200,
-  height: 630,
-};
+export const alt = "Coudelaria — Portal Lusitano";
+export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+const OURO = "#c6a15b";
+const PRETO = "#000000";
+const BRANCO = "#ffffff";
+const TENUE = "#8b8b93";
+
+/**
+ * O cartão que aparece quando alguém partilha uma coudelaria no WhatsApp.
+ *
+ * Duas correcções em relação à versão anterior. A primeira: havia
+ * `border: "1px solid rgb(var(--gold-rgb) / 0.3)"` em três sítios — o Satori
+ * não tem folha de estilos e não resolve variáveis de CSS, pelo que aquelas
+ * regras não pintavam nada. As cores aqui são literais **de propósito**: esta
+ * imagem é gerada fora do browser, onde os tokens do `globals.css` não
+ * existem.
+ *
+ * A segunda: só se escreve o que a base de dados tem. Se não houver
+ * especialidades, não se enche o rodapé com palavras bonitas.
+ */
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
   let nome = "Coudelaria";
   let localizacao = "";
   let regiao = "";
+  let anoFundacao: number | null = null;
   let especialidades: string[] = [];
 
   try {
     const { data } = await supabase
       .from("coudelarias")
-      .select("nome, localizacao, regiao, especialidades")
+      .select("nome, localizacao, regiao, ano_fundacao, especialidades")
       .eq("slug", slug)
+      .eq("status", "active")
       .single();
-
     if (data) {
-      nome = data.nome || "Coudelaria";
+      nome = data.nome || nome;
       localizacao = data.localizacao || "";
       regiao = data.regiao || "";
+      anoFundacao = data.ano_fundacao || null;
       especialidades = (data.especialidades || []).slice(0, 3);
     }
   } catch {
-    // Fall through to default values
+    // Cartão genérico; melhor isso do que nenhuma imagem.
   }
 
-  const displayName = nome.length > 45 ? nome.substring(0, 42) + "..." : nome;
-  const location = [localizacao, regiao].filter(Boolean).join(", ");
+  const titulo = nome.length > 44 ? `${nome.slice(0, 41)}…` : nome;
+  const sitio = [localizacao, regiao].filter(Boolean).join(", ");
 
   return new ImageResponse(
     <div
@@ -45,148 +61,72 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         width: "100%",
         display: "flex",
         flexDirection: "column",
-        backgroundColor: "#050505",
-        backgroundImage: "radial-gradient(circle at 25% 25%, #1a1a1a 0%, #050505 50%)",
-        padding: "60px 80px",
-        position: "relative",
+        justifyContent: "space-between",
+        backgroundColor: PRETO,
+        backgroundImage: "radial-gradient(circle at 22% 18%, #1a1a1a 0%, #000000 55%)",
+        padding: "56px 72px",
       }}
     >
-      {/* Top border accent */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: "4px",
-          background:
-            "linear-gradient(to right, transparent 10%, #C5A059 30%, #C5A059 70%, transparent 90%)",
-        }}
-      />
-
-      {/* Header row */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "40px",
-        }}
-      >
+      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <div style={{ width: "40px", height: "2px", backgroundColor: OURO }} />
         <div
           style={{
-            fontSize: 14,
-            letterSpacing: "0.4em",
-            color: "#C5A059",
+            fontSize: 15,
+            letterSpacing: "0.28em",
+            color: OURO,
             textTransform: "uppercase",
           }}
         >
           Portal Lusitano
         </div>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            padding: "8px 20px",
-            border: "1px solid rgb(var(--gold-rgb) / 0.3)",
-            borderRadius: "8px",
-            backgroundColor: "rgb(var(--gold-rgb) / 0.08)",
-          }}
-        >
-          <span style={{ fontSize: 14, color: "#C5A059", letterSpacing: "0.05em" }}>
-            Directório de Coudelarias
-          </span>
-        </div>
       </div>
 
-      {/* Decorative line */}
-      <div
-        style={{
-          width: "60px",
-          height: "1px",
-          background: "linear-gradient(to right, #C5A059, transparent)",
-          marginBottom: "30px",
-        }}
-      />
-
-      {/* Main title */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-        }}
-      >
-        <div
-          style={{
-            fontSize: 52,
-            fontWeight: 600,
-            color: "white",
-            lineHeight: 1.2,
-            fontFamily: "serif",
-            maxWidth: "900px",
-            marginBottom: "16px",
-          }}
-        >
-          {displayName}
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <div style={{ fontSize: 60, color: BRANCO, lineHeight: 1.15, maxWidth: "980px" }}>
+          {titulo}
         </div>
-        {location && (
-          <div
-            style={{
-              fontSize: 22,
-              color: "#a1a1aa",
-              fontFamily: "serif",
-              fontStyle: "italic",
-            }}
-          >
-            {location}
-          </div>
-        )}
+        {sitio ? (
+          <div style={{ fontSize: 26, color: "#a1a4a5", marginTop: "14px" }}>{sitio}</div>
+        ) : null}
       </div>
 
-      {/* Bottom row */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          borderTop: "1px solid rgba(255,255,255,0.08)",
-          paddingTop: "24px",
+          borderTop: "1px solid rgba(214,235,253,0.19)",
+          paddingTop: "22px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-          <div style={{ width: "40px", height: "1px", backgroundColor: "#C5A059" }} />
-          <div
-            style={{
-              fontSize: 12,
-              letterSpacing: "0.3em",
-              color: "#71717a",
-              textTransform: "uppercase",
-            }}
-          >
-            Cavalos Lusitanos de Elite
-          </div>
+        <div
+          style={{
+            fontSize: 13,
+            letterSpacing: "0.22em",
+            color: TENUE,
+            textTransform: "uppercase",
+          }}
+        >
+          {anoFundacao ? `Fundada em ${anoFundacao}` : "Directório de coudelarias"}
         </div>
-        {especialidades.length > 0 && (
-          <div style={{ display: "flex", gap: "8px" }}>
-            {especialidades.map((esp) => (
-              <span
-                key={esp}
+        {especialidades.length > 0 ? (
+          <div style={{ display: "flex", gap: "10px" }}>
+            {especialidades.map((especialidade) => (
+              <div
+                key={especialidade}
                 style={{
-                  fontSize: 11,
-                  color: "#C5A059",
-                  padding: "4px 12px",
-                  border: "1px solid rgb(var(--gold-rgb) / 0.25)",
-                  borderRadius: "4px",
+                  fontSize: 14,
+                  color: "#f0f0f0",
+                  padding: "6px 14px",
+                  border: "1px solid rgba(214,235,253,0.19)",
+                  borderRadius: "999px",
                 }}
               >
-                {esp}
-              </span>
+                {especialidade}
+              </div>
             ))}
           </div>
-        )}
+        ) : null}
       </div>
     </div>,
     { ...size }
