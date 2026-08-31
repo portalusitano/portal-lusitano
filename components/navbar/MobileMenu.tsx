@@ -73,6 +73,19 @@ export const MobileMenu = memo(function MobileMenu({
 
   const aFechar = montado && !isOpen;
 
+  // Rede de segurança para o desmonte.
+  //
+  // Quem desmonta o painel é o fim da animação de saída. Mas a partir de
+  // 1024px o painel é `lg:hidden`, e um elemento em `display: none` não
+  // corre animações — o `animationend` nunca chegava e o painel ficava
+  // montado para sempre, escondido, com o seu `aria-modal` a acompanhar.
+  // Acontecia mesmo: bastava abrir o menu no telemóvel e alargar a janela.
+  useEffect(() => {
+    if (!aFechar) return;
+    const t = window.setTimeout(() => setMontado(false), 400);
+    return () => window.clearTimeout(t);
+  }, [aFechar]);
+
   // Com o menu aberto, a página por baixo não deve rolar.
   useEffect(() => {
     if (!isOpen) return;

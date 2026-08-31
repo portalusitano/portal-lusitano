@@ -47,6 +47,22 @@ export default memo(function Navbar() {
     return () => document.removeEventListener("keydown", handleGlobalKeyDown);
   }, []);
 
+  // Ao passar para desktop, fechar o menu.
+  //
+  // O painel é `lg:hidden`, por isso ao alargar a janela desaparecia do ecrã
+  // — mas o estado ficava aberto e o `overflow: hidden` que ele põe no body
+  // ficava com ele. Resultado: uma página que não rola e sem nada visível
+  // para fechar. Só se sai daí voltando a estreitar a janela.
+  useEffect(() => {
+    const largo = window.matchMedia("(min-width: 1024px)");
+    const aoMudar = (e: MediaQueryListEvent | MediaQueryList) => {
+      if (e.matches) setIsMobileOpen(false);
+    };
+    aoMudar(largo);
+    largo.addEventListener("change", aoMudar);
+    return () => largo.removeEventListener("change", aoMudar);
+  }, []);
+
   // Detect scroll for better mobile UX (RAF-throttled, only updates on change)
   const scrolledRef = useRef(false);
   useEffect(() => {
