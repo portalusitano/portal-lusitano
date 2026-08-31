@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Calendar, Plus, X, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import Seleccao from "@/components/ui/Seleccao";
 
 interface Task {
   id: string;
@@ -486,7 +487,7 @@ export default function CalendarioContent() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Tipo</label>
-                  <select
+                  <Seleccao
                     value={formData.task_type}
                     onChange={(e) => setFormData({ ...formData, task_type: e.target.value })}
                     className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
@@ -496,12 +497,12 @@ export default function CalendarioContent() {
                     <option value="email">Email</option>
                     <option value="meeting">Reunião</option>
                     <option value="other">Outro</option>
-                  </select>
+                  </Seleccao>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Prioridade</label>
-                  <select
+                  <Seleccao
                     value={formData.priority}
                     onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
                     className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
@@ -510,7 +511,7 @@ export default function CalendarioContent() {
                     <option value="normal">Normal</option>
                     <option value="alta">Alta</option>
                     <option value="urgente">Urgente</option>
-                  </select>
+                  </Seleccao>
                 </div>
               </div>
 

@@ -13,6 +13,7 @@ import {
 } from "@/components/vender-cavalo/data";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
+import Seleccao from "@/components/ui/Seleccao";
 
 export default function StepIdentificacao({ formData, updateField }: StepProps) {
   const { t, language } = useLanguage();
@@ -135,7 +136,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
             >
               {tr("Raça Confirmada *", "Confirmed Breed *", "Raza Confirmada *")}
             </label>
-            <select
+            <Seleccao
               id="raca_confirmada"
               required
               value={formData.raca_confirmada}
@@ -148,7 +149,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
               <option value="PRE — Pura Raza Española">PRE — Pura Raza Española</option>
               <option value="Anglo-Lusitano">Anglo-Lusitano</option>
               <option value="Outro (com registo)">Outro (com registo)</option>
-            </select>
+            </Seleccao>
           </div>
           <div>
             <label
@@ -157,7 +158,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
             >
               {tr("País de Nascimento *", "Country of Birth *", "País de Nacimiento *")}
             </label>
-            <select
+            <Seleccao
               id="pais_nascimento"
               required
               value={formData.pais_nascimento}
@@ -170,7 +171,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
                   {p}
                 </option>
               ))}
-            </select>
+            </Seleccao>
           </div>
         </div>
 
@@ -195,7 +196,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
             <label htmlFor="sexo" className="block text-sm text-[var(--foreground-secondary)] mb-1">
               {t.vender_cavalo.sex} *
             </label>
-            <select
+            <Seleccao
               id="sexo"
               required
               value={formData.sexo}
@@ -206,7 +207,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
               <option value="Garanhão">{t.vender_cavalo.stallion}</option>
               <option value="Égua">{t.vender_cavalo.mare}</option>
               <option value="Castrado">{t.vender_cavalo.gelding}</option>
-            </select>
+            </Seleccao>
           </div>
           <div>
             <label
@@ -215,7 +216,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
             >
               {t.vender_cavalo.coat} *
             </label>
-            <select
+            <Seleccao
               id="pelagem"
               value={formData.pelagem}
               onChange={(e) => updateField("pelagem", e.target.value)}
@@ -227,7 +228,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
                   {p}
                 </option>
               ))}
-            </select>
+            </Seleccao>
           </div>
         </div>
 
@@ -274,7 +275,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
             >
               {tr("Cor dos Olhos", "Eye Color", "Color de Ojos")}
             </label>
-            <select
+            <Seleccao
               id="cor_olhos"
               value={formData.cor_olhos}
               onChange={(e) => updateField("cor_olhos", e.target.value)}
@@ -286,7 +287,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
                   {c}
                 </option>
               ))}
-            </select>
+            </Seleccao>
           </div>
         </div>
 
@@ -298,7 +299,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
             >
               {tr("Cor da Crina", "Mane Color", "Color de Crines")}
             </label>
-            <select
+            <Seleccao
               id="cor_crina"
               value={formData.cor_crina}
               onChange={(e) => updateField("cor_crina", e.target.value)}
@@ -310,7 +311,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
                   {c}
                 </option>
               ))}
-            </select>
+            </Seleccao>
           </div>
           <div>
             <label
@@ -342,7 +343,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
             >
               {tr("Temperamento *", "Temperament *", "Temperamento *")}
             </label>
-            <select
+            <Seleccao
               id="temperamento"
               required
               value={formData.temperamento}
@@ -355,7 +356,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
                   {tp}
                 </option>
               ))}
-            </select>
+            </Seleccao>
           </div>
         </div>
 
@@ -386,7 +387,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
             >
               {tr("Cor do Casco", "Hoof Color", "Color del Casco")}
             </label>
-            <select
+            <Seleccao
               id="cor_casco"
               value={formData.cor_casco}
               onChange={(e) => updateField("cor_casco", e.target.value)}
@@ -398,7 +399,7 @@ export default function StepIdentificacao({ formData, updateField }: StepProps) 
                   {c}
                 </option>
               ))}
-            </select>
+            </Seleccao>
           </div>
         </div>
 

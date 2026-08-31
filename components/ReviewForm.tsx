@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Star, Send, Loader2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import Seleccao from "@/components/ui/Seleccao";
 
 function tr3(lang: string, pt: string, en: string, es: string) {
   return lang === "pt" ? pt : lang === "es" ? es : en;
@@ -256,7 +257,7 @@ export default function ReviewForm({ coudelariaId, coudelariaNome, onSuccess }: 
         <label className="block text-sm font-medium text-[var(--foreground)] mb-1">
           {tr3(language, "Tipo de interação", "Type of interaction", "Tipo de interacción")}
         </label>
-        <select
+        <Seleccao
           value={formData.tipo_visita}
           onChange={(e) => setFormData({ ...formData, tipo_visita: e.target.value })}
           className="w-full px-4 py-2 border border-[var(--border)] rounded-lg bg-[var(--background)] text-[var(--foreground)] focus:ring-2 focus:ring-amber-500 focus:border-transparent"
@@ -272,7 +273,7 @@ export default function ReviewForm({ coudelariaId, coudelariaNome, onSuccess }: 
           </option>
           <option value="evento">{tr3(language, "Evento", "Event", "Evento")}</option>
           <option value="outro">{tr3(language, "Outro", "Other", "Otro")}</option>
-        </select>
+        </Seleccao>
       </div>
 
       <div>

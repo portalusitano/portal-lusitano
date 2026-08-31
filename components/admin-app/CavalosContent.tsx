@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Plus, Edit, Trash2, Eye, Star, MapPin, X, Search } from "lucide-react";
 import { CavaloAdmin } from "@/types/cavalo";
+import Seleccao from "@/components/ui/Seleccao";
 
 const sexoOptions = [
   { value: "macho", label: "Garanhão" },
@@ -338,7 +339,7 @@ export default function CavalosContent() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <select
+                      <Seleccao
                         value={cavalo.status}
                         onChange={(e) => updateStatus(cavalo.id, e.target.value)}
                         className={`px-2 py-1 rounded text-xs font-medium ${statusColors[cavalo.status] || "bg-gray-100"}`}
@@ -347,7 +348,7 @@ export default function CavalosContent() {
                         <option value="reservado">Reservado</option>
                         <option value="vendido">Vendido</option>
                         <option value="inativo">Inativo</option>
-                      </select>
+                      </Seleccao>
                     </td>
                     <td className="px-6 py-4 text-gray-400">{cavalo.views_count || 0}</td>
                     <td className="px-6 py-4 text-right">
@@ -423,7 +424,7 @@ export default function CavalosContent() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">Sexo *</label>
-                  <select
+                  <Seleccao
                     value={formData.sexo}
                     onChange={(e) => setFormData({ ...formData, sexo: e.target.value })}
                     className="w-full bg-[var(--background)] border border-[var(--background-elevated)] text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
@@ -433,7 +434,7 @@ export default function CavalosContent() {
                         {opt.label}
                       </option>
                     ))}
-                  </select>
+                  </Seleccao>
                 </div>
 
                 <div>
@@ -488,7 +489,7 @@ export default function CavalosContent() {
                   <label className="block text-sm font-medium text-gray-300 mb-1">
                     Nível de Treino
                   </label>
-                  <select
+                  <Seleccao
                     value={formData.nivel_treino}
                     onChange={(e) => setFormData({ ...formData, nivel_treino: e.target.value })}
                     className="w-full bg-[var(--background)] border border-[var(--background-elevated)] text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
@@ -498,7 +499,7 @@ export default function CavalosContent() {
                         {opt.label}
                       </option>
                     ))}
-                  </select>
+                  </Seleccao>
                 </div>
 
                 <div>

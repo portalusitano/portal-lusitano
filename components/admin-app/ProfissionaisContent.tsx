@@ -14,6 +14,7 @@ import {
   Phone,
   Globe,
 } from "lucide-react";
+import Seleccao from "@/components/ui/Seleccao";
 
 interface Profissional {
   id: string;
@@ -235,7 +236,7 @@ export default function ProfissionaisContent() {
             </div>
 
             {/* Tipo Filter */}
-            <select
+            <Seleccao
               value={tipoFilter}
               onChange={(e) => setTipoFilter(e.target.value)}
               className="px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
@@ -245,10 +246,10 @@ export default function ProfissionaisContent() {
               <option value="treinador">Treinador</option>
               <option value="ferrador">Ferrador</option>
               <option value="outro">Outro</option>
-            </select>
+            </Seleccao>
 
             {/* Status Filter */}
-            <select
+            <Seleccao
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
@@ -258,10 +259,10 @@ export default function ProfissionaisContent() {
               <option value="aprovado">Aprovado</option>
               <option value="rejeitado">Rejeitado</option>
               <option value="suspenso">Suspenso</option>
-            </select>
+            </Seleccao>
 
             {/* Plano Filter */}
-            <select
+            <Seleccao
               value={planoFilter}
               onChange={(e) => setPlanoFilter(e.target.value)}
               className="px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
@@ -271,7 +272,7 @@ export default function ProfissionaisContent() {
               <option value="bronze">Bronze</option>
               <option value="prata">Prata</option>
               <option value="ouro">Ouro</option>
-            </select>
+            </Seleccao>
           </div>
         </div>
 

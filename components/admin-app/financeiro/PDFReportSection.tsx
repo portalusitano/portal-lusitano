@@ -1,6 +1,7 @@
 "use client";
 
 import { Download, FileText } from "lucide-react";
+import Seleccao from "@/components/ui/Seleccao";
 
 interface PDFReportSectionProps {
   selectedMonth: number;
@@ -39,7 +40,7 @@ export default function PDFReportSection({
           <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
             Mês
           </label>
-          <select
+          <Seleccao
             value={selectedMonth}
             onChange={(e) => onMonthChange(parseInt(e.target.value))}
             className="w-full px-4 py-2.5 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--gold)] transition-colors"
@@ -56,7 +57,7 @@ export default function PDFReportSection({
             <option value="10">Outubro</option>
             <option value="11">Novembro</option>
             <option value="12">Dezembro</option>
-          </select>
+          </Seleccao>
         </div>
 
         {/* Selector de Ano */}
@@ -64,7 +65,7 @@ export default function PDFReportSection({
           <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
             Ano
           </label>
-          <select
+          <Seleccao
             value={selectedYear}
             onChange={(e) => onYearChange(parseInt(e.target.value))}
             className="w-full px-4 py-2.5 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--gold)] transition-colors"
@@ -77,7 +78,7 @@ export default function PDFReportSection({
                 </option>
               );
             })}
-          </select>
+          </Seleccao>
         </div>
 
         {/* Botão Gerar */}

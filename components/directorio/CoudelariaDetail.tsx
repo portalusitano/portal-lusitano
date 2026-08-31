@@ -36,6 +36,7 @@ import {
   Loader2,
   Navigation,
 } from "lucide-react";
+import Seleccao from "@/components/ui/Seleccao";
 
 // ─── Dynamic Map ───────────────────────────────────────────────────────────────
 
@@ -693,7 +694,7 @@ export default function CoudelariaDetail({
                           }
                           className="bg-[var(--background-card)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none transition-colors"
                         />
-                        <select
+                        <Seleccao
                           value={reviewForm.tipo_visita}
                           onChange={(e) =>
                             setReviewForm({ ...reviewForm, tipo_visita: e.target.value })
@@ -705,7 +706,7 @@ export default function CoudelariaDetail({
                           <option value="compra">{t.directorio.purchase}</option>
                           <option value="aulas">{t.directorio.lessons}</option>
                           <option value="eventos">{t.directorio.event}</option>
-                        </select>
+                        </Seleccao>
                       </div>
 
                       {/* Star rating input */}

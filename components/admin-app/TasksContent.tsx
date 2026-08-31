@@ -27,6 +27,7 @@ import {
   useDroppable,
   useDraggable,
 } from "@dnd-kit/core";
+import Seleccao from "@/components/ui/Seleccao";
 // arrayMove not used currently
 
 // ========================================
@@ -409,7 +410,7 @@ const TaskModal = ({ isOpen, onClose, task, onSave, adminUsers }: TaskModalProps
 
             <div>
               <label className="block text-sm font-semibold text-gray-300 mb-2">Prioridade</label>
-              <select
+              <Seleccao
                 value={formData.priority}
                 onChange={(e) =>
                   setFormData({ ...formData, priority: e.target.value as Task["priority"] })
@@ -420,7 +421,7 @@ const TaskModal = ({ isOpen, onClose, task, onSave, adminUsers }: TaskModalProps
                 <option value="normal">Normal</option>
                 <option value="alta">Alta</option>
                 <option value="urgente">Urgente</option>
-              </select>
+              </Seleccao>
             </div>
           </div>
 
@@ -442,7 +443,7 @@ const TaskModal = ({ isOpen, onClose, task, onSave, adminUsers }: TaskModalProps
             {task && (
               <div>
                 <label className="block text-sm font-semibold text-gray-300 mb-2">Estado</label>
-                <select
+                <Seleccao
                   value={formData.status}
                   onChange={(e) =>
                     setFormData({ ...formData, status: e.target.value as Task["status"] })
@@ -452,7 +453,7 @@ const TaskModal = ({ isOpen, onClose, task, onSave, adminUsers }: TaskModalProps
                   <option value="pendente">Pendente</option>
                   <option value="em_andamento">Em Andamento</option>
                   <option value="concluida">Concluída</option>
-                </select>
+                </Seleccao>
               </div>
             )}
           </div>
@@ -764,7 +765,7 @@ export default function TasksContent() {
           {/* Priority Filter */}
           <div className="relative">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-            <select
+            <Seleccao
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
               className="bg-white/5 border border-white/10 rounded-lg pl-10 pr-8 py-2 text-white appearance-none focus:outline-none focus:border-[var(--gold)] transition-colors cursor-pointer"
@@ -774,13 +775,13 @@ export default function TasksContent() {
               <option value="alta">Alta</option>
               <option value="normal">Normal</option>
               <option value="baixa">Baixa</option>
-            </select>
+            </Seleccao>
           </div>
 
           {/* Assigned Filter */}
           <div className="relative">
             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-            <select
+            <Seleccao
               value={filterAssigned}
               onChange={(e) => setFilterAssigned(e.target.value)}
               className="bg-white/5 border border-white/10 rounded-lg pl-10 pr-8 py-2 text-white appearance-none focus:outline-none focus:border-[var(--gold)] transition-colors cursor-pointer"
@@ -793,13 +794,13 @@ export default function TasksContent() {
                   {email}
                 </option>
               ))}
-            </select>
+            </Seleccao>
           </div>
 
           {/* Sort */}
           <div className="relative">
             <SortAsc className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-            <select
+            <Seleccao
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as "due_date" | "created_at" | "priority")}
               className="bg-white/5 border border-white/10 rounded-lg pl-10 pr-8 py-2 text-white appearance-none focus:outline-none focus:border-[var(--gold)] transition-colors cursor-pointer"
@@ -807,7 +808,7 @@ export default function TasksContent() {
               <option value="due_date">Ordenar por Vencimento</option>
               <option value="created_at">Ordenar por Criação</option>
               <option value="priority">Ordenar por Prioridade</option>
-            </select>
+            </Seleccao>
           </div>
         </div>
       </div>

@@ -19,6 +19,7 @@ import {
   type FiltrosMarketplace,
   type Ordenacao,
 } from "@/lib/marketplace-filtros";
+import Seleccao from "@/components/ui/Seleccao";
 
 /** Shape of a horse row from the cavalos_venda table. */
 export interface MarketplaceHorse {
@@ -293,7 +294,7 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
           <label className="sr-only" htmlFor="ordenar">
             Ordenar
           </label>
-          <select
+          <Seleccao
             id="ordenar"
             value={filtros.ordenar}
             onChange={(e) => navegar({ ordenar: e.target.value as Ordenacao })}
@@ -304,7 +305,7 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
                 {o.label}
               </option>
             ))}
-          </select>
+          </Seleccao>
         </div>
       </div>
 

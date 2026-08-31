@@ -5,6 +5,7 @@ import type { StepProps } from "@/components/vender-cavalo/types";
 import { tiposProprietario, paisesOpcoes } from "@/components/vender-cavalo/data";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
+import Seleccao from "@/components/ui/Seleccao";
 
 export default function StepProprietario({ formData, updateField }: StepProps) {
   const { t, language } = useLanguage();
@@ -28,7 +29,7 @@ export default function StepProprietario({ formData, updateField }: StepProps) {
             >
               {tr("Tipo de Vendedor *", "Seller Type *", "Tipo de Vendedor *")}
             </label>
-            <select
+            <Seleccao
               id="tipo_proprietario"
               required
               value={formData.tipo_proprietario}
@@ -41,7 +42,7 @@ export default function StepProprietario({ formData, updateField }: StepProps) {
                   {tp}
                 </option>
               ))}
-            </select>
+            </Seleccao>
           </div>
           <div>
             <label
@@ -50,7 +51,7 @@ export default function StepProprietario({ formData, updateField }: StepProps) {
             >
               {tr("País de Residência *", "Country of Residence *", "País de Residencia *")}
             </label>
-            <select
+            <Seleccao
               id="pais_proprietario"
               required
               value={formData.pais_proprietario}
@@ -63,7 +64,7 @@ export default function StepProprietario({ formData, updateField }: StepProps) {
                   {p}
                 </option>
               ))}
-            </select>
+            </Seleccao>
           </div>
         </div>
 

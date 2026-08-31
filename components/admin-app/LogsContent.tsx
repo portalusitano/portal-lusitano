@@ -16,6 +16,7 @@ import {
   FileText,
   Search,
 } from "lucide-react";
+import Seleccao from "@/components/ui/Seleccao";
 
 interface Log {
   id: string;
@@ -211,7 +212,7 @@ export default function LogsContent() {
           </div>
 
           {/* Tipo de Ação */}
-          <select
+          <Seleccao
             value={filters.action_type}
             onChange={(e) => setFilters({ ...filters, action_type: e.target.value })}
             className="bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
@@ -221,10 +222,10 @@ export default function LogsContent() {
             <option value="update">Atualizar</option>
             <option value="delete">Eliminar</option>
             <option value="approve">Aprovar</option>
-          </select>
+          </Seleccao>
 
           {/* Tipo de Entidade */}
-          <select
+          <Seleccao
             value={filters.entity_type}
             onChange={(e) => setFilters({ ...filters, entity_type: e.target.value })}
             className="bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
@@ -236,10 +237,10 @@ export default function LogsContent() {
             <option value="contact">Contactos</option>
             <option value="coudelaria">Coudelarias</option>
             <option value="profissional">Profissionais</option>
-          </select>
+          </Seleccao>
 
           {/* Admin */}
-          <select
+          <Seleccao
             value={filters.admin_email}
             onChange={(e) => setFilters({ ...filters, admin_email: e.target.value })}
             className="bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
@@ -250,7 +251,7 @@ export default function LogsContent() {
                 {admin}
               </option>
             ))}
-          </select>
+          </Seleccao>
         </div>
       </div>
 

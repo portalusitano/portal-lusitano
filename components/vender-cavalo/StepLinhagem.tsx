@@ -6,6 +6,7 @@ import type { StepProps, Documentos, DocumentType } from "@/components/vender-ca
 import { linhagensPrincipais } from "@/components/vender-cavalo/data";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
+import Seleccao from "@/components/ui/Seleccao";
 
 interface StepLinhagemProps extends StepProps {
   documentos: Documentos;
@@ -250,7 +251,7 @@ export default function StepLinhagem({
             >
               {tr("Linhagem Principal", "Main Lineage", "Linaje Principal")}
             </label>
-            <select
+            <Seleccao
               id="linhagem_principal"
               value={formData.linhagem_principal}
               onChange={(e) => updateField("linhagem_principal", e.target.value)}
@@ -262,7 +263,7 @@ export default function StepLinhagem({
                   {l}
                 </option>
               ))}
-            </select>
+            </Seleccao>
           </div>
           <div>
             <label

@@ -21,6 +21,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import Seleccao from "@/components/ui/Seleccao";
 // Simple toast utility (replace with your preferred toast library)
 const toast = {
   success: (message: string) => {
@@ -451,7 +452,7 @@ export default function AutomationsContent() {
           </div>
 
           {/* Filter: Status */}
-          <select
+          <Seleccao
             value={filterEnabled}
             onChange={(e) => setFilterEnabled(e.target.value as "all" | "true" | "false")}
             className="bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[var(--gold)]"
@@ -459,10 +460,10 @@ export default function AutomationsContent() {
             <option value="all">Todas</option>
             <option value="true">Apenas Ativas</option>
             <option value="false">Apenas Inativas</option>
-          </select>
+          </Seleccao>
 
           {/* Filter: Trigger */}
-          <select
+          <Seleccao
             value={filterTrigger}
             onChange={(e) => setFilterTrigger(e.target.value)}
             className="bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[var(--gold)]"
@@ -473,10 +474,10 @@ export default function AutomationsContent() {
                 {t.label}
               </option>
             ))}
-          </select>
+          </Seleccao>
 
           {/* Filter: Action */}
-          <select
+          <Seleccao
             value={filterAction}
             onChange={(e) => setFilterAction(e.target.value)}
             className="bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[var(--gold)]"
@@ -487,7 +488,7 @@ export default function AutomationsContent() {
                 {a.label}
               </option>
             ))}
-          </select>
+          </Seleccao>
         </div>
       </div>
 
@@ -831,7 +832,7 @@ function AutomationModal({ title, formData, setFormData, onSave, onClose }: Auto
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Trigger (Quando executar) *
             </label>
-            <select
+            <Seleccao
               value={formData.trigger_type}
               onChange={(e) => setFormData({ ...formData, trigger_type: e.target.value })}
               className="w-full bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[var(--gold)]"
@@ -841,7 +842,7 @@ function AutomationModal({ title, formData, setFormData, onSave, onClose }: Auto
                   {t.icon} {t.label} - {t.description}
                 </option>
               ))}
-            </select>
+            </Seleccao>
           </div>
 
           {/* Trigger Conditions (JSON) */}
@@ -863,7 +864,7 @@ function AutomationModal({ title, formData, setFormData, onSave, onClose }: Auto
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Ação (O que fazer) *
             </label>
-            <select
+            <Seleccao
               value={formData.action_type}
               onChange={(e) => setFormData({ ...formData, action_type: e.target.value })}
               className="w-full bg-black/30 border border-white/10 px-4 py-2 text-white rounded-lg focus:outline-none focus:border-[var(--gold)]"
@@ -873,7 +874,7 @@ function AutomationModal({ title, formData, setFormData, onSave, onClose }: Auto
                   {a.icon} {a.label} - {a.description}
                 </option>
               ))}
-            </select>
+            </Seleccao>
           </div>
 
           {/* Action Config (JSON) */}

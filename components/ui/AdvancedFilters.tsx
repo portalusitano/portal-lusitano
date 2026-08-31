@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Filter, X, Save, Calendar, Search, Download, Trash2 } from "lucide-react";
+import Seleccao from "@/components/ui/Seleccao";
 
 // -------------------------------------------------------
 // Public interfaces
@@ -264,7 +265,7 @@ export default function AdvancedFilters({
               >
                 Estado
               </label>
-              <select
+              <Seleccao
                 id="filter-status"
                 value={filters.status}
                 onChange={(e) => handleStatusChange(e.target.value)}
@@ -275,7 +276,7 @@ export default function AdvancedFilters({
                     {opt.label}
                   </option>
                 ))}
-              </select>
+              </Seleccao>
             </div>
           )}
 
@@ -288,7 +289,7 @@ export default function AdvancedFilters({
               >
                 Tipo
               </label>
-              <select
+              <Seleccao
                 id="filter-type"
                 value={filters.type}
                 onChange={(e) => handleTypeChange(e.target.value)}
@@ -300,7 +301,7 @@ export default function AdvancedFilters({
                     {opt.label}
                   </option>
                 ))}
-              </select>
+              </Seleccao>
             </div>
           )}
         </div>

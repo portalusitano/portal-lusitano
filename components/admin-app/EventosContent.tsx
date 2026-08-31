@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Calendar, Plus, Edit, Trash2, Eye, Star, MapPin, X } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
+import Seleccao from "@/components/ui/Seleccao";
 
 interface Evento {
   id: string;
@@ -346,7 +347,7 @@ export default function EventosContent() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">Tipo *</label>
-                  <select
+                  <Seleccao
                     value={formData.tipo}
                     onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
                     className="w-full bg-[var(--background)] border border-white/10 text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
@@ -356,7 +357,7 @@ export default function EventosContent() {
                         {tipo.label}
                       </option>
                     ))}
-                  </select>
+                  </Seleccao>
                 </div>
 
                 <div>

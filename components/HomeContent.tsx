@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import LocalizedLink from "@/components/LocalizedLink";
 import { useMaquinaDeEscrever } from "@/components/ui/useMaquinaDeEscrever";
 import Revelar from "@/components/Revelar";
+import PainelEscrito from "@/components/ui/PainelEscrito";
 import { ImageIcon, Search } from "lucide-react";
 import type { SellerListing } from "@/lib/marketplace-listings";
 
@@ -114,13 +115,21 @@ function CartaoSeco({ children }: { children: React.ReactNode }) {
 }
 
 /** Cabeçalho de um preview em HTML dentro de um cartão. */
-function Preview({ children, colunas }: { children: React.ReactNode; colunas: string }) {
+function Preview({
+  children,
+  colunas,
+  atraso = 0,
+}: {
+  children: React.ReactNode;
+  colunas: string;
+  atraso?: number;
+}) {
   return (
     <div className="relative z-10 h-[280px] overflow-hidden rounded-t-[24px] px-5 pt-5">
       {/* Esbate o preview para o fundo em vez de o cortar a direito. */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-40 bg-gradient-to-t from-[var(--background)] to-transparent" />
       <div className="w-full overflow-hidden" style={{ ["--cols" as string]: colunas }}>
-        {children}
+        <PainelEscrito atraso={atraso}>{children}</PainelEscrito>
       </div>
     </div>
   );
@@ -328,7 +337,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           <Revelar y={20} atraso={0}>
             <CartaoSeco>
-              <Preview colunas={grelhaCols}>
+              <Preview colunas={grelhaCols} atraso={150}>
                 <div className="cabeca-ui" style={{ gridTemplateColumns: grelhaCols }}>
                   <span>Cavalo</span>
                   <span>Coudelaria</span>
@@ -373,7 +382,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
 
           <Revelar y={20} atraso={100}>
             <CartaoSeco>
-              <Preview colunas="1fr">
+              <Preview colunas="1fr" atraso={250}>
                 <div
                   className="rounded-xl border p-3"
                   style={{ borderColor: "var(--border-soft)" }}
@@ -441,7 +450,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
 
           <Revelar y={20} atraso={200}>
             <CartaoSeco>
-              <Preview colunas="1fr 84px 64px">
+              <Preview colunas="1fr 84px 64px" atraso={350}>
                 <div className="cabeca-ui" style={{ gridTemplateColumns: "1fr 84px 64px" }}>
                   <span>Ascendência</span>
                   <span>Linhagem</span>

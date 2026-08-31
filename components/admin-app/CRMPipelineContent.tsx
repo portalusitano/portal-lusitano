@@ -25,6 +25,7 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import Seleccao from "@/components/ui/Seleccao";
 
 interface Lead {
   id: string;
@@ -377,11 +378,11 @@ export default function CRMPipelineContent() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Temperatura</label>
-                <select className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white">
+                <Seleccao className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white">
                   <option value="hot">🔥 Quente</option>
                   <option value="warm">📈 Morno</option>
                   <option value="cold">❄️ Frio</option>
-                </select>
+                </Seleccao>
               </div>
 
               <div className="flex gap-3 mt-6">

@@ -11,6 +11,7 @@ import {
   type Alerta,
   type CriteriosAlerta,
 } from "@/lib/marketplace-alertas";
+import Seleccao from "@/components/ui/Seleccao";
 
 const SEXOS = ["", "macho", "femea", "castrado"];
 const REGIOES = [
@@ -243,7 +244,7 @@ export default function AlertasContent() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <label className="block">
                     <span className="rotulo">Sexo</span>
-                    <select
+                    <Seleccao
                       value={form.sexo}
                       onChange={(e) => setForm({ ...form, sexo: e.target.value })}
                       className="mt-2 w-full bg-[var(--background)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--border-hover)] focus:outline-none"
@@ -253,12 +254,12 @@ export default function AlertasContent() {
                           {s === "" ? "Indiferente" : s}
                         </option>
                       ))}
-                    </select>
+                    </Seleccao>
                   </label>
 
                   <label className="block">
                     <span className="rotulo">Região</span>
-                    <select
+                    <Seleccao
                       value={form.regiao}
                       onChange={(e) => setForm({ ...form, regiao: e.target.value })}
                       className="mt-2 w-full bg-[var(--background)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--border-hover)] focus:outline-none"
@@ -268,7 +269,7 @@ export default function AlertasContent() {
                           {r === "" ? "Indiferente" : r}
                         </option>
                       ))}
-                    </select>
+                    </Seleccao>
                   </label>
 
                   {campo("precoMin", "Preço mínimo (EUR)", "number")}
@@ -281,7 +282,7 @@ export default function AlertasContent() {
 
                 <label className="block">
                   <span className="rotulo">Frequência</span>
-                  <select
+                  <Seleccao
                     value={form.frequencia}
                     onChange={(e) => setForm({ ...form, frequencia: e.target.value })}
                     className="mt-2 w-full bg-[var(--background)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--border-hover)] focus:outline-none"
@@ -291,7 +292,7 @@ export default function AlertasContent() {
                         {f.label}
                       </option>
                     ))}
-                  </select>
+                  </Seleccao>
                 </label>
 
                 <button

@@ -14,6 +14,7 @@ import {
 } from "@/components/vender-cavalo/data";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
+import Seleccao from "@/components/ui/Seleccao";
 
 interface StepTreinoSaudeProps extends StepProps {
   documentos: Documentos;
@@ -51,7 +52,7 @@ export default function StepTreinoSaude({
           >
             {t.vender_cavalo.training_level} *
           </label>
-          <select
+          <Seleccao
             id="nivel_treino"
             required
             value={formData.nivel_treino}
@@ -64,7 +65,7 @@ export default function StepTreinoSaude({
                 {n}
               </option>
             ))}
-          </select>
+          </Seleccao>
         </div>
 
         {/* Uso Atual */}
@@ -145,7 +146,7 @@ export default function StepTreinoSaude({
                 "Nivel de Jinete Recomendado *"
               )}
             </label>
-            <select
+            <Seleccao
               id="nivel_cavaleiro"
               required
               value={formData.nivel_cavaleiro}
@@ -158,7 +159,7 @@ export default function StepTreinoSaude({
                   {n}
                 </option>
               ))}
-            </select>
+            </Seleccao>
           </div>
         </div>
 
@@ -301,7 +302,7 @@ export default function StepTreinoSaude({
               >
                 {tr("Regime de Estabulação", "Stabling Regime", "Régimen de Estabulación")}
               </label>
-              <select
+              <Seleccao
                 id="regime_estabulacao"
                 value={formData.regime_estabulacao}
                 onChange={(e) => updateField("regime_estabulacao", e.target.value)}
@@ -313,7 +314,7 @@ export default function StepTreinoSaude({
                     {r}
                   </option>
                 ))}
-              </select>
+              </Seleccao>
             </div>
             <div>
               <label
@@ -322,7 +323,7 @@ export default function StepTreinoSaude({
               >
                 {tr("Tipo de Alimentação", "Feeding Type", "Tipo de Alimentación")}
               </label>
-              <select
+              <Seleccao
                 id="tipo_alimentacao"
                 value={formData.tipo_alimentacao}
                 onChange={(e) => updateField("tipo_alimentacao", e.target.value)}
@@ -334,7 +335,7 @@ export default function StepTreinoSaude({
                     {a}
                   </option>
                 ))}
-              </select>
+              </Seleccao>
             </div>
           </div>
 
@@ -406,7 +407,7 @@ export default function StepTreinoSaude({
             >
               {t.vender_cavalo.general_status} *
             </label>
-            <select
+            <Seleccao
               id="estado_saude"
               required
               value={formData.estado_saude}
@@ -417,7 +418,7 @@ export default function StepTreinoSaude({
               <option value="Excelente">{t.vender_cavalo.health_excellent}</option>
               <option value="Bom">{t.vender_cavalo.health_good}</option>
               <option value="Regular">{t.vender_cavalo.health_fair}</option>
-            </select>
+            </Seleccao>
           </div>
 
           <div className="mt-4 space-y-3">
@@ -564,7 +565,7 @@ export default function StepTreinoSaude({
               >
                 {tr("Tipo de Ferragem", "Shoeing Type", "Tipo de Herraje")}
               </label>
-              <select
+              <Seleccao
                 id="tipo_ferragem"
                 value={formData.tipo_ferragem}
                 onChange={(e) => updateField("tipo_ferragem", e.target.value)}
@@ -576,7 +577,7 @@ export default function StepTreinoSaude({
                     {opt}
                   </option>
                 ))}
-              </select>
+              </Seleccao>
             </div>
           </div>
 

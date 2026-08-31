@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Home, Search, Pencil, Trash2, Check, X, Star, Eye } from "lucide-react";
+import Seleccao from "@/components/ui/Seleccao";
 
 interface Coudelaria {
   id: string;
@@ -186,7 +187,7 @@ export default function CoudelariasPage() {
             </div>
 
             {/* Status Filter */}
-            <select
+            <Seleccao
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--border-hover)]"
@@ -196,10 +197,10 @@ export default function CoudelariasPage() {
               <option value="aprovado">Aprovado</option>
               <option value="rejeitado">Rejeitado</option>
               <option value="suspenso">Suspenso</option>
-            </select>
+            </Seleccao>
 
             {/* Plano Filter */}
-            <select
+            <Seleccao
               value={planoFilter}
               onChange={(e) => setPlanoFilter(e.target.value)}
               className="px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--border-hover)]"
@@ -209,7 +210,7 @@ export default function CoudelariasPage() {
               <option value="bronze">Bronze</option>
               <option value="prata">Prata</option>
               <option value="ouro">Ouro</option>
-            </select>
+            </Seleccao>
           </div>
         </div>
 

@@ -14,6 +14,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Lead, CRMStats } from "@/types/lead";
+import Seleccao from "@/components/ui/Seleccao";
 
 const STAGES = [
   { key: "novo", label: "Novo", color: "blue" },
@@ -502,7 +503,7 @@ export default function CRMContent() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Origem</label>
-                  <select
+                  <Seleccao
                     value={formData.source_type}
                     onChange={(e) => setFormData({ ...formData, source_type: e.target.value })}
                     className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
@@ -512,7 +513,7 @@ export default function CRMContent() {
                     <option value="publicidade">Publicidade</option>
                     <option value="instagram">Instagram</option>
                     <option value="direto">Direto</option>
-                  </select>
+                  </Seleccao>
                 </div>
               </div>
 

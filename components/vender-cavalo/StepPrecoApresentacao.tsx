@@ -12,6 +12,7 @@ import {
 } from "@/components/vender-cavalo/data";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
+import Seleccao from "@/components/ui/Seleccao";
 
 interface StepPrecoApresentacaoProps extends StepProps {
   imagens: File[];
@@ -107,7 +108,7 @@ export default function StepPrecoApresentacao({
             >
               {tr("Distrito / Região *", "District / Region *", "Distrito / Región *")}
             </label>
-            <select
+            <Seleccao
               id="regiao"
               required
               value={formData.regiao}
@@ -120,7 +121,7 @@ export default function StepPrecoApresentacao({
                   {r}
                 </option>
               ))}
-            </select>
+            </Seleccao>
           </div>
         </div>
 
@@ -337,7 +338,7 @@ export default function StepPrecoApresentacao({
             >
               {tr("Duração do Trial", "Trial Duration", "Duración del Período de Prueba")}
             </label>
-            <select
+            <Seleccao
               id="duracao_trial"
               value={formData.duracao_trial}
               onChange={(e) => updateField("duracao_trial", e.target.value)}
@@ -349,7 +350,7 @@ export default function StepPrecoApresentacao({
                   {d}
                 </option>
               ))}
-            </select>
+            </Seleccao>
           </div>
         )}
 
@@ -387,7 +388,7 @@ export default function StepPrecoApresentacao({
             >
               {t.vender_cavalo.visit_availability}
             </label>
-            <select
+            <Seleccao
               id="disponibilidade_visita"
               value={formData.disponibilidade_visita}
               onChange={(e) => updateField("disponibilidade_visita", e.target.value)}
@@ -399,7 +400,7 @@ export default function StepPrecoApresentacao({
                   {d}
                 </option>
               ))}
-            </select>
+            </Seleccao>
           </div>
           <div>
             <label
@@ -411,7 +412,7 @@ export default function StepPrecoApresentacao({
                 {tr("(opcional)", "(optional)", "(opcional)")}
               </span>
             </label>
-            <select
+            <Seleccao
               id="motivo_venda"
               value={formData.motivo_venda}
               onChange={(e) => updateField("motivo_venda", e.target.value)}
@@ -423,7 +424,7 @@ export default function StepPrecoApresentacao({
                   {m}
                 </option>
               ))}
-            </select>
+            </Seleccao>
           </div>
         </div>
 

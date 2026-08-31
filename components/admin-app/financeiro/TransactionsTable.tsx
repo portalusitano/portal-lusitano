@@ -1,6 +1,7 @@
 "use client";
 
 import { Download, Filter, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import Seleccao from "@/components/ui/Seleccao";
 
 interface Transaction {
   id: string;
@@ -68,7 +69,7 @@ export default function TransactionsTable({
       {/* Filtros */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
         {/* Tipo de Produto */}
-        <select
+        <Seleccao
           value={filters.product_type}
           onChange={(e) => onFilterChange("product_type", e.target.value)}
           className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--gold)]"
@@ -77,10 +78,10 @@ export default function TransactionsTable({
           <option value="cavalo_anuncio">Anúncios de Cavalos</option>
           <option value="instagram_ad">Instagram</option>
           <option value="publicidade">Publicidade</option>
-        </select>
+        </Seleccao>
 
         {/* Status */}
-        <select
+        <Seleccao
           value={filters.status}
           onChange={(e) => onFilterChange("status", e.target.value)}
           className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--gold)]"
@@ -89,7 +90,7 @@ export default function TransactionsTable({
           <option value="succeeded">Sucesso</option>
           <option value="pending">Pendente</option>
           <option value="failed">Falhado</option>
-        </select>
+        </Seleccao>
 
         {/* Data Início */}
         <input

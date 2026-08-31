@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import LocalizedLink from "@/components/LocalizedLink";
 import { useLanguage } from "@/context/LanguageContext";
+import Seleccao from "@/components/ui/Seleccao";
 
 const especialidadesKeys = [
   "specialty_dressage",
@@ -199,7 +200,7 @@ export default function RegistarCoudelariaPage() {
                   <label className="block text-sm text-[var(--foreground-secondary)] mb-2">
                     {t.registar_coudelaria.field_region}
                   </label>
-                  <select
+                  <Seleccao
                     name="regiao"
                     value={formData.regiao}
                     onChange={handleInputChange}
@@ -212,7 +213,7 @@ export default function RegistarCoudelariaPage() {
                         {t.registar_coudelaria[key]}
                       </option>
                     ))}
-                  </select>
+                  </Seleccao>
                 </div>
               </div>
 

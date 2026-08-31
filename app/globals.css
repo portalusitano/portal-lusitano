@@ -1616,7 +1616,8 @@ body {
     }
 
     .anim-cabecalho,
-    .anim-crescer {
+    .anim-crescer,
+    .seleccao__lista {
       animation: none;
     }
   }
@@ -2007,6 +2008,22 @@ body {
   .js [data-revelar].dentro .linha-ui:nth-child(9) {
     animation-delay: 895ms;
   }
+
+  /* Painel que se escreve a si próprio: a escrita é a entrada, e duas ideias
+     de entrada ao mesmo tempo leem-se como confusão — uma linha a desfocar
+     enquanto o texto lhe está a ser escrito lá dentro não se percebe. As
+     linhas ficam quietas e opacas; quem anima é o texto. */
+  .js [data-revelar] .painel-escrito .cabeca-ui,
+  .js [data-revelar] .painel-escrito .linha-ui,
+  .js [data-revelar] .painel-escrito .bloco-ui,
+  .js [data-revelar].dentro .painel-escrito .cabeca-ui,
+  .js [data-revelar].dentro .painel-escrito .linha-ui,
+  .js [data-revelar].dentro .painel-escrito .bloco-ui {
+    opacity: 1;
+    filter: none;
+    transform: none;
+    animation: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2015,5 +2032,151 @@ body {
   .js [data-revelar] .bloco-ui {
     opacity: 1;
     animation: none;
+  }
+}
+
+@layer components {
+  /* ── Lista de selecção ────────────────────────────────────────────────
+     O painel aberto é uma superfície de vidro sobre preto: fundo elevado
+     quase opaco, desfoque por trás e uma hairline fria. A escolha assinala-se
+     a branco (contraste), nunca a dourado nem com a barra azul do sistema —
+     o acento do site é do tamanho de um ícone e não se gasta aqui. */
+
+  .seleccao {
+    position: relative;
+    width: 100%;
+  }
+
+  /* Presente na caixa, invisível ao olho: submete o formulário e é a ele que
+     o browser ancora a mensagem do `required`. Por isso não leva
+     `display:none` — com isso o Chrome recusa-se a mostrar o aviso. */
+  .seleccao__nativo {
+    position: absolute;
+    bottom: 0;
+    left: 1rem;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .seleccao__gatilho {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-align: left;
+    cursor: pointer;
+    appearance: none;
+  }
+
+  .seleccao__gatilho:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  .seleccao__gatilho[data-aberto] {
+    border-color: var(--border);
+  }
+
+  .seleccao__rotulo {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Sem escolha feita, o rótulo é uma sugestão — lê-se como um placeholder. */
+  .seleccao__gatilho[data-vazio] .seleccao__rotulo {
+    color: var(--foreground-muted);
+  }
+
+  .seleccao__seta {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--foreground-muted);
+    transition:
+      transform var(--d-fast) var(--ease-out),
+      color var(--d-fast) var(--ease-out);
+  }
+
+  .seleccao__gatilho:hover .seleccao__seta {
+    color: var(--foreground-secondary);
+  }
+
+  .seleccao__gatilho[data-aberto] .seleccao__seta {
+    transform: rotate(180deg);
+    color: var(--foreground-strong);
+  }
+
+  .seleccao__lista {
+    position: fixed;
+    z-index: 9998;
+    max-height: 18rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0.375rem;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--raio-lg);
+    background: color-mix(in srgb, var(--background-elevated) 92%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow:
+      0 1px 0 0 var(--elevate-1) inset,
+      0 24px 48px -12px rgba(0, 0, 0, 0.7);
+    animation: crescer var(--d-fast) var(--ease-out) both;
+    transform-origin: top center;
+  }
+
+  .seleccao__lista[data-acima] {
+    transform-origin: bottom center;
+  }
+
+  .seleccao__opcao {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: var(--raio-sm);
+    color: var(--foreground-secondary);
+    font-size: 0.875rem;
+    line-height: 1.4;
+    cursor: pointer;
+    transition:
+      background-color var(--d-fast) var(--ease-out),
+      color var(--d-fast) var(--ease-out);
+  }
+
+  .seleccao__opcao[data-activa] {
+    background: var(--elevate-2);
+    color: var(--foreground-strong);
+  }
+
+  .seleccao__opcao[data-escolhida] {
+    color: var(--foreground-strong);
+  }
+
+  .seleccao__opcao[aria-disabled="true"] {
+    color: var(--foreground-muted);
+    cursor: not-allowed;
+    background: none;
+  }
+
+  .seleccao__texto {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .seleccao__visto {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: var(--foreground-strong);
   }
 }

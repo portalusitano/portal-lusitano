@@ -13,6 +13,7 @@ import {
   ChevronRight,
   FileText,
 } from "lucide-react";
+import Seleccao from "@/components/ui/Seleccao";
 
 interface OverviewData {
   overview: {
@@ -236,7 +237,7 @@ export default function FinanceiroContent() {
             <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
               Mês
             </label>
-            <select
+            <Seleccao
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
               className="w-full px-4 py-2.5 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--gold)]"
@@ -253,14 +254,14 @@ export default function FinanceiroContent() {
               <option value="10">Outubro</option>
               <option value="11">Novembro</option>
               <option value="12">Dezembro</option>
-            </select>
+            </Seleccao>
           </div>
 
           <div className="flex-1">
             <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
               Ano
             </label>
-            <select
+            <Seleccao
               value={selectedYear}
               onChange={(e) => setSelectedYear(parseInt(e.target.value))}
               className="w-full px-4 py-2.5 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--gold)]"
@@ -273,7 +274,7 @@ export default function FinanceiroContent() {
                   </option>
                 );
               })}
-            </select>
+            </Seleccao>
           </div>
 
           <button
@@ -449,7 +450,7 @@ export default function FinanceiroContent() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-          <select
+          <Seleccao
             value={filters.product_type}
             onChange={(e) => handleFilterChange("product_type", e.target.value)}
             className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--gold)]"
@@ -458,9 +459,9 @@ export default function FinanceiroContent() {
             <option value="cavalo_anuncio">Anúncios de Cavalos</option>
             <option value="instagram_ad">Instagram</option>
             <option value="publicidade">Publicidade</option>
-          </select>
+          </Seleccao>
 
-          <select
+          <Seleccao
             value={filters.status}
             onChange={(e) => handleFilterChange("status", e.target.value)}
             className="px-3 py-2 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--gold)]"
@@ -469,7 +470,7 @@ export default function FinanceiroContent() {
             <option value="succeeded">Sucesso</option>
             <option value="pending">Pendente</option>
             <option value="failed">Falhado</option>
-          </select>
+          </Seleccao>
 
           <input
             type="date"

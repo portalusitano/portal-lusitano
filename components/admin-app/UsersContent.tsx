@@ -13,6 +13,7 @@ import {
   X,
   AlertCircle,
 } from "lucide-react";
+import Seleccao from "@/components/ui/Seleccao";
 
 interface AdminUser {
   id: string;
@@ -211,7 +212,7 @@ export default function UsersContent() {
           </div>
 
           {/* Filtro Role */}
-          <select
+          <Seleccao
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
             className="bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--gold)]"
@@ -219,10 +220,10 @@ export default function UsersContent() {
             <option value="all">Todos os roles</option>
             <option value="admin">Admin</option>
             <option value="super_admin">Super Admin</option>
-          </select>
+          </Seleccao>
 
           {/* Filtro Ativo */}
-          <select
+          <Seleccao
             value={ativoFilter}
             onChange={(e) => setAtivoFilter(e.target.value)}
             className="bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--gold)]"
@@ -230,7 +231,7 @@ export default function UsersContent() {
             <option value="all">Todos os estados</option>
             <option value="true">Apenas Ativos</option>
             <option value="false">Apenas Inativos</option>
-          </select>
+          </Seleccao>
         </div>
       </div>
 
@@ -379,7 +380,7 @@ export default function UsersContent() {
               {/* Role */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Role *</label>
-                <select
+                <Seleccao
                   value={formData.role}
                   onChange={(e) =>
                     setFormData({
@@ -391,7 +392,7 @@ export default function UsersContent() {
                 >
                   <option value="admin">Admin</option>
                   <option value="super_admin">Super Admin</option>
-                </select>
+                </Seleccao>
               </div>
 
               {/* Botões */}

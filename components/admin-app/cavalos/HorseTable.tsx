@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Edit, Trash2, Eye, Star, MapPin } from "lucide-react";
 import { CavaloAdmin } from "@/types/cavalo";
+import Seleccao from "@/components/ui/Seleccao";
 
 const sexoOptions = [
   { value: "macho", label: "Garanhão" },
@@ -101,7 +102,7 @@ export default function HorseTable({
                 </span>
               </td>
               <td className="px-6 py-4">
-                <select
+                <Seleccao
                   value={cavalo.status}
                   onChange={(e) => onUpdateStatus(cavalo.id, e.target.value)}
                   className={`px-2 py-1 rounded text-xs font-medium ${statusColors[cavalo.status] || "bg-gray-100"}`}
@@ -110,7 +111,7 @@ export default function HorseTable({
                   <option value="reservado">Reservado</option>
                   <option value="vendido">Vendido</option>
                   <option value="inativo">Inativo</option>
-                </select>
+                </Seleccao>
               </td>
               <td className="px-6 py-4 text-gray-600">{cavalo.views_count || 0}</td>
               <td className="px-6 py-4 text-right">
