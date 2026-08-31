@@ -131,7 +131,6 @@ export default memo(function Navbar() {
       <MobileMenu
         isOpen={isMobileOpen}
         language={language}
-        t={t}
         onLanguageToggle={toggleLanguage}
         onClose={handleMobileClose}
       />

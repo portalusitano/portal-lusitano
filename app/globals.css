@@ -1706,3 +1706,52 @@ body {
     }
   }
 }
+
+/* ===========================================================================
+ * MENU DE ECRÃ INTEIRO
+ * ===========================================================================
+ * O painel entra a subir e a aparecer; as entradas seguem-no, escalonadas.
+ * O escalonamento é o que dá a sensação de o menu se compor em vez de
+ * aparecer feito — e é curto de propósito: quem abre um menu quer navegar,
+ * não assistir.
+ * ========================================================================= */
+
+@keyframes menu-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes menu-sair {
+  to {
+    opacity: 0;
+  }
+}
+
+.menu-painel {
+  animation: menu-entrar 0.32s var(--ease-out) both;
+}
+
+.menu-painel[data-a-fechar="true"] {
+  animation: menu-sair 0.2s var(--ease-inout) both;
+}
+
+/* Cada entrada arranca deslocada e vai a horas marcadas pelo `--i` que a
+   página lhe põe. Um só keyframe serve todas. */
+.menu-item {
+  animation: menu-entrar 0.4s var(--ease) both;
+  animation-delay: calc(60ms + var(--i, 0) * 45ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-painel,
+  .menu-painel[data-a-fechar="true"],
+  .menu-item {
+    animation: none;
+  }
+}

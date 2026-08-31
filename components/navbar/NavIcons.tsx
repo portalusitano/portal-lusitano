@@ -1,6 +1,6 @@
 import { memo } from "react";
 import LocalizedLink from "@/components/LocalizedLink";
-import { Search, Heart, User, Plus, X, Sun, Moon, MessagesSquare } from "lucide-react";
+import { Search, Heart, User, Plus, Sun, Moon, MessagesSquare } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useHorseFavorites } from "@/context/HorseFavoritesContext";
 import { useMensagensPorLer } from "@/context/MensagensContext";
@@ -151,10 +151,7 @@ export const NavIcons = memo(function NavIcons({
         aria-expanded={isMobileOpen}
         aria-controls="mobile-menu"
       >
-        {isMobileOpen ? <X size={18} /> : null}
-        {isMobileOpen
-          ? tr3(language, "Fechar", "Close", "Cerrar")
-          : tr3(language, "Menu", "Menu", "Menú")}
+        {tr3(language, "Menu", "Menu", "Menú")}
       </button>
     </div>
   );
