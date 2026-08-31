@@ -9,6 +9,13 @@ on:
 jobs:
   lighthouse:
     runs-on: ubuntu-latest
+    # Sem isto o passo de comentar apanha «403 Resource not accessible by
+    # integration»: o token por omissão só lê. A API pede exactamente estas
+    # duas, e vêm no cabeçalho da própria resposta.
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
 
@@ -47,9 +54,12 @@ jobs:
           temporaryPublicStorage: true
           budgetPath: ./lighthouse-budget.json
 
+      # Um comentário que não sai não invalida uma auditoria que correu: os
+      # resultados ficam no registo e no relatório público de qualquer forma.
       - name: Comment PR with Lighthouse scores
         uses: actions/github-script@v7
         if: github.event_name == 'pull_request'
+        continue-on-error: true
         with:
           script: |
             const fs = require('fs');
@@ -65,7 +75,7 @@ jobs:
             - SEO: ${r.summary.seo}
             `).join('\n')}
 
-            [View full report](${results[0].reportUrl})
+            ${results[0]?.reportUrl ? `[Ver relatório completo](${results[0].reportUrl})` : ""}
             `;
 
             github.rest.issues.createComment({
