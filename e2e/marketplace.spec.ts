@@ -24,6 +24,24 @@ async function saltarSeMarketplaceIndisponivel(page: import("@playwright/test").
   test.skip(grelha === 0, "marketplace indisponível: base de dados inacessível neste ambiente");
 }
 
+/**
+ * A área de conta só é verificável onde a base de dados esteja alcançável.
+ *
+ * Sem Supabase, `auth.getUser()` fica pendurado e a página serve o esqueleto
+ * de carregamento com 200 — não expõe anúncio nenhum, mas também nunca chega
+ * a redireccionar. Marcar isso como falha é acusar o código de um defeito que
+ * é do ambiente.
+ *
+ * O sinal é o mesmo que o do marketplace, e é de propósito: a página de login
+ * não serve para isto, porque o formulário rende à mesma sem base de dados
+ * nenhuma por trás.
+ */
+async function saltarSeAutenticacaoIndisponivel(page: import("@playwright/test").Page) {
+  await page.goto("/comprar");
+  const grelha = await page.getByLabel("Pesquisar cavalos").count();
+  test.skip(grelha === 0, "autenticação indisponível: base de dados inacessível neste ambiente");
+}
+
 test.describe("Marketplace", () => {
   test("a homepage abre na pesquisa e mostra as duas acções", async ({ page }) => {
     await page.goto("/");
@@ -44,12 +62,25 @@ test.describe("Marketplace", () => {
     await expect(page.getByLabel("Pesquisar cavalos")).toHaveValue("veiga");
   });
 
-  test("um atalho da homepage chega ao marketplace já filtrado", async ({ page }) => {
+  // O atalho por disciplina saiu da homepage quando ela foi reconstruída e
+  // passou a viver no segundo nível do menu de telemóvel. O caminho que
+  // interessa — uma escolha leva ao marketplace já filtrado — é o mesmo; o
+  // que muda é a superfície, e por isso o teste corre num ecrã estreito.
+  test("um atalho do menu chega ao marketplace já filtrado", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
 
-    await page.getByRole("link", { name: "Dressage" }).first().click();
+    await page.getByRole("button", { name: /abrir menu/i }).click();
+    await page
+      .locator("#mobile-menu")
+      .getByRole("button", { name: /comprar cavalo/i })
+      .click();
+    await page
+      .locator('.menu-nivel[data-activo="true"]')
+      .getByRole("link", { name: /equita[çc][ãa]o de trabalho/i })
+      .click();
 
-    await page.waitForURL(/\/comprar\?.*disciplina=Dressage/);
+    await page.waitForURL(/\/comprar\?.*disciplina=Trabalho/);
   });
 
   test("os filtros ficam no URL, para a pesquisa poder ser partilhada", async ({ page }) => {
@@ -100,6 +131,8 @@ test.describe("Marketplace", () => {
   test("as páginas da conta exigem sessão", async ({ page }) => {
     // Os anúncios, as mensagens e os alertas de uma pessoa não podem ser
     // alcançáveis sem autenticação.
+    await saltarSeAutenticacaoIndisponivel(page);
+
     for (const rota of [
       "/minha-conta/anuncios",
       "/minha-conta/mensagens",
