@@ -9,7 +9,7 @@ import { useHorseFavorites } from "@/context/HorseFavoritesContext";
 import AuthGuard from "@/components/auth/AuthGuard";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import LocalizedLink from "@/components/LocalizedLink";
-import { Mail, Crown, LogOut, Loader2, Check, Pencil, Star, BarChart2 } from "lucide-react";
+import { Mail, LogOut, Loader2, Check, Pencil, Star, BarChart2 } from "lucide-react";
 
 /**
  * Rótulos históricos de ferramentas que o portal já teve.
@@ -34,8 +34,6 @@ function PerfilContent() {
   const [editingName, setEditingName] = useState(false);
   const [name, setName] = useState<string>((user?.user_metadata?.full_name as string) || "");
   const [saving, setSaving] = useState(false);
-
-  const [subscriptionStatus, setSubscriptionStatus] = useState<"active" | "free">("free");
   const [toolUsage, setToolUsage] = useState<{ tool_name: string; count: number }[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
@@ -45,17 +43,6 @@ function PerfilContent() {
     async function fetchProfileData() {
       try {
         const supabase = createSupabaseBrowserClient();
-
-        // Subscrição
-        const { data: profile } = await supabase
-          .from("user_profiles")
-          .select("tools_subscription_status")
-          .eq("id", user!.id)
-          .single();
-
-        if (profile?.tools_subscription_status === "active") {
-          setSubscriptionStatus("active");
-        }
 
         // Histórico de uso por ferramenta
         const { data: usage } = await supabase
@@ -103,8 +90,6 @@ function PerfilContent() {
     router.push("/");
   };
 
-  const isPro = subscriptionStatus === "active";
-
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-24 pb-16 px-4">
       <div className="max-w-lg mx-auto space-y-6">
@@ -149,52 +134,6 @@ function PerfilContent() {
                 {user?.email}
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Subscription */}
-        <div className="bg-[var(--background-secondary)] cartao p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Crown className="text-[var(--foreground-muted)]" size={20} />
-            <h2 className="text-lg font-medium">{t.profile.subscription}</h2>
-          </div>
-
-          <div className="bg-[var(--background-card)]/50 rounded-lg p-4">
-            {loadingData ? (
-              <div className="flex items-center gap-2 text-sm text-[var(--foreground-muted)]">
-                <Loader2 size={14} className="animate-spin" />
-                <span>{tr("A carregar...", "Loading...", "Cargando...")}</span>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-sm text-[var(--foreground-secondary)]">
-                    {t.profile.current_plan}
-                  </span>
-                  <p className="text-[var(--foreground)] font-medium flex items-center gap-2">
-                    {isPro ? (
-                      <>
-                        <Star size={14} className="text-[var(--foreground-muted)]" />
-                        Pro
-                      </>
-                    ) : (
-                      t.profile.free
-                    )}
-                  </p>
-                </div>
-                {!isPro && (
-                  <a
-                    href="/vender-cavalo"
-                    className="px-4 py-2 btn btn-primario rounded-full text-sm"
-                  >
-                    {t.profile.upgrade_pro}
-                  </a>
-                )}
-              </div>
-            )}
-            {!loadingData && (
-              <p className="text-xs text-[var(--foreground-muted)] mt-2">{t.profile.pro_desc}</p>
-            )}
           </div>
         </div>
 

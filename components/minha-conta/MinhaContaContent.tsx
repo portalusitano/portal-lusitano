@@ -4,15 +4,11 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import LocalizedLink from "@/components/LocalizedLink";
 import {
-  Crown,
-  Loader2,
-  ExternalLink,
   Mail,
   LogOut,
   Heart,
   ShoppingBag,
   Building2,
-  Calendar,
   GitBranch,
   CheckCircle,
   Tag,
@@ -20,8 +16,6 @@ import {
   BellRing,
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { useAuth } from "@/components/auth/AuthProvider";
-import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { logout } from "@/app/minha-conta/actions";
 import "../pro-section.css";
 
@@ -61,129 +55,6 @@ interface Favorito {
 }
 
 // ── Shared subscription hook ─────────────────────────────────────────────────
-function useSubscriptionStatus() {
-  const { user } = useAuth();
-  const [status, setStatus] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-    const load = async () => {
-      try {
-        const supabase = createSupabaseBrowserClient();
-        const { data } = await supabase
-          .from("user_profiles")
-          .select("tools_subscription_status")
-          .eq("id", user.id)
-          .single();
-        setStatus(data?.tools_subscription_status || "inactive");
-      } catch {
-        setStatus(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [user]);
-
-  return { status, loading, isActive: status === "active" };
-}
-
-// ── PRO Subscription card ─────────────────────────────────────────────────────
-function SubscriptionSection() {
-  const { loading, isActive } = useSubscriptionStatus();
-  const [portalLoading, setPortalLoading] = useState(false);
-
-  const handleManagePortal = async () => {
-    setPortalLoading(true);
-    try {
-      const res = await fetch("/api/tools/customer-portal", { method: "POST" });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else setPortalLoading(false);
-    } catch {
-      setPortalLoading(false);
-    }
-  };
-
-  const handleSubscribe = async () => {
-    setPortalLoading(true);
-    try {
-      const res = await fetch("/api/tools/create-checkout", { method: "POST" });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else setPortalLoading(false);
-    } catch {
-      setPortalLoading(false);
-    }
-  };
-
-  if (loading)
-    return (
-      <div className="border border-[var(--border)] p-6 flex items-center justify-center h-24">
-        <Loader2 size={16} className="animate-spin text-[var(--foreground-muted)]" />
-      </div>
-    );
-
-  return (
-    <div
-      className={`relative overflow-hidden ${isActive ? "pro-border-active" : "border border-[var(--border)]"} bg-[var(--background-secondary)]/20 p-6`}
-    >
-      <div className="relative z-10">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="rotulo flex items-center gap-2">
-            <Crown size={11} className="text-[var(--foreground-muted)]" />
-            Ferramentas PRO
-          </h3>
-          {isActive && (
-            <span className="flex items-center gap-1.5 text-[10px] text-emerald-400 uppercase tracking-wider">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Activa
-            </span>
-          )}
-        </div>
-        {isActive ? (
-          <>
-            <p className="text-[11px] text-[var(--foreground-muted)] mb-4 leading-relaxed">
-              9,99 EUR/mes — Acesso ilimitado a todas as ferramentas.
-            </p>
-            <button
-              onClick={handleManagePortal}
-              disabled={portalLoading}
-              className="inline-flex items-center gap-2 text-[10px] uppercase tracking-wider btn btn-subtil text-sm disabled:opacity-50"
-            >
-              {portalLoading ? (
-                <Loader2 size={12} className="animate-spin" />
-              ) : (
-                <ExternalLink size={12} />
-              )}
-              Gerir subscricao
-            </button>
-          </>
-        ) : (
-          <>
-            <p className="text-[11px] text-[var(--foreground-secondary)] mb-4 leading-relaxed">
-              Desbloqueie todas as ferramentas por{""}
-              <span className="text-[var(--foreground-strong)] font-semibold">9,99 EUR/mes</span>.
-            </p>
-            <button
-              onClick={handleSubscribe}
-              disabled={portalLoading}
-              className="inline-flex items-center gap-2 px-4 py-2 btn btn-primario btn-sm rounded-full"
-            >
-              {portalLoading ? <Loader2 size={12} className="animate-spin" /> : <Crown size={12} />}
-              Subscrever PRO
-            </button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // ── Recent Favorites section ─────────────────────────────────────────────────
 function RecentFavorites({ delay }: { delay: number }) {
   const [items, setItems] = useState<Favorito[]>([]);
@@ -282,7 +153,6 @@ function RecentFavorites({ delay }: { delay: number }) {
 export default function MinhaContaContent({ customer }: { customer: Customer }) {
   const { t, language } = useLanguage();
   const locale = language === "en" ? "en-GB" : language === "es" ? "es-ES" : "pt-PT";
-  const { isActive } = useSubscriptionStatus();
   const [visible, setVisible] = useState(false);
 
   // Trigger staggered entrance
@@ -353,11 +223,6 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
                       {initials}
                     </span>
                   </div>
-                  {isActive && (
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[var(--background)] flex items-center justify-center ring-1 ring-[var(--border)]">
-                      <Crown size={10} className="text-[var(--foreground-muted)]" />
-                    </div>
-                  )}
                 </div>
 
                 {/* Name + editorial accent */}
@@ -403,16 +268,6 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
             style={{ transitionDelay: "120ms" }}
             data-animate
           >
-            <div className="px-4 sm:px-7 py-3.5 sm:py-5 group hover:bg-[var(--elevate-1)] transition-colors">
-              <p className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] mb-1">
-                Plano
-              </p>
-              <p
-                className={`text-sm font-semibold ${isActive ? "text-[var(--foreground-muted)]" : "text-[var(--foreground-secondary)]"}`}
-              >
-                {isActive ? "PRO" : "Basico"}
-              </p>
-            </div>
             <div className="px-4 sm:px-7 py-3.5 sm:py-5 hover:bg-[var(--elevate-1)] transition-colors">
               <p className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] mb-1">
                 Email
@@ -474,7 +329,6 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
             </div>
 
             {/* PRO subscription card */}
-            <SubscriptionSection />
 
             {/* Alertas shortcut */}
             <LocalizedLink
