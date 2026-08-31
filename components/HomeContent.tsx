@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import LocalizedLink from "@/components/LocalizedLink";
+import { useMaquinaDeEscrever } from "@/components/ui/useMaquinaDeEscrever";
 import Revelar from "@/components/Revelar";
 import { ImageIcon, Search } from "lucide-react";
 import type { SellerListing } from "@/lib/marketplace-listings";
@@ -14,13 +15,6 @@ interface Props {
   totalAtivos: number;
 }
 
-/** Quick entries into the marketplace, as buyers actually describe what they want. */
-const ATALHOS = [
-  { label: "poldros até 3 anos", href: "/comprar?idadeMax=3" },
-  { label: "equitação de trabalho", href: "/comprar?disciplina=Trabalho" },
-  { label: "éguas de ventre", href: "/comprar?sexo=femea" },
-];
-
 /**
  * Coudelarias históricas, escritas cada uma à sua maneira.
  *
@@ -28,6 +22,15 @@ const ATALHOS = [
  * marca que não temos e que cada coudelaria teria de autorizar. Composto em
  * texto, o muro lê-se igual e não pede nada a ninguém.
  */
+/** O que se escreve mesmo num campo destes: um nome, uma linhagem, uma raça. */
+const EXEMPLOS_DE_BUSCA = [
+  "Coudelaria Veiga",
+  "Linhagem Andrade",
+  "Éguas de ventre",
+  "Equitação de trabalho",
+  "Poldros até 3 anos",
+];
+
 const COUDELARIAS = [
   { nome: "Coudelaria do Vale", classe: "font-medium tracking-wide" },
   { nome: "Herdade da Ribeira", classe: "font-semibold tracking-tight" },
@@ -156,6 +159,13 @@ function CorpoCartao({
 export default function HomeContent({ destaques, recentes, totalAtivos }: Props) {
   const router = useRouter();
   const [termo, setTermo] = useState("");
+  const [campoActivo, setCampoActivo] = useState(false);
+
+  // A máquina pára mal alguém toque no campo — texto a mexer por baixo do que
+  // se está a escrever é ruído, não é adorno.
+  const aEscrever = useMaquinaDeEscrever(EXEMPLOS_DE_BUSCA, {
+    parado: campoActivo || termo.length > 0,
+  });
 
   const pesquisar = (e: React.FormEvent) => {
     e.preventDefault();
@@ -210,7 +220,14 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
                     type="search"
                     value={termo}
                     onChange={(e) => setTermo(e.target.value)}
-                    placeholder="Linhagem, coudelaria, disciplina ou nome"
+                    onFocus={() => setCampoActivo(true)}
+                    onBlur={() => setCampoActivo(false)}
+                    // No servidor e antes de o JS arrancar mostra-se a frase
+                    // inteira; a máquina só assume depois de montada. Assim o
+                    // campo nunca aparece vazio nem gera erro de hidratação.
+                    placeholder={
+                      aEscrever === null ? "Linhagem, coudelaria, disciplina ou nome" : aEscrever
+                    }
                     aria-label="Procurar cavalos"
                     className="campo h-12 pl-11 text-base sm:h-14 sm:text-lg"
                   />
@@ -221,19 +238,6 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
                 >
                   Procurar
                 </button>
-              </div>
-
-              <div className="mt-3 flex flex-wrap justify-center gap-2">
-                <span className="text-xs text-[var(--foreground-muted)]">Popular:</span>
-                {ATALHOS.map((a) => (
-                  <LocalizedLink
-                    key={a.label}
-                    href={a.href}
-                    className="text-xs text-[var(--foreground-secondary)] underline decoration-[var(--border)] underline-offset-4 transition-colors hover:text-[var(--foreground-strong)] hover:decoration-[var(--border-hover)]"
-                  >
-                    {a.label}
-                  </LocalizedLink>
-                ))}
               </div>
             </form>
           </Revelar>
@@ -375,7 +379,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
                   style={{ borderColor: "var(--border-soft)" }}
                 >
                   <div
-                    className="mb-3 flex items-center gap-2 border-b pb-2"
+                    className="bloco-ui mb-3 flex items-center gap-2 border-b pb-2"
                     style={{ borderColor: "var(--border-soft)" }}
                   >
                     <span className="ponto" style={{ background: "var(--gold)" }} />
@@ -389,15 +393,15 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
                       por ler
                     </span>
                   </div>
-                  <p className="mb-1 text-[11px] font-medium text-[var(--foreground-strong)]">
+                  <p className="bloco-ui mb-1 text-[11px] font-medium text-[var(--foreground-strong)]">
                     Ana Ferreira · Sevilha
                   </p>
-                  <p className="mb-3 text-[11px] leading-relaxed text-[var(--foreground-muted)]">
+                  <p className="bloco-ui mb-3 text-[11px] leading-relaxed text-[var(--foreground-muted)]">
                     Interessada no{" "}
                     <span className="text-[var(--foreground-strong)]">Ícaro do Vale</span>. Procuro
                     cavalo para equitação de trabalho, nível médio.
                   </p>
-                  <div className="mb-3 grid grid-cols-2 gap-2">
+                  <div className="bloco-ui mb-3 grid grid-cols-2 gap-2">
                     {[
                       ["Orçamento", "15–25 k€"],
                       ["Disciplina", "Trabalho"],
@@ -414,7 +418,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
                       </div>
                     ))}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="bloco-ui flex gap-2">
                     <span className="rounded-md bg-[var(--foreground-strong)] px-2.5 py-1 text-[10px] font-semibold text-black">
                       Responder
                     </span>
@@ -573,37 +577,6 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
           </Revelar>
         </section>
       )}
-
-      {/* ── TESTEMUNHO ───────────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-7xl px-4 md:px-6">
-        <div className="relative py-16 text-center md:py-28">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0"
-            style={{
-              backgroundImage:
-                "radial-gradient(ellipse 80% 60% at 50% 0%, var(--elevate-1), transparent 70%)",
-            }}
-          />
-          <div className="relative">
-            <Revelar duracao={800} y={20}>
-              <blockquote className="mx-auto max-w-3xl text-xl leading-relaxed text-[var(--foreground)] md:text-[1.75rem] md:leading-[1.5]">
-                &ldquo;Vendi dois poldros sem pagar comissão nenhuma. O anúncio com genealogia e
-                fotografias a sério fez metade do trabalho por mim.&rdquo;
-              </blockquote>
-            </Revelar>
-            <Revelar duracao={600} atraso={200} y={20}>
-              <p className="mt-8 text-2xl" style={{ color: "var(--gold)" }}>
-                Coudelaria do Vale
-              </p>
-            </Revelar>
-            <Revelar duracao={600} atraso={300} y={20}>
-              <p className="mt-4 text-sm text-[var(--foreground)]">Miguel Antunes</p>
-              <p className="text-sm text-[var(--foreground-secondary)]">Criador, Golegã</p>
-            </Revelar>
-          </div>
-        </div>
-      </section>
 
       {/* ── PUBLICAR COM CONFIANÇA ───────────────────────────────────────── */}
       <section

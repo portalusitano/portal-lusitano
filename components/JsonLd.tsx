@@ -617,54 +617,6 @@ export function EbookOfferSchema() {
   );
 }
 
-// Schema de AboutPage (E-E-A-T — sinaliza credibilidade e autoridade ao Google)
-export function AboutPageSchema() {
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "AboutPage",
-    name: "Sobre o Portal Lusitano",
-    url: `${siteUrl}/sobre`,
-    description:
-      "O Portal Lusitano é a plataforma digital mais completa dedicada ao cavalo Lusitano. Marketplace, directório de coudelarias, ferramentas equestres e arquivo editorial.",
-    mainEntity: {
-      "@type": "Organization",
-      name: "Portal Lusitano",
-      url: siteUrl,
-      logo: `${siteUrl}/logo.png`,
-      foundingDate: "2023",
-      description:
-        "Marketplace premium de cavalos Lusitanos. Loja equestre, directório de coudelarias certificadas e arquivo editorial especializado.",
-      location: {
-        "@type": "Place",
-        name: "Portugal",
-        address: { "@type": "PostalAddress", addressCountry: "PT" },
-      },
-      contactPoint: {
-        "@type": "ContactPoint",
-        contactType: "customer service",
-        availableLanguage: ["Portuguese", "English", "Spanish"],
-      },
-      sameAs: ["https://instagram.com/portal_lusitano", "https://tiktok.com/@portal_lusitano"],
-      knowsAbout: [
-        "Cavalo Lusitano",
-        "Dressage",
-        "Working Equitation",
-        "Atrelagem",
-        "Genealogia Equina",
-        "Raça PSL",
-        "Alta Escola",
-      ],
-    },
-  };
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  );
-}
-
 // Schema de VideoObject (para cavalos com vídeo — melhora presença nos resultados de pesquisa)
 interface VideoObjectSchemaProps {
   name: string;

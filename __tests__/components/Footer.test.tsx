@@ -76,9 +76,18 @@ vi.mock("lucide-react", () => ({
 // Tests
 // ---------------------------------------------------------------------------
 describe("Footer", () => {
-  it("mostra a marca", () => {
+  // O rodapé deixou de repetir a marca. O letreiro grande que aqui estava
+  // dizia o mesmo que a barra de navegação diz em todas as páginas, e trazia
+  // ornamentos de um desenho que o site já não usa.
+  it("não repete o letreiro da marca", () => {
     render(<Footer />);
-    expect(screen.getByText("PORTAL")).toBeInTheDocument();
+    expect(screen.queryByText("PORTAL")).not.toBeInTheDocument();
+  });
+
+  it("mostra as redes onde o portal está", () => {
+    render(<Footer />);
+    expect(screen.getByText("Instagram")).toBeInTheDocument();
+    expect(screen.getByText("TikTok")).toBeInTheDocument();
   });
 
   it("liga às duas acções do marketplace", () => {

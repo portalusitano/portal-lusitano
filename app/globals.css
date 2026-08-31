@@ -1806,3 +1806,90 @@ body {
     color: var(--foreground-strong);
   }
 }
+
+/* ===========================================================================
+ * CONTEÚDO DOS PREVIEWS A COMPOR-SE
+ * ===========================================================================
+ * Os previews em HTML dentro dos cartões não entram feitos: a cabeça da
+ * tabela aparece primeiro e as linhas caem a seguir, uma a uma. É a única
+ * animação do site que encena um conteúdo em vez de o revelar — e ganha-o
+ * porque estes quadros são a demonstração do produto, não decoração.
+ *
+ * O gatilho é o `.dentro` que o observador põe no bloco `[data-revelar]` que
+ * envolve o cartão, por isso só corre quando o cartão entra mesmo no ecrã, e
+ * corre uma vez só.
+ *
+ * O escalonamento é feito por `nth-child` e não por um `--i` no JSX: assim
+ * qualquer preview novo herda o comportamento sem ter de o pedir.
+ * ========================================================================= */
+
+@layer components {
+  @keyframes ui-entrar {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .js [data-revelar] .cabeca-ui,
+  .js [data-revelar] .linha-ui,
+  .js [data-revelar] .bloco-ui {
+    opacity: 0;
+  }
+
+  .js [data-revelar].dentro .cabeca-ui,
+  .js [data-revelar].dentro .linha-ui,
+  .js [data-revelar].dentro .bloco-ui {
+    animation: ui-entrar 520ms var(--ease-out) both;
+  }
+
+  .js [data-revelar].dentro .cabeca-ui {
+    animation-delay: 200ms;
+  }
+
+  /* 70ms por linha. Cinco linhas fecham em meio segundo depois da cabeça —
+     tempo de se ver a tabela a encher sem se ficar à espera dela. */
+  .js [data-revelar].dentro .linha-ui:nth-child(2),
+  .js [data-revelar].dentro .bloco-ui:nth-child(1) {
+    animation-delay: 290ms;
+  }
+  .js [data-revelar].dentro .linha-ui:nth-child(3),
+  .js [data-revelar].dentro .bloco-ui:nth-child(2) {
+    animation-delay: 360ms;
+  }
+  .js [data-revelar].dentro .linha-ui:nth-child(4),
+  .js [data-revelar].dentro .bloco-ui:nth-child(3) {
+    animation-delay: 430ms;
+  }
+  .js [data-revelar].dentro .linha-ui:nth-child(5),
+  .js [data-revelar].dentro .bloco-ui:nth-child(4) {
+    animation-delay: 500ms;
+  }
+  .js [data-revelar].dentro .linha-ui:nth-child(6),
+  .js [data-revelar].dentro .bloco-ui:nth-child(5) {
+    animation-delay: 570ms;
+  }
+  .js [data-revelar].dentro .linha-ui:nth-child(7),
+  .js [data-revelar].dentro .bloco-ui:nth-child(6) {
+    animation-delay: 640ms;
+  }
+  .js [data-revelar].dentro .linha-ui:nth-child(8) {
+    animation-delay: 710ms;
+  }
+  .js [data-revelar].dentro .linha-ui:nth-child(9) {
+    animation-delay: 780ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js [data-revelar] .cabeca-ui,
+  .js [data-revelar] .linha-ui,
+  .js [data-revelar] .bloco-ui {
+    opacity: 1;
+    animation: none;
+  }
+}

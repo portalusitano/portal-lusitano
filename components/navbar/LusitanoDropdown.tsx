@@ -62,28 +62,24 @@ export function LusitanoDropdown() {
           style={{ zIndex: 9999 }}
           role="menu"
         >
-          <div className="anim-crescer w-[90vw] sm:w-[480px] md:w-[560px] bg-black/80 backdrop-blur-md border border-[var(--border)] rounded-3xl p-2 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)]">
-            {/* Secção: Base de Dados */}
-            <span className="rotulo-forte block mb-2 px-3 pt-2">{t.nav.database}</span>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
+          <div className="anim-crescer w-[90vw] rounded-3xl border border-[var(--border-soft)] bg-[var(--background-elevated)] p-2 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] sm:w-[480px] md:w-[560px]">
+            {/* Só palavras. Quatro ícones dourados lado a lado gastavam o
+                acento e não diziam nada que o nome do destino não dissesse —
+                a descrição por baixo faz esse trabalho melhor. */}
+            <span className="rotulo mb-3 block px-3 pt-2">{t.nav.database}</span>
+            <div className="grupo-nav grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-2">
               {dbItems.map((item) => (
                 <LocalizedLink
                   key={item.href}
                   href={item.href}
-                  className="dd-item"
+                  className="ligacao-nav rounded-2xl px-3 py-2.5 transition-colors hover:bg-[var(--elevate-1)]"
                   role="menuitem"
                   onClick={() => setOpen(false)}
                 >
-                  <item.icon
-                    size={16}
-                    className={item.iconClass || "text-[var(--gold)] shrink-0"}
-                  />
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium text-[var(--foreground)]">{item.label}</div>
-                    <div className="text-[10px] text-[var(--foreground-muted)] leading-tight">
-                      {item.desc}
-                    </div>
-                  </div>
+                  <span className="block text-sm text-[var(--foreground-strong)]">
+                    {item.label}
+                  </span>
+                  <span className="meta mt-0.5 block leading-snug">{item.desc}</span>
                 </LocalizedLink>
               ))}
             </div>

@@ -41,7 +41,6 @@ const STATIC_PAGES: Array<{ title_pt: string; title_en: string; url: string; key
       keywords: ["eventos", "events", "concursos", "feiras", "leiloes"],
     },
     { title_pt: "Mapa", title_en: "Map", url: "/mapa", keywords: ["mapa", "map", "localização"] },
-    { title_pt: "Sobre", title_en: "About", url: "/sobre", keywords: ["sobre", "about"] },
   ];
 
 export async function GET(request: NextRequest) {

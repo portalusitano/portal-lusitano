@@ -84,12 +84,6 @@ export function getMobileDbItems(nav: NavTranslations): MobileNavItem[] {
   ];
 }
 
-export const MAIN_NAV_ITEMS = [
-  { nameKey: "home" as const, href: "/" },
-  { nameKey: "about" as const, href: "/sobre" },
-];
+export const MAIN_NAV_ITEMS = [{ nameKey: "home" as const, href: "/" }];
 
-export const MOBILE_MAIN_NAV_ITEMS = [
-  { nameKey: "home" as const, href: "/", icon: Home },
-  { nameKey: "about" as const, href: "/sobre", icon: HelpCircle },
-];
+export const MOBILE_MAIN_NAV_ITEMS = [{ nameKey: "home" as const, href: "/", icon: Home }];

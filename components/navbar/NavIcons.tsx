@@ -1,7 +1,6 @@
 import { memo } from "react";
 import LocalizedLink from "@/components/LocalizedLink";
-import { Search, Heart, User, Plus, Sun, Moon, MessagesSquare } from "lucide-react";
-import { useTheme } from "@/context/ThemeContext";
+import { Search, Heart, User, Plus, MessagesSquare } from "lucide-react";
 import { useHorseFavorites } from "@/context/HorseFavoritesContext";
 import { useMensagensPorLer } from "@/context/MensagensContext";
 
@@ -26,34 +25,11 @@ export const NavIcons = memo(function NavIcons({
   onLanguageToggle,
   onMobileToggle,
 }: NavIconsProps) {
-  const { theme, toggleTheme } = useTheme();
   const { favoritesCount } = useHorseFavorites();
   const { porLer } = useMensagensPorLer();
 
   return (
     <div className="flex items-center gap-2 md:gap-4">
-      {/* Tema — hidden on mobile to save space (brand text visible now) */}
-      <button
-        onClick={toggleTheme}
-        className="hidden sm:flex text-[var(--foreground-secondary)] hover:text-[var(--gold)] transition-colors p-2 min-w-[44px] min-h-[44px] items-center justify-center active:scale-95 touch-manipulation"
-        aria-label={
-          theme === "dark"
-            ? tr3(language, "Mudar para modo claro", "Switch to light mode", "Cambiar a modo claro")
-            : tr3(
-                language,
-                "Mudar para modo escuro",
-                "Switch to dark mode",
-                "Cambiar a modo oscuro"
-              )
-        }
-      >
-        {theme === "dark" ? (
-          <Sun size={20} strokeWidth={1.5} />
-        ) : (
-          <Moon size={20} strokeWidth={1.5} />
-        )}
-      </button>
-
       {/* Pesquisa */}
       <button
         onClick={onSearchClick}

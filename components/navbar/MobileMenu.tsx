@@ -135,7 +135,6 @@ export const MobileMenu = memo(function MobileMenu({
       ],
     },
     { href: "/eventos", label: tr3(language, "Eventos", "Events", "Eventos") },
-    { href: "/sobre", label: tr3(language, "Sobre", "About", "Sobre") },
     { href: "/minha-conta", label: tr3(language, "A minha conta", "My account", "Mi cuenta") },
   ];
 
