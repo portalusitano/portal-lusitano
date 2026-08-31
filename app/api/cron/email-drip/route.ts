@@ -73,7 +73,10 @@ export async function GET(request: NextRequest) {
   const expected = `Bearer ${cronSecret}`;
   const authBuffer = Buffer.from(authHeader || "");
   const expectedBuffer = Buffer.from(expected);
-  if (authBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(authBuffer, expectedBuffer)) {
+  if (
+    authBuffer.length !== expectedBuffer.length ||
+    !crypto.timingSafeEqual(authBuffer, expectedBuffer)
+  ) {
     logger.warn("[email-drip] Unauthorized cron request");
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

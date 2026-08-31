@@ -60,7 +60,7 @@ export const NavIcons = memo(function NavIcons({
         ))}
       </button>
 
-      {/* Favoritos — hidden on mobile (accessible via BottomNav) */}
+      {/* Favoritos — escondido em telemóvel; lá vive no menu de ecrã inteiro. */}
       <LocalizedLink
         href="/cavalos-favoritos"
         className="hidden sm:flex text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors p-2 min-w-[44px] min-h-[44px] items-center justify-center relative active:scale-95 touch-manipulation"

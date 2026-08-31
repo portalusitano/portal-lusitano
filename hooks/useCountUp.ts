@@ -6,11 +6,7 @@ import { useState, useEffect, useRef } from "react";
  * Hook para contadores animados que contam de 0 até ao valor alvo.
  * Usa requestAnimationFrame — zero dependências, GPU-friendly.
  */
-export function useCountUp(
-  target: number,
-  inView: boolean,
-  duration = 1500
-): number {
+export function useCountUp(target: number, inView: boolean, duration = 1500): number {
   const [value, setValue] = useState(0);
   const hasRun = useRef(false);
 

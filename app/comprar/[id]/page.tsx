@@ -255,7 +255,7 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
         ]}
       />
 
-      {/* ── Sticky CTA bar — mobile only (above BottomNav) ── */}
+      {/* ── Barra de contacto fixa — só em telemóvel ── */}
       {!encerrado && (
         <div className="lg:hidden fixed bottom-16 left-0 right-0 z-30 bg-[var(--background)]/95 backdrop-blur-md border-t border-[var(--border)] px-3 py-2.5 flex items-center gap-2">
           <div className="flex-1 min-w-0">

@@ -41,7 +41,13 @@
   inset: 0;
   padding: 1px;
   border-radius: inherit;
-  background: conic-gradient(from var(--border-angle), var(--gold), transparent 40%, var(--gold) 60%, transparent);
+  background: conic-gradient(
+    from var(--border-angle),
+    var(--gold),
+    transparent 40%,
+    var(--gold) 60%,
+    transparent
+  );
   animation: borderRotate 4s linear infinite;
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
@@ -53,5 +59,7 @@
   z-index: 30;
 }
 @keyframes borderRotate {
-  to { --border-angle: 360deg; }
+  to {
+    --border-angle: 360deg;
+  }
 }

@@ -244,12 +244,7 @@ export const motivosVenda = {
   ],
 };
 
-export const coresCrina = [
-  "Loura",
-  "Escura",
-  "Prateada",
-  "Mista (loura e escura)",
-];
+export const coresCrina = ["Loura", "Escura", "Prateada", "Mista (loura e escura)"];
 
 export const pelagens = {
   pt: ["Ruço", "Castanho", "Preto", "Alazão", "Baio", "Palomino", "Tordilho", "Isabelo", "Malhado"],
@@ -398,12 +393,7 @@ export const niveisCavaleiro = {
   es: ["Principiante", "Intermedio", "Avanzado", "Profesional"],
 };
 
-export const duracoesTrialOpcoes = [
-  "1 semana",
-  "2 semanas",
-  "1 mês",
-  "A combinar",
-];
+export const duracoesTrialOpcoes = ["1 semana", "2 semanas", "1 mês", "A combinar"];
 
 export const regioesPT = [
   "Aveiro",

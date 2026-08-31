@@ -55,9 +55,7 @@ export default function ParallaxSection({
 
   return (
     <div ref={containerRef} className={`relative overflow-hidden ${className}`}>
-      <div ref={innerRef}>
-        {children}
-      </div>
+      <div ref={innerRef}>{children}</div>
     </div>
   );
 }

@@ -16,7 +16,8 @@ const url = env.NEXT_PUBLIC_SUPABASE_URL;
 const key = env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 const data = {
-  descricao: "Uma das mais antigas coudelarias da Península Ibérica, com mais de 375 anos de criação de Lusitanos. Propriedade de 5.400 hectares em Muge, no Ribatejo, pertencente à família Cadaval há 11 gerações. Cavalos campeões do mundo em Atrelagem e campeões europeus em Equitação de Trabalho.",
+  descricao:
+    "Uma das mais antigas coudelarias da Península Ibérica, com mais de 375 anos de criação de Lusitanos. Propriedade de 5.400 hectares em Muge, no Ribatejo, pertencente à família Cadaval há 11 gerações. Cavalos campeões do mundo em Atrelagem e campeões europeus em Equitação de Trabalho.",
 
   historia: `A história da Casa Cadaval remonta a mais de 400 anos. Antes de pertencer à família Cadaval, o palácio foi residência da Rainha D. Leonor de Áustria no início do século XVI.
 
@@ -41,20 +42,29 @@ A herdade de 5.400 hectares divide-se entre floresta, culturas irrigadas, vinha,
     "Equitação de Trabalho",
     "Vinicultura",
     "Enoturismo",
-    "Reprodução Assistida"
+    "Reprodução Assistida",
   ],
 
-  premios: [
-    "Campeões do Mundo — Atrelagem",
-    "Campeão Europeu — Equitação de Trabalho"
-  ],
+  premios: ["Campeões do Mundo — Atrelagem", "Campeão Europeu — Equitação de Trabalho"],
 
   tags: [
-    "muge", "ribatejo", "historica", "enoturismo", "cadaval", "duque",
-    "1648", "vinho", "tejo", "salvaterra de magos", "atrelagem",
-    "equitacao de trabalho", "dressage", "reproducao assistida",
-    "campeoes do mundo", "campeao europeu"
-  ]
+    "muge",
+    "ribatejo",
+    "historica",
+    "enoturismo",
+    "cadaval",
+    "duque",
+    "1648",
+    "vinho",
+    "tejo",
+    "salvaterra de magos",
+    "atrelagem",
+    "equitacao de trabalho",
+    "dressage",
+    "reproducao assistida",
+    "campeoes do mundo",
+    "campeao europeu",
+  ],
 };
 
 const res = await fetch(`${url}/rest/v1/coudelarias?slug=eq.casa-cadaval`, {

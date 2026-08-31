@@ -2,8 +2,8 @@ import { supabaseAdmin as supabase } from "@/lib/supabase-admin";
 import { apiSuccess } from "@/lib/api-helpers";
 import { createApiRoute } from "@/lib/createApiRoute";
 
-export const GET = createApiRoute(async () => {
-
+export const GET = createApiRoute(
+  async () => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const sixtyDaysAgo = new Date();
@@ -131,4 +131,6 @@ export const GET = createApiRoute(async () => {
         { type: "Eventos", views: totalEventosViews, count: eventos.length },
       ],
     });
-}, { auth: "admin" });
+  },
+  { auth: "admin" }
+);

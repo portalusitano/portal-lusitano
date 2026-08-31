@@ -17,16 +17,16 @@ import type { FormStepContextValue } from "@/lib/form-step-types";
 
 interface UseFormStepOptions {
   totalSteps: number;
-  initialData?: Record<string, any>;
+  initialData?: Record<string, unknown>;
   persistKey?: string; // localStorage key
   onStepChange?: (step: number) => void;
-  onDataChange?: (data: Record<string, any>) => void;
+  onDataChange?: (data: Record<string, unknown>) => void;
   allowGoBack?: boolean;
   allowJumpToStep?: boolean;
 }
 
 interface DraftData {
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   step: number;
   timestamp: number;
 }
@@ -36,7 +36,7 @@ export function useFormStep(options: UseFormStepOptions): FormStepContextValue &
   draftDate: string | null;
   restoreDraft: () => void;
   clearDraft: () => void;
-  exportData: () => Record<string, any>;
+  exportData: () => Record<string, unknown>;
 } {
   const {
     totalSteps,
@@ -51,7 +51,7 @@ export function useFormStep(options: UseFormStepOptions): FormStepContextValue &
   // ─ State ─────────────────────────────────────────
   const [currentStep, setCurrentStep] = useState(0);
   const [isCalculating, setIsCalculating] = useState(false);
-  const [data, setData] = useState<Record<string, any>>(initialData);
+  const [data, setData] = useState<Record<string, unknown>>(initialData);
   const [hasDraft, setHasDraft] = useState(false);
   const [draftDate, setDraftDate] = useState<string | null>(null);
 
@@ -155,7 +155,12 @@ export function useFormStep(options: UseFormStepOptions): FormStepContextValue &
 
   const goToStep = useCallback(
     (step: number, allowJump?: boolean) => {
-      if (!allowJump && !allowJumpToStep && Math.abs(currentStep - step) > 1 && step !== totalSteps - 1) {
+      if (
+        !allowJump &&
+        !allowJumpToStep &&
+        Math.abs(currentStep - step) > 1 &&
+        step !== totalSteps - 1
+      ) {
         return; // Can only go to adjacent steps
       }
 
@@ -180,7 +185,7 @@ export function useFormStep(options: UseFormStepOptions): FormStepContextValue &
   }, [currentStep, allowGoBack, goToStep]);
 
   const updateData = useCallback(
-    (key: string, value: any) => {
+    (key: string, value: unknown) => {
       setData((prev) => {
         const updated = { ...prev, [key]: value };
         onDataChange?.(updated);

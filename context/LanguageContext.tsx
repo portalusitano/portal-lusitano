@@ -18,7 +18,11 @@ export type { Translations };
 type Language = "pt" | "en" | "es";
 
 // PT starts populated so the first render never returns null.
-const translationsCache: Record<Language, Translations | null> = { pt: ptDefault, en: null, es: null };
+const translationsCache: Record<Language, Translations | null> = {
+  pt: ptDefault,
+  en: null,
+  es: null,
+};
 
 const loaders: Record<Language, () => Promise<{ default: Translations }>> = {
   pt: () => import("@/locales/pt.json") as Promise<{ default: Translations }>,
@@ -64,7 +68,7 @@ export function LanguageProvider({
     } else {
       setT(translationsCache[language]!);
     }
-  }, [language]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [language]);  
 
   // Read locale from cookie on mount — allows root layout to be static (no cookies() call)
   // while still picking up the locale set by middleware for /en/* and /es/* routes.

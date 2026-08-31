@@ -32,7 +32,8 @@ Sob a direcção de Fernando Sommer d'Andrade (1920-1991) — Presidente da APSL
 Actualmente, a Coudelaria é composta por 8 cavalos e uma manada de 9 éguas. O efectivo é descendente dos garanhões Malpolon (filho de Jabeque, neto de Yacht), Zamorim e Xexe/Nablio (filho de Urco, neto de Martini e Yacht).`;
 
 const data = {
-  descricao: "Cavalos Lusitanos puro sangue Andrade, originários da histórica Coudelaria d'Andrade fundada em 1894. Herdade em Portalegre, Campeã Ibérica 1970 e 1972. Berço de FIRME — pai de Neptuno, Nilo, Novilheiro e Opus 72. Linhagem preservada há mais de 130 anos.",
+  descricao:
+    "Cavalos Lusitanos puro sangue Andrade, originários da histórica Coudelaria d'Andrade fundada em 1894. Herdade em Portalegre, Campeã Ibérica 1970 e 1972. Berço de FIRME — pai de Neptuno, Nilo, Novilheiro e Opus 72. Linhagem preservada há mais de 130 anos.",
 
   historia,
 
@@ -44,7 +45,7 @@ const data = {
     "Equitação de Trabalho",
     "Toureio",
     "Conservação Genética",
-    "Selecção Funcional"
+    "Selecção Funcional",
   ],
 
   linhagens: ["Andrade"],
@@ -55,36 +56,57 @@ const data = {
     "Poldro Campeão Ibérico — Madrid 1970",
     "Égua Campeã Ibérica — Madrid 1970",
     "ZAMORIM — 1.º lugar machos +5 anos, 1.º Campeonato Internacional do Lusitano",
-    "Fernando Sommer d'Andrade — Presidente da APSL e Fundador do Stud Book"
+    "Fernando Sommer d'Andrade — Presidente da APSL e Fundador do Stud Book",
   ],
 
   cavalos_destaque: JSON.stringify([
     {
       nome: "Firme",
-      descricao: "Garanhão lendário da linhagem Andrade. Pai de Neptuno, Nilo, Novilheiro e Opus 72 (cavalos de ferro Veiga). Toureiro com D. José d'Athayde."
+      descricao:
+        "Garanhão lendário da linhagem Andrade. Pai de Neptuno, Nilo, Novilheiro e Opus 72 (cavalos de ferro Veiga). Toureiro com D. José d'Athayde.",
     },
     {
       nome: "Zamorim",
-      descricao: "1.º lugar na classe de machos com mais de 5 anos no primeiro Campeonato Internacional do Cavalo Lusitano."
+      descricao:
+        "1.º lugar na classe de machos com mais de 5 anos no primeiro Campeonato Internacional do Cavalo Lusitano.",
     },
     {
       nome: "Príncipe VIII",
-      descricao: "De D. Francisco Chica Navarro. Grande garanhão formador da Coudelaria d'Andrade."
+      descricao: "De D. Francisco Chica Navarro. Grande garanhão formador da Coudelaria d'Andrade.",
     },
     {
       nome: "Urco",
-      descricao: "Notável cavalo de toureio com José Luís d'Andrade. Reprodutor da linhagem — avô do actual efectivo."
-    }
+      descricao:
+        "Notável cavalo de toureio com José Luís d'Andrade. Reprodutor da linhagem — avô do actual efectivo.",
+    },
   ]),
 
   tags: [
-    "andrade", "linhagem andrade", "portalegre", "historica", "1894",
-    "ruy d'andrade", "fernando sommer d'andrade", "alfredo d'andrade",
-    "alter real", "stud book", "apsl", "conservacao genetica",
-    "puro sangue andrade", "seleccao funcional", "firme",
-    "nilo", "novilheiro", "opus 72", "neptuno", "zamorim",
-    "campea iberica", "madrid 1970", "toureio", "sub-raca"
-  ]
+    "andrade",
+    "linhagem andrade",
+    "portalegre",
+    "historica",
+    "1894",
+    "ruy d'andrade",
+    "fernando sommer d'andrade",
+    "alfredo d'andrade",
+    "alter real",
+    "stud book",
+    "apsl",
+    "conservacao genetica",
+    "puro sangue andrade",
+    "seleccao funcional",
+    "firme",
+    "nilo",
+    "novilheiro",
+    "opus 72",
+    "neptuno",
+    "zamorim",
+    "campea iberica",
+    "madrid 1970",
+    "toureio",
+    "sub-raca",
+  ],
 };
 
 const res = await fetch(`${url}/rest/v1/coudelarias?slug=eq.herdade-do-azinhal`, {

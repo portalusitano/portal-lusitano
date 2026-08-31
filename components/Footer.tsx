@@ -175,7 +175,7 @@ export default memo(function Footer() {
         </div>
 
         {/* ── COPYRIGHT ─────────────────────────────── */}
-        <div className="py-4 pb-16 lg:pb-12 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="flex flex-col items-center justify-between gap-3 py-6 sm:flex-row">
           <p className="rotulo" suppressHydrationWarning>
             © {new Date().getFullYear()} Portal Lusitano · {t.footer.rights}
           </p>

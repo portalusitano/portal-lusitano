@@ -17,28 +17,31 @@
  * node scripts/generate-ebook-pdf-premium.js
  */
 
-const fs = require('fs');
-const path = require('path');
-const { mdToPdf } = require('md-to-pdf');
+const fs = require("fs");
+const path = require("path");
+const { mdToPdf } = require("md-to-pdf");
 
 async function generatePremiumEbookPDF() {
   try {
-    console.log('🎨 GERADOR PREMIUM DE PDF - Portal Lusitano\n');
-    console.log('━'.repeat(60));
+    console.log("🎨 GERADOR PREMIUM DE PDF - Portal Lusitano\n");
+    console.log("━".repeat(60));
 
     // Paths
-    const markdownPath = path.join(__dirname, '../public/ebooks/04-INTRODUCAO-LUSITANO/EBOOK-COMPLETO.md');
-    const outputDir = path.join(__dirname, '../public/downloads');
-    const outputPath = path.join(outputDir, 'introducao-lusitano.pdf');
+    const markdownPath = path.join(
+      __dirname,
+      "../public/ebooks/04-INTRODUCAO-LUSITANO/EBOOK-COMPLETO.md"
+    );
+    const outputDir = path.join(__dirname, "../public/downloads");
+    const outputPath = path.join(outputDir, "introducao-lusitano.pdf");
 
     // Ensure output directory exists
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
-      console.log('✅ Pasta criada: public/downloads/\n');
+      console.log("✅ Pasta criada: public/downloads/\n");
     }
 
     // Read and prepare markdown
-    let markdownContent = fs.readFileSync(markdownPath, 'utf-8');
+    let markdownContent = fs.readFileSync(markdownPath, "utf-8");
 
     // Add cover page
     const coverPage = `
@@ -94,19 +97,19 @@ async function generatePremiumEbookPDF() {
     // Prepend cover and credits to content
     markdownContent = coverPage + creditsPage + markdownContent;
 
-    console.log('📖 Markdown processado');
-    console.log('📄 Estimativa: ~35 páginas (com capa e créditos)\n');
+    console.log("📖 Markdown processado");
+    console.log("📄 Estimativa: ~35 páginas (com capa e créditos)\n");
 
     // Premium PDF configuration
     const pdfConfig = {
       dest: outputPath,
       pdf_options: {
-        format: 'A4',
+        format: "A4",
         margin: {
-          top: '30mm',
-          right: '20mm',
-          bottom: '30mm',
-          left: '20mm',
+          top: "30mm",
+          right: "20mm",
+          bottom: "30mm",
+          left: "20mm",
         },
         printBackground: true,
         displayHeaderFooter: true,
@@ -526,60 +529,56 @@ async function generatePremiumEbookPDF() {
       launch_options: {
         headless: true,
         args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--disable-gpu',
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+          "--disable-accelerated-2d-canvas",
+          "--disable-gpu",
         ],
       },
     };
 
-    console.log('⚙️  Configuração Premium:');
-    console.log('   ✓ Fonte: Cormorant Garamond + Open Sans (Google Fonts)');
-    console.log('   ✓ Capa automática com ornamentos');
-    console.log('   ✓ Página de créditos profissional');
-    console.log('   ✓ Headers/footers customizados');
-    console.log('   ✓ Tipografia drop caps (primeira letra grande)');
-    console.log('   ✓ Boxes de destaque coloridos');
-    console.log('   ✓ Tabelas estilizadas');
-    console.log('   ✓ Quebras de página inteligentes\n');
+    console.log("⚙️  Configuração Premium:");
+    console.log("   ✓ Fonte: Cormorant Garamond + Open Sans (Google Fonts)");
+    console.log("   ✓ Capa automática com ornamentos");
+    console.log("   ✓ Página de créditos profissional");
+    console.log("   ✓ Headers/footers customizados");
+    console.log("   ✓ Tipografia drop caps (primeira letra grande)");
+    console.log("   ✓ Boxes de destaque coloridos");
+    console.log("   ✓ Tabelas estilizadas");
+    console.log("   ✓ Quebras de página inteligentes\n");
 
-    console.log('🔄 A gerar PDF... (30-60 segundos)\n');
+    console.log("🔄 A gerar PDF... (30-60 segundos)\n");
 
     const startTime = Date.now();
 
-    await mdToPdf(
-      { content: markdownContent },
-      pdfConfig
-    );
+    await mdToPdf({ content: markdownContent }, pdfConfig);
 
     const endTime = Date.now();
     const duration = ((endTime - startTime) / 1000).toFixed(1);
 
-    console.log('✅ PDF PREMIUM criado com sucesso!\n');
-    console.log('━'.repeat(60));
-    console.log('\n📍 Localização:', outputPath);
+    console.log("✅ PDF PREMIUM criado com sucesso!\n");
+    console.log("━".repeat(60));
+    console.log("\n📍 Localização:", outputPath);
 
     const stats = fs.statSync(outputPath);
     const fileSizeInMB = (stats.size / (1024 * 1024)).toFixed(2);
-    console.log('📊 Tamanho:', fileSizeInMB, 'MB');
-    console.log('⏱️  Tempo:', duration, 'segundos\n');
+    console.log("📊 Tamanho:", fileSizeInMB, "MB");
+    console.log("⏱️  Tempo:", duration, "segundos\n");
 
-    console.log('🎉 CONCLUÍDO!\n');
-    console.log('Próximos passos:');
-    console.log('1. Abrir: public/downloads/introducao-lusitano.pdf');
-    console.log('2. Verificar qualidade (capa, tipografia, layout)');
-    console.log('3. Testar em: http://localhost:3000/ebook-gratis');
-    console.log('4. Se precisar ajustar, editar CSS acima e re-executar\n');
-
+    console.log("🎉 CONCLUÍDO!\n");
+    console.log("Próximos passos:");
+    console.log("1. Abrir: public/downloads/introducao-lusitano.pdf");
+    console.log("2. Verificar qualidade (capa, tipografia, layout)");
+    console.log("3. Testar em: http://localhost:3000/ebook-gratis");
+    console.log("4. Se precisar ajustar, editar CSS acima e re-executar\n");
   } catch (error) {
-    console.error('\n❌ ERRO ao gerar PDF:', error);
-    console.error('\nSugestões de resolução:');
-    console.error('1. Instalar: npm install --save-dev md-to-pdf');
-    console.error('2. Verificar Node.js versão (mínimo v14)');
-    console.error('3. Verificar espaço em disco disponível');
-    console.error('4. Verificar permissões pasta public/downloads/\n');
+    console.error("\n❌ ERRO ao gerar PDF:", error);
+    console.error("\nSugestões de resolução:");
+    console.error("1. Instalar: npm install --save-dev md-to-pdf");
+    console.error("2. Verificar Node.js versão (mínimo v14)");
+    console.error("3. Verificar espaço em disco disponível");
+    console.error("4. Verificar permissões pasta public/downloads/\n");
     process.exit(1);
   }
 }

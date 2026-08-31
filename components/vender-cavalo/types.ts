@@ -28,13 +28,13 @@ export interface FormData {
   pai_registo: string;
   mae_nome: string;
   mae_registo: string;
-  avo_paterno_nome: string;       // pai do pai
+  avo_paterno_nome: string; // pai do pai
   avo_paterno_registo: string;
-  avo_paterno_mae_nome: string;   // mãe do pai
+  avo_paterno_mae_nome: string; // mãe do pai
   avo_paterno_mae_registo: string;
-  avo_materno_nome: string;       // pai da mãe
+  avo_materno_nome: string; // pai da mãe
   avo_materno_registo: string;
-  avo_materno_mae_nome: string;   // mãe da mãe
+  avo_materno_mae_nome: string; // mãe da mãe
   avo_materno_mae_registo: string;
   linhagem_principal: string;
   coudelaria_origem: string;
