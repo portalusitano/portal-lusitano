@@ -1939,16 +1939,22 @@ body {
  * ========================================================================= */
 
 @layer components {
-  /* Entra de baixo e um pouco da esquerda. Só com opacidade e Y a linha
-     aparecia sem se perceber de onde; o desvio lateral é o que a faz ler
-     como uma linha a ser posta na tabela. */
+  /* Entra de baixo e da esquerda, com um toque de desfoque e de escala.
+     Só com opacidade e Y a linha aparecia sem se perceber de onde; é a
+     combinação que a faz ler como uma linha a ser pousada na tabela em vez
+     de simplesmente acender. */
   @keyframes ui-entrar {
     from {
       opacity: 0;
-      transform: translate(-10px, 14px);
+      filter: blur(6px);
+      transform: translate(-18px, 20px) scale(0.97);
+    }
+    60% {
+      filter: blur(0);
     }
     to {
       opacity: 1;
+      filter: blur(0);
       transform: none;
     }
   }
@@ -1962,7 +1968,7 @@ body {
   .js [data-revelar].dentro .cabeca-ui,
   .js [data-revelar].dentro .linha-ui,
   .js [data-revelar].dentro .bloco-ui {
-    animation: ui-entrar 620ms var(--ease-out) both;
+    animation: ui-entrar 720ms var(--ease-out) both;
   }
 
   .js [data-revelar].dentro .cabeca-ui {

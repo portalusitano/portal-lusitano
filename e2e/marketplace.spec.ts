@@ -43,6 +43,12 @@ async function saltarSeAutenticacaoIndisponivel(page: import("@playwright/test")
 }
 
 test.describe("Marketplace", () => {
+  // O site é traduzido pelo idioma do browser, e o Playwright corre em inglês
+  // por omissão: sem isto o botão do menu chama-se «Open menu» e um teste que
+  // procure «Abrir menu» nunca o encontra. Fixar o idioma é o que torna as
+  // asserções em português verdadeiras.
+  test.use({ locale: "pt-PT" });
+
   test("a homepage abre na pesquisa e mostra as duas acções", async ({ page }) => {
     await page.goto("/");
 
