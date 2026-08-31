@@ -28,14 +28,17 @@ function Toggle({
       disabled={disabled}
       role="switch"
       aria-checked={checked}
-      className={`relative w-10 h-[22px] flex-shrink-0 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold)] ${
+      className={`relative h-[22px] w-10 flex-shrink-0 rounded-full border transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold)] ${
         disabled ? "cursor-not-allowed opacity-40" : "cursor-pointer"
-      } ${checked ? "bg-[var(--gold)]" : "bg-[var(--background-elevated)]"}`}
-      style={{ border: "1px solid", borderColor: checked ? "var(--gold)" : "var(--border)" }}
+      } ${
+        checked
+          ? "border-transparent bg-[var(--foreground-strong)]"
+          : "border-[var(--border)] bg-[var(--background-elevated)]"
+      }`}
     >
       <span
-        className={`absolute top-[3px] w-[14px] h-[14px] bg-white transition-all duration-200 ${
-          checked ? "left-[20px]" : "left-[3px]"
+        className={`absolute top-[3px] h-[14px] w-[14px] rounded-full transition-all duration-200 ${
+          checked ? "left-[20px] bg-black" : "left-[3px] bg-[var(--foreground-muted)]"
         }`}
       />
     </button>
@@ -172,7 +175,7 @@ export default function CookieConsent() {
       className="fixed inset-x-3 bottom-3 z-[9998] mx-auto max-w-6xl opacity-0 animate-[slideUp_0.4s_cubic-bezier(0.22,1,0.36,1)_forwards] lg:inset-x-6 lg:bottom-6"
       style={{ willChange: "transform, opacity", marginBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div className="rounded-[28px] border border-[var(--border-soft)] bg-black/80 p-4 shadow-[0_12px_60px_rgba(0,0,0,0.7)] backdrop-blur-xl sm:p-5">
+      <div className="rounded-[28px] border border-[var(--border-soft)] bg-[var(--background-elevated)] p-4 shadow-[0_12px_60px_rgba(0,0,0,0.8)] sm:p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-8">
           <p className="flex-1 text-sm leading-relaxed text-[var(--foreground-secondary)]">
             {t.description}{" "}
@@ -195,7 +198,7 @@ export default function CookieConsent() {
             </button>
             <button
               onClick={handleAcceptAll}
-              className="btn btn-pilula flex-1 text-sm lg:flex-none"
+              className="btn btn-primario flex-1 rounded-full text-sm lg:flex-none"
             >
               {t.accept_all}
             </button>
@@ -261,7 +264,10 @@ export default function CookieConsent() {
               <button onClick={handleDecline} className="btn btn-secundario rounded-full">
                 {t.decline}
               </button>
-              <button onClick={handleAcceptSelected} className="btn btn-pilula text-sm">
+              <button
+                onClick={handleAcceptSelected}
+                className="btn btn-primario rounded-full text-sm"
+              >
                 {t.accept_selected}
               </button>
             </div>

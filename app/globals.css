@@ -343,7 +343,10 @@ html {
 
 /* Better touch targets - minimum 44x44px */
 @media (max-width: 768px) {
-  button,
+  /* Os interruptores ficam de fora: o `min-height` esticava a calha de 22px
+     num borrão redondo. A regra vive fora de qualquer `@layer`, por isso um
+     `min-h-0` numa página perdia sempre para ela. */
+  button:not([role="switch"]),
   a,
   input[type="submit"],
   input[type="button"] {
