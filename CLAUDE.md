@@ -157,8 +157,9 @@ As durações e as curvas são medidas, não inventadas. Vivem em tokens no
   quarto custa outra.
   Os esqueletos de carregamento usam `animate-pulse` do Tailwind: são a
   excepção aceite, porque só existem enquanto o conteúdo não chegou.
-  O globo do mapa também não faz excepção: roda de oeste até Portugal e
-  aproxima-se da Península num movimento só, que corre uma vez e pára.
+  O globo do mapa também não faz excepção: voa até Portugal num movimento
+  só, que corre uma vez e pára. O exemplo que lhe serviu de referência
+  rodava para sempre e tinha os pontos a pulsar; ficaram os dois de fora.
 - Entrada anterior (`fadeSlideIn`) ainda em várias páginas: mesma família de
   movimento, alinhada na distância. Diferença que fica: dispara ao carregar,
   não ao entrar no ecrã. Em código novo usar `Revelar`/`data-revelar`.

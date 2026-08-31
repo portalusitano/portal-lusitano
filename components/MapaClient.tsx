@@ -113,7 +113,7 @@ const CoudelariaCard = memo(function CoudelariaCard({
   return (
     <button
       onClick={onSelect}
-      className={`w-full text-left p-3 border rounded-lg transition-all ${isSelected ? "bg-[var(--elevate-1)] border-[var(--border-hover)]" : "bg-[var(--background-secondary)]/60 border-[var(--border)] hover:border-[var(--border-hover)]"}`}
+      className={`w-full text-left p-3 border rounded-lg transition-all ${isSelected ? "bg-[var(--elevate-1)] border-[var(--border-hover)]" : "cartao hover:border-[var(--border-hover)]"}`}
     >
       <div className="flex items-start gap-3">
         <div className="relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-[var(--background-card)]">
@@ -159,7 +159,7 @@ const GridCard = memo(function GridCard({
   return (
     <LocalizedLink
       href={`/directorio/${coudelaria.slug}`}
-      className="group block bg-[var(--background-secondary)]/60 border border-[var(--border)] rounded-xl overflow-hidden hover:border-[var(--border-hover)] transition-colors"
+      className="group block cartao transition-colors hover:border-[var(--border-hover)]"
     >
       <div className="relative h-44 overflow-hidden bg-[var(--background-card)]">
         <Image
@@ -291,17 +291,17 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
 
       <div className="max-w-[1400px] mx-auto px-4 md:px-6 pb-16">
         {/* Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3 mb-6 bg-[var(--background-secondary)]/60 backdrop-blur border border-[var(--border)] rounded-xl">
-          <div className="flex items-center gap-1 p-1 bg-black/40 rounded-lg">
+        <div className="cartao mb-6 flex flex-wrap items-center justify-between gap-3 p-3">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={() => setViewMode("map")}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm transition-colors ${viewMode === "map" ? "bg-[var(--foreground-strong)] text-black" : "text-[var(--foreground-secondary)] hover:text-[var(--foreground)]"}`}
+              className={`chip gap-1.5 ${viewMode === "map" ? "chip-activo" : ""}`}
             >
               <Layers size={16} /> {t.mapa.view_map}
             </button>
             <button
               onClick={() => setViewMode("list")}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm transition-colors ${viewMode === "list" ? "bg-[var(--foreground-strong)] text-black" : "text-[var(--foreground-secondary)] hover:text-[var(--foreground)]"}`}
+              className={`chip gap-1.5 ${viewMode === "list" ? "chip-activo" : ""}`}
             >
               <List size={16} /> {t.mapa.view_list}
             </button>
@@ -318,7 +318,7 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
                 placeholder={t.mapa.search_placeholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 bg-black/40 border border-[var(--border)] rounded-lg text-white text-sm placeholder-[var(--foreground-muted)] focus:outline-none focus:border-[var(--border-hover)]"
+                className="campo h-10 pl-10 text-sm"
               />
             </div>
           </div>
@@ -341,7 +341,7 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
             <div className="lg:col-span-4">
               {selectedRegiao ? (
                 <div className="sticky top-28 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
-                  <div className="mb-4 p-4 bg-[var(--background-secondary)]/80 border border-[var(--border-soft)] rounded-xl">
+                  <div className="mb-4 p-4 cartao">
                     <div className="flex items-start justify-between">
                       <div>
                         <span className="rotulo">{t.mapa.region}</span>
@@ -376,7 +376,7 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
                 </div>
               ) : (
                 <div className="sticky top-28 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
-                  <div className="mb-4 p-4 bg-[var(--background-secondary)]/80 border border-[var(--border)] rounded-xl">
+                  <div className="mb-4 p-4 cartao">
                     <div className="flex items-center gap-2 mb-1">
                       <Layers
                         className="text-[var(--foreground-muted)]"
@@ -396,7 +396,7 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
                         <button
                           key={regiao}
                           onClick={() => handleSelectRegiao(regiao)}
-                          className="w-full p-3 bg-[var(--background-secondary)]/60 border border-[var(--border)] rounded-lg hover:border-[var(--border-hover)] transition-colors text-left"
+                          className="w-full p-3 cartao transition-colors hover:border-[var(--border-hover)] text-left"
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -449,7 +449,7 @@ export default function MapaClient({ coudelarias }: MapaClientProps) {
             onClick={() => setSelectedCoudelaria(null)}
           >
             <div
-              className="bg-[var(--background-secondary)] border border-[var(--border)] max-w-md w-full rounded-xl overflow-hidden opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]"
+              className="cartao w-full max-w-md opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]"
               style={{ animationDelay: "0.1s" }}
               onClick={(e) => e.stopPropagation()}
             >

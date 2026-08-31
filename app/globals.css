@@ -2197,3 +2197,94 @@ body {
     color: var(--foreground-strong);
   }
 }
+
+@layer components {
+  /* ── Alfinetes do globo ───────────────────────────────────────────────
+     O exemplo que serviu de referência tinha pontos verdes a pulsar. Aqui
+     o verde é o estado «activo» e mais nada, e a pulsação seria mais um
+     ciclo infinito — que neste projecto se contam. Branco para todas as
+     coudelarias, dourado só para as em destaque: vinte e tal alfinetes
+     dourados seguidos deixavam de assinalar seja o que for. */
+
+  .alfinete {
+    position: relative;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--foreground-strong);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12);
+    cursor: pointer;
+    transition:
+      box-shadow var(--d-fast) var(--ease-out),
+      transform var(--d-fast) var(--ease-out);
+  }
+
+  .alfinete[data-destaque] {
+    background: var(--gold);
+    box-shadow: 0 0 0 4px rgb(var(--gold-rgb) / 0.2);
+  }
+
+  .alfinete:hover,
+  .alfinete:focus-visible {
+    outline: none;
+    transform: scale(1.25);
+    box-shadow: 0 0 0 7px rgba(255, 255, 255, 0.16);
+  }
+
+  .alfinete[data-destaque]:hover,
+  .alfinete[data-destaque]:focus-visible {
+    box-shadow: 0 0 0 7px rgb(var(--gold-rgb) / 0.28);
+  }
+
+  /* A legenda vive dentro do alfinete: assim viaja com ele quando o globo
+     roda, sem uma linha de JavaScript a persegui-lo. */
+  .alfinete__rotulo {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 0.375rem 0.5rem;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--raio-sm);
+    background: var(--background-elevated);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--d-fast) var(--ease-out);
+  }
+
+  .alfinete:hover .alfinete__rotulo,
+  .alfinete:focus-visible .alfinete__rotulo {
+    opacity: 1;
+  }
+
+  .alfinete__rotulo strong {
+    font-size: 11px;
+    font-weight: 500;
+    font-style: normal;
+    color: var(--foreground-strong);
+  }
+
+  .alfinete__rotulo em {
+    font-size: 10px;
+    font-style: normal;
+    color: var(--foreground-muted);
+  }
+
+  /* O crédito do MapLibre é obrigatório; fica legível sem gritar. */
+  .globo-tiles .maplibregl-ctrl-attrib {
+    background: rgba(0, 0, 0, 0.5) !important;
+    font-size: 10px;
+  }
+
+  .globo-tiles .maplibregl-ctrl-attrib a {
+    color: var(--foreground-muted) !important;
+  }
+
+  .globo-tiles .maplibregl-canvas:focus {
+    outline: none;
+  }
+}

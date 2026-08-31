@@ -1,0 +1,210 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { Map as MapaGL, Marker } from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
+import { resolverCoordenadas, type CoudelariaNoMapa } from "@/lib/coordenadas-coudelarias";
+
+/*
+ * Globo de verdade: projecção esférica do MapLibre sobre tiles do
+ * OpenFreeMap, que são gratuitos e não pedem chave — foi a chave em falta
+ * que punha «API KEY REQUIRED» carimbado por cima do país no mapa antigo.
+ *
+ * Duas coisas do exemplo de referência ficaram de fora de propósito:
+ *
+ *  - **Os pontos verdes a pulsar.** O site tem um verde só, e é o do estado
+ *    «activo»; e a pulsação seria mais um ciclo infinito, que é coisa que
+ *    se conta neste projecto. As coudelarias são brancas, e douradas só as
+ *    que estão em destaque — vinte e tal alfinetes dourados seguidos
+ *    deixavam de assinalar seja o que for.
+ *  - **A rotação automática eterna.** O globo entra a voar até Portugal,
+ *    uma vez, e depois fica quieto à espera de quem lhe pegue.
+ *
+ * O estilo vem claro e é repintado camada a camada para o preto e as
+ * hairlines frias do site.
+ */
+
+const CENTRO_PT: [number, number] = [-8.2, 39.5];
+const ESTILO = "https://tiles.openfreemap.org/styles/positron";
+
+type Props = {
+  coudelarias: CoudelariaNoMapa[];
+  flyTo?: [number, number] | null;
+  onMarkerClick?: (c: CoudelariaNoMapa) => void;
+  /** Chamado se o estilo não conseguir carregar — quem trata é o chamador. */
+  aoFalhar?: () => void;
+};
+
+/** Repinta o estilo claro do OpenFreeMap na paleta do portal. */
+function repintar(mapa: MapaGL) {
+  const estilo = getComputedStyle(document.documentElement);
+  const token = (nome: string, omissao: string) => estilo.getPropertyValue(nome).trim() || omissao;
+  const fundo = token("--background", "#000000");
+  const tenue = token("--foreground-muted", "#8a8a8a");
+
+  for (const camada of mapa.getStyle().layers ?? []) {
+    const id = camada.id;
+    try {
+      switch (camada.type) {
+        case "background":
+          mapa.setPaintProperty(id, "background-color", fundo);
+          break;
+        case "fill":
+          mapa.setPaintProperty(
+            id,
+            "fill-color",
+            /water|ocean|sea|river/i.test(id) ? "#04070c" : "rgba(255,255,255,0.045)"
+          );
+          break;
+        case "line":
+          mapa.setPaintProperty(
+            id,
+            "line-color",
+            /bound|admin|border/i.test(id) ? "rgba(214,235,253,0.26)" : "rgba(214,235,253,0.10)"
+          );
+          break;
+        case "symbol":
+          mapa.setPaintProperty(id, "text-color", tenue);
+          mapa.setPaintProperty(id, "text-halo-color", fundo);
+          mapa.setPaintProperty(id, "text-halo-width", 1.2);
+          break;
+        default:
+          break;
+      }
+    } catch {
+      // Uma camada que não aceite a propriedade não estraga as outras.
+    }
+  }
+}
+
+export default function GloboTiles({ coudelarias, flyTo, onMarkerClick, aoFalhar }: Props) {
+  const caixa = useRef<HTMLDivElement>(null);
+  const mapa = useRef<MapaGL | null>(null);
+  const marcas = useRef<Marker[]>([]);
+  /* Os callbacks vivem em refs para o mapa não ter de se remontar quando o
+     pai volta a renderizar. Escritos num efeito, não no corpo — mexer numa
+     ref durante a renderização é coisa que o React não garante. */
+  const aoClicar = useRef(onMarkerClick);
+  const aoFalharRef = useRef(aoFalhar);
+  useEffect(() => {
+    aoClicar.current = onMarkerClick;
+    aoFalharRef.current = aoFalhar;
+  });
+
+  const pontos = useMemo(
+    () =>
+      coudelarias
+        .map((c) => ({ c, coords: resolverCoordenadas(c) }))
+        .filter((x): x is { c: CoudelariaNoMapa; coords: [number, number] } => x.coords !== null),
+    [coudelarias]
+  );
+
+  // ── O mapa: monta-se uma vez ───────────────────────────────────────────
+  useEffect(() => {
+    const el = caixa.current;
+    if (!el) return;
+
+    const m = new MapaGL({
+      container: el,
+      style: ESTILO,
+      center: [-52, 26],
+      zoom: 1.1,
+      attributionControl: { compact: true },
+    });
+    mapa.current = m;
+
+    const parado = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    m.on("style.load", () => {
+      m.setProjection({ type: "globe" });
+      m.setSky({
+        "sky-color": token(),
+        "sky-horizon-blend": 0.55,
+        "horizon-color": "#101a2b",
+        "horizon-fog-blend": 0.6,
+        "fog-color": "#05070c",
+        "fog-ground-blend": 0.4,
+        "atmosphere-blend": ["interpolate", ["linear"], ["zoom"], 0, 0.85, 5, 0.2, 7, 0],
+      });
+      repintar(m);
+
+      /* Voa até Portugal, uma vez. A referência rodava para sempre; um ciclo
+         infinito a mais não se paga com «fica giro». */
+      m.easeTo({
+        center: CENTRO_PT,
+        zoom: 5.4,
+        duration: parado ? 0 : 2600,
+        essential: true,
+      });
+    });
+
+    m.on("error", (e: { error?: { message?: string } }) => {
+      // Sem estilo não há mapa nenhum — quem chama que trate de mostrar outra coisa.
+      if (!m.isStyleLoaded()) aoFalharRef.current?.();
+      if (process.env.NODE_ENV !== "production") console.warn("globo:", e.error?.message);
+    });
+
+    return () => {
+      for (const marca of marcas.current) marca.remove();
+      marcas.current = [];
+      m.remove();
+      mapa.current = null;
+    };
+  }, []);
+
+  // ── Os alfinetes ───────────────────────────────────────────────────────
+  const desenharMarcas = useCallback(() => {
+    const m = mapa.current;
+    if (!m) return;
+    for (const marca of marcas.current) marca.remove();
+
+    marcas.current = pontos.map(({ c, coords }) => {
+      const el = document.createElement("div");
+      el.className = "alfinete";
+      if (c.destaque) el.dataset.destaque = "";
+      el.setAttribute("role", "button");
+      el.setAttribute("tabindex", "0");
+      el.setAttribute("aria-label", `${c.nome}, ${c.localizacao}`);
+
+      const rotulo = document.createElement("span");
+      rotulo.className = "alfinete__rotulo";
+      rotulo.innerHTML = `<strong></strong><em></em>`;
+      rotulo.querySelector("strong")!.textContent = c.nome;
+      rotulo.querySelector("em")!.textContent = c.localizacao;
+      el.appendChild(rotulo);
+
+      const abrir = () => aoClicar.current?.(c);
+      el.addEventListener("click", abrir);
+      el.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          abrir();
+        }
+      });
+
+      // [lat, lon] cá dentro; o MapLibre quer [lon, lat].
+      return new Marker({ element: el }).setLngLat([coords[1], coords[0]]).addTo(m);
+    });
+  }, [pontos]);
+
+  useEffect(() => {
+    const m = mapa.current;
+    if (!m) return;
+    if (m.isStyleLoaded()) desenharMarcas();
+    else m.once("style.load", desenharMarcas);
+  }, [desenharMarcas]);
+
+  useEffect(() => {
+    if (!flyTo || !mapa.current) return;
+    mapa.current.flyTo({ center: [flyTo[1], flyTo[0]], zoom: 8.5, duration: 1400 });
+  }, [flyTo]);
+
+  return <div ref={caixa} className="globo-tiles h-full w-full" />;
+}
+
+/** O preto do fundo, lido do sistema em vez de escrito à mão. */
+function token() {
+  return (
+    getComputedStyle(document.documentElement).getPropertyValue("--background").trim() || "#000"
+  );
+}
