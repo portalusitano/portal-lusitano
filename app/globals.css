@@ -2304,38 +2304,8 @@ body {
     color: var(--foreground-muted);
   }
 
-  /* O crédito do MapLibre é obrigatório; fica legível sem gritar. */
-  .globo-tiles .maplibregl-ctrl-attrib {
-    background: rgba(0, 0, 0, 0.5) !important;
-    font-size: 10px;
-  }
-
-  .globo-tiles .maplibregl-ctrl-attrib a {
-    color: var(--foreground-muted) !important;
-  }
-
-  .globo-tiles .maplibregl-canvas:focus {
-    outline: none;
-  }
-
-  /* O mapa entra quando tem o que mostrar, em vez de aparecer um rectângulo
-     preto e encher-se depois. */
-  .globo-tiles .maplibregl-canvas-container {
-    animation: entrar-mapa 700ms var(--ease-out) both;
-  }
-
-  @keyframes entrar-mapa {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .alfinete,
-    .globo-tiles .maplibregl-canvas-container {
+    .alfinete {
       animation: none;
     }
   }
