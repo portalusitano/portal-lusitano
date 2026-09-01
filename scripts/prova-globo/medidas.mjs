@@ -341,6 +341,28 @@ export async function medirPercursos(ctx) {
     saida.push({ nome, esperado, ...r, falha, erros: erros() });
   };
 
+  /* ── Aquecer o destino antes de medir ───────────────────────────────────
+     Todos os casos daqui para baixo esperam quatrocentos milissegundos e
+     depois perguntam onde é que a página ficou. Num servidor de
+     desenvolvimento, a **primeira** visita a uma rota compila-a — segundos,
+     não milissegundos —, e por isso o primeiro caso dizia sempre «NADA» e
+     era marcado como grave, enquanto o mesmo gesto repetido mais abaixo
+     navegava sem problema. Não era um defeito do globo: era o primeiro
+     pedido a pagar a compilação por todos os outros.
+
+     Pede-se o destino uma vez antes de começar, pelo `href` que o próprio
+     nome traz. O instrumento não precisa de saber que rotas existem. */
+  await reiniciar(ctx);
+  const aquecer = await pagina.evaluate(() => {
+    const a = document.querySelector(".globo-etiqueta a.globo-etiqueta__cabeca");
+    return a ? a.getAttribute("href") : null;
+  });
+  if (aquecer) {
+    await pagina
+      .evaluate((h) => fetch(h, { credentials: "same-origin" }).then(() => null), aquecer)
+      .catch(() => {});
+  }
+
   // 1 e 2. Um nome solto, com o rato e com o teclado.
   await reiniciar(ctx);
   const solto = await primeiroSolto(pagina);
@@ -491,6 +513,28 @@ export async function medirFluidez(ctx) {
   motorArrasto.lixoKb = lixoArrasto;
   await esperarRepouso(pagina, { estaveis: 4 });
 
+  /* ── Passeio: o rato a atravessar o globo sem carregar ─────────────────
+     É o gesto mais comum de todos e o arrasto não o mede: com o botão em
+     baixo o motor não pergunta onde está a lona, e com o botão em cima
+     pergunta a cada movimento. É aqui que uma leitura de geometria por
+     `pointermove` aparece — e é a pior de todas, porque chega enquanto o
+     DOM está sujo das etiquetas que acabaram de ser reescritas e obriga o
+     browser a refazer o layout antes de poder responder ao rato. */
+  await zerar(pagina);
+  const antesPasseio = await metricas.ler();
+  const arranqueP = Date.now();
+  for (let i = 0; i < 40; i++) {
+    await pagina.mouse.move(
+      caixa.x + caixa.l * (0.15 + (0.7 * i) / 39),
+      caixa.y + caixa.a * (0.35 + 0.25 * Math.sin(i / 3))
+    );
+  }
+  const msPasseio = Date.now() - arranqueP;
+  const passeio = await contadores(pagina);
+  const motorPasseio = entreMetricas(antesPasseio, await metricas.ler());
+  await pagina.mouse.move(2, 2);
+  await esperarRepouso(pagina, { estaveis: 4 });
+
   // Aproximação com a roda.
   await zerar(pagina);
   const antesZoom = await metricas.ler();
@@ -579,6 +623,7 @@ export async function medirFluidez(ctx) {
       janelaMs: 2500,
     },
     arrasto: resumo(arrasto, msArrasto, motorArrasto),
+    passeio: resumo(passeio, msPasseio, motorPasseio),
     zoom: resumo(zoom, msZoom, motorZoom),
     erros: erros(),
   };
@@ -1060,7 +1105,8 @@ function GRAVAR_ESCOLHA({ ms }) {
   const amostras = [];
   window.__escolha = amostras;
   const t0 = performance.now();
-  const raiz = document.querySelector(".globo-etiquetas")?.parentElement;
+  const camada = document.querySelector(".globo-etiquetas");
+  const raiz = camada?.parentElement;
   const passo = () => {
     const t = performance.now() - t0;
     const etiquetas = [...document.querySelectorAll(".globo-etiqueta")];
@@ -1080,7 +1126,7 @@ function GRAVAR_ESCOLHA({ ms }) {
     }
     amostras.push({
       t: Math.round(t),
-      marca: raiz?.dataset?.escolha ?? "",
+      marca: camada?.dataset?.escolha ?? "",
       escolhidas: escolhidas.length,
       outras: outras.length,
       somaOutras: Number(outras.reduce((s, n) => s + Number(n.style.opacity || 0), 0).toFixed(2)),
@@ -1104,9 +1150,14 @@ export async function medirEscolha(ctx) {
   const alvo = await primeiroSolto(pagina);
   if (!alvo) return { falhou: "nenhum nome legível", parado, erros: erros() };
 
-  /* A navegação é cortada na rede: o que interessa é o que o globo faz
-     enquanto espera, e o que lhe fica quando a página nunca chega. */
-  await pagina.route("**/directorio/**", (r) => r.abort());
+  /* A navegação é segurada na rede: o que interessa é o que o globo faz
+     enquanto espera, e o que lhe fica quando a página nunca chega.
+     **Segurada e não abortada**: com o pedido abortado, o Next não fica à
+     espera — desiste do payload e faz uma navegação de browser a sério, que
+     recarrega o documento e leva o gravador à frente. Media-se zero
+     amostras e concluía-se que não havia transição, quando o que não havia
+     era medida. Um pedido que nunca responde deixa a página onde está. */
+  await pagina.route("**/directorio/**", () => new Promise(() => {}));
 
   await pagina.evaluate(GRAVAR_ESCOLHA, { ms: 1400 });
   const antes = await contadores(pagina);
@@ -1118,10 +1169,28 @@ export async function medirEscolha(ctx) {
   await pagina.unroute("**/directorio/**");
 
   const comMarca = amostras ? amostras.filter((a) => a.marca) : [];
-  const maxAnimacoes = amostras ? Math.max(0, ...amostras.map((a) => a.animacoes.length)) : 0;
+  /* Só o que corre **durante** a escolha. Contar as animações do quadro
+     inteiro apanhava as transições do hover — a cor da borda, a largura
+     máxima do nome — que já estavam a correr antes do clique e que não são
+     parte nenhuma deste movimento. Com a preferência de movimento reduzido
+     isso dava sete animações numa transição que nem chega a existir. */
+  const maxAnimacoes = comMarca.length
+    ? Math.max(0, ...comMarca.map((a) => a.animacoes.length))
+    : 0;
   const nomes = new Set();
-  for (const a of amostras ?? []) for (const n of a.animacoes) nomes.add(n);
+  for (const a of comMarca) for (const n of a.animacoes) nomes.add(n);
   const ultima = amostras?.[amostras.length - 1];
+
+  /* Até onde é que o resto chegou a recuar. Sem isto a medida só dizia que
+     houve uma marca no elemento — e uma marca não é um movimento. O que
+     interessa é se os outros nomes chegaram mesmo a sair do quadro, e
+     quantos ficaram no pior instante.
+     Nota do aparato: com WebGL por software o globo desenha três quadros
+     em seiscentos milissegundos, por isso o mínimo é amostrado grosso. É a
+     mesma limitação de sempre — as contagens valem, os instantes não. */
+  const durante = comMarca.length ? comMarca : [];
+  const somaMinima = durante.length ? Math.min(...durante.map((a) => a.somaOutras)) : null;
+  const outrasMinimas = durante.length ? Math.min(...durante.map((a) => a.outras)) : null;
 
   return {
     parado,
@@ -1137,6 +1206,9 @@ export async function medirEscolha(ctx) {
     limpou: ultima ? !ultima.marca : null,
     outrasNoFim: ultima?.outras ?? null,
     somaOutrasNoFim: ultima?.somaOutras ?? null,
+    /** No pior instante da transição: quanto do resto ainda estava aceso. */
+    somaOutrasMinima: somaMinima,
+    outrasMinimas,
     desenhos: depois.desenhos - antes.desenhos,
     erros: erros(),
   };

@@ -663,6 +663,17 @@ export function escreverRelatorio(corrida) {
           `      lixo alocado no gesto ......... ${f.arrasto.lixoKb}KB (${n1(f.arrasto.lixoPorQuadroKb)}KB por quadro)`
         );
       }
+      if (f.passeio) {
+        p(
+          `    passeio do rato ................. ${f.passeio.quadros} quadros em ${f.passeio.ms}ms`
+        );
+        p(
+          `      leituras de geometria ......... ${f.passeio.caixas} caixas + ${f.passeio.deslocamentos} deslocamentos (${n1(f.passeio.caixasPorQuadro)}+${n1(f.passeio.deslocamentosPorQuadro)} por quadro)`
+        );
+        p(
+          `      trabalho do motor ............. ${f.passeio.layouts} layouts, ${f.passeio.estilos} recálculos de estilo`
+        );
+      }
       p(
         `    aproximação ..................... ${f.zoom.quadros} quadros em ${f.zoom.ms}ms, ${n1(f.zoom.quadrosPorSegundo)}/s`
       );
@@ -689,6 +700,9 @@ export function escreverRelatorio(corrida) {
       p(`    durou ............................ ${e.duracaoMs}ms`);
       p(`    animações juntas, no pior quadro . ${e.maxAnimacoesJuntas}  (um movimento, não três)`);
       if (e.animacoes.length) p(`    quais ............................ ${e.animacoes.join(", ")}`);
+      p(
+        `    o resto recuou até .............. ${e.somaOutrasMinima ?? "—"} de opacidade somada, ${e.outrasMinimas ?? "—"} nomes`
+      );
       p(`    limpou quando a página não veio .. ${e.limpou ? "sim" : "NÃO"}`);
       p(`    nomes visíveis no fim ............ ${e.outrasNoFim}`);
       p(`    desenhos gastos .................. ${e.desenhos}`);
@@ -824,9 +838,12 @@ export function grandezas(ecra) {
     "alvos que fogem ao ponteiro": ecra.alvoFoge?.fugiram ?? null,
     "caixas lidas no arrasto": f?.arrasto.caixas ?? null,
     "layouts no arrasto": f?.arrasto.layouts ?? null,
+    "caixas lidas no passeio": f?.passeio?.caixas ?? null,
+    "layouts no passeio": f?.passeio?.layouts ?? null,
     "KB alocados por quadro (arrasto)": f?.arrasto.lixoPorQuadroKb ?? null,
     "animações juntas na escolha": ecra.escolha?.maxAnimacoesJuntas ?? null,
     "transição de escolha": ecra.escolha ? (ecra.escolha.houveTransicao ? 1 : 0) : null,
+    "nomes acesos no pior instante da escolha": ecra.escolha?.outrasMinimas ?? null,
     "coudelarias pelas setas": t?.setas.distintos ?? null,
     "paragens de tabulação": t?.tabulacao.paragens ?? null,
   };

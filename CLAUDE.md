@@ -182,6 +182,51 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
      `setPointerCapture` no `pointerdown`, o browser entregava o `click` à
      lona: carregar num nome ou num alfinete não fazia nada num computador, e
      só o toque funcionava. Um clique nunca chega a pedir a captura.
+   - **O alfinete diz três coisas, e mais nenhuma**: onde está, se está a
+     ser apontado, e se ali há mais do que uma. Um disco branco de cinco
+     pixéis com uma sombra de contacto em volta; uma argola apertada e
+     sempre acesa onde há mais do que uma; uma argola mais aberta em quem
+     está a ser apontado. O destaque fica no tamanho do ponto, que é a
+     hierarquia mais fraca das três de propósito — é a que menos importa a
+     quem está a apontar. Era um halo aditivo de dez pixéis com cauda: um
+     brilho não é informação, e **aditivo não sabe escurecer**, por isso
+     sobre o Alentejo ao sol o ponto branco desaparecia e sobre o mar de
+     noite era uma bola. O mesmo alfinete lia-se com dois pesos conforme o
+     chão. A mistura passou a normal e a sombra de contacto assenta o ponto
+     no chão. «São duas» também deixou de ser «o ponto é 1,6× maior», que é
+     uma grandeza e não um sinal — e a olho era indistinguível de um
+     destaque. O carimbo tem sempre o mesmo lado; o que muda de estado é o
+     desenho lá dentro.
+   - **Escolher uma coudelaria é um movimento só.** Entre carregar num nome
+     e a página mudar não acontecia nada: a ficha aparecia sem que nada
+     tivesse dito qual dos vinte e nove pontos tinha sido escolhido. Agora
+     há **um relógio**, e dele saem duas coisas que são a mesma afirmação
+     vista dos dois lados — _este, e mais nenhum_: a argola do ponto
+     escolhido abre-se e apaga-se, e tudo o resto (pontos, nomes,
+     algarismos das manchas) recua para o preto. Não são dois movimentos
+     com dois tempos: é o mesmo `t` com a mesma curva a mandar nos dois.
+     Sem o recuo, a argola era adorno em cima de um quadro cheio; sem a
+     argola, o recuo não dizia qual. A câmara não se mexe — aproximar seria
+     prometer um sítio onde nunca se chega a ficar, porque a página
+     seguinte é a ficha e não o mapa. A duração é o `--d-drill`, que é o
+     token de _entrar num sítio_, o mesmo dos submenus e o mesmo da pilha
+     de regiões: escolher uma coudelaria é entrar nela, não se inventa aqui
+     um tempo próprio. Corre uma vez, e **larga-se sozinha** ao fim do
+     dobro dessa duração — a mesma regra da cortina: se a página nunca
+     chegar, o que não pode acontecer é ficar um globo apagado para sempre.
+     Com `prefers-reduced-motion` não corre nada.
+   - **A caixa da lona está em cache.** Era um `getBoundingClientRect` por
+     `pointermove`, e um deles a meio de um gesto é a pior altura possível
+     para o pedir: as etiquetas acabaram de ser reescritas, o layout está
+     sujo, e o browser tem de o refazer inteiro antes de responder ao dedo.
+     Quem a invalida é o rolo da página e o `ResizeObserver`, que são as
+     duas únicas coisas que a podem mudar.
+   - **A colocação não faz objectos por quadro.** Até duzentas caixas de
+     teste por quadro eram outros tantos objectos de vida curta, e os três
+     testes de colisão faziam um fecho novo por chamada com `.some`. As
+     caixas passaram a depósitos com contagem, os testes a voltas à mão, e
+     as posições comparam-se em números antes de se montar a cadeia do
+     `translate3d`.
 5. **Holofote na grelha** — `<GrelhaHolofote>` escreve a posição do rato em
    coordenadas de cada cartão (`--px`, `--py`) e o `.cartao-holofote` acende
    com ela a hairline e um halo. Como os cartões todos lêem a mesma luz, ela
@@ -254,13 +299,27 @@ As durações e as curvas são medidas, não inventadas. Vivem em tokens no
 | `--ease-in-out-cubic` | `cubic-bezier(.645,.045,.355,1)` | menu, cortina        |
 | `--ease-header`       | `cubic-bezier(.215,.61,.355,1)`  | cabeçalho ao rolar   |
 
-| Duração      | Valor  | Onde                        |
-| ------------ | ------ | --------------------------- |
-| `--d-fast`   | 200ms  | hovers, botões              |
-| `--d-menu`   | 300ms  | abrir e fechar o menu       |
-| `--d-drill`  | 320ms  | entrar e sair de um submenu |
-| `--d-header` | 230ms  | véu e hairline do cabeçalho |
-| `--d-reveal` | 1000ms | entrada ao entrar no ecrã   |
+| Duração      | Valor  | Onde                           |
+| ------------ | ------ | ------------------------------ |
+| `--d-fast`   | 200ms  | hovers, botões                 |
+| `--d-menu`   | 300ms  | abrir e fechar o menu          |
+| `--d-drill`  | 320ms  | entrar e sair de um submenu    |
+| `--d-header` | 230ms  | véu e hairline do cabeçalho    |
+| `--d-reveal` | 1000ms | entrada ao entrar no ecrã      |
+| `--d-nascer` | 700ms  | nascer sobre uma cena composta |
+
+O `--d-nascer` é o sexto, e a razão: os nomes das coudelarias nascem por cima
+de uma cena já composta, escalonados, quinze de cada vez. Não é o `--d-reveal`,
+que é a entrada de um bloco inteiro ao entrar no ecrã — a um segundo cada, a
+cascata deixava de se ler como cascata e passava a ler-se como a página a
+carregar devagar. Era um `700ms` escrito à mão dentro do CSS do globo; agora
+está onde os outros estão.
+
+**O `GloboTerra` lê os tokens do CSS em vez de os copiar.** `duracaoDoToken` e
+`curvaDoToken` lêem `--d-drill` e `--ease-out` do documento à montagem — duas
+consultas, não duas por quadro — e a curva do CSS é avaliada por bissecção.
+Um número escrito à mão dentro de um componente é uma duração que ninguém
+encontra e que ninguém muda quando as outras mudam.
 
 - Entrada ao entrar no ecrã: `<Revelar>` — 2rem de deslocação, 1000ms,
   `--ease-out`, dispara uma vez. `direccao` aceita `up` (omissão), `down`,
