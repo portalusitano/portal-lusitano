@@ -269,6 +269,52 @@ export function julgar(ecra) {
     }
   }
 
+  /* ── A escolha ─────────────────────────────────────────────────────── */
+
+  const esc = ecra.escolha;
+  if (esc && !esc.falhou) {
+    if (!esc.houveTransicao && !esc.parado) {
+      a.push(
+        achado(
+          AVISO,
+          "escolha:sem-transicao",
+          "carregar num nome não muda nada no globo antes de a página mudar",
+          0
+        )
+      );
+    }
+    if (esc.houveTransicao && esc.parado) {
+      a.push(
+        achado(
+          GRAVE,
+          "escolha:movimento-reduzido",
+          "a transição corre com `prefers-reduced-motion: reduce`",
+          esc.duracaoMs
+        )
+      );
+    }
+    if (esc.maxAnimacoesJuntas > 1) {
+      a.push(
+        achado(
+          AVISO,
+          "escolha:varios-movimentos",
+          `${esc.maxAnimacoesJuntas} animações distintas correm juntas ao escolher (${esc.animacoes.join(", ")}) — devia ler-se como um movimento`,
+          esc.maxAnimacoesJuntas
+        )
+      );
+    }
+    if (esc.houveTransicao && esc.limpou === false) {
+      a.push(
+        achado(
+          GRAVE,
+          "escolha:ficou-presa",
+          "com a navegação cortada, a transição ficou por acabar — o globo fica preso a meio",
+          1
+        )
+      );
+    }
+  }
+
   /* ── O alvo foge ao ponteiro ───────────────────────────────────────── */
 
   const af = ecra.alvoFoge;
@@ -606,12 +652,46 @@ export function escreverRelatorio(corrida) {
         `      intervalo entre quadros ....... med ${n1(f.arrasto.intervalos.p50)}ms  p95 ${n1(f.arrasto.intervalos.p95)}ms  máx ${n1(f.arrasto.intervalos.max)}ms`
       );
       p(`      chamadas por quadro ........... ${f.arrasto.desenhosPorQuadro}`);
+      if (f.arrasto.caixas !== undefined) {
+        p(
+          `      leituras de geometria ......... ${f.arrasto.caixas} caixas + ${f.arrasto.deslocamentos} deslocamentos (${n1(f.arrasto.caixasPorQuadro)}+${n1(f.arrasto.deslocamentosPorQuadro)} por quadro)`
+        );
+        p(
+          `      trabalho do motor ............. ${f.arrasto.layouts} layouts, ${f.arrasto.estilos} recálculos de estilo (${n1(f.arrasto.layoutsPorQuadro)}+${n1(f.arrasto.estilosPorQuadro)} por quadro)`
+        );
+        p(
+          `      lixo alocado no gesto ......... ${f.arrasto.lixoKb}KB (${n1(f.arrasto.lixoPorQuadroKb)}KB por quadro)`
+        );
+      }
       p(
         `    aproximação ..................... ${f.zoom.quadros} quadros em ${f.zoom.ms}ms, ${n1(f.zoom.quadrosPorSegundo)}/s`
       );
       p(
         `      intervalo entre quadros ....... med ${n1(f.zoom.intervalos.p50)}ms  p95 ${n1(f.zoom.intervalos.p95)}ms  máx ${n1(f.zoom.intervalos.max)}ms`
       );
+      if (f.zoom.caixas !== undefined) {
+        p(
+          `      leituras de geometria ......... ${f.zoom.caixas} caixas + ${f.zoom.deslocamentos} deslocamentos (${n1(f.zoom.caixasPorQuadro)}+${n1(f.zoom.deslocamentosPorQuadro)} por quadro)`
+        );
+        p(
+          `      trabalho do motor ............. ${f.zoom.layouts} layouts, ${f.zoom.estilos} recálculos de estilo`
+        );
+      }
+    }
+
+    if (ecra.escolha && !ecra.escolha.falhou) {
+      const e = ecra.escolha;
+      p();
+      p("  A ESCOLHA (clicar num nome, com a navegação cortada de propósito)");
+      p(`    movimento preferido pelo sistema . ${e.parado ? "reduzido" : "normal"}`);
+      p(`    nome escolhido ................... ${(e.alvo || "").slice(0, 46)}`);
+      p(`    houve transição .................. ${e.houveTransicao ? "sim" : "NÃO"}`);
+      p(`    durou ............................ ${e.duracaoMs}ms`);
+      p(`    animações juntas, no pior quadro . ${e.maxAnimacoesJuntas}  (um movimento, não três)`);
+      if (e.animacoes.length) p(`    quais ............................ ${e.animacoes.join(", ")}`);
+      p(`    limpou quando a página não veio .. ${e.limpou ? "sim" : "NÃO"}`);
+      p(`    nomes visíveis no fim ............ ${e.outrasNoFim}`);
+      p(`    desenhos gastos .................. ${e.desenhos}`);
     }
 
     if (ecra.teclado?.tabulacao) {
@@ -742,6 +822,11 @@ export function grandezas(ecra) {
     "quadros no arrasto": f?.arrasto.quadros ?? null,
     "ms/quadro no arrasto (p50)": f ? Number(n1(f.arrasto.intervalos.p50)) : null,
     "alvos que fogem ao ponteiro": ecra.alvoFoge?.fugiram ?? null,
+    "caixas lidas no arrasto": f?.arrasto.caixas ?? null,
+    "layouts no arrasto": f?.arrasto.layouts ?? null,
+    "KB alocados por quadro (arrasto)": f?.arrasto.lixoPorQuadroKb ?? null,
+    "animações juntas na escolha": ecra.escolha?.maxAnimacoesJuntas ?? null,
+    "transição de escolha": ecra.escolha ? (ecra.escolha.houveTransicao ? 1 : 0) : null,
     "coudelarias pelas setas": t?.setas.distintos ?? null,
     "paragens de tabulação": t?.tabulacao.paragens ?? null,
   };

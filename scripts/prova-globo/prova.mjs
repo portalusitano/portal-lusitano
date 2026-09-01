@@ -22,7 +22,7 @@
  *   --passo=N          passo do varrimento em pixéis (por omissão 3)
  *   --repeticoes=N     quantas vezes medir o núcleo, para saber a variação (2)
  *   --so=…             medir só estas: repouso,aglomeracao,alvo,percursos,
- *                      fluidez,teclado,janela,robustez
+ *                      fluidez,teclado,janela,robustez,escolha
  *   --parado           correr com `prefers-reduced-motion: reduce`
  *   --comparar=a,b     não mede nada: compara dois JSON já escritos
  *   --ajuda
@@ -36,6 +36,7 @@ import { ECRAS, EXECUTAVEL, abrirNavegador, abrirPagina, prepararGlobo } from ".
 import {
   medirAglomeracao,
   medirAlvoFoge,
+  medirEscolha,
   medirFluidez,
   medirJanelaUtil,
   medirPercursos,
@@ -89,7 +90,7 @@ PROVA DO GLOBO
   --ecras=…        desktop,movel
   --passo=N        passo do varrimento em pixéis (3)
   --repeticoes=N   quantas vezes medir o núcleo, para saber a variação (2)
-  --so=…           repouso,aglomeracao,alvo,percursos,fluidez,teclado,janela,robustez
+  --so=…           repouso,aglomeracao,alvo,percursos,fluidez,teclado,janela,robustez,escolha
   --parado         correr com prefers-reduced-motion: reduce
 `;
 
@@ -159,6 +160,10 @@ async function medirEcra(navegador, opcoes, nome) {
   if (quer("alvo")) {
     process.stderr.write("  · alvo que foge\n");
     ecra.alvoFoge = await tentar("alvo", () => medirAlvoFoge(ctx));
+  }
+  if (quer("escolha")) {
+    process.stderr.write("  · transição de escolha\n");
+    ecra.escolha = await tentar("escolha", () => medirEscolha(ctx));
   }
   if (quer("percursos")) {
     process.stderr.write("  · percursos\n");

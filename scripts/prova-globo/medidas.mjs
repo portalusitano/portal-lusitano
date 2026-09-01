@@ -14,7 +14,15 @@
  * errado, chamadas de desenho em repouso — são absolutas e valem por si.
  */
 
-import { contadores, esperarRepouso, prepararGlobo, zerar } from "./navegador.mjs";
+import {
+  abrirAlocacoes,
+  abrirMetricas,
+  contadores,
+  entreMetricas,
+  esperarRepouso,
+  prepararGlobo,
+  zerar,
+} from "./navegador.mjs";
 import { DESCREVER_FOCO, LER_ETIQUETAS, LER_VISTA, VARRER } from "./sondas.mjs";
 import {
   aglomeracao,
@@ -448,6 +456,7 @@ export async function medirFluidez(ctx) {
   // nada. É preciso que o ponto de partida seja sempre o mesmo.
   await reiniciar(ctx);
   const erros = marcarErros(registo);
+  const metricas = await abrirMetricas(pagina);
   const caixa = await caixaDoGlobo(pagina);
   const cx = caixa.x + caixa.l / 2;
   const cy = caixa.y + caixa.a / 2;
@@ -458,27 +467,40 @@ export async function medirFluidez(ctx) {
   await pagina.waitForTimeout(3000);
   const emRepouso = await contadores(pagina);
 
-  // Arrasto.
+  /* ── Arrasto ───────────────────────────────────────────────────────────
+     É o gesto caro: reescreve as etiquetas todas a cada quadro e, entre
+     quadros, recebe quarenta `pointermove`. O que se mede não são os
+     milissegundos — em swiftshader não valem nada — mas o trabalho: quantas
+     leituras de geometria o globo pede, e quantos layouts e recálculos de
+     estilo o motor acaba por fazer. */
   await zerar(pagina);
-  await pagina.mouse.move(cx, cy);
-  await pagina.mouse.down();
+  const alocacoes = await abrirAlocacoes(pagina);
+  const antesArrasto = await metricas.ler();
   const arranque = Date.now();
-  for (let i = 0; i < 40; i++) {
-    await pagina.mouse.move(cx + (i + 1) * 3, cy + Math.sin(i / 4) * 12);
-  }
-  await pagina.mouse.up();
+  const { kb: lixoArrasto } = await alocacoes.medir(async () => {
+    await pagina.mouse.move(cx, cy);
+    await pagina.mouse.down();
+    for (let i = 0; i < 40; i++) {
+      await pagina.mouse.move(cx + (i + 1) * 3, cy + Math.sin(i / 4) * 12);
+    }
+    await pagina.mouse.up();
+  });
   const msArrasto = Date.now() - arranque;
   const arrasto = await contadores(pagina);
+  const motorArrasto = entreMetricas(antesArrasto, await metricas.ler());
+  motorArrasto.lixoKb = lixoArrasto;
   await esperarRepouso(pagina, { estaveis: 4 });
 
   // Aproximação com a roda.
   await zerar(pagina);
+  const antesZoom = await metricas.ler();
   await pagina.mouse.move(cx, cy);
   const arranqueZ = Date.now();
   for (let i = 0; i < 20; i++) await pagina.mouse.wheel(0, -120);
   const msZoom = Date.now() - arranqueZ;
   await pagina.waitForTimeout(600);
   const zoom = await contadores(pagina);
+  const motorZoom = entreMetricas(antesZoom, await metricas.ler());
   await esperarRepouso(pagina, { estaveis: 4 });
 
   /* Fora do ecrã: o motor promete não desenhar. Rola-se a página até o globo
@@ -510,14 +532,38 @@ export async function medirFluidez(ctx) {
   await outra.close();
   await esperarRepouso(pagina, { estaveis: 4 });
 
-  const resumo = (c, ms) => ({
-    desenhos: c.desenhos,
-    quadros: c.quadros.length,
-    ms,
-    intervalos: estatistica(intervalos(c.quadros)),
-    quadrosPorSegundo: ms ? Number(((c.quadros.length * 1000) / ms).toFixed(1)) : null,
-    desenhosPorQuadro: c.quadros.length ? Number((c.desenhos / c.quadros.length).toFixed(1)) : null,
-  });
+  const resumo = (c, ms, motor) => {
+    const q = c.quadros.length;
+    const por = (n) => (q ? Number((n / q).toFixed(1)) : null);
+    return {
+      desenhos: c.desenhos,
+      quadros: q,
+      ms,
+      intervalos: estatistica(intervalos(c.quadros)),
+      quadrosPorSegundo: ms ? Number(((q * 1000) / ms).toFixed(1)) : null,
+      desenhosPorQuadro: q ? Number((c.desenhos / q).toFixed(1)) : null,
+      caixas: c.caixas,
+      deslocamentos: c.deslocamentos,
+      estilosLidos: c.estilosLidos,
+      caixasPorQuadro: por(c.caixas),
+      deslocamentosPorQuadro: por(c.deslocamentos),
+      ...(motor
+        ? {
+            layouts: motor.layouts,
+            estilos: motor.estilos,
+            layoutsPorQuadro: por(motor.layouts),
+            estilosPorQuadro: por(motor.estilos),
+            montanhaKb: motor.montanhaKb,
+            lixoKb: motor.lixoKb ?? null,
+            lixoPorQuadroKb:
+              motor.lixoKb != null && q ? Number((motor.lixoKb / q).toFixed(1)) : null,
+          }
+        : {}),
+    };
+  };
+
+  await metricas.fechar();
+  await alocacoes.fechar();
 
   return {
     nota: "swiftshader: os milissegundos só se comparam entre corridas na mesma máquina",
@@ -532,8 +578,8 @@ export async function medirFluidez(ctx) {
       quadros: escondido.quadros.length,
       janelaMs: 2500,
     },
-    arrasto: resumo(arrasto, msArrasto),
-    zoom: resumo(zoom, msZoom),
+    arrasto: resumo(arrasto, msArrasto, motorArrasto),
+    zoom: resumo(zoom, msZoom, motorZoom),
     erros: erros(),
   };
 }
@@ -985,4 +1031,113 @@ async function correrRobustez(ctx, casos) {
 
   await limpar();
   return { casos };
+}
+
+/* ── 8. A transição de escolher uma coudelaria ───────────────────────────
+ *
+ * Entre carregar num nome e a página mudar há um vazio. Esta medida diz o
+ * que se passa nesse vazio, e diz três coisas sobre ele:
+ *
+ * 1. **Se existe.** O globo tem de reconhecer a escolha antes de a página
+ *    mudar; se nada mudar no ecrã, não há transição nenhuma para julgar.
+ * 2. **Se é um movimento, não três.** Conta-se, quadro a quadro, quantas
+ *    animações distintas correm ao mesmo tempo dentro do globo. Duas
+ *    animações com nomes diferentes a correr juntas são duas ideias de
+ *    movimento na mesma escolha.
+ * 3. **Se acaba, e se acaba limpa.** A navegação é abortada de propósito —
+ *    a rota da ficha é bloqueada na rede — porque é o caso que importa: se
+ *    a página não chegar, o globo não pode ficar apagado nem preso a meio.
+ *    É a mesma regra da cortina de entrada, que sai do ecrã mesmo que o
+ *    script falhe.
+ *
+ * Com `prefers-reduced-motion` não pode correr movimento nenhum, e é por
+ * isso que a medida regista o que o browser diz sobre essa preferência: o
+ * mesmo relatório serve as duas corridas.
+ */
+
+/** Gravador de quadros, instalado antes do clique e desligado sozinho. */
+function GRAVAR_ESCOLHA({ ms }) {
+  const amostras = [];
+  window.__escolha = amostras;
+  const t0 = performance.now();
+  const raiz = document.querySelector(".globo-etiquetas")?.parentElement;
+  const passo = () => {
+    const t = performance.now() - t0;
+    const etiquetas = [...document.querySelectorAll(".globo-etiqueta")];
+    const escolhidas = etiquetas.filter((n) => n.hasAttribute("data-escolhida"));
+    const outras = etiquetas.filter(
+      (n) => !n.hasAttribute("data-escolhida") && !n.hasAttribute("data-oculta")
+    );
+    /* Só as animações que estão mesmo a correr. Uma que já terminou continua
+       na lista com `playState` a «finished», e contá-la dava movimento onde
+       já não há nenhum. */
+    const nomes = new Set();
+    if (raiz && raiz.getAnimations) {
+      for (const a of raiz.getAnimations({ subtree: true })) {
+        if (a.playState !== "running") continue;
+        nomes.add(a.animationName || a.transitionProperty || "?");
+      }
+    }
+    amostras.push({
+      t: Math.round(t),
+      marca: raiz?.dataset?.escolha ?? "",
+      escolhidas: escolhidas.length,
+      outras: outras.length,
+      somaOutras: Number(outras.reduce((s, n) => s + Number(n.style.opacity || 0), 0).toFixed(2)),
+      animacoes: [...nomes],
+    });
+    if (t < ms) requestAnimationFrame(passo);
+  };
+  requestAnimationFrame(passo);
+  return true;
+}
+
+export async function medirEscolha(ctx) {
+  const { pagina, registo } = ctx;
+  const erros = marcarErros(registo);
+  await reiniciar(ctx);
+
+  const parado = await pagina.evaluate(
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+
+  const alvo = await primeiroSolto(pagina);
+  if (!alvo) return { falhou: "nenhum nome legível", parado, erros: erros() };
+
+  /* A navegação é cortada na rede: o que interessa é o que o globo faz
+     enquanto espera, e o que lhe fica quando a página nunca chega. */
+  await pagina.route("**/directorio/**", (r) => r.abort());
+
+  await pagina.evaluate(GRAVAR_ESCOLHA, { ms: 1400 });
+  const antes = await contadores(pagina);
+  await pagina.mouse.click(alvo.x, alvo.y);
+  await pagina.waitForTimeout(1600);
+  const depois = await contadores(pagina);
+  const amostras = await pagina.evaluate(() => window.__escolha ?? null);
+
+  await pagina.unroute("**/directorio/**");
+
+  const comMarca = amostras ? amostras.filter((a) => a.marca) : [];
+  const maxAnimacoes = amostras ? Math.max(0, ...amostras.map((a) => a.animacoes.length)) : 0;
+  const nomes = new Set();
+  for (const a of amostras ?? []) for (const n of a.animacoes) nomes.add(n);
+  const ultima = amostras?.[amostras.length - 1];
+
+  return {
+    parado,
+    alvo: alvo.nome,
+    amostras: amostras?.length ?? 0,
+    houveTransicao: comMarca.length > 0,
+    duracaoMs: comMarca.length ? comMarca[comMarca.length - 1].t - comMarca[0].t : 0,
+    maxAnimacoesJuntas: maxAnimacoes,
+    animacoes: [...nomes],
+    /* O estado em que fica quando a página nunca chega. `limpou` é a
+       pergunta que importa: um globo apagado para sempre é pior do que não
+       haver transição nenhuma. */
+    limpou: ultima ? !ultima.marca : null,
+    outrasNoFim: ultima?.outras ?? null,
+    somaOutrasNoFim: ultima?.somaOutras ?? null,
+    desenhos: depois.desenhos - antes.desenhos,
+    erros: erros(),
+  };
 }
