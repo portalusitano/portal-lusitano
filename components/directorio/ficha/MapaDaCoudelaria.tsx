@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { ExternalLink, Loader2, Map as IconeMapa, Navigation } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
@@ -18,12 +18,12 @@ const GloboMapa = dynamic(() => import("@/components/GloboMapa"), {
 /**
  * «Onde fica», e o mapa só a pedido.
  *
- * Medido nesta ficha: montar o mapa custa 928KB do pacote do maplibre mais
- * 478KB do módulo partilhado mais 191KB da malha do mundo — perto de 1,6MB
- * num painel de 220px que ninguém pediu, em todas as fichas, também no
- * telemóvel. Quem quer chegar lá usa o «Como chegar», que abre a aplicação de
- * mapas do próprio telefone com a rota feita; quem quer ver onde é carrega no
- * botão e aí sim paga o mapa.
+ * Medido nesta ficha, quando o mapa era o do MapLibre: 1 621 402 bytes num
+ * painel de 220px que ninguém pediu, em todas as fichas, também no telemóvel.
+ * O motor mudou e agora são 180KB, mas o botão fica: um mapa que ninguém
+ * pediu continua a não valer o que custa. Quem quer chegar lá usa o «Como
+ * chegar», que abre a aplicação de mapas do próprio telefone com a rota
+ * feita; quem quer ver onde é carrega no botão e aí sim paga o mapa.
  */
 export default function MapaDaCoudelaria({
   coudelaria,
@@ -39,6 +39,28 @@ export default function MapaDaCoudelaria({
   const { t } = useLanguage();
   const f = t.directorio.ficha;
   const [montado, setMontado] = useState(false);
+
+  /* Uma coudelaria só, mas numa lista memorizada: escrita à mão no JSX era um
+     array novo a cada renderização do pai, e o globo lia-a como dados novos —
+     voltava a enquadrar-se e a repetir o voo de entrada. */
+  const noMapa = useMemo(
+    () => [
+      {
+        id: coudelaria.id,
+        nome: coudelaria.nome,
+        slug: coudelaria.slug,
+        descricao: coudelaria.descricao || "",
+        localizacao: coudelaria.localizacao || "",
+        regiao: coudelaria.regiao || "",
+        foto_capa: capa || undefined,
+        is_pro: Boolean(coudelaria.is_pro),
+        destaque: Boolean(coudelaria.destaque),
+        coordenadas_lat: coudelaria.coordenadas_lat ?? undefined,
+        coordenadas_lng: coudelaria.coordenadas_lng ?? undefined,
+      },
+    ],
+    [coudelaria, capa]
+  );
 
   const coordenadas =
     typeof coudelaria.coordenadas_lat === "number" && typeof coudelaria.coordenadas_lng === "number"
@@ -56,24 +78,7 @@ export default function MapaDaCoudelaria({
 
       {montado ? (
         <div className="relative z-0 h-[220px] border-t border-[var(--border-soft)]">
-          <GloboMapa
-            flyTo={coordenadas}
-            coudelarias={[
-              {
-                id: coudelaria.id,
-                nome: coudelaria.nome,
-                slug: coudelaria.slug,
-                descricao: coudelaria.descricao || "",
-                localizacao: coudelaria.localizacao || "",
-                regiao: coudelaria.regiao || "",
-                foto_capa: capa || undefined,
-                is_pro: Boolean(coudelaria.is_pro),
-                destaque: Boolean(coudelaria.destaque),
-                coordenadas_lat: coudelaria.coordenadas_lat ?? undefined,
-                coordenadas_lng: coudelaria.coordenadas_lng ?? undefined,
-              },
-            ]}
-          />
+          <GloboMapa flyTo={coordenadas} coudelarias={noMapa} />
         </div>
       ) : (
         <div className="px-4 pb-4 sm:px-5 sm:pb-5">

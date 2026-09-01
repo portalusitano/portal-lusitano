@@ -58,4 +58,3 @@ next-env.d.ts
 # claude worktrees
 .claude/worktrees/
 .claude/plans/
-public/maplibre-gl-*.mjs
