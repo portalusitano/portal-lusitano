@@ -314,7 +314,11 @@ export function LocalBusinessSchema({
             worstRating: 1,
           }
         : undefined,
-    priceRange: "€€€",
+    /* Não se publica um `priceRange`.
+       Estava aqui `"€€€"` fixo, em todas as coudelarias — uma afirmação
+       sobre preços que ninguém introduziu e que ninguém verificou, emitida
+       em `schema.org` para a Google a ler e mostrar. Ou vem de um dado real
+       ou não vai. */
   };
 
   return (

@@ -140,30 +140,13 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
   let cavalo: CavaloDetalhe | null = null;
   let similarHorses: CavaloDetalhe[] = [];
 
-  // --- MODO DEMO ---
-  if (id === "demo") {
-    cavalo = {
-      id: "demo-123",
-      nome_cavalo: "Imperador do Lagar",
-      preco: 45000,
-      idade: 6,
-      localizacao: "Golegã, Capital do Cavalo",
-      linhagem: "Veiga (MV)",
-      descricao:
-        "Garanhão de pelagem ruça, com 1.64m ao garrote. Aprovado com 76 pontos. Apresenta uma mecânica de movimentos excecional, com facilidade natural para o Piaffe e Passage. Temperamento de fogo mas colaborante, típico da linhagem Veiga antiga.",
-      image_url: "https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?q=80&w=2071",
-      pai: "Sultão (MV)",
-      mae: "Duquesa (MV)",
-      pontuacao_apsl: 76,
-      sexo: "Macho",
-      altura: 164,
-      pelagem: "Ruça",
-      nivel: "Alta-escola",
-      disciplinas: ["Dressage", "Alta-escola"],
-    };
-  }
-  // --- MODO REAL (Supabase) ---
-  else {
+  /* Havia aqui um «modo demo»: o id `demo` devolvia um cavalo inventado —
+     «Imperador do Lagar», 45 000 €, 76 pontos APSL, filho de «Sultão (MV)» —
+     com uma fotografia de banco de imagens. Não estava ligado a lado nenhum,
+     mas estava público e indexável: um anúncio fabricado, com preço e com
+     pontuação de uma associação real, num classificados a sério. Saiu pela
+     mesma razão que saíram o «1000+ cavalos» e o selo «verificada». */
+  {
     const [fetchedCavalo, { data: similar }] = await Promise.all([
       getCavalo(id),
       supabase

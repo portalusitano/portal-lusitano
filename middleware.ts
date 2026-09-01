@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { linguaDoPedido } from "@/lib/lingua-do-pedido";
 import type { NextRequest } from "next/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
@@ -256,16 +257,20 @@ export async function middleware(request: NextRequest) {
     return rewriteResponse;
   }
 
-  // i18n: Auto-detect language from Accept-Language for first-time visitors (no locale cookie)
+  /* Língua de quem chega pela primeira vez, sem cookie.
+     Ver `linguaDoPedido`: isto era um `match(/\b(en|es)\b/)` sobre o
+     cabeçalho inteiro, e como quase todos os browsers portugueses trazem o
+     inglês como recurso, um visitante português apanhava o site em inglês
+     numa rota portuguesa. Agora lêem-se os pesos, como o protocolo manda. */
   if (
     !request.cookies.get("locale")?.value &&
     !pathname.startsWith("/api/") &&
     !pathname.startsWith("/admin")
   ) {
-    const acceptLang = request.headers.get("accept-language") || "";
-    const detected = acceptLang.match(/\b(en|es)\b/);
-    if (detected) {
-      response.cookies.set("locale", detected[1], { path: "/", sameSite: "lax" });
+    const escolhida = linguaDoPedido(request.headers.get("accept-language"));
+    // O português é a omissão; não vale a pena gastar um cookie a dizê-lo.
+    if (escolhida !== "pt") {
+      response.cookies.set("locale", escolhida, { path: "/", sameSite: "lax" });
     }
   }
 
