@@ -11,12 +11,14 @@ import { useLanguage } from "@/context/LanguageContext";
  * abrir por baixo com `.anim-crescer`, WhatsApp primeiro porque em Portugal é
  * por lá que um anúncio é reencaminhado — mas o texto vem do dicionário.
  *
- * O `components/ShareButtons` que a ficha do anúncio usa tem as etiquetas
+ * O `components/ShareButtons` que a ficha do anúncio usa tinha as etiquetas
  * escritas em português dentro do próprio componente («Partilhar»,
- * «Copiado», «Partilhar no WhatsApp»). Numa página em inglês lia-se «Save |
- * Partilhar» lado a lado, que é exactamente a mistura de línguas que se quer
- * arrumar. Como esse componente é partilhado por várias páginas que não são
- * desta área, não se lhe mexeu; fica dito no relatório.
+ * «Copiado», «Partilhar no WhatsApp»), e numa página em inglês lia-se «Save |
+ * Partilhar» lado a lado. Isso já está arrumado: esse componente passou a usar
+ * o `createTranslator` com o `useLanguage`, como este. Os dois continuam
+ * separados de propósito — este desenha o painel da ficha e vai buscar o texto
+ * ao dicionário (`t.directorio.ficha`), aquele serve páginas de outras áreas e
+ * traduz em linha.
  */
 export default function Partilhar({ titulo, url }: { titulo: string; url: string }) {
   const { t } = useLanguage();
