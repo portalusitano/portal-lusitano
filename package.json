@@ -5,7 +5,6 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
-    "prebuild": "node scripts/copiar-worker-maplibre.mjs",
     "build": "next build",
     "start": "next start",
     "images:refresh": "node -e \"const{rmSync,existsSync}=require('fs');const p='.next/cache/images';if(existsSync(p)){rmSync(p,{recursive:true,force:true});console.log('✓ Cache de imagens limpa. Reinicia o servidor para aplicar.')}else{console.log('Nenhum cache para limpar.')}\"",
@@ -28,7 +27,8 @@
     "generate-pdf:premium": "node scripts/generate-ebook-pdf-premium.js",
     "sync-images": "node scripts/sync-coudelaria-images.js",
     "sync-cavalos": "npx tsx scripts/sync-cavalos-images.ts",
-    "optimize-images": "npx tsx scripts/optimize-images.ts"
+    "optimize-images": "npx tsx scripts/optimize-images.ts",
+    "mapa:geometria": "node scripts/mapa/montar-geometria.mjs"
   },
   "lint-staged": {
     "*.{js,cjs,mjs,jsx,ts,tsx}": [
@@ -63,7 +63,6 @@
     "jspdf-autotable": "^5.0.7",
     "lru-cache": "^11.2.5",
     "lucide-react": "^0.562.0",
-    "maplibre-gl": "^6.6.0",
     "next": "^16.1.6",
     "next-sanity": "^12.1.0",
     "react": "19.2.3",

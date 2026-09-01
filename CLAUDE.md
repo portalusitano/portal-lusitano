@@ -96,7 +96,10 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
    que a frase do cartão diz por palavras.
 4. **A Terra em 3D** (`<GloboTerra>`) — é o mapa da página `/mapa`, e não
    há outro. Texturas em `public/globo/` (569KB, mais 53KB de contornos
-   comprimidos; só nesta página). O que o faz funcionar:
+   comprimidos; só nesta página). Chegou a haver outros dois — ver o ponto
+   6 —, e a regra é a mesma que vale para os ciclos infinitos: um motor de
+   mapa a mais custa uma razão escrita, e não havia nenhuma. O que o faz
+   funcionar:
    - **Órbita baixa**, a 0,05 raios sobre um ponto a sul de Portugal, a
      olhar para norte: o país enche o quadro e o horizonte entra em cima.
      Do espaço as vinte e nove coudelarias cabiam num borrão de dez pixéis.
@@ -185,6 +188,60 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
    atravessa a grelha como se fosse uma folha de vidro só. As medidas ficam
    em cache e as escritas passam por um `requestAnimationFrame`; sem rato
    (`pointer: coarse`) o efeito nem se liga.
+6. **O mapa das coudelarias** (`<GloboMapa>`) — o painel do directório e o
+   «Onde fica» da ficha. É o segundo e último motor de mapa do site, e a
+   fronteira entre os dois é de propósito: o `<GloboTerra>` é a página, este
+   é o painel. Desenha-se em canvas 2D com o `d3-geo`, não depende de
+   servidor nenhum, não abre worker, não pede WebGL e não regista um único
+   ouvinte não passivo.
+   - **Eram três motores, e o terceiro pagava-se caro.** Havia um globo de
+     tiles do MapLibre sobre o OpenFreeMap com um despachante a cair para
+     este quando os tiles falhassem. Medido no browser: abrir o mapa do
+     directório custava 1 556 310 bytes em 120 pedidos, 114 deles a um
+     servidor de fora; a ficha, para mostrar **um** alfinete num painel de
+     220px, custava 1 621 402. E com o servidor inalcançável o caminho de
+     recurso custava 1 987 601 — o MapLibre inteiro descarregado e deitado
+     fora, mais oito segundos de vigia, e só então o segundo motor. O plano
+     B saía mais caro do que os dois planos A somados. Ficaram 436 831 bytes
+     no directório e 293 663 na ficha, e zero pedidos a servidores de fora.
+     Ruas e nomes de aldeia perderam-se: nunca foram o que este painel
+     mostra, e quem os quer tem o «Como chegar» da ficha, que abre a
+     aplicação de mapas do telefone, e o `/mapa` no botão ao lado.
+   - **O enquadramento sai dos dados.** Era um zoom fixo, e com ele Portugal
+     ocupava dois por cento do quadro e as vinte e nove coudelarias cabiam
+     numa mancha de dez pixéis — um globo bonito e um mapa inútil. Agora
+     mede-se a caixa dos alfinetes e enquadra-se nela, sejam vinte e nove ou
+     um só. A largura entra corrigida pelo cosseno da latitude, senão um
+     conjunto largo e baixo enquadra-se de mais.
+   - **Portugal a 1:10m** (`public/mapa-directorio.json`, montado por
+     `npm run mapa:geometria`). A 1:110m tem **33 pontos**: é um polígono,
+     não um país, e enquadrado a preencher o painel lia-se como um erro de
+     desenho. Portugal e Espanha vêm os dois a 10m e saem da malha
+     grosseira — partilham a fronteira, e assim não há greta entre eles nem
+     um Portugal grosseiro a espreitar por fora do fino.
+   - **O laço de pintura não refaz o que não muda.** Corria `geoCentroid` e
+     `geoPath.bounds` para os 177 países **em cada quadro**, o que são duas
+     passagens completas por dez mil pontos além da do desenho, para
+     escrever meia dúzia de nomes; montava a grelha de meridianos de novo a
+     cada quadro (2573 pontos alocados e deitados fora); pintava 260
+     estrelas com `arc()` uma a uma; e lia as cores com um
+     `getComputedStyle` mais quatro `getPropertyValue`, que é pedir estilo
+     calculado a 60 Hz. Os centróides e as caixas passaram para o ficheiro,
+     a grelha é uma constante do módulo, o céu é uma lona pintada uma vez e
+     copiada com um `drawImage`, e as cores leem-se uma vez ao montar.
+     Medido: 34 334 → 17 289 visitas a pontos por quadro, com 38× mais
+     detalhe em Portugal.
+   - **A roda não é do mapa.** Aproximar com a roda obriga a um ouvinte de
+     `wheel` não passivo, e um desses proíbe o browser de deslocar a página
+     no compositor enquanto o rato estiver por cima — num painel de 420px no
+     meio de um directório que se percorre a rolar, é trocar o deslocamento
+     de toda a gente pelo gesto de quem quer aproximar. Antes fazia as duas
+     coisas ao mesmo tempo, porque o `onWheel` do React é passivo: a página
+     descia e o globo aproximava-se sem ninguém pedir. Quem aproxima são dois
+     botões, que também servem no telemóvel, onde roda não há.
+   - **A caixa mede-se por evento, não por deslocamento.** Era um
+     `getBoundingClientRect` a cada `pointermove`. Fica em cache; um ouvinte
+     de `scroll` passivo, que não lê layout nenhum, só a marca como velha.
 
 ### Movimento
 
@@ -291,8 +348,8 @@ As durações e as curvas são medidas, não inventadas. Vivem em tokens no
   mesmo que um que se vê.
   Os esqueletos de carregamento usam `animate-pulse` do Tailwind: são a
   excepção aceite, porque só existem enquanto o conteúdo não chegou.
-  Os dois globos do mapa também não fazem excepção: o de tiles voa até
-  Portugal e o da Terra fecha-se sobre ela, cada um num movimento só que
+  Os dois globos também não fazem excepção: o do directório fecha-se sobre
+  os alfinetes e o da Terra sobre Portugal, cada um num movimento só que
   corre uma vez e pára. Os exemplos que lhes serviram de referência rodavam
   para sempre e tinham os pontos a pulsar; ficou tudo isso de fora.
 - Entrada anterior (`fadeSlideIn`) ainda em várias páginas: mesma família de
