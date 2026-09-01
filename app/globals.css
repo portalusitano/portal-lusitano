@@ -3161,3 +3161,149 @@ body {
     height: auto !important;
   }
 }
+
+/* ===== PUBLICAR ANÚNCIO =====
+ * O percurso de `/vender-cavalo`. Classes próprias porque o que elas resolvem
+ * é próprio deste percurso: um formulário de quatro passos e noventa e quatro
+ * campos, onde o que custa é saber o que falta e onde é que ele está. */
+@layer components {
+  /* Um campo que está a impedir alguém de avançar. Sobre preto uma borda
+     vermelha fina quase não se vê; leva também um halo — o mesmo que o foco
+     faz, com a cor do erro. */
+  .campo-erro,
+  .campo-erro:hover,
+  .campo-erro:focus {
+    border-color: var(--erro);
+    box-shadow: 0 0 0 3px rgb(var(--erro-rgb) / 0.16);
+  }
+
+  /* A mensagem por baixo do campo. Fica junto ao problema; o resumo lá em
+     cima é para quem chega de fora, esta é para quem já lá está. */
+  .erro-campo {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.375rem;
+    margin-top: 0.375rem;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--erro);
+  }
+
+  /* O resumo no topo do passo. Era `bg-red-500/10` com três tons de vermelho
+     do Tailwind escritos na página, e nenhum deles o `--erro` do sistema. */
+  .resumo-erros {
+    border: 1px solid rgb(var(--erro-rgb) / 0.35);
+    background: rgb(var(--erro-rgb) / 0.08);
+    border-radius: var(--raio-lg);
+    padding: 1rem;
+  }
+
+  /* Cada linha do resumo é um botão que leva ao campo. Um resumo que só
+     descreve obriga a procurar, entre quarenta e sete campos, qual é o que
+     falta; este leva lá e põe-lhe o foco. */
+  .resumo-erros__ir {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.25rem 0;
+    color: var(--erro);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    text-decoration: underline;
+    text-decoration-color: rgb(var(--erro-rgb) / 0.4);
+    text-underline-offset: 3px;
+    cursor: pointer;
+    transition: text-decoration-color var(--d-fast) var(--ease-out);
+  }
+
+  .resumo-erros__ir:hover {
+    text-decoration-color: var(--erro);
+  }
+
+  /* Painel de nota — o aviso da APSL, o da verificação de documentos. Eram
+     `bg-blue-500/10` com texto `text-blue-300`: uma quarta cor no site, que
+     não está em token nenhum. Sobre preto, quem diz «isto é uma nota» é a
+     hairline e o recuo, não uma cor nova. */
+  .painel-nota {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    border: 1px solid var(--border-soft);
+    border-left: 2px solid var(--border);
+    background: var(--elevate-1);
+    border-radius: var(--raio);
+    padding: 0.875rem 1rem;
+    color: var(--foreground-secondary);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+
+  /* --- Detalhes opcionais --------------------------------------------------
+   * Um passo com quarenta e sete campos à entrada não se lê: percorre-se. O
+   * que é preciso para publicar fica à vista; o resto fica aqui dentro,
+   * fechado, com a conta do que lá está — quem quiser um anúncio mais
+   * completo abre, quem quiser publicar hoje passa ao lado. */
+  .detalhes {
+    border: 1px solid var(--border-soft);
+    border-radius: var(--raio);
+    background: var(--elevate-1);
+  }
+
+  .detalhes__cabeca {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    color: var(--foreground-secondary);
+    cursor: pointer;
+    transition: color var(--d-fast) var(--ease-out);
+  }
+
+  .detalhes__cabeca:hover {
+    color: var(--foreground-strong);
+  }
+
+  .detalhes__seta {
+    flex: none;
+    transition: transform var(--d-fast) var(--ease-out);
+  }
+
+  .detalhes[data-aberto="sim"] .detalhes__seta {
+    transform: rotate(90deg);
+  }
+
+  .detalhes__corpo {
+    padding: 0 1rem 1rem;
+  }
+
+  /* O mesmo movimento dos dropdowns: 200ms, origem no topo. Corre uma vez, ao
+     abrir, e pára. */
+  .detalhes[data-aberto="sim"] .detalhes__corpo {
+    animation: crescer var(--d-fast) var(--ease-out) both;
+    transform-origin: top;
+  }
+
+  /* --- Guarda do rascunho -------------------------------------------------- */
+  .barra-rascunho {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border: 1px solid var(--border-soft);
+    background: var(--elevate-1);
+    border-radius: var(--raio);
+    padding: 0.75rem 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detalhes[data-aberto="sim"] .detalhes__corpo,
+  .detalhes__seta {
+    animation: none !important;
+    transition: none !important;
+  }
+}
