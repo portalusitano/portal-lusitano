@@ -150,6 +150,35 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
      o shader, que descarta o pixel onde não há ar. Quando era a geometria a
      decidir, o remate contra o preto era uma linha quebrada com os cantos
      dos polígonos à vista.
+   - **As sobras não ficam anónimas.** Nem todos os vinte e nove nomes cabem:
+     em desktop escrevem-se treze, em telemóvel oito. Os que sobram juntam-se
+     em manchas com um algarismo, e apontar uma abre a lista de quem lá está.
+     As manchas calculam-se **depois** da colocação e só apanham as sobras —
+     nunca podem tirar o nome a ninguém. Agrupam no ecrã e não no terreno, e
+     por isso desfazem-se ao aproximar: quem mexe na roda tem recompensa
+     visível. Medido: 29 de 29 com conta no ecrã, 0 sobreposições contando
+     manchas e nomes juntos.
+   - **As setas percorrem as vinte e nove**, por latitude, de norte para sul,
+     e cada passo traz a coudelaria à vista antes de lhe dar o foco. A
+     tabulação continua a passar só pelos nomes que se lêem: uma segunda rota
+     por bolhas que mudam de sítio a cada arrasto seria uma rota pior, não uma
+     a mais.
+   - **A janela útil não é a lona.** O motor não escreve por baixo do que está
+     fixo no ecrã — a barra de cookies, o cabeçalho. E não o faz sabendo que
+     eles existem: pergunta ao browser quem está no caminho, com
+     `elementFromPoint` a subir ao primeiro antepassado `fixed`. O globo não
+     conhece classes de outros componentes.
+   - **Uma excepção sem camada**, e a razão: a regra global
+     `button:not([role="switch"]) { min-height: 44px }` esticava a caixa de
+     cada nome de 28 para 44px em telemóvel — e a caixa do nome _é_ a caixa do
+     teste de colisão, logo cada nome reservava 57% mais altura do que
+     gastava. Como CSS sem camada ganha a qualquer `@layer`, a resposta tem de
+     ser sem camada também. O alvo de toque não se perde: passa para um
+     `::after` transparente, que não entra na medida do elemento.
+   - **O ponteiro só se agarra a partir dos três pixéis de arrasto.** Com
+     `setPointerCapture` no `pointerdown`, o browser entregava o `click` à
+     lona: carregar num nome ou num alfinete não fazia nada num computador, e
+     só o toque funcionava. Um clique nunca chega a pedir a captura.
 5. **Holofote na grelha** — `<GrelhaHolofote>` escreve a posição do rato em
    coordenadas de cada cartão (`--px`, `--py`) e o `.cartao-holofote` acende
    com ela a hairline e um halo. Como os cartões todos lêem a mesma luz, ela
@@ -193,6 +222,22 @@ As durações e as curvas são medidas, não inventadas. Vivem em tokens no
 - Submenus: os níveis empilham-se no mesmo sítio. O submenu entra da direita
   uma largura inteira enquanto o nível de cima fica quieto e só se apaga; são
   os dois ao mesmo tempo que se leem como profundidade.
+- **Entrar num sítio usa esse mesmo idioma**, e não um segundo inventado: a
+  `.pilha` do painel de regiões do `/mapa` é o mesmo movimento dos submenus
+  (`--d-drill`, `--ease-in-out-cubic`). Escolher uma região não é marcar uma
+  caixa numa lista, é entrar nela — e há caminho de volta. A altura da caixa é
+  medida do nível activo e animada; sem isso, passar de cinco regiões para
+  treze coudelarias dá um salto e o que está por baixo pula. Mede-se no
+  `useLayoutEffect`, antes da pintura, e observa-se com um `ResizeObserver`,
+  porque o conteúdo do nível também muda de altura sozinho. O nível que está
+  fora leva `inert`: uma lista invisível a receber tabulações é pior do que
+  não existir.
+- Trocar de vista (`.vista-troca`): esbatimento com um resto de escala, e os
+  cartões em cascata com tecto em dez. Passados dez, o atraso deixa de se ler
+  como ordem e passa a leitura a conta-gotas. **A `key` no elemento é o que
+  faz a animação repetir-se** — sem ela o React reaproveita o nó e a animação,
+  que já correu, não volta a correr. E não se usa `<Revelar>` aqui: esse
+  dispara ao entrar no ecrã, e ao trocar de vista o conteúdo já lá está.
 - Cortina de entrada (`.cortina`): pano da cor do fundo que sobe em 250ms,
   uma vez por carregamento. Quem a anima é o CSS; o JS só a retira do DOM.
   Se o script falhar, a cortina já saiu do ecrã à mesma — nunca fica um
