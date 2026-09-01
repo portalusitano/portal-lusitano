@@ -211,7 +211,7 @@ export default function MensagensPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[var(--background)] pt-32 pb-20">
+    <div className="min-h-screen bg-[var(--background)] pt-32 pb-20">
       <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header com Stats */}
         <div className="mb-8">
@@ -718,6 +718,6 @@ export default function MensagensPage() {
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }

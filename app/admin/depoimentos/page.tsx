@@ -15,7 +15,7 @@ export default async function AdminDepoimentosPage({
 
   return (
     <>
-      <main className="min-h-screen bg-black text-white pt-48 px-10">
+      <div className="min-h-screen bg-black text-white pt-48 px-10">
         <header className="mb-16 border-b border-zinc-900 pb-8">
           <h1 className="text-4xl font-normal">
             Curadoria de <span className="text-[var(--foreground-muted)]">Testemunhos</span>
@@ -50,7 +50,7 @@ export default async function AdminDepoimentosPage({
             </div>
           ))}
         </div>
-      </main>
+      </div>
     </>
   );
 }

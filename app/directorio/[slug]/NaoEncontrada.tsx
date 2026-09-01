@@ -17,7 +17,7 @@ export default function NaoEncontrada() {
   const f = t.directorio.ficha;
 
   return (
-    <main className="flex min-h-[70vh] items-center justify-center px-6 py-24">
+    <div className="flex min-h-[70vh] items-center justify-center px-6 py-24">
       <div className="w-full max-w-lg">
         <p className="rotulo mb-3">404</p>
         <h1 className="titulo-gradiente mb-3 text-3xl leading-tight sm:text-4xl">
@@ -36,6 +36,6 @@ export default function NaoEncontrada() {
           </LocalizedLink>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

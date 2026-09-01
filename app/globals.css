@@ -643,6 +643,14 @@ body {
 }
 
 /* Bottom padding for fixed bottom nav — includes safe-area for notched iPhones */
+/* Esta regra está FORA de qualquer @layer de propósito, logo ganha às
+   utilidades do Tailwind: um `pb-20` escrito no JSX de um <main> não lhe
+   chega. Enquanto houve <main> dentro de <main>, isso queria dizer duas
+   coisas ao mesmo tempo — a folga era contada duas vezes (a de fora mais a
+   de dentro) e o `pb-*` de cada página era calado. Agora há um só <main>, o
+   do app/layout.tsx: conta uma vez, e os `pb-*` das páginas valem o que
+   dizem. Quem acrescentar um <main> novo a uma página traz as duas coisas
+   de volta. */
 @media (max-width: 1024px) {
   main {
     padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));

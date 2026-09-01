@@ -7,7 +7,7 @@ import { useLanguage } from "@/context/LanguageContext";
 export default function NotFound() {
   const { t } = useLanguage();
   return (
-    <main className="min-h-screen bg-[var(--background)] flex items-center justify-center px-6 relative overflow-hidden">
+    <div className="min-h-screen bg-[var(--background)] flex items-center justify-center px-6 relative overflow-hidden">
       {/* Background decorativo */}
       <div className="absolute inset-0 opacity-5" aria-hidden="true"></div>
 
@@ -86,6 +86,6 @@ export default function NotFound() {
           <div className="w-12 h-[1px] bg-[var(--border)]" />
         </div>
       </div>
-    </main>
+    </div>
   );
 }

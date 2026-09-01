@@ -182,7 +182,7 @@ export default function MeusAnunciosContent() {
   };
 
   return (
-    <main className="min-h-screen bg-[var(--background)] px-5 sm:px-8 py-16 sm:py-24">
+    <div className="min-h-screen bg-[var(--background)] px-5 sm:px-8 py-16 sm:py-24">
       <div className="max-w-4xl mx-auto">
         <LocalizedLink
           href="/minha-conta"
@@ -612,6 +612,6 @@ export default function MeusAnunciosContent() {
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }

@@ -5,7 +5,7 @@ export default async function TermosPage() {
 
   return (
     <>
-      <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-32 pb-20 px-4 sm:px-6 font-normal selection:bg-[var(--gold)] selection:text-black">
+      <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-32 pb-20 px-4 sm:px-6 font-normal selection:bg-[var(--gold)] selection:text-black">
         <div className="max-w-4xl mx-auto">
           <span className="rotulo mb-6 block text-center">{t.terms.legal}</span>
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-normal mb-4 text-center">
@@ -111,7 +111,7 @@ export default async function TermosPage() {
             </section>
           </div>
         </div>
-      </main>
+      </div>
     </>
   );
 }

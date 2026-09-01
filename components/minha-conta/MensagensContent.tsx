@@ -126,7 +126,7 @@ export default function MensagensContent() {
   // ── Thread view ───────────────────────────────────────────────────────────
   if (aberta) {
     return (
-      <main className="min-h-screen bg-[var(--background)] px-5 sm:px-8 py-16 sm:py-24">
+      <div className="min-h-screen bg-[var(--background)] px-5 sm:px-8 py-16 sm:py-24">
         <div className="max-w-2xl mx-auto">
           <button
             onClick={() => {
@@ -229,13 +229,13 @@ export default function MensagensContent() {
             </button>
           </div>
         </div>
-      </main>
+      </div>
     );
   }
 
   // ── Inbox ─────────────────────────────────────────────────────────────────
   return (
-    <main className="min-h-screen bg-[var(--background)] px-5 sm:px-8 py-16 sm:py-24">
+    <div className="min-h-screen bg-[var(--background)] px-5 sm:px-8 py-16 sm:py-24">
       <div className="max-w-3xl mx-auto">
         <LocalizedLink
           href="/minha-conta"
@@ -340,6 +340,6 @@ export default function MensagensContent() {
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }

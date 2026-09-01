@@ -72,7 +72,7 @@ export default function AdminDenunciasPage() {
   };
 
   return (
-    <main className="p-6 sm:p-10">
+    <div className="p-6 sm:p-10">
       <header className="mb-8">
         <h1 className="text-2xl font-normal tracking-wide text-[var(--foreground)] flex items-center gap-3">
           <Flag size={20} className="text-[var(--foreground-muted)]" />
@@ -197,6 +197,6 @@ export default function AdminDenunciasPage() {
           </article>
         ))}
       </div>
-    </main>
+    </div>
   );
 }

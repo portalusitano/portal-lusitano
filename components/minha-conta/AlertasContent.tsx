@@ -186,7 +186,7 @@ export default function AlertasContent() {
   );
 
   return (
-    <main className="min-h-screen bg-[var(--background)] px-5 sm:px-8 py-16 sm:py-24">
+    <div className="min-h-screen bg-[var(--background)] px-5 sm:px-8 py-16 sm:py-24">
       <div className="max-w-3xl mx-auto">
         <LocalizedLink
           href="/minha-conta"
@@ -388,6 +388,6 @@ export default function AlertasContent() {
           </>
         )}
       </div>
-    </main>
+    </div>
   );
 }

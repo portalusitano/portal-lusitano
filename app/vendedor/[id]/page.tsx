@@ -80,7 +80,7 @@ export default async function VendedorPage({ params }: { params: Promise<{ id: s
   if (!vendedor) notFound();
 
   return (
-    <main className="min-h-screen bg-[var(--background)] px-5 sm:px-8 py-16 sm:py-24">
+    <div className="min-h-screen bg-[var(--background)] px-5 sm:px-8 py-16 sm:py-24">
       <div className="max-w-4xl mx-auto">
         <header className="pb-8 border-b border-[var(--border)]">
           <div className="flex items-center gap-4">
@@ -154,6 +154,6 @@ export default async function VendedorPage({ params }: { params: Promise<{ id: s
           </LocalizedLink>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
