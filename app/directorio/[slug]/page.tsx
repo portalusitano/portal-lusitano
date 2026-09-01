@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { lerCavalosDestaque } from "@/lib/cavalos-destaque";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
@@ -36,7 +37,16 @@ const obterCoudelaria = cache(async (slug: string): Promise<CoudelariaFicha | nu
       .eq("slug", slug)
       .eq("status", "active")
       .single();
-    return (data as CoudelariaFicha | null) ?? null;
+    if (!data) return null;
+    /* O `as` é uma promessa, não uma verificação — e neste caso era falsa: a
+       coluna `cavalos_destaque` é `jsonb` e onze das vinte e nove linhas
+       trazem lá uma string com JSON dentro, não um array. A ficha fazia
+       `.length ? … .map(…)`, e como uma string também tem `length`, a guarda
+       deixava passar e o `.map` rebentava — a construção do site morria a
+       prerenderizar esta página. Os dados de fora normalizam-se aqui, na
+       fronteira, e daqui para dentro o tipo passa a ser verdade. */
+    const linha = data as unknown as CoudelariaFicha & { cavalos_destaque?: unknown };
+    return { ...linha, cavalos_destaque: lerCavalosDestaque(linha.cavalos_destaque) };
   } catch {
     return null;
   }
