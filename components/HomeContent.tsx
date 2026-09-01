@@ -462,7 +462,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
   const { passo: passoCartoes, alvo: cartoesVivos } = usePassoVivo(900);
 
   return (
-    <main className="bg-[var(--background)]">
+    <div className="bg-[var(--background)]">
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
       {/* Sem fotografia de fundo: o gradiente radial dá profundidade sem
           disputar atenção com o texto, e não paga o custo de uma imagem
@@ -933,6 +933,6 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
           </Revelar>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

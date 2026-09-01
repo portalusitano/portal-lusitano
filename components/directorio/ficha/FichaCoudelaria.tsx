@@ -166,7 +166,7 @@ export default function FichaCoudelaria({
     });
 
   return (
-    <main className="min-h-screen bg-[var(--background)] [overflow-x:clip]">
+    <div className="min-h-screen bg-[var(--background)] [overflow-x:clip]">
       {/* ── Capa ───────────────────────────────────────────────────────────── */}
       {fotos.capa ? (
         <header className="relative min-h-[340px] sm:min-h-[480px]" aria-label={coudelaria.nome}>
@@ -719,7 +719,7 @@ export default function FichaCoudelaria({
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }
 

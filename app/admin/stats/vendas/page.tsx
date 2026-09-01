@@ -26,7 +26,7 @@ export default async function AdminVendasPage({
 
   return (
     <>
-      <main className="min-h-screen bg-black text-white pt-48 px-10 pb-20">
+      <div className="min-h-screen bg-black text-white pt-48 px-10 pb-20">
         <header className="mb-16 border-b border-[var(--border-soft)] pb-8 flex justify-between items-end">
           <div>
             <p className="text-[var(--foreground-muted)] rotulo font-bold mb-2 italic">
@@ -124,7 +124,7 @@ export default async function AdminVendasPage({
             </tbody>
           </table>
         </div>
-      </main>
+      </div>
     </>
   );
 }

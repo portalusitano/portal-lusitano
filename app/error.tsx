@@ -27,7 +27,7 @@ export default function Error({
   }, [error]);
 
   return (
-    <main
+    <div
       className="min-h-screen bg-[var(--background)] flex items-center justify-center px-6 relative overflow-hidden"
       aria-labelledby="error-title"
     >
@@ -129,6 +129,6 @@ export default function Error({
           <div className="w-12 h-[1px] bg-[var(--border)]" />
         </div>
       </div>
-    </main>
+    </div>
   );
 }

@@ -2,7 +2,7 @@ import LocalizedLink from "@/components/LocalizedLink";
 
 export default function VendedorNaoEncontrado() {
   return (
-    <main className="min-h-screen bg-[var(--background)] flex items-center justify-center px-6">
+    <div className="min-h-screen bg-[var(--background)] flex items-center justify-center px-6">
       <div className="text-center max-w-md">
         <h1 className="text-2xl font-normal text-[var(--foreground)]">Vendedor não encontrado</h1>
         <p className="text-sm text-[var(--foreground-muted)] mt-3">
@@ -15,6 +15,6 @@ export default function VendedorNaoEncontrado() {
           Ver cavalos à venda
         </LocalizedLink>
       </div>
-    </main>
+    </div>
   );
 }

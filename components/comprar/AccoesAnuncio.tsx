@@ -3,6 +3,8 @@
 import { Heart } from "lucide-react";
 import ShareButtons from "@/components/ShareButtons";
 import { useHorseFavorites, FavoriteHorse } from "@/context/HorseFavoritesContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { createTranslator } from "@/lib/tr";
 
 interface AccoesAnuncioProps {
   cavalo: FavoriteHorse;
@@ -19,6 +21,8 @@ interface AccoesAnuncioProps {
  */
 export default function AccoesAnuncio({ cavalo, url }: AccoesAnuncioProps) {
   const { isFavorite, addToFavorites, removeFromFavorites } = useHorseFavorites();
+  const { language } = useLanguage();
+  const tr = createTranslator(language);
   const guardado = isFavorite(cavalo.id);
 
   return (
@@ -32,7 +36,7 @@ export default function AccoesAnuncio({ cavalo, url }: AccoesAnuncioProps) {
         }`}
       >
         <Heart size={15} aria-hidden="true" fill={guardado ? "currentColor" : "none"} />
-        {guardado ? "Guardado" : "Guardar"}
+        {guardado ? tr("Guardado", "Saved", "Guardado") : tr("Guardar", "Save", "Guardar")}
       </button>
 
       <ShareButtons

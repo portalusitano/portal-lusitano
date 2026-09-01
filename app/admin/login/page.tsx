@@ -22,7 +22,7 @@ export default function AdminLoginPage() {
   const [state, formAction] = useActionState(adminLogin, null);
 
   return (
-    <main className="min-h-screen bg-[var(--background)] flex items-center justify-center relative overflow-hidden px-6">
+    <div className="min-h-screen bg-[var(--background)] flex items-center justify-center relative overflow-hidden px-6">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[var(--foreground-strong)] opacity-[0.03] blur-[120px] rounded-full pointer-events-none"></div>
 
       <div className="relative z-20 w-full max-w-md bg-[var(--background-secondary)]/40 backdrop-blur-md border border-[var(--border)] p-10 md:p-14 shadow-2xl">
@@ -78,6 +78,6 @@ export default function AdminLoginPage() {
           Portal Lusitano &copy; {new Date().getFullYear()}
         </p>
       </div>
-    </main>
+    </div>
   );
 }

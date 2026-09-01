@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Edit, Trash2, Eye, Star, MapPin } from "lucide-react";
 import { CavaloAdmin } from "@/types/cavalo";
 import Seleccao from "@/components/ui/Seleccao";
+import { formatarPrecoCavalo } from "@/lib/format";
 
 const sexoOptions = [
   { value: "macho", label: "Garanhão" },
@@ -24,12 +25,6 @@ interface HorseTableProps {
   onEdit: (cavalo: CavaloAdmin) => void;
   onDelete: (id: string) => void;
   onUpdateStatus: (id: string, status: string) => void;
-}
-
-function formatPrice(cavalo: CavaloAdmin) {
-  if (cavalo.preco_sob_consulta) return "Sob consulta";
-  if (!cavalo.preco) return "A definir";
-  return `€${cavalo.preco.toLocaleString("pt-PT")}`;
 }
 
 export default function HorseTable({
@@ -98,7 +93,7 @@ export default function HorseTable({
               </td>
               <td className="px-6 py-4">
                 <span className="font-semibold text-gray-900 flex items-center gap-1">
-                  {formatPrice(cavalo)}
+                  {formatarPrecoCavalo(cavalo)}
                 </span>
               </td>
               <td className="px-6 py-4">

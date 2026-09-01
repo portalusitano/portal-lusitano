@@ -15,7 +15,7 @@ export default function MinhaContaError({
   }, [error]);
 
   return (
-    <main className="min-h-screen bg-[var(--background)] flex items-center justify-center px-6">
+    <div className="min-h-screen bg-[var(--background)] flex items-center justify-center px-6">
       <div className="max-w-md w-full text-center">
         <div className="text-[var(--foreground-muted)] text-6xl mb-6">!</div>
         <h1 className="text-2xl text-[var(--foreground)] mb-4">Erro na Conta</h1>
@@ -34,6 +34,6 @@ export default function MinhaContaError({
           </LocalizedLink>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

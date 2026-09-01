@@ -32,7 +32,7 @@ export default function OfflinePage() {
   const t = text[language];
 
   return (
-    <main
+    <div
       data-revelar=""
       suppressHydrationWarning
       className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center px-6 text-center"
@@ -72,6 +72,6 @@ export default function OfflinePage() {
         </span>
         <div className="w-8 h-px bg-[var(--border)]" />
       </div>
-    </main>
+    </div>
   );
 }

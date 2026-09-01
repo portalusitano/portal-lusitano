@@ -46,7 +46,7 @@ function UnsubscribeContent() {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--background)] flex items-center justify-center px-6">
+    <div className="min-h-screen bg-[var(--background)] flex items-center justify-center px-6">
       <div
         data-revelar=""
         suppressHydrationWarning
@@ -121,7 +121,7 @@ function UnsubscribeContent() {
           Portal Lusitano &copy; {new Date().getFullYear()}
         </p>
       </div>
-    </main>
+    </div>
   );
 }
 

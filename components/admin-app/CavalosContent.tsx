@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Plus, Edit, Trash2, Eye, Star, MapPin, X, Search } from "lucide-react";
 import { CavaloAdmin } from "@/types/cavalo";
 import Seleccao from "@/components/ui/Seleccao";
+import { formatarPrecoCavalo } from "@/lib/format";
 
 const sexoOptions = [
   { value: "macho", label: "Garanhão" },
@@ -195,12 +196,6 @@ export default function CavalosContent() {
       .replace(/(^-|-$)+/g, "");
   }
 
-  function formatPrice(cavalo: CavaloAdmin) {
-    if (cavalo.preco_sob_consulta) return "Sob consulta";
-    if (!cavalo.preco) return "A definir";
-    return `€${cavalo.preco.toLocaleString("pt-PT")}`;
-  }
-
   const filteredCavalos = cavalos.filter(
     (c) =>
       c.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -335,7 +330,7 @@ export default function CavalosContent() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="font-semibold text-white flex items-center gap-1">
-                        {formatPrice(cavalo)}
+                        {formatarPrecoCavalo(cavalo)}
                       </span>
                     </td>
                     <td className="px-6 py-4">

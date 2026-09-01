@@ -186,7 +186,7 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
   ];
 
   return (
-    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-24 selection:bg-[var(--gold)] selection:text-black">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-24 selection:bg-[var(--gold)] selection:text-black">
       {/* ── HERO ─────────────────────────────────────── */}
       <div className="relative overflow-hidden pt-20 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6">
         {/* Grain texture overlay */}
@@ -425,6 +425,6 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

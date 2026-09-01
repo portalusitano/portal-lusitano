@@ -9,7 +9,7 @@ export default async function FAQPage() {
   const faqs = faqData[language] ?? faqData.pt;
 
   return (
-    <main className="min-h-screen bg-[var(--background)] pt-20 sm:pt-32 pb-20 px-4 sm:px-6">
+    <div className="min-h-screen bg-[var(--background)] pt-20 sm:pt-32 pb-20 px-4 sm:px-6">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
@@ -49,6 +49,6 @@ export default async function FAQPage() {
           </a>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

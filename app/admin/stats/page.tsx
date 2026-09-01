@@ -21,7 +21,7 @@ export default async function AdminStatsPage({
 
   return (
     <>
-      <main className="min-h-screen bg-black text-white pt-48 px-10 pb-20">
+      <div className="min-h-screen bg-black text-white pt-48 px-10 pb-20">
         <header className="mb-20 border-b border-[var(--border-soft)] pb-10">
           <p className="text-[var(--foreground-muted)] rotulo font-bold mb-4 italic">
             Performance Portal Lusitano
@@ -77,7 +77,7 @@ export default async function AdminStatsPage({
             ))}
           </div>
         </div>
-      </main>
+      </div>
     </>
   );
 }

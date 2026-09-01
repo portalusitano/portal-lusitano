@@ -14,7 +14,7 @@ export default function AdminAppError({
   }, [error]);
 
   return (
-    <main className="min-h-screen bg-[var(--background-secondary)] flex items-center justify-center px-6">
+    <div className="min-h-screen bg-[var(--background-secondary)] flex items-center justify-center px-6">
       <div className="max-w-md w-full bg-[var(--background-card)]/50 border border-[var(--border)] p-8 text-center rounded-lg">
         <div className="text-red-500 text-5xl mb-4">!</div>
         <h1 className="text-xl font-semibold text-[var(--foreground)] mb-2">
@@ -43,6 +43,6 @@ export default function AdminAppError({
           </a>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

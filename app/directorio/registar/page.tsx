@@ -97,7 +97,7 @@ export default function RegistarCoudelariaPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[var(--background)] pt-32 pb-20">
+    <div className="min-h-screen bg-[var(--background)] pt-32 pb-20">
       <div className="max-w-4xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-12 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
@@ -462,6 +462,6 @@ export default function RegistarCoudelariaPage() {
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }
