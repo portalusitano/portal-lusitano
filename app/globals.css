@@ -2647,6 +2647,12 @@ body {
     font: inherit;
     color: inherit;
     text-align: inherit;
+    /* A cabeça de um nome é uma ligação a sério para a ficha da coudelaria —
+       um passo, e não uma janela onde é preciso carregar outra vez. Sublinhado
+       não: sobre a fotografia do planeta, a 12px, um risco por baixo de cada
+       nome desenha uma segunda linha de horizonte. Quem diz que é accionável
+       é o cursor, e o realce ao apontar. */
+    text-decoration: none;
     cursor: pointer;
   }
 
@@ -2888,6 +2894,7 @@ body {
     background: none;
     font: inherit;
     text-align: left;
+    text-decoration: none;
     cursor: pointer;
     color: var(--foreground-secondary);
     transition: color var(--d-fast) var(--ease-out);
@@ -3029,7 +3036,8 @@ body {
      quem cabe. Com 44px de altura em vez dos 28 que o texto ocupa, cada nome
      reserva 57% mais altura do que gasta — e num ecrã de 518px isso custa
      nomes que cabiam. Medido: 44px em telemóvel, 28 no computador, com o
-     mesmo texto.
+     mesmo texto. Vale para o `<button>` e para o `<a>`: a regra do outro
+     lado apanha os dois, e a cabeça de um nome passou a ser uma ligação.
 
    O alvo de toque não se perde: passa para um `::after` transparente que
    estica para os 44px **sem entrar na medida do elemento**. É essa a
@@ -3041,12 +3049,14 @@ body {
      que leva lá dentro — (0,1,1), que ganha a uma classe só. Medido: com
      `.globo-etiqueta__cabeca` sozinho o `min-height` continuava nos 44px. */
   .globo-etiqueta button.globo-etiqueta__cabeca,
+  .globo-etiqueta a.globo-etiqueta__cabeca,
   .globo-mancha button.globo-mancha__chip {
     position: relative;
     min-height: 0;
   }
 
   .globo-etiqueta button.globo-etiqueta__cabeca::after,
+  .globo-etiqueta a.globo-etiqueta__cabeca::after,
   .globo-mancha button.globo-mancha__chip::after {
     content: "";
     position: absolute;

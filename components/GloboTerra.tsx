@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { nomeCurto, sitioCurto } from "@/lib/nomes-globo";
 import * as THREE from "three";
 import { resolverCoordenadas, type CoudelariaNoMapa } from "@/lib/coordenadas-coudelarias";
+import { agrupar, kmPorPixel, raioEmDegraus } from "@/lib/agrupar-globo";
 
 /*
  * A Terra vista do espaço, com as coudelarias acesas em Portugal.
@@ -489,6 +491,59 @@ const FRAG_ESTRELAS = /* glsl */ `
   }
 `;
 
+/* ── Os alfinetes, medidos em pixéis de ecrã ───────────────────────────────
+ *
+ * Eram uma esfera de 0,0004 de raio mais um `Sprite` com um degradê por cima,
+ * um par por coudelaria. Duas coisas estavam mal.
+ *
+ * A primeira: as duas medem-se em unidades do mundo, logo crescem no ecrã à
+ * medida que a câmara desce. Com o curso de zoom que havia — 1,6× — mal se
+ * notava; com 3,5× cada ponto vira uma bola branca que tapa o terreno e os
+ * nomes. E não é só a altura: a câmara olha inclinada 14°, por isso o
+ * primeiro plano está três vezes mais perto do que a mira e os pontos de
+ * baixo saíam ao triplo do tamanho dos de cima — no mesmo quadro, para
+ * coudelarias iguais. Um alfinete não é um objecto do mundo, é uma marca
+ * sobre ele: tem o tamanho de um ícone, e um ícone tem o mesmo tamanho em
+ * todo o lado.
+ *
+ * A segunda: um `Sprite` é um objecto e um objecto é uma chamada de desenho.
+ * Vinte e nove alfinetes eram vinte e nove chamadas — mais do que a cena
+ * inteira gastava em tudo o resto junto.
+ *
+ * A resposta é a mesma que as estrelas aqui ao lado já usam: uma nuvem de
+ * pontos só, com o tamanho em pixéis no `gl_PointSize`. Uma chamada, tamanho
+ * constante, e o núcleo e a orla desenhados no mesmo pixel — o degradê em
+ * `canvas` que servia de textura ao halo deixa de ser preciso.
+ */
+const VERT_PONTOS = /* glsl */ `
+  attribute float tamanho;
+  attribute float nucleo;
+  varying float vNucleo;
+  void main() {
+    vNucleo = nucleo;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    gl_PointSize = tamanho;
+  }
+`;
+
+const FRAG_PONTOS = /* glsl */ `
+  varying float vNucleo;
+  void main() {
+    float r = length(gl_PointCoord - 0.5) * 2.0;
+    /* As mesmas paragens do degradê que aqui estava — núcleo cheio, queda
+       curta a 22% do raio, cauda a apagar-se aos 60% — só que agora a
+       fronteira do núcleo é uma fracção do raio e não um número fixo, para
+       que o ponto aceso engorde o núcleo e não só a orla. */
+    float centro = 1.0 - smoothstep(vNucleo * 0.72, vNucleo, r);
+    float orla = 1.0 - smoothstep(0.12, 1.0, r);
+    float a = clamp(centro + orla * orla * 0.55, 0.0, 1.0);
+    if (a < 0.004) discard;
+    gl_FragColor = vec4(vec3(a), 1.0);
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
+  }
+`;
+
 /* Entrada e saída suaves, mas sem o arranque preguiçoso do `easeInOutCubic`
    que aqui estava: aos 25% do tempo aquele já só tinha feito 6% do
    movimento, e a aproximação parecia começar tarde. Este faz 16%. */
@@ -526,9 +581,26 @@ const FOV = 42;
 const BETA = 14 * grau;
 /** ≈ 375 km. É a altura a que o país inteiro cabe no quadro. */
 const ALTURA_REPOUSO = 0.0588;
-/** ≈ 191 km: mais perto do que isto e a textura, que tem um texel por cada
-    20 km, é só borrão — os contornos vectoriais não chegam para o sustentar. */
-const ALTURA_MINIMA = 0.03;
+/** ≈ 80 km, e o quadro passa de 746 km de largura para 213: **3,5× de
+    ampliação**, contra os 1,6× que aqui estavam.
+
+    O número que aqui estava (0,03) tinha por razão escrita que «a textura tem
+    um texel por cada 20 km» — e essa razão caducou quando chegou o
+    `relevo.webp`, que traz elevação a sério a 234 m por amostra. O limite
+    novo foi medido, degrau a degrau, com o botão de aproximar e uma captura
+    por degrau (11 degraus de 1,35×, do repouso até 27×):
+
+      quadro 222 km (3,4×)  terreno lê-se: vales e serras, costa nítida
+      quadro 172 km (4,3×)  o primeiro plano vira um xadrez visível
+
+    O que quebra não é a fotografia do dia nem a resolução do relevo — a essa
+    ampliação ainda vai um texel de relevo por pixel de ecrã. O que se vê são
+    os **blocos de 8×8 da compressão com perdas** do `relevo.webp`, ampliados
+    pelo primeiro plano, que numa câmara inclinada 14° está três vezes mais
+    perto do que a mira. Por isso o tecto fica do lado de cá do degrau onde
+    eles aparecem. Quem quiser mais fundo tem de reencodar a textura com
+    menos perda — é lá que está o limite, não aqui. */
+const ALTURA_MINIMA = 0.0125;
 /** ≈ 12 700 km: o disco do planeta subtende 39°, cabe nos 42° da lente. É
     também de onde parte a entrada, para que se possa sempre voltar à
     primeira imagem. A que lá estava partia de 4,6 raios, fora do limite de
@@ -566,15 +638,25 @@ type Ponto = { c: CoudelariaNoMapa; coords: [number, number] };
 /** Estado visível do componente. */
 type Estado = "a-carregar" | "pronto" | "sem-3d" | "perdido";
 
+/** O destino de uma coudelaria, por omissão: a ficha dela. */
+const fichaPorOmissao = (c: CoudelariaNoMapa) =>
+  c.slug ? `/directorio/${encodeURIComponent(c.slug)}` : null;
+
 export default function GloboTerra({
   coudelarias,
   aoEscolher,
+  hrefDe = fichaPorOmissao,
 }: {
   coudelarias: CoudelariaNoMapa[];
-  /** Chamado ao carregar no nome de uma coudelaria. */
+  /** Chamado ao carregar num nome que não tem destino — ver `hrefDe`. */
   aoEscolher?: (c: CoudelariaNoMapa) => void;
+  /** Para onde leva um nome. Devolver `null` desliga a ligação e devolve o
+      clique ao `aoEscolher` — é assim que a página pede uma janela em vez de
+      uma navegação, sem que o globo saiba o que é uma janela. */
+  hrefDe?: (c: CoudelariaNoMapa) => string | null;
 }) {
   const caixa = useRef<HTMLDivElement>(null);
+  const encaminhador = useRouter();
   const [estado, setEstado] = useState<Estado>("a-carregar");
 
   const pontos = useMemo(
@@ -584,26 +666,6 @@ export default function GloboTerra({
         .filter((x): x is Ponto => x.coords !== null),
     [coudelarias]
   );
-
-  /* ── Coudelarias que caem no mesmo ponto ────────────────────────────────
-     Não é uma aproximação por proximidade no écran: são coordenadas iguais.
-     Dez das vinte e nove partilham cinco pontos — Samora Correia, Santarém,
-     Azambuja, Comporta e Ferreira do Alentejo têm duas cada. Dois alfinetes
-     em cima um do outro nunca se separam, por muito que a câmara se aproxime;
-     prometer que o zoom os abre seria prometer o que a geometria não dá, e é
-     por isso que o grupo abre por outra via — ao apontar ou ao receber o foco.
-     Vizinhas mas distintas (a Golegã e a Azinhaga) ficam com etiqueta própria:
-     fundi-las por estarem a doze pixéis inventava um sítio que não existe. */
-  const grupos = useMemo(() => {
-    const mapa = new Map<string, { coords: [number, number]; membros: CoudelariaNoMapa[] }>();
-    for (const { c, coords } of pontos) {
-      const chave = `${coords[0].toFixed(4)},${coords[1].toFixed(4)}`;
-      const grupo = mapa.get(chave);
-      if (grupo) grupo.membros.push(c);
-      else mapa.set(chave, { coords, membros: [c] });
-    }
-    return [...mapa.values()];
-  }, [pontos]);
 
   /* ── Só se reconstrói a cena quando os pontos mudam de facto ─────────────
      Quem nos chama passa `searchQuery ? filtradas : todas`: um array novo a
@@ -616,8 +678,8 @@ export default function GloboTerra({
      Quem manda na montagem passa a ser a assinatura: uma cadeia com o que a
      cena precisa de saber. Array novo com o mesmo conteúdo dá a mesma
      assinatura, e o `useCallback` que monta a cena não se mexe. Sai dos
-     pontos e não dos grupos porque é ela que os determina: os grupos são uma
-     função pura desta lista. */
+     pontos e mais nada: os ajuntamentos são uma função pura desta lista e da
+     altura a que a câmara está, e essa muda dentro da cena. */
   const assinatura = useMemo(
     () =>
       pontos
@@ -631,17 +693,47 @@ export default function GloboTerra({
   /* Os dois valores que a cena lê no momento em que monta, guardados fora do
      render. Os efeitos correm pela ordem em que estão escritos, por isso
      estes chegam sempre antes do efeito que monta a cena. */
-  const gruposRef = useRef(grupos);
+  const pontosRef = useRef(pontos);
   const aoEscolherRef = useRef(aoEscolher);
+  const hrefDeRef = useRef(hrefDe);
+  const encaminhadorRef = useRef(encaminhador);
   useEffect(() => {
-    gruposRef.current = grupos;
+    pontosRef.current = pontos;
     aoEscolherRef.current = aoEscolher;
+    hrefDeRef.current = hrefDe;
+    encaminhadorRef.current = encaminhador;
   });
 
   const montar = useCallback(() => {
     const el = caixa.current;
     if (!el) return () => {};
-    const grupos = gruposRef.current;
+    const pontos = pontosRef.current;
+    /** Quantos alfinetes pode haver, no pior caso: um por coudelaria. */
+    const TECTO = Math.max(1, pontos.length);
+
+    /** O destino de uma coudelaria, ou `null` se quem nos usa não quiser um. */
+    const hrefDe = (c: CoudelariaNoMapa) => hrefDeRef.current?.(c) ?? null;
+
+    /* Ir para a coudelaria. O `href` já lá está para o browser fazer o que
+       sabe — abrir noutro separador, copiar o endereço, botão do meio —, por
+       isso só se intercepta o clique **simples e sem teclas**: esse vai pelo
+       encaminhador do Next, que troca a página sem recarregar o site inteiro.
+       Sem destino, quem decide é quem nos chamou. */
+    const escolher = (c: CoudelariaNoMapa, ev?: MouseEvent) => {
+      const destino = hrefDe(c);
+      if (!destino) {
+        aoEscolherRef.current?.(c);
+        return;
+      }
+      if (!ev) {
+        encaminhadorRef.current.push(destino);
+        return;
+      }
+      if (ev.defaultPrevented) return;
+      if (ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
+      ev.preventDefault();
+      encaminhadorRef.current.push(destino);
+    };
 
     const largura = el.clientWidth || 1;
     const altura = el.clientHeight || 1;
@@ -962,86 +1054,77 @@ export default function GloboTerra({
     cena.add(estrelas);
 
     // ── As coudelarias ────────────────────────────────────────────────────
-    /* O halo de cada ponto precisa de uma textura. Um `Sprite` sem mapa
-       desenha um quadrado branco cheio — era o que se via por cima de
-       Portugal, um selo em vez de nove pontos. */
-    const pinta = document.createElement("canvas");
-    pinta.width = pinta.height = 64;
-    const ctx2d = pinta.getContext("2d")!;
-    const gradiente = ctx2d.createRadialGradient(32, 32, 0, 32, 32, 32);
-    /* Um núcleo apertado e uma queda curta. A queda anterior — meia opacidade
-       ainda a 35% do raio — punha vinte e quatro manchas moles de catorze
-       pixéis por cima de Portugal, e num sítio onde metade não tem nome ao
-       lado a mancha é ruído, não é um alfinete. */
-    gradiente.addColorStop(0, "rgba(255,255,255,1)");
-    gradiente.addColorStop(0.22, "rgba(255,255,255,0.55)");
-    gradiente.addColorStop(0.6, "rgba(255,255,255,0.1)");
-    gradiente.addColorStop(1, "rgba(255,255,255,0)");
-    ctx2d.fillStyle = gradiente;
-    ctx2d.fillRect(0, 0, 64, 64);
-    const texturaHalo = new THREE.CanvasTexture(pinta);
-    texturaHalo.colorSpace = THREE.SRGBColorSpace;
-    texturas.push(texturaHalo);
+    /* Uma nuvem de pontos só, medida em pixéis de ecrã. A razão está escrita
+       por cima do `VERT_PONTOS`, lá em cima: um alfinete não é um objecto do
+       mundo, é uma marca sobre ele — tem de ter o mesmo tamanho a qualquer
+       altura e em qualquer sítio do quadro —, e vinte e nove `Sprite` eram
+       vinte e nove chamadas de desenho.
 
+       Um alfinete por ponto, não por coudelaria. Onde havia duas no mesmo
+       sítio desenhavam-se dois halos aditivos por cima um do outro: o ponto
+       saía ao dobro do brilho dos vizinhos, e o que parecia uma coudelaria
+       mais importante era só uma sobreposta.
+
+       Branco, e não dourado. Os alfinetes em destaque eram vinte e um dos
+       vinte e nove: um acento em setenta e dois por cento dos pontos não
+       assinala nada. Sobre a fotografia do planeta quem assinala é o
+       contraste, e o que distingue um destaque passa a ser o tamanho. */
     const grupoAlfinetes = new THREE.Group();
-    cena.add(grupoAlfinetes);
-    /* À escala da órbita: a 0,17 de distância, um alfinete de raio 0,0008
-       dá uns cinco pixéis. Com o raio da versão anterior era um selo. */
-    const geoAlfinete = new THREE.SphereGeometry(0.0004, 12, 12);
 
-    /* Um alfinete por ponto, não por coudelaria. Onde havia duas no mesmo
-       sítio desenhavam-se duas esferas coincidentes e dois halos aditivos por
-       cima um do outro: o ponto saía ao dobro do brilho dos vizinhos, e o que
-       parecia uma coudelaria mais importante era só uma sobreposta.
+    /** Diâmetro do halo, em pixéis de ecrã, e do núcleo lá dentro.
+        São os mesmos que o par esfera+sprite dava no enquadramento de
+        repouso — 10px de halo e 6 de núcleo —, agora fixos em vez de
+        dependentes da distância. */
+    const PONTO = 10;
+    const PONTO_NUCLEO = 6;
+    const PONTO_ACESO = 18;
+    const NUCLEO_ACESO = 9;
 
-       E uma malha instanciada em vez de uma esfera por ponto: a mesma
-       geometria, a cor por instância, uma chamada de desenho em vez de vinte
-       e quatro. O realce ao apontar continua a ser por índice — reescreve-se
-       a matriz daquele alfinete — e por isso as duas coisas cabem juntas. */
-    const HALO_BASE = 0.0013;
-    const HALO_ACTIVO = 0.0024;
+    const posPontos = new Float32Array(TECTO * 3);
+    const tamPontos = new Float32Array(TECTO);
+    const nucPontos = new Float32Array(TECTO);
+    const geoPontos = new THREE.BufferGeometry();
+    geoPontos.setAttribute("position", new THREE.BufferAttribute(posPontos, 3));
+    geoPontos.setAttribute("tamanho", new THREE.BufferAttribute(tamPontos, 1));
+    geoPontos.setAttribute("nucleo", new THREE.BufferAttribute(nucPontos, 1));
+    geoPontos.setDrawRange(0, 0);
+    /* Sem esfera de contenção calculada a partir de um buffer meio vazio: os
+       pontos por usar estão todos na origem, e uma esfera que os apanhasse
+       punha o `frustum culling` a decidir mal. O que se desenha é sempre um
+       punhado de pontos sobre a Península; não há nada a poupar em cortá-los. */
+    geoPontos.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), RAIO * 1.1);
 
-    const matAlfinete = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-      transparent: true,
-      opacity: 0.95,
-    });
-    const alfinetes = new THREE.InstancedMesh(geoAlfinete, matAlfinete, Math.max(grupos.length, 1));
-    alfinetes.count = grupos.length;
-    grupoAlfinetes.add(alfinetes);
-
-    /* Dois materiais, e não quatro: apagado e aceso, ambos brancos.
-       Os alfinetes em destaque eram dourados — e são vinte e um dos vinte e
-       nove. Um acento em setenta e dois por cento dos pontos não assinala
-       nada; é a regra da grelha do CLAUDE.md aplicada a um mapa. Sobre a
-       fotografia do planeta quem assinala é o contraste, e o que distingue
-       um destaque passa a ser o tamanho do halo, não a cor.
-       Como a opacidade vive no material, acender um halo com material
-       partilhado acendia-os todos — por isso o aceso é um material à parte
-       e o realce troca a referência em vez de mutar a opacidade. */
-    const matHalo = (cor: number, opacidade: number) =>
-      new THREE.SpriteMaterial({
-        map: texturaHalo,
-        color: cor,
-        transparent: true,
-        opacity: opacidade,
-        depthWrite: false,
+    const alfinetes = new THREE.Points(
+      geoPontos,
+      new THREE.ShaderMaterial({
+        vertexShader: VERT_PONTOS,
+        fragmentShader: FRAG_PONTOS,
         blending: THREE.AdditiveBlending,
-      });
-    const haloApagado = matHalo(0xffffff, 0.6);
-    const haloAceso = matHalo(0xffffff, 1);
-    const materiaisHalo = [haloApagado, haloAceso];
+        transparent: true,
+        depthWrite: false,
+      })
+    );
+    alfinetes.frustumCulled = false;
+    grupoAlfinetes.add(alfinetes);
 
     type Alfinete = {
       indice: number;
       posicao: THREE.Vector3;
-      halo: THREE.Sprite;
+      /** Diâmetro em repouso, em pixéis. */
       base: number;
-      materiais: [THREE.SpriteMaterial, THREE.SpriteMaterial];
+      /** Diâmetro do núcleo em repouso, em pixéis. */
+      nucleo: number;
     };
 
-    const molde = new THREE.Object3D();
-    const corAlfinete = new THREE.Color();
+    const alfinetesFeitos: Alfinete[] = [];
+
+    const escreverPonto = (a: Alfinete, ligado: boolean) => {
+      const d = ligado ? PONTO_ACESO : a.base;
+      const n = ligado ? NUCLEO_ACESO : a.nucleo;
+      tamPontos[a.indice] = d * pontoDoEcra;
+      // O núcleo vai em fracção do raio, que é o que o shader sabe medir.
+      nucPontos[a.indice] = Math.min(1, n / d);
+    };
 
     const fazerAlfinete = (
       indice: number,
@@ -1050,36 +1133,31 @@ export default function GloboTerra({
       grupo: boolean
     ): Alfinete => {
       const posicao = naEsfera(coords[0], coords[1], RAIO * 1.004);
-      molde.position.copy(posicao);
-      molde.scale.setScalar(1);
-      molde.updateMatrix();
-      alfinetes.setMatrixAt(indice, molde.matrix);
-      alfinetes.setColorAt(indice, corAlfinete.setHex(0xffffff));
-
-      // Um halo por baixo, para o ponto se ler contra as luzes das cidades.
-      const materiais: [THREE.SpriteMaterial, THREE.SpriteMaterial] = [haloApagado, haloAceso];
-      const halo = new THREE.Sprite(materiais[0]);
-      /* O halo é o que diz a hierarquia, agora que a cor não a diz: mais
+      /* O tamanho é o que diz a hierarquia, agora que a cor não a diz: mais
          aberto num destaque, e mais aberto ainda onde há mais do que uma —
          o ponto lê-se como pilha antes de se chegar a ler o «2». */
-      const base = grupo ? HALO_BASE * 1.6 : destaque ? HALO_BASE * 1.25 : HALO_BASE;
-      halo.scale.setScalar(base);
-      halo.position.copy(posicao);
-      grupoAlfinetes.add(halo);
-      return { indice, posicao, halo, base, materiais };
+      const base = grupo ? PONTO * 1.6 : destaque ? PONTO * 1.25 : PONTO;
+      const nucleo = grupo ? PONTO_NUCLEO * 1.35 : PONTO_NUCLEO;
+      const a: Alfinete = { indice, posicao, base, nucleo };
+      posPontos[indice * 3] = posicao.x;
+      posPontos[indice * 3 + 1] = posicao.y;
+      posPontos[indice * 3 + 2] = posicao.z;
+      escreverPonto(a, false);
+      alfinetesFeitos.push(a);
+      return a;
     };
 
-    /** Acender ou apagar um alfinete numa malha instanciada: reescreve-se a
-        matriz daquele índice e marca-se o buffer. É o que substitui o
-        `mesh.scale` de quando cada alfinete era um objecto seu. */
+    /** Marcar os três buffers como sujos. Uma vez por mudança, não por ponto. */
+    const pontosMudaram = () => {
+      geoPontos.attributes.position.needsUpdate = true;
+      geoPontos.attributes.tamanho.needsUpdate = true;
+      geoPontos.attributes.nucleo.needsUpdate = true;
+    };
+
+    /** Acender ou apagar um alfinete: reescreve-se o tamanho daquele índice. */
     const realcar = (a: Alfinete, ligado: boolean) => {
-      molde.position.copy(a.posicao);
-      molde.scale.setScalar(ligado ? 2.2 : 1);
-      molde.updateMatrix();
-      alfinetes.setMatrixAt(a.indice, molde.matrix);
-      alfinetes.instanceMatrix.needsUpdate = true;
-      a.halo.scale.setScalar(ligado ? HALO_ACTIVO : a.base);
-      a.halo.material = a.materiais[ligado ? 1 : 0];
+      escreverPonto(a, ligado);
+      pontosMudaram();
     };
 
     // ── A câmara: parte do planeta inteiro e fecha sobre Portugal, uma vez ─
@@ -1105,6 +1183,52 @@ export default function GloboTerra({
     /* A órbita do utilizador roda o planeta, não a câmara. Rodar a câmara
        à volta de um ponto que já não é o centro dá enjoo. */
     const orbita = { theta: 0, phi: 0 };
+
+    /* ── Voltar não é chegar ──────────────────────────────────────────────
+     *
+     * Ir a uma ficha e carregar em «voltar» refazia a aproximação inteira —
+     * dois segundos e meio de viagem — e devolvia a órbita inicial, ainda que
+     * a pessoa estivesse aproximada sobre o Ribatejo. O mesmo acontecia ao
+     * escrever na pesquisa: mudar o conjunto de coudelarias remonta a cena, e
+     * a cena arrancava sempre do espaço. Quem estava a trabalhar num sítio
+     * era mandado de volta ao princípio a cada gesto.
+     *
+     * Guarda-se o enquadramento no `sessionStorage`: dura o separador, não
+     * atravessa sessões nem se escreve em disco de ninguém. Quem volta dentro
+     * de meia hora encontra o mapa onde o deixou; quem chega de novo vê a
+     * entrada, que é a primeira imagem e continua a valer a pena.
+     *
+     * Só se guarda o que foi escolhido: se ninguém mexeu no zoom nem
+     * arrastou, não há nada para repor e a entrada corre na mesma.
+     */
+    const CHAVE_VISTA = "globo-terra:vista";
+    const VALIDADE_VISTA = 30 * 60 * 1000;
+
+    const guardarVista = () => {
+      if (!zoomDoUtilizador && !orbita.theta && !orbita.phi) return;
+      try {
+        sessionStorage.setItem(
+          CHAVE_VISTA,
+          JSON.stringify({ h: alturaVoo, t: orbita.theta, p: orbita.phi, q: Date.now() })
+        );
+      } catch {
+        /* Sem armazenamento — janela privada, política do browser — o globo
+           faz exactamente o que fazia antes. Não é um erro, é um extra. */
+      }
+    };
+
+    const vistaGuardada = (() => {
+      try {
+        const cru = sessionStorage.getItem(CHAVE_VISTA);
+        if (!cru) return null;
+        const v = JSON.parse(cru) as { h: number; t: number; p: number; q: number };
+        if (!v || Date.now() - v.q > VALIDADE_VISTA) return null;
+        if (![v.h, v.t, v.p].every((n) => typeof n === "number" && Number.isFinite(n))) return null;
+        return v;
+      } catch {
+        return null;
+      }
+    })();
 
     const posCam = new THREE.Vector3();
     const frente = new THREE.Vector3();
@@ -1163,6 +1287,9 @@ export default function GloboTerra({
       nó: HTMLElement;
       /** A cabeça accionável, que é quem recebe o foco. */
       cabeca: HTMLElement;
+      /** Que elemento representa cada coudelaria deste ponto. É por aqui que
+          as setas dão o foco à coudelaria certa dentro de um ajuntamento. */
+      alvos: Map<string, HTMLElement>;
       /** Onde está no planeta. É por aqui que as setas ordenam e centram. */
       coords: [number, number];
       membros: CoudelariaNoMapa[];
@@ -1201,7 +1328,14 @@ export default function GloboTerra({
     let fixa: Etiqueta | null = null;
     let activa: Etiqueta | null = null;
 
-    const etiquetas: Etiqueta[] = grupos.map(({ coords, membros }, i) => {
+    /** As etiquetas que existem neste momento. Muda a cada reagrupamento. */
+    let etiquetas: Etiqueta[] = [];
+
+    const criarEtiqueta = (
+      coords: [number, number],
+      membros: CoudelariaNoMapa[],
+      i: number
+    ): Etiqueta => {
       const principal = membros.find((m) => m.destaque) ?? membros[0];
       const destaque = membros.some((m) => m.destaque);
       const éGrupo = membros.length > 1;
@@ -1214,17 +1348,45 @@ export default function GloboTerra({
          ponto até um tecto de 1100ms. O 1900 estava escrito à mão para uma
          entrada de 3000ms; agora sai da duração, para não voltar a ficar para
          trás quando ela mudar. O índice é o do ponto — não o da coudelaria —,
-         que é o que faz a cascata contar o que se vê. */
-      nó.style.setProperty(
-        "--entrada",
-        `${(parado ? 0 : DURACAO_ENTRADA - 700) + Math.min(i * 55, 1100)}ms`
-      );
-      /* Nasce inerte, que é o estado com que `anterior.morto` começa. Sem esta
-         linha o par ficava a mentir um ao outro: a etiqueta que nunca chegou a
-         ser colocada nunca passava pelo ramo que escreve o `inert`, porque o
-         cache já dizia que estava escrito. Cinco nomes ficavam assim —
-         invisíveis no écran e na mesma na ordem de tabulação. */
+         que é o que faz a cascata contar o que se vê.
+
+         Com `i < 0` não há cascata nenhuma: é uma etiqueta que nasce a meio
+         de um reagrupamento, e uma cascata de dois segundos a cada dente da
+         roda seria o mapa a apagar-se e a voltar de cada vez que alguém se
+         aproxima. */
+      if (i < 0) {
+        /* Sem animação de nascimento, e não só sem atraso.
+           A `etiqueta-nascer` parte de `visibility: hidden` — tem de partir,
+           senão o nome apanha o rato durante os dois segundos da entrada —, e
+           **um elemento invisível não recebe foco**. Numa etiqueta que nasce
+           de um reagrupamento isso custava o percurso pelas setas inteiro:
+           medido, a primeira tecla depois de um grupo se abrir mandava o foco
+           para o corpo da página e lá ficava. Aqui não há nascimento nenhum a
+           anunciar — é o mesmo mapa com os pontos separados de outra
+           maneira —, por isso a animação não corre e o nome está pronto a
+           receber o foco no mesmo instante em que existe. */
+        nó.style.animation = "none";
+      } else {
+        nó.style.setProperty(
+          "--entrada",
+          `${(parado ? 0 : DURACAO_ENTRADA - 700) + Math.min(i * 55, 1100)}ms`
+        );
+      }
+      /* Nasce inerte **e oculta**, que é o estado com que o `anterior` começa.
+         Sem estas duas linhas o par ficava a mentir um ao outro: a etiqueta
+         que nunca chegou a ser colocada nunca passava pelo ramo que escreve
+         os atributos, porque o cache já dizia que estavam escritos.
+
+         O `inert` já cá estava. O `data-oculta` faltava, e custava caro: uma
+         etiqueta que nunca foi colocada ficava sem o atributo e com o `inert`
+         posto, ou seja **anunciava-se como legível e não recebia foco**.
+         Medido de fora, com o globo aproximado até ao limite, onde a maioria
+         não cabe: o primeiro `.globo-etiqueta:not([data-oculta])` do
+         documento era uma dessas, dar-lhe o foco não fazia nada, e o percurso
+         pelas setas nunca chegava a arrancar — vinte e sete passos, zero
+         coudelarias. */
       nó.toggleAttribute("inert", true);
+      nó.toggleAttribute("data-oculta", true);
 
       const fio = document.createElement("span");
       fio.className = "globo-etiqueta__linha";
@@ -1234,15 +1396,29 @@ export default function GloboTerra({
       caixa.className = "globo-etiqueta__caixa";
       nó.appendChild(caixa);
 
-      /* Um botão a sério, e não uma `div` com `role="button"`: o Enter, o
-         espaço, o foco e o contorno vêm do browser, e não há uma linha de
-         JavaScript a imitar o que o elemento já sabe.
-         Sem `aoEscolher` e sem nada para abrir, não é botão nenhum: um botão
-         que não faz nada anuncia-se ao leitor de ecrã como accionável e é
-         mais uma paragem de tabulação a não dar em lado nenhum. */
-      const accionavel = éGrupo || !!aoEscolherRef.current;
-      const cabeca = document.createElement(accionavel ? "button" : "span");
+      /* ── O elemento da cabeça diz o que o clique faz ────────────────────
+         Um nome sozinho é uma **ligação** para a ficha da coudelaria, e não
+         um botão: quem carrega num nome quer a coudelaria, e o que estava
+         aqui levava-o a uma janela onde tinha de carregar outra vez em «ver
+         página» — dois passos para um destino. Sendo um `<a href>` a sério,
+         ganha-se de graça o que um botão nunca dá: o endereço na barra de
+         estado, o botão do meio, o Ctrl+clique, o «abrir noutro separador» e
+         o Enter. Quem navega dentro do site continua a ir pelo encaminhador
+         do Next — o `href` é para o browser, o `push` é para a aplicação.
+
+         Um ajuntamento é um **botão**: não há uma ficha para onde ir; o que
+         o clique faz é mostrar quem ali está.
+
+         E sem destino nem nada para abrir não é elemento accionável nenhum:
+         um botão que não faz nada anuncia-se ao leitor de ecrã como
+         accionável e é mais uma paragem de tabulação a não dar a lado
+         nenhum. */
+      const ficha = éGrupo ? null : hrefDe(principal);
+      const cabeca = document.createElement(
+        éGrupo || (!ficha && aoEscolherRef.current) ? "button" : ficha ? "a" : "span"
+      );
       if (cabeca instanceof HTMLButtonElement) cabeca.type = "button";
+      if (cabeca instanceof HTMLAnchorElement && ficha) cabeca.href = ficha;
       cabeca.className = "globo-etiqueta__cabeca";
       caixa.appendChild(cabeca);
 
@@ -1253,21 +1429,42 @@ export default function GloboTerra({
       cabeca.append(titulo, subtitulo);
 
       let lista: HTMLUListElement | null = null;
+      const alvos = new Map<string, HTMLElement>();
 
       if (éGrupo) {
-        /* Numa pilha quem identifica é o sítio: as duas coudelarias de
-           Ferreira do Alentejo partilham tudo menos o nome, e é o nome que
-           se abre a seguir. */
-        titulo.textContent = sitioCurto(principal.localizacao);
-        const conta = document.createElement("span");
-        conta.className = "globo-etiqueta__conta";
-        conta.textContent = String(membros.length);
-        titulo.appendChild(conta);
+        /* ── Como se chama a um ponto que junta várias ───────────────────
+           Quando as coudelarias do ajuntamento são todas da mesma terra, o
+           título é a terra — «Vila Viçosa 2» é verdade, e é o que se lê no
+           mapa. Quando não são, **não se inventa um sítio comum**: o título
+           passa a ser a conta, e são os nomes, por baixo, que dizem quem
+           ali está. Era esta a objecção que impedia o mapa de juntar pontos
+           vizinhos, e é assim que ela deixa de se aplicar. */
+        const terras = [...new Set(membros.map((m) => sitioCurto(m.localizacao)).filter(Boolean))];
+        /* Uma terra só: o título é a terra e o algarismo diz quantas.
+           Duas: dizem-se as duas, que continua a ser um sítio e não uma
+           invenção. Três ou mais: já não há sítio comum nenhum para dizer, e
+           o título passa a ser a conta — são os nomes, por baixo, que dizem
+           quem ali está. Dizer «Ribatejo» a um ponto que junta cinco das doze
+           do Ribatejo seria dizer uma coisa falsa em letra grande. */
+        titulo.textContent =
+          terras.length === 1
+            ? terras[0]
+            : terras.length === 2
+              ? terras.join(" · ")
+              : `${membros.length} coudelarias`;
+        if (terras.length === 1) {
+          const conta = document.createElement("span");
+          conta.className = "globo-etiqueta__conta";
+          conta.textContent = String(membros.length);
+          titulo.appendChild(conta);
+        }
         subtitulo.textContent = membros.map((m) => nomeCurto(m.nome)).join(" · ");
         cabeca.setAttribute("aria-expanded", "false");
         cabeca.setAttribute(
           "aria-label",
-          `${principal.localizacao}, ${membros.length} coudelarias`
+          terras.length
+            ? `${terras.join(", ")}: ${membros.length} coudelarias`
+            : `${membros.length} coudelarias aqui`
         );
 
         lista = document.createElement("ul");
@@ -1275,18 +1472,25 @@ export default function GloboTerra({
         lista.hidden = true;
         for (const m of membros) {
           const item = document.createElement("li");
-          const botão = document.createElement("button");
-          botão.type = "button";
-          botão.className = "globo-etiqueta__membro";
-          botão.textContent = nomeCurto(m.nome);
-          botão.title = m.nome;
-          botão.setAttribute("aria-label", `${m.nome}, ${m.localizacao}`);
-          botão.addEventListener("click", (ev) => {
+          const destino = hrefDe(m);
+          const alvo = document.createElement(destino ? "a" : "button");
+          if (alvo instanceof HTMLButtonElement) alvo.type = "button";
+          if (alvo instanceof HTMLAnchorElement && destino) alvo.href = destino;
+          alvo.className = "globo-etiqueta__membro";
+          alvo.textContent = nomeCurto(m.nome);
+          alvo.title = m.nome;
+          alvo.setAttribute("aria-label", `${m.nome}, ${m.localizacao}`);
+          alvo.addEventListener("click", (ev) => {
             ev.stopPropagation();
-            if (arrastou) return;
-            aoEscolherRef.current?.(m);
+            if (arrastou) {
+              ev.preventDefault();
+              return;
+            }
+            escolher(m, ev as MouseEvent);
           });
-          item.appendChild(botão);
+          alvo.dataset.coudelaria = m.id;
+          alvos.set(m.id, alvo);
+          item.appendChild(alvo);
           lista.appendChild(item);
         }
         caixa.appendChild(lista);
@@ -1295,6 +1499,8 @@ export default function GloboTerra({
         subtitulo.textContent = sitioCurto(principal.localizacao);
         cabeca.title = principal.nome;
         cabeca.setAttribute("aria-label", `${principal.nome}, ${principal.localizacao}`);
+        cabeca.dataset.coudelaria = principal.id;
+        alvos.set(principal.id, cabeca);
       }
 
       camadaEtiquetas.appendChild(nó);
@@ -1302,6 +1508,7 @@ export default function GloboTerra({
       const et: Etiqueta = {
         nó,
         cabeca,
+        alvos,
         coords,
         membros,
         alfinete: fazerAlfinete(i, coords, destaque, éGrupo),
@@ -1327,16 +1534,88 @@ export default function GloboTerra({
       };
 
       cabeca.addEventListener("click", (ev) => {
+        if (arrastou) {
+          /* Um arrasto que acabou em cima de um nome não é um clique nesse
+             nome. Com a cabeça a ser um `<a>`, deixar passar significava
+             navegar por engano no fim de cada rotação do globo. */
+          ev.preventDefault();
+          ev.stopPropagation();
+          return;
+        }
         ev.stopPropagation();
-        if (arrastou) return;
-        accionar(et);
+        accionar(et, ev as MouseEvent);
       });
 
       return et;
-    });
+    };
 
-    alfinetes.instanceMatrix.needsUpdate = true;
-    if (alfinetes.instanceColor) alfinetes.instanceColor.needsUpdate = true;
+    /* ── Os pontos juntam-se e desfazem-se com o zoom ─────────────────────
+     *
+     * Vinte e nove coudelarias, e metade delas no mesmo vale. No
+     * enquadramento de repouso a lona vale 837 metros por pixel: há pares a
+     * um pixel e meio um do outro. Desenhar dois alfinetes ali é desenhar um
+     * borrão — não se vê que são dois, não se sabe quantos são, e apontar
+     * acerta sempre no mesmo. Era esta a confusão.
+     *
+     * O que não se pode mostrar separado mostra-se junto e contado. O raio
+     * do ajuntamento é **o dobro do raio de toque**, convertido de pixéis
+     * para metros de chão pela altura a que a câmara está: assim dois
+     * alfinetes distintos nunca partilham área de acerto, e quem aproxima vê
+     * os grupos abrirem-se sozinhos. A conta está no `lib/agrupar-globo`,
+     * com testes; aqui só se decide quando é que vale a pena refazê-la.
+     *
+     * Refaz-se por degraus de 35% — o mesmo degrau de um toque no botão de
+     * aproximar — e não a cada dente da roda. Duas razões: reconstruir deita
+     * fora a memória de onde cada nome estava, que é o que impede os nomes de
+     * saltarem; e um grupo que se desfaz é um acontecimento, não um
+     * escorregar contínuo. No curso inteiro do zoom dá meia dúzia de
+     * reconstruções.
+     */
+    let raioAgrupamento = -1;
+    let primeiraMontagem = true;
+
+    function reagrupar(forcar = false) {
+      /* Durante a entrada agrupa-se para o enquadramento onde a câmara vai
+         pousar, e não para a altura do momento: a entrada é um movimento só,
+         e refazer os grupos a meio dela seria vê-los mudar durante uma
+         viagem que ninguém pediu. */
+      const h = aEntrar ? alturaRepouso : alturaVoo;
+      const km = kmPorPixel(enquadrar(h).distancia, FOV, camara.aspect, larguraCaixa);
+      const raio = raioEmDegraus(km * SEPARACAO_MINIMA);
+      if (!forcar && raio === raioAgrupamento) return;
+      raioAgrupamento = raio;
+
+      /* Sai tudo o que estava: os nós saem do DOM com os ouvintes dentro, e
+         os halos saem da cena. A geometria e os materiais são partilhados —
+         não há nada para descartar aqui. */
+      for (const e of etiquetas) e.nó.remove();
+      alfinetesFeitos.length = 0;
+      sobAlfinete = null;
+      sobEtiqueta = null;
+      focada = null;
+      fixa = null;
+      activa = null;
+      aberta = null;
+      for (const m of manchas) esconderMancha(m);
+
+      const ajuntamentos = agrupar(pontos, raio);
+      etiquetas = ajuntamentos.map((g, i) =>
+        criarEtiqueta(
+          g.coords,
+          g.membros.map((p) => p.c),
+          /* A cascata de entrada só faz sentido quando há entrada: sem ela os
+             nomes nasceriam com dois segundos de atraso escritos à mão e o
+             mapa aparecia vazio — foi o que aconteceu ao voltar da lista para
+             o globo, medido de fora: dezanove pontos e zero nomes. */
+          primeiraMontagem && aEntrar ? i : -1
+        )
+      );
+      primeiraMontagem = false;
+      geoPontos.setDrawRange(0, etiquetas.length);
+      pontosMudaram();
+
+      precisaMedir = true;
+    }
 
     const projeccao = new THREE.Vector3();
     const normalMundo = new THREE.Vector3();
@@ -1418,6 +1697,12 @@ export default function GloboTerra({
     const criarMancha = (): Mancha => {
       const nó = document.createElement("div");
       nó.className = "globo-mancha";
+      /* Nasce oculta, como nasce a etiqueta e pela mesma razão: sem o
+         atributo, uma mancha ainda por usar apresenta-se ao mundo como
+         legível — está a zero de opacidade e sem conta nenhuma escrita — e
+         quem for buscar a primeira `.globo-mancha:not([data-oculta])` do
+         documento apanha essa. */
+      nó.toggleAttribute("data-oculta", true);
       /* Escondida dos leitores de ecrã de propósito — ver a razão 3 acima.
          Os botões lá dentro levam `tabindex="-1"`, sem o que um
          `aria-hidden` com coisas focáveis lá dentro seria um erro a sério. */
@@ -1465,7 +1750,7 @@ export default function GloboTerra({
 
     /* No pior caso cada ponto do quadro é uma mancha por si — ver a nota
        sobre as sobras solitárias mais abaixo. */
-    const manchas: Mancha[] = Array.from({ length: Math.max(1, grupos.length) }, criarMancha);
+    const manchas: Mancha[] = Array.from({ length: TECTO }, criarMancha);
 
     const escreverMancha = (m: Mancha, membros: CoudelariaNoMapa[]) => {
       const assinatura = membros.map((c) => c.id).join(",");
@@ -1493,24 +1778,32 @@ export default function GloboTerra({
       m.lista.replaceChildren();
       for (const c of membros) {
         const item = document.createElement("li");
-        const botão = document.createElement("button");
-        botão.type = "button";
-        botão.tabIndex = -1;
-        botão.className = "globo-mancha__membro";
-        botão.title = c.nome;
+        const destino = hrefDe(c);
+        /* Ligação e não botão, pela mesma razão dos nomes: aqui carrega-se
+           para ir à coudelaria, e um endereço a sério dá o botão do meio, o
+           Ctrl+clique e a barra de estado sem uma linha de JavaScript. */
+        const alvo = document.createElement(destino ? "a" : "button");
+        if (alvo instanceof HTMLButtonElement) alvo.type = "button";
+        if (alvo instanceof HTMLAnchorElement && destino) alvo.href = destino;
+        alvo.tabIndex = -1;
+        alvo.className = "globo-mancha__membro";
+        alvo.title = c.nome;
         const nome = document.createElement("span");
         nome.className = "globo-mancha__nome";
         nome.textContent = nomeCurto(c.nome);
         const sitio = document.createElement("span");
         sitio.className = "globo-mancha__sitio";
         sitio.textContent = sitioCurto(c.localizacao);
-        botão.append(nome, sitio);
-        botão.addEventListener("click", (ev) => {
+        alvo.append(nome, sitio);
+        alvo.addEventListener("click", (ev) => {
           ev.stopPropagation();
-          if (arrastou) return;
-          aoEscolherRef.current?.(c);
+          if (arrastou) {
+            ev.preventDefault();
+            return;
+          }
+          escolher(c, ev as MouseEvent);
         });
-        item.appendChild(botão);
+        item.appendChild(alvo);
         m.lista.appendChild(item);
       }
     };
@@ -1969,7 +2262,45 @@ export default function GloboTerra({
            acesa, tem o fio a apontar-lhe o ponto, e é a única no quadro nessa
            condição. Cede só à segunda volta, para continuar a preferir o
            lugar limpo sempre que exista um. */
-        for (const semAlfinetes of e.activo ? [false, true] : [false]) {
+        /* ── O alvo não foge ao ponteiro ──────────────────────────────────
+           Uma etiqueta acesa muda de forma: o nome deixa de estar truncado e,
+           num ajuntamento, abre-se a lista. Se a colocação a puder mandar
+           para outro sítio por causa disso, o que se aponta sai de debaixo do
+           dedo antes de se chegar a carregar. Medido de fora: dois de dez
+           alvos escapavam-se, um deles 66 pixéis.
+
+           A cura é ficar onde estava. Como cada hipótese ancora a caixa no
+           alfinete pelo canto que lhe fica virado, crescer só a afasta do
+           ponto — a caixa nova contém sempre a antiga, e o ponteiro continua
+           lá dentro. Por isso basta manter a hipótese do quadro anterior e
+           não voltar a perguntar se ela colide: a etiqueta acesa já é a
+           primeira a escolher e já tinha licença para pousar sobre um
+           alfinete. Só a borda da lona continua a mandar. */
+        if (e.activo && e.colocada && e.ultimo >= 0) {
+          const h = hipoteses[e.ultimo];
+          /* Inteira se couber, de uma linha se não couber: o que não se faz é
+             mudar de sítio. Junto à borda da lona a caixa maior pode não
+             caber, e sem esta segunda tentativa a etiqueta ia à procura de
+             outro lugar — que é exactamente o que se quer evitar. */
+          for (const medida of [e.cheia, e.curta]) {
+            if (!medida.l) continue;
+            const c = caixaDe(e.ecraX, e.ecraY, medida, h);
+            if (
+              c.x >= 2 &&
+              c.y >= topoUtil + 2 &&
+              c.x + c.l <= l - 2 &&
+              c.y + c.a <= baseUtil - 2
+            ) {
+              posta = c;
+              lado = h.lado;
+              vert = h.vert;
+              curto = medida === e.curta;
+              break;
+            }
+          }
+        }
+
+        for (const semAlfinetes of posta ? [] : e.activo ? [false, true] : [false]) {
           for (const medida of [e.cheia, e.curta]) {
             if (!medida.l) continue;
             for (const k of sitios) {
@@ -2018,8 +2349,24 @@ export default function GloboTerra({
        faz-se em coordenadas de écran, com os números que a colocação já
        calculou; um raycaster contra esferas de 0,0004 de raio nunca acertava,
        porque geometricamente o alfinete é sub-pixel — o que se vê e o que se
-       aponta é o halo, não a esfera. */
-    const RAIO_TOQUE = 15;
+       aponta é o halo, não a esfera.
+
+       ── Quanto mede o alvo ──────────────────────────────────────────────
+       Quinze pixéis de raio davam um alvo de trinta de lado, igual para o
+       rato e para o dedo. Um dedo não acerta em trinta: a medida que as
+       normas de acessibilidade pedem é 44, e é a mesma que este projecto já
+       impõe a qualquer botão em telemóvel. Por isso o raio segue o ponteiro
+       — 22 num ecrã de toque, 14 com rato, que é mais do que os 24px de lado
+       que um alvo de rato precisa.
+
+       Alargar o alvo só é seguro porque **nenhum outro alfinete lhe pode
+       cair dentro**: o raio de agrupamento é o dobro deste, e portanto dois
+       pontos que estivessem mais perto do que um alvo já são um ponto só. As
+       duas medidas são a mesma decisão vista de dois lados. */
+    const RAIO_TOQUE = grosso ? 22 : 14;
+
+    /** Dois alvos nunca se sobrepõem, e é isso que fixa o raio dos grupos. */
+    const SEPARACAO_MINIMA = 2 * RAIO_TOQUE;
 
     const alfineteEm = (px: number, py: number) => {
       let melhor: Etiqueta | null = null;
@@ -2043,35 +2390,73 @@ export default function GloboTerra({
       return { x: e.clientX - r.left, y: e.clientY - r.top };
     };
 
+    /* ── Acender é uma coisa; abrir é outra ───────────────────────────────
+     *
+     * Apontar acende: o alfinete engorda, o nome deixa de estar truncado, o
+     * fio acende. Isso não desloca nada — a caixa cresce a partir do canto
+     * que está virado para o alfinete, e portanto cresce **para longe** do
+     * ponteiro.
+     *
+     * Abrir a lista de um ajuntamento é outra coisa, e essa **desloca**: são
+     * mais cinco linhas de texto, e elas aparecem exactamente onde o dedo já
+     * está. Medido de fora: quatro dos seis nomes de grupo punham uma
+     * ligação por baixo do ponteiro só por serem apontados — um deles a 286
+     * pixéis do sítio onde estava. Quem carregasse a seguir abria uma
+     * coudelaria que não escolheu.
+     *
+     * Por isso a lista deixa de abrir ao passar por cima: abre ao carregar e
+     * ao receber o foco, que são os dois gestos em que a pessoa já disse que
+     * queria aquele ponto. O que se perde é uma pré-visualização; o que se
+     * ganha é que carregar num sítio abre o que lá estava.
+     */
+    let aberta: Etiqueta | null = null;
+
     const actualizarActivo = () => {
       const alvo = fixa ?? focada ?? sobEtiqueta ?? sobAlfinete;
       el.style.cursor = sobAlfinete ? "pointer" : "";
-      if (alvo === activa) return;
-      const antes = activa;
-      activa = alvo;
-      for (const e of [antes, alvo]) {
-        if (!e) continue;
-        const ligado = e === alvo;
-        e.activo = ligado;
-        e.nó.toggleAttribute("data-activo", ligado);
-        realcar(e.alfinete, ligado);
-        if (e.membros.length > 1) e.abrir(ligado);
-        // O nome deixa de estar truncado e a caixa muda: remede-se.
-        precisaMedir = true;
+      // Só um gesto deliberado abre a lista; passar por cima não é um.
+      const paraAbrir = fixa ?? focada;
+      let mudou = false;
+
+      if (alvo !== activa) {
+        const antes = activa;
+        activa = alvo;
+        for (const e of [antes, alvo]) {
+          if (!e) continue;
+          const ligado = e === alvo;
+          e.activo = ligado;
+          e.nó.toggleAttribute("data-activo", ligado);
+          realcar(e.alfinete, ligado);
+          // O nome deixa de estar truncado e a caixa muda: remede-se.
+          precisaMedir = true;
+        }
+        mudou = true;
       }
+
+      if (paraAbrir !== aberta) {
+        const antes = aberta;
+        aberta = paraAbrir;
+        if (antes && antes.membros.length > 1) antes.abrir(false);
+        if (paraAbrir && paraAbrir.membros.length > 1) paraAbrir.abrir(true);
+        precisaMedir = true;
+        mudou = true;
+      }
+
       // O alfinete mudou de tamanho e a etiqueta de forma: é preciso um quadro.
-      pedirQuadro();
+      if (mudou) pedirQuadro();
     };
 
-    /* Uma pilha não se abre por aproximação — dois pontos coincidentes nunca
-       se separam. Abre-se por gesto: carregar nela mostra os nomes, carregar
-       fora fecha-a. Nos nomes soltos, carregar é escolher. */
-    function accionar(e: Etiqueta) {
+    /* ── Carregar num ponto ───────────────────────────────────────────────
+       Um ponto com uma coudelaria só leva à ficha dela — um passo, não dois.
+       Um ponto que junta várias abre-se e mostra quem lá está: nenhum zoom
+       as separa a esta altura, e por isso a escolha tem de ser dita por
+       palavras. Carregar fora fecha-a. */
+    function accionar(e: Etiqueta, ev?: MouseEvent) {
       if (e.membros.length > 1) {
         fixa = fixa === e ? null : e;
         actualizarActivo();
       } else {
-        aoEscolherRef.current?.(e.membros[0]);
+        escolher(e.membros[0], ev);
       }
     }
 
@@ -2122,7 +2507,14 @@ export default function GloboTerra({
        Um quadro é pedido; nunca agendado em cadeia. Só se pede quando há
        alguma coisa nova para ver, e só se serve quando há alguém a ver. */
     const duracao = parado ? 0 : DURACAO_ENTRADA;
-    let aEntrar = !parado;
+    /* Quem volta ao mapa não faz a viagem outra vez: entra onde estava. */
+    let aEntrar = !parado && !vistaGuardada;
+    if (vistaGuardada) {
+      alturaVoo = Math.min(ALTURA_MAXIMA, Math.max(ALTURA_MINIMA, vistaGuardada.h));
+      orbita.theta = vistaGuardada.t;
+      orbita.phi = vistaGuardada.p;
+      zoomDoUtilizador = true;
+    }
 
     const qGuinada = new THREE.Quaternion();
     const qInclinacao = new THREE.Quaternion();
@@ -2147,15 +2539,17 @@ export default function GloboTerra({
         alturaVoo = Math.exp(
           Math.log(ALTURA_MAXIMA) + (Math.log(alturaRepouso) - Math.log(ALTURA_MAXIMA)) * suave(t)
         );
-        if (t >= 1) aEntrar = false;
+        if (t >= 1) {
+          aEntrar = false;
+          // Pousou: daqui para a frente é a altura verdadeira que manda.
+          reagrupar();
+        }
       }
       /* Guinada primeiro, no eixo do mundo; inclinação depois, no eixo leste
          da câmara. Assim o arrasto vertical move o chão a direito no ecrã —
          com `rotation.x`, que é o eixo X do mundo e aqui aponta para o lado,
          o arrasto vertical movia o chão na diagonal. */
-      qGuinada.setFromAxisAngle(EIXO_POLAR, orbita.theta);
-      qInclinacao.setFromAxisAngle(LESTE, orbita.phi);
-      mundo.quaternion.copy(qInclinacao).multiply(qGuinada);
+      aplicarOrbita();
       colocarCamara();
       renderizador.render(cena, camara);
       etiquetar();
@@ -2215,13 +2609,133 @@ export default function GloboTerra({
       };
     };
 
-    /** Um toque no botão vale cerca de dois dentes de roda. */
-    const PASSO_ZOOM = 1.35;
+    /* ── Até onde se pode passear ─────────────────────────────────────────
+     *
+     * O limite que aqui estava era uma fracção do quadro: o centro andava até
+     * 20% da largura e 12% da altura, o que numa vista de repouso chega para
+     * espreitar Espanha e não chega para perder o país. Só que essa fracção
+     * encolhe com o zoom — e com um curso de 3,5× isso queria dizer que, bem
+     * aproximado, a vista ficava presa a trinta quilómetros da mira. Ir de
+     * Sintra a Vila Viçosa sem afastar era impossível, e o zoom sobre o
+     * cursor não teria para onde levar ninguém.
+     *
+     * O limite passa a sair **dos dados**: o ponto para onde se olha tem de
+     * ficar dentro da caixa que contém as coudelarias, com uma folga. Não é
+     * um número inventado — é a promessa de que não se sai de onde há coisas
+     * para ver, e de que qualquer coudelaria se pode pôr ao centro. Fica a
+     * união com o limite antigo, para que em repouso nunca se ande menos do
+     * que se andava.
+     *
+     * As contas são directas porque a órbita é o que é: pôr a longitude L ao
+     * centro é `theta = (MIRA.lon − L)·grau`, e a latitude o mesmo com o phi.
+     */
+    const FOLGA_CAIXA = 0.35;
+    const caixaDados = pontos.length
+      ? pontos.reduce(
+          (c, p) => ({
+            latMin: Math.min(c.latMin, p.coords[0]),
+            latMax: Math.max(c.latMax, p.coords[0]),
+            lonMin: Math.min(c.lonMin, p.coords[1]),
+            lonMax: Math.max(c.lonMax, p.coords[1]),
+          }),
+          { latMin: 90, latMax: -90, lonMin: 180, lonMax: -180 }
+        )
+      : { latMin: MIRA.lat, latMax: MIRA.lat, lonMin: MIRA.lon, lonMax: MIRA.lon };
 
-    const mudarAltura = (factor: number) => {
+    const limites = () => {
+      const s = escala();
+      const lt = 0.2 * s.l * s.theta;
+      const lp = 0.12 * s.a * s.phi;
+      return {
+        thetaMin: Math.min(-lt, (MIRA.lon - caixaDados.lonMax - FOLGA_CAIXA) * grau),
+        thetaMax: Math.max(lt, (MIRA.lon - caixaDados.lonMin + FOLGA_CAIXA) * grau),
+        phiMin: Math.min(-lp, (MIRA.lat - caixaDados.latMax - FOLGA_CAIXA) * grau),
+        phiMax: Math.max(lp, (MIRA.lat - caixaDados.latMin + FOLGA_CAIXA) * grau),
+      };
+    };
+
+    const prender = () => {
+      const lim = limites();
+      orbita.theta = Math.max(lim.thetaMin, Math.min(lim.thetaMax, orbita.theta));
+      orbita.phi = Math.max(lim.phiMin, Math.min(lim.phiMax, orbita.phi));
+    };
+
+    /* Aplica a órbita ao mundo. Sai do `desenhar` para uma função sua porque
+       o zoom sobre o cursor precisa de saber onde é que um ponto do chão vai
+       parar no ecrã **antes** de haver um quadro. */
+    const aplicarOrbita = () => {
+      qGuinada.setFromAxisAngle(EIXO_POLAR, orbita.theta);
+      qInclinacao.setFromAxisAngle(LESTE, orbita.phi);
+      mundo.quaternion.copy(qInclinacao).multiply(qGuinada);
+      mundo.updateMatrixWorld(true);
+    };
+
+    const vAux = new THREE.Vector3();
+    const ndc = new THREE.Vector2();
+    const raio = new THREE.Raycaster();
+    /* A esfera do chão é a do alfinete e não a do planeta: assim o ponto que
+       o cursor agarra é o mesmo plano em que os alfinetes vivem. */
+    const esferaChao = new THREE.Sphere(new THREE.Vector3(0, 0, 0), RAIO * 1.004);
+
+    /** O ponto do globo — em coordenadas do mundo que roda — debaixo deste
+        pixel, ou `null` se ali só houver céu. */
+    const chaoEm = (px: number, py: number) => {
+      ndc.set((px / larguraCaixa) * 2 - 1, -(py / alturaCaixa) * 2 + 1);
+      raio.setFromCamera(ndc, camara);
+      if (!raio.ray.intersectSphere(esferaChao, vAux)) return null;
+      return mundo.worldToLocal(vAux.clone());
+    };
+
+    const ecraDe = (local: THREE.Vector3) => {
+      vAux.copy(local).applyMatrix4(mundo.matrixWorld).project(camara);
+      return {
+        x: (vAux.x * 0.5 + 0.5) * larguraCaixa,
+        y: (-vAux.y * 0.5 + 0.5) * alturaCaixa,
+      };
+    };
+
+    /** Um toque no botão vale cerca de dois dentes de roda. */
+    const PASSO_ZOOM = 1.6;
+
+    /**
+     * Muda a altura, e — se lhe derem um pixel — deixa o chão desse pixel
+     * onde estava.
+     *
+     * É o que qualquer mapa faz e o que este não fazia: a roda aproximava
+     * sempre o centro do quadro, de modo que aproximar-se de um ajuntamento
+     * do Ribatejo obrigava a aproximar e arrastar, aproximar e arrastar. Com
+     * a âncora, aponta-se e roda-se.
+     *
+     * A correcção é iterativa e não fechada de propósito: a projecção de uma
+     * esfera vista de perto e de esguelha não se inverte em duas linhas, mas
+     * a `escala()` já dá a derivada — quantos radianos vale um pixel aqui —,
+     * e com ela três passos de Newton chegam a menos de um pixel. Cada passo
+     * custa duas matrizes e uma projecção; não corre por quadro, corre por
+     * dente de roda.
+     */
+    const mudarAltura = (factor: number, px?: number, py?: number) => {
       aEntrar = false;
       zoomDoUtilizador = true;
-      alturaVoo = Math.min(ALTURA_MAXIMA, Math.max(ALTURA_MINIMA, alturaVoo * factor));
+      const antes = alturaVoo;
+      const nova = Math.min(ALTURA_MAXIMA, Math.max(ALTURA_MINIMA, alturaVoo * factor));
+      if (nova === antes) return;
+
+      const ancora = px === undefined || py === undefined ? null : chaoEm(px, py);
+      alturaVoo = nova;
+      if (ancora) {
+        for (let i = 0; i < 3; i++) {
+          colocarCamara();
+          aplicarOrbita();
+          const onde = ecraDe(ancora);
+          const s = escala();
+          orbita.theta += (px! - onde.x) * s.theta;
+          orbita.phi -= (py! - onde.y) * s.phi;
+          prender();
+        }
+        aplicarOrbita();
+      }
+      colocarCamara();
+      reagrupar();
       pedirQuadro();
     };
 
@@ -2230,16 +2744,62 @@ export default function GloboTerra({
       return a && b ? Math.hypot(a.x - b.x, a.y - b.y) || 1 : 0;
     };
 
+    /** O ponto entre os dois dedos, em coordenadas da caixa. */
+    const centroDosDedos = () => {
+      const [a, b] = [...ponteiros.values()];
+      if (!a || !b) return null;
+      const r = el.getBoundingClientRect();
+      return { x: (a.x + b.x) / 2 - r.left, y: (a.y + b.y) / 2 - r.top };
+    };
+
+    /* ── O que está por cima da lona não é a lona ─────────────────────────
+     *
+     * Um nome e um algarismo de mancha vivem numa camada HTML por cima da
+     * cena, e os eventos deles borbulham até à caixa. Enquanto a caixa
+     * tratasse qualquer `pointermove` como «passeio sobre o globo», apontar
+     * um algarismo acendia o alfinete que estava por baixo dele — e uma
+     * etiqueta acesa é a primeira a escolher lugar na recolocação, o que
+     * empurrava o próprio algarismo para longe do dedo. Medido por um banco
+     * de provas de fora: em telemóvel, carregar no «13» não fazia nada, e as
+     * manchas guardavam vinte das vinte e nove coudelarias; em computador o
+     * algarismo fugia 25 a 27 pixéis e o clique caía num nome ao lado.
+     *
+     * A regra é uma linha: **o que está na camada de cima não é a lona**.
+     * Quem está lá já tem quem trate dele — o `pointerover` da camada dos
+     * nomes —, e os comandos da vista também não são chão.
+     *
+     * É por exclusão e não por «tem de ser a lona» de propósito: um véu de
+     * outro componente por cima do globo — o aviso de cookies, por exemplo —
+     * recebe os eventos do rato em vez da lona, e exigir a lona deixava o
+     * globo cego enquanto ele lá estivesse. O que interessa saber é uma coisa
+     * só: se o ponteiro está em cima de uma etiqueta nossa. */
+    const foraDaCamada = (e: PointerEvent) => {
+      const alvo = e.target as Node | null;
+      return !alvo || (!camadaEtiquetas.contains(alvo) && !comandos.contains(alvo));
+    };
+
+    /** Um gesto que só serviu para travar a entrada não é um clique. */
+    let travouEntrada = false;
+
     const aoDescer = (e: PointerEvent) => {
+      /* ── Carregar durante a viagem trava-a, e mais nada ─────────────────
+         A entrada mexe a câmara durante dois segundos e meio. Fixar aqui o
+         alfinete debaixo do dedo é fixar um alvo que já não estará ali
+         quando ela pousar: numa de três corridas do banco de provas, um
+         clique a meio da entrada abria uma coudelaria à sorte. Travar a
+         viagem é o que a pessoa está a pedir; escolher por ela não é. */
+      travouEntrada = aEntrar;
       aEntrar = false;
       arrastou = false;
       ponteiros.set(e.pointerId, { x: e.clientX, y: e.clientY });
       pinca = entreDedos();
       /* Num ecrã táctil não há passeio do rato que acenda o alfinete antes do
          toque: quem escolhe o alvo é o próprio toque. */
-      const p = noElemento(e);
-      sobAlfinete = alfineteEm(p.x, p.y);
-      actualizarActivo();
+      if (foraDaCamada(e) && !travouEntrada) {
+        const p = noElemento(e);
+        sobAlfinete = alfineteEm(p.x, p.y);
+        actualizarActivo();
+      }
       pedirQuadro();
     };
 
@@ -2247,6 +2807,7 @@ export default function GloboTerra({
       const antes = ponteiros.get(e.pointerId);
       if (!antes) {
         // Sem botão em baixo é só passear: acende-se o ponto que está debaixo.
+        if (!foraDaCamada(e)) return;
         const p = noElemento(e);
         sobAlfinete = alfineteEm(p.x, p.y);
         actualizarActivo();
@@ -2285,24 +2846,24 @@ export default function GloboTerra({
       }
 
       if (ponteiros.size >= 2) {
-        /* Dois dedos mudam a altura. Num telemóvel não há roda do rato, e
-           sem isto não havia zoom nenhum — o globo era só arrastável. */
+        /* Dois dedos mudam a altura, e a pinça abre a partir do ponto que
+           está entre eles — que é o sítio para onde a mão está a apontar.
+           Num telemóvel não há roda do rato, e sem isto não havia zoom
+           nenhum: o globo era só arrastável. */
         const agora = entreDedos();
-        if (pinca > 0 && agora > 0) mudarAltura(pinca / agora);
+        if (pinca > 0 && agora > 0) {
+          const meio = centroDosDedos();
+          mudarAltura(pinca / agora, meio?.x, meio?.y);
+        }
         pinca = agora;
         arrastou = true;
         return;
       }
 
       const s = escala();
-      /* Limites: o centro do quadro passeia até 20% da largura e 12% da
-         altura. Chega para espreitar Espanha ou o Atlântico e não chega para
-         perder o país — que é a diferença entre olhar à volta e ficar
-         perdido. Dantes a guinada não tinha limite nenhum. */
-      const limiteTheta = 0.2 * s.l * s.theta;
-      const limitePhi = 0.12 * s.a * s.phi;
-      orbita.theta = Math.max(-limiteTheta, Math.min(limiteTheta, orbita.theta + dx * s.theta));
-      orbita.phi = Math.max(-limitePhi, Math.min(limitePhi, orbita.phi - dy * s.phi));
+      orbita.theta += dx * s.theta;
+      orbita.phi -= dy * s.phi;
+      prender();
       pedirQuadro();
     };
 
@@ -2313,7 +2874,9 @@ export default function GloboTerra({
       if (!tinha) return;
       const eraArrasto = arrastou;
       if (ponteiros.size === 0) arrastou = false;
-      if (!clique || eraArrasto || e.target !== lona) return;
+      const soTravou = travouEntrada;
+      if (ponteiros.size === 0) travouEntrada = false;
+      if (!clique || eraArrasto || soTravou || e.target !== lona) return;
       // O alfinete vale um clique tanto quanto o nome: é ele o alvo que se vê.
       if (sobAlfinete) accionar(sobAlfinete);
       // Carregar no vazio fecha a pilha ou a mancha que estiver aberta.
@@ -2326,8 +2889,31 @@ export default function GloboTerra({
           manchaFixa = null;
           actualizarMancha();
         }
+        /* ── Duas batidas no vazio aproximam ───────────────────────────────
+           É o gesto que qualquer mapa tem e este não tinha, e é o único zoom
+           que existe num telemóvel sem ser a pinça — que precisa de duas mãos
+           ou de dois dedos a acertar ao mesmo tempo. Duas batidas precisam de
+           uma. Vai buscar o mesmo passo do botão, e ancora no sítio onde se
+           bateu, não no centro.
+
+           Só no vazio: em cima de um alfinete a primeira batida já abriu ou
+           já navegou, e aproximar por cima disso seria responder duas coisas
+           à mesma pergunta. */
+        const agora = performance.now();
+        const p = noElemento(e);
+        const perto = Math.hypot(p.x - ultimoToque.x, p.y - ultimoToque.y) < 26;
+        if (agora - ultimoToque.t < 320 && perto) {
+          ultimoToque.t = 0;
+          mudarAltura(1 / PASSO_ZOOM, p.x, p.y);
+        } else {
+          ultimoToque.t = agora;
+          ultimoToque.x = p.x;
+          ultimoToque.y = p.y;
+        }
       }
     };
+    /** A última batida no vazio, para saber se a próxima é a segunda. */
+    const ultimoToque = { t: 0, x: 0, y: 0 };
 
     const aoLargar = (e: PointerEvent) => largar(e, true);
     const aoCancelar = (e: PointerEvent) => largar(e, false);
@@ -2341,10 +2927,20 @@ export default function GloboTerra({
     const aoRodar = (e: WheelEvent) => {
       e.preventDefault();
       /* Multiplicativo e proporcional ao deslocamento: um dente de roda
-         (deltaY ≈ 120) muda a altura 14%, e um trackpad, que manda muitos
-         eventos pequenos, anda à mesma velocidade em vez de disparar. */
+         (deltaY ≈ 120) muda a altura 22%, e um trackpad, que manda muitos
+         eventos pequenos, anda à mesma velocidade em vez de disparar.
+
+         Eram 13% quando o curso inteiro do zoom valia 1,6×: cinco dentes
+         chegavam ao fundo. Com 3,5× de curso os mesmos 13% pediam dez dentes
+         para o mesmo caminho, e um mapa em que é preciso rodar dez vezes para
+         ver alguma coisa lê-se como um mapa que não responde. Com 22% são
+         seis dentes, que é o que se faz com um gesto do dedo.
+
+         O `clientX/Y` é a âncora: aproxima-se para onde o cursor aponta, e
+         não para o meio do ecrã. */
       const passo = Math.max(-120, Math.min(120, e.deltaY)) / 120;
-      mudarAltura(Math.exp(passo * 0.13));
+      const r = el.getBoundingClientRect();
+      mudarAltura(Math.exp(passo * 0.22), e.clientX - r.left, e.clientY - r.top);
     };
 
     /** Volta ao enquadramento com que o globo pousou. */
@@ -2354,6 +2950,8 @@ export default function GloboTerra({
       alturaVoo = alturaRepouso;
       orbita.theta = 0;
       orbita.phi = 0;
+      colocarCamara();
+      reagrupar();
       pedirQuadro();
     };
 
@@ -2379,44 +2977,71 @@ export default function GloboTerra({
      * O salto é seco, sem animação, e de propósito: quem navega por teclado
      * quer o passo seguinte, não uma viagem de trezentos milissegundos por
      * cada uma de vinte e nove. */
-    const ordemNS = [...etiquetas].sort((x, y) => y.coords[0] - x.coords[0]);
+    /* O percurso é pelas **coudelarias**, não pelos pontos do ecrã. Era pelos
+       pontos, e com os ajuntamentos isso passou a querer dizer que uma seta
+       podia saltar cinco coudelarias de uma vez. Pior: mover a câmara pode
+       refazer os ajuntamentos, e a etiqueta que ia receber o foco deixava de
+       existir — medido de fora, o foco saía do globo em todos os passos. A
+       lista das vinte e nove nunca muda; as etiquetas mudam. Percorre-se a
+       que não muda, e procura-se a etiqueta **depois** de a câmara pousar. */
+    const percurso = [...pontos].sort(
+      (x, y) => y.coords[0] - x.coords[0] || x.coords[1] - y.coords[1]
+    );
     let indiceTour = -1;
 
-    const mostrar = (e: Etiqueta) => {
-      if (e.noEcra) return;
+    const centrarEm = (coords: [number, number]) => {
       alturaVoo = alturaRepouso;
       zoomDoUtilizador = false;
-      const s = escala();
       /* A guinada corre paralelos e não mexe na latitude; a inclinação corre
          o meridiano da mira, onde a guinada acabou de pôr o ponto. Por isso
-         as duas contas são independentes e directas. Os limites da órbita
-         ficam de pé: dentro deles o país inteiro está no quadro, e o que
-         interessa é o ponto entrar no ecrã, não ficar no meio dele. */
-      const theta = (MIRA.lon - e.coords[1]) * grau;
-      const phi = (MIRA.lat - e.coords[0]) * grau;
-      const limiteTheta = 0.2 * s.l * s.theta;
-      const limitePhi = 0.12 * s.a * s.phi;
-      orbita.theta = Math.max(-limiteTheta, Math.min(limiteTheta, theta));
-      orbita.phi = Math.max(-limitePhi, Math.min(limitePhi, phi));
+         as duas contas são independentes e directas. Agora que o limite da
+         órbita sai da caixa dos dados, o ponto fica mesmo ao centro em vez de
+         entrar de raspão pela borda — que é o que o percurso pelas setas
+         precisava e não tinha. */
+      orbita.theta = (MIRA.lon - coords[1]) * grau;
+      orbita.phi = (MIRA.lat - coords[0]) * grau;
+      prender();
+      colocarCamara();
+      reagrupar();
     };
 
     const irPara = (i: number) => {
-      if (!ordemNS.length) return;
-      indiceTour = ((i % ordemNS.length) + ordemNS.length) % ordemNS.length;
-      const e = ordemNS[indiceTour];
+      if (!percurso.length) return;
+      indiceTour = ((i % percurso.length) + percurso.length) % percurso.length;
+      const alvo = percurso[indiceTour];
       aEntrar = false;
-      mostrar(e);
+      centrarEm(alvo.coords);
+
+      const e = etiquetas.find((x) => x.membros.some((m) => m.id === alvo.c.id));
+      if (!e) return;
       /* Nunca se dá o foco a um elemento inerte — não iria lá parar. Tira-se
          a inércia agora e o quadro a seguir escreve-a no sítio. */
       if (e.anterior.morto) {
         e.nó.toggleAttribute("inert", false);
         e.anterior.morto = false;
       }
-      e.cabeca.focus();
+      /* Num ponto que junta várias, o foco vai ao nome desta e não à cabeça
+         do grupo: senão as setas passavam pelo grupo uma vez e as outras
+         quatro coudelarias ficavam sem caminho. Abrir a lista primeiro, que
+         um elemento escondido não recebe foco. */
+      if (e.membros.length > 1) {
+        fixa = e;
+        actualizarActivo();
+      }
+      (e.alvos.get(alvo.c.id) ?? e.cabeca).focus();
       pedirQuadro();
     };
 
-    camadaEtiquetas.addEventListener("keydown", (ev) => {
+    /** Onde é que a coudelaria com este id está, no percurso. */
+    const passoDe = (id: string) => percurso.findIndex((p) => p.c.id === id);
+
+    /* O ouvinte fica na caixa e não na camada dos nomes: assim as setas
+       funcionam a partir de **qualquer** paragem dentro do globo — de um nome,
+       mas também dos botões de aproximar. Estava na camada, e por isso quem
+       chegasse ao globo pela tabulação e parasse num botão não tinha maneira
+       nenhuma de arrancar o percurso: medido em telemóvel, onde a tabulação
+       parava nos dois comandos e em nenhum nome. */
+    const aoNavegar = (ev: KeyboardEvent) => {
       let passo = 0;
       if (ev.key === "ArrowDown" || ev.key === "ArrowRight") passo = 1;
       else if (ev.key === "ArrowUp" || ev.key === "ArrowLeft") passo = -1;
@@ -2426,15 +3051,19 @@ export default function GloboTerra({
         return;
       } else if (ev.key === "End") {
         ev.preventDefault();
-        irPara(ordemNS.length - 1);
+        irPara(percurso.length - 1);
         return;
       }
       if (!passo) return;
       // Sem isto as setas rolavam a página por baixo do globo ao mesmo tempo.
       ev.preventDefault();
-      const actual = focada ? ordemNS.indexOf(focada) : indiceTour;
-      irPara(actual < 0 ? (passo > 0 ? 0 : ordemNS.length - 1) : actual + passo);
-    });
+      /* De onde se parte: do que está debaixo do foco, se for uma coudelaria
+         conhecida; senão do último passo dado. */
+      const foco = (ev.target as HTMLElement | null)?.dataset?.coudelaria;
+      const actual = foco ? passoDe(foco) : indiceTour;
+      irPara(actual < 0 ? (passo > 0 ? 0 : percurso.length - 1) : actual + passo);
+    };
+    el.addEventListener("keydown", aoNavegar);
 
     const aoTeclar = (e: KeyboardEvent) => {
       /* As mesmas teclas de qualquer mapa. Chegam aqui por borbulhamento, a
@@ -2655,9 +3284,22 @@ export default function GloboTerra({
       if (desmontado || !noEcra || escondido) return;
       const c = el.getBoundingClientRect();
       if (c.width < 1 || c.height < 1) return;
-      /* Um estorvo que come mais de 40% da lona já não é uma barra: é uma
-         cortina ou uma modal por cima de tudo. Nesse caso não há janela útil
-         para onde fugir, e apertar mais só apagava os nomes todos. */
+      /* ── Uma cortina não é uma barra ─────────────────────────────────
+         Um estorvo que come mais de 40% da lona já não é uma barra fixa a
+         que os nomes possam fugir: é uma modal ou uma cortina por cima de
+         tudo. Isto já cá estava escrito, mas a conclusão era a errada — o
+         código **encostava a faixa ao tecto de 40%** em vez de a ignorar, e
+         com um estorvo em cima e outro em baixo sobravam 20% de lona útil.
+
+         Medido de fora, depois de o aviso de cookies ter passado a um
+         diálogo com véu `fixed inset-0`: na primeira visita, sete nomes em
+         vez de catorze no computador e três em vez de nove no telemóvel. É
+         exactamente o primeiro quadro que alguém vê do site.
+
+         Quem cobre tudo não deixa sítio nenhum para onde fugir, e nesse caso
+         escrever os nomes onde eles devem estar é melhor do que os apagar:
+         quando a cortina sair — e vai sair — estão no sítio, e enquanto lá
+         está não se vê nada de qualquer maneira. Passa a ser descartado. */
       const tecto = c.height * 0.4;
       let alturaDoTopo = c.top;
       let fundoDaBase = c.bottom;
@@ -2690,8 +3332,10 @@ export default function GloboTerra({
           if (chegaCima && chegaBaixo) break;
         }
       }
-      const topo = Math.min(tecto, Math.max(0, alturaDoTopo - c.top));
-      const base = alturaCaixa - Math.min(tecto, Math.max(0, c.bottom - fundoDaBase));
+      const entraEmCima = Math.max(0, alturaDoTopo - c.top);
+      const entraEmBaixo = Math.max(0, c.bottom - fundoDaBase);
+      const topo = entraEmCima > tecto ? 0 : entraEmCima;
+      const base = alturaCaixa - (entraEmBaixo > tecto ? 0 : entraEmBaixo);
       if (Math.abs(topo - topoUtil) < 2 && Math.abs(base - baseUtil) < 2) return;
       topoUtil = topo;
       baseUtil = base;
@@ -2762,6 +3406,12 @@ export default function GloboTerra({
          mantém a lente honesta e o horizonte a 18%. */
       alturaRepouso = Math.max(ALTURA_REPOUSO, alturaParaCaber(camara.aspect));
       if (!aEntrar && !zoomDoUtilizador) alturaVoo = alturaRepouso;
+      /* A caixa mudou de tamanho, logo mudou quantos metros vale um pixel — e
+         é dos metros por pixel que sai o raio dos ajuntamentos. Rodar o
+         telemóvel tem de refazer as contas, não só o tamanho da lona. */
+      prender();
+      colocarCamara();
+      reagrupar();
       // Numa coluna mais estreita as etiquetas encolhem: as medidas em cache
       // deixam de valer, e é delas que sai o teste de colisão.
       precisaMedir = true;
@@ -2774,10 +3424,21 @@ export default function GloboTerra({
     });
     observador.observe(el);
 
+    /* A vista reposta pode vir de uma caixa de outro tamanho: os limites
+       saem da caixa dos dados e da proporção da lona, e é aqui que se
+       verificam pela primeira vez. */
+    prender();
     colocarCamara();
+    reagrupar(true);
+
+    /* O `pagehide` apanha o que o desmonte não apanha: fechar o separador,
+       seguir uma ligação para fora do site, o browser a arrumar a página. */
+    window.addEventListener("pagehide", guardarVista);
 
     return () => {
       desmontado = true;
+      guardarVista();
+      window.removeEventListener("pagehide", guardarVista);
       cancelarContornos.abort();
       window.clearTimeout(relogioRevelar);
       for (const r of relogiosEstorvo) window.clearTimeout(r);
@@ -2800,6 +3461,7 @@ export default function GloboTerra({
       el.removeEventListener("pointerleave", aoSair);
       el.removeEventListener("wheel", aoRodar);
       el.removeEventListener("keydown", aoTeclar);
+      el.removeEventListener("keydown", aoNavegar);
       /* Os ouvintes das etiquetas ficam nos nós que saem daqui com a camada:
          a árvore inteira fica sem referências e vai com o resto do fecho. */
       camadaEtiquetas.remove();
@@ -2807,20 +3469,15 @@ export default function GloboTerra({
 
       cena.traverse((o) => {
         const obj = o as THREE.Mesh;
-        /* A geometria de um `Sprite` não é nossa: o three tem uma só,
-           partilhada por todos os sprites do processo. Descartá-la partia
-           o sprite seguinte que alguém criasse na aplicação. */
-        if (obj.geometry && !(o instanceof THREE.Sprite)) obj.geometry.dispose();
+        if (obj.geometry) obj.geometry.dispose();
         const m = obj.material;
         if (Array.isArray(m)) m.forEach((x) => x.dispose());
         else if (m) m.dispose();
       });
-      alfinetes.dispose();
-      for (const m of materiaisHalo) m.dispose();
-      /* Um `ShaderMaterial.dispose()` não toca nas texturas dos uniformes,
-         e um `Sprite` não é `Mesh` nem `Points` — a limpeza antiga não lhes
-         chegava. Medido: vinte teclas escritas na pesquisa levavam as
-         texturas vivas de 8 a 101 e a memória de 8,9 para 18,5 MB. */
+      /* Um `ShaderMaterial.dispose()` não toca nas texturas dos uniformes —
+         a limpeza antiga não lhes chegava. Medido: vinte teclas escritas na
+         pesquisa levavam as texturas vivas de 8 a 101 e a memória de 8,9
+         para 18,5 MB. */
       for (const t of texturas) t.dispose();
 
       renderizador.dispose();
@@ -2831,7 +3488,7 @@ export default function GloboTerra({
       renderizador.forceContextLoss();
       lona.remove();
     };
-    /* A assinatura não se lê aqui dentro — os grupos vêm do `gruposRef`. Está
+    /* A assinatura não se lê aqui dentro — os pontos vêm do `pontosRef`. Está
        nas dependências porque é ela, e não a identidade do array, que decide
        quando é que vale a pena deitar a cena fora e montar outra. */
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -2842,7 +3499,22 @@ export default function GloboTerra({
   const semImagem = estado === "sem-3d";
 
   return (
-    <div className="relative h-full w-full">
+    /* ── A roda é do globo ────────────────────────────────────────────────
+       Medido enquanto o site rolava com um motor de deslocamento por
+       JavaScript (o Lenis, com `smoothWheel`): seis dentes de roda sobre a
+       lona aproximavam **e** rolavam a página 445 pixéis — quem se tentava
+       aproximar via o globo fugir-lhe para cima do ecrã. O `preventDefault()`
+       daqui não chegava, porque quem tratava o evento era o ouvinte do outro
+       lado, e a ordem de registo não é nossa.
+
+       Esse motor entretanto saiu do site, e o `preventDefault()` passou a
+       bastar. O atributo fica na mesma: é uma palavra, é o contrato público
+       de uma família inteira de bibliotecas de deslocamento, e diz o que
+       aqui é verdade — **a roda em cima do globo não rola a página**. Se
+       algum dia voltar a entrar uma, o globo já está defendido, e sem
+       precisar de saber que ela existe. Fica na caixa de fora e não na lona,
+       para valer também para a camada dos nomes e para os comandos. */
+    <div className="relative h-full w-full" data-lenis-prevent>
       <div
         ref={caixa}
         className="h-full w-full cursor-grab touch-none active:cursor-grabbing"
@@ -2869,11 +3541,13 @@ export default function GloboTerra({
           à vista antes de lhe dar o foco. Tem de estar escrito: um atalho que
           ninguém sabe que existe é um atalho que não existe. */}
       <p className="sr-only">
-        Globo com {pontos.length} coudelarias em Portugal, em {grupos.length} pontos. A tabulação
-        passa pelos nomes visíveis de cada vez. Com um nome seleccionado, as setas para cima e para
-        baixo percorrem todas as coudelarias de norte para sul, movendo a vista quando é preciso;
-        Início e Fim saltam para a primeira e para a última. Mais e menos aproximam e afastam, zero
-        repõe a vista. A lista completa está na vista de lista.
+        Globo com {pontos.length} coudelarias em Portugal. As que estão demasiado perto umas das
+        outras para se apontarem em separado aparecem num ponto só, com a conta; aproximar
+        separa-as. A tabulação passa pelos nomes visíveis de cada vez, e um nome leva à ficha da
+        coudelaria. Com o foco em qualquer ponto do globo, as setas para cima e para baixo percorrem
+        as {pontos.length} coudelarias de norte para sul, trazendo cada uma ao centro; Início e Fim
+        saltam para a primeira e para a última. Mais e menos aproximam e afastam, zero repõe a
+        vista. A lista completa está na vista de lista.
       </p>
     </div>
   );
