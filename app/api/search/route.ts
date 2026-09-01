@@ -42,6 +42,25 @@ const STATIC_PAGES: Array<{ title_pt: string; title_en: string; url: string; key
     },
   ];
 
+/**
+ * Escreve no log a razão por que uma das consultas não trouxe nada.
+ * O `Promise.allSettled` cumpre-se mesmo quando o PostgREST devolve erro — nesse
+ * caso `data` vem a `null` e a categoria inteira sai dos resultados sem deixar
+ * rasto. Um ecrã de pesquisa vazio que devia ser um erro é uma mentira.
+ */
+function registarFalha(
+  tabela: string,
+  resultado: PromiseSettledResult<{ data?: unknown; error?: unknown }>
+) {
+  if (resultado.status === "rejected") {
+    logger.error(`[search] consulta a ${tabela} rejeitada:`, resultado.reason);
+    return;
+  }
+  if (resultado.value?.error) {
+    logger.error(`[search] consulta a ${tabela} falhou:`, resultado.value.error);
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const ip = request.headers.get("x-forwarded-for") || "unknown";
@@ -73,7 +92,7 @@ export async function GET(request: NextRequest) {
       searchHorses
         ? supabase
             .from("cavalos_venda")
-            .select("id, nome, descricao, imagens, slug")
+            .select("id, nome, descricao, foto_principal, fotos, slug")
             .eq("status", "active")
             .or(`nome.ilike.%${safeQ}%,descricao.ilike.%${safeQ}%`)
             .limit(perTypeLimit)
@@ -88,6 +107,12 @@ export async function GET(request: NextRequest) {
         : Promise.resolve({ data: null }),
     ]);
 
+    // Uma consulta falhada não é uma consulta sem resultados. Sem isto, um erro
+    // de coluna ou de rede lê-se como «não há nada» — e foi assim que os
+    // cavalos desapareceram da pesquisa em silêncio.
+    registarFalha("cavalos_venda", cavalosRes);
+    registarFalha("coudelarias", coudelariasRes);
+
     // Cavalos
     if (cavalosRes.status === "fulfilled" && cavalosRes.value.data) {
       for (const c of cavalosRes.value.data) {
@@ -96,8 +121,13 @@ export async function GET(request: NextRequest) {
           type: "horse",
           title: c.nome,
           description: c.descricao?.substring(0, 100),
-          url: `/comprar/${c.slug || c.id}`,
-          image: Array.isArray(c.imagens) ? c.imagens[0] : undefined,
+          // `/comprar/[id]` procura mesmo por `id` (`.eq("id", …)` numa coluna
+          // uuid). Passar-lhe o slug dava 404 em todos os cavalos da pesquisa —
+          // e o slug existe sempre, porque o webhook do Stripe gera um. Todos
+          // os outros sítios do site (grelha, favoritos, sitemap, alertas,
+          // `generateStaticParams`) ligam por `id`.
+          url: `/comprar/${c.id}`,
+          image: c.foto_principal || (Array.isArray(c.fotos) ? c.fotos[0] : undefined),
         });
       }
     }

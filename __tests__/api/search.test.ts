@@ -132,7 +132,9 @@ describe("GET /api/search", () => {
                   id: "1",
                   nome: "Lusitano Teste",
                   descricao: "Cavalo de teste",
-                  imagens: ["https://example.com/horse.jpg"],
+                  // a coluna chama-se foto_principal — `imagens` não existe
+                  // em cavalos_venda
+                  foto_principal: "https://example.com/horse.jpg",
                   slug: "lusitano-teste",
                 },
               ]);
@@ -153,7 +155,8 @@ describe("GET /api/search", () => {
     expect(horseResult).toBeDefined();
     expect(horseResult.id).toBe("horse-1");
     expect(horseResult.title).toBe("Lusitano Teste");
-    expect(horseResult.url).toBe("/comprar/lusitano-teste");
+    // `/comprar/[id]` procura por `id`, não por slug: ligar pelo slug dava 404.
+    expect(horseResult.url).toBe("/comprar/1");
     expect(horseResult.image).toBe("https://example.com/horse.jpg");
   });
 

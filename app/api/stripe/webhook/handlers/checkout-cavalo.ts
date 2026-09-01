@@ -91,7 +91,11 @@ export async function handleCavaloAnuncio(
       nivel_treino: formData.nivelTreino,
       disciplinas: formData.disciplinas || [],
       registro_apsl: formData.registoAPSL,
-      documentos_em_dia: formData.documentosEmDia || true,
+      // `|| true` dava sempre `true`: quem respondesse que a vacinação ou a
+      // desparasitação não estão em dia via o anúncio publicado a dizer o
+      // contrário. Num classificados com dinheiro pelo meio, o que se guarda é
+      // a resposta do vendedor — e, na falta dela, o lado prudente.
+      documentos_em_dia: formData.documentosEmDia === true,
       foto_principal: fotoPrincipal,
       fotos: imageUrls,
       status: "pending", // Pending admin approval
