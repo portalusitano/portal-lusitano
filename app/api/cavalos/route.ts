@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from("cavalos_venda")
       .select(
-        "id, nome, slug, sexo, idade, preco, regiao, nivel_treino, disciplina, raca, imagens, destaque, created_at, coudelarias(nome, slug)"
+        "id, nome, slug, sexo, idade, preco, regiao, nivel_treino, disciplinas, raca, foto_principal, fotos, destaque, created_at, coudelarias(nome, slug)"
       )
       .eq("status", "active")
       .or(filtroNaoExpirado())
