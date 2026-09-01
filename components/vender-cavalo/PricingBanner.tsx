@@ -131,9 +131,7 @@ function TierCard({
         <span className="text-[var(--foreground-muted)]">{icon}</span>
         <span className="font-semibold text-sm sm:text-base">{tier.name}</span>
         {tier.badge && (
-          <span className="px-1.5 py-0.5 bg-[var(--elevate-1)] text-[var(--foreground-muted)] text-[11px] font-bold uppercase tracking-wider rounded">
-            {tier.badge}
-          </span>
+          <span className="rotulo px-1.5 py-0.5 bg-[var(--elevate-1)] rounded">{tier.badge}</span>
         )}
       </div>
 

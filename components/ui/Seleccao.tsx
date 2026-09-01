@@ -35,6 +35,13 @@ type Props = {
   disabled?: boolean;
   "aria-label"?: string;
   "aria-labelledby"?: string;
+  /* Um `<select>` inválido diz que é inválido e diz onde está a explicação, e
+     este componente imita a API do `<select>`. Sem estes dois, um campo de
+     escolha por preencher acendia a hairline vermelha e mais nada: quem não vê
+     o ecrã não era avisado de nada. Chegam ao gatilho pelo `...aria`, que é
+     onde vive o `role="combobox"`. */
+  "aria-invalid"?: boolean;
+  "aria-describedby"?: string;
 };
 
 /** Extrai `{value,label}` dos `<option>` filhos, incluindo os que vêm de arrays. */

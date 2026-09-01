@@ -67,7 +67,7 @@ export default function StepIndicator({ currentStep }: StepIndicatorProps) {
                 {isCompleted ? <Check size={13} strokeWidth={2.5} /> : s}
               </div>
               <span
-                className={`text-[11px] uppercase tracking-wider text-center leading-tight hidden sm:block ${
+                className={`rotulo text-center leading-tight hidden sm:block ${
                   isCurrent
                     ? "text-[var(--foreground-muted)] font-semibold"
                     : isCompleted
