@@ -15,6 +15,7 @@ import {
   Globe,
 } from "lucide-react";
 import Seleccao from "@/components/ui/Seleccao";
+import { formatarEurosComCentimos } from "@/lib/format";
 
 interface Profissional {
   id: string;
@@ -164,10 +165,6 @@ export default function ProfissionaisContent() {
     return colors[status] || "text-gray-400 bg-gray-500/10";
   };
 
-  const formatCurrency = (cents: number) => {
-    return `€${(cents / 100).toFixed(2)}`;
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
@@ -215,7 +212,9 @@ export default function ProfissionaisContent() {
             </div>
             <div className="bg-white/5 border border-white/10 rounded-lg p-4">
               <div className="text-sm text-gray-400 mb-1">MRR</div>
-              <div className="text-2xl font-bold text-emerald-400">{formatCurrency(mrr)}</div>
+              <div className="text-2xl font-bold text-emerald-400">
+                {formatarEurosComCentimos(mrr)}
+              </div>
             </div>
           </div>
         )}

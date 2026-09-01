@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Lead, CRMStats } from "@/types/lead";
 import Seleccao from "@/components/ui/Seleccao";
+import { formatarEurosInteiros } from "@/lib/format";
 
 const STAGES = [
   { key: "novo", label: "Novo", color: "blue" },
@@ -222,13 +223,6 @@ export default function CRMContent() {
     }
   };
 
-  const formatCurrency = (cents: number) => {
-    return `€${(cents / 100).toLocaleString("pt-PT", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    })}`;
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
@@ -276,7 +270,7 @@ export default function CRMContent() {
               <h3 className="text-sm font-medium text-gray-400">Valor Pipeline</h3>
             </div>
             <p className="text-3xl font-bold text-green-500">
-              {formatCurrency(Math.round(pipelineValue))}
+              {formatarEurosInteiros(Math.round(pipelineValue))}
             </p>
             <p className="text-xs text-gray-500 mt-1">Valor ponderado por probabilidade</p>
           </div>
@@ -286,7 +280,7 @@ export default function CRMContent() {
               <TrendingUp className="text-emerald-500" size={24} />
               <h3 className="text-sm font-medium text-gray-400">Vendas Ganhas</h3>
             </div>
-            <p className="text-3xl font-bold text-emerald-500">{formatCurrency(wonValue)}</p>
+            <p className="text-3xl font-bold text-emerald-500">{formatarEurosInteiros(wonValue)}</p>
             <p className="text-xs text-gray-500 mt-1">{stats?.ganho || 0} negócios fechados</p>
           </div>
 
@@ -332,7 +326,7 @@ export default function CRMContent() {
                   </div>
                   {!["ganho", "perdido"].includes(stage.key) && (
                     <p className="text-xs text-gray-500">
-                      {formatCurrency(Math.round(stageValue))}
+                      {formatarEurosInteiros(Math.round(stageValue))}
                     </p>
                   )}
                 </div>
@@ -386,7 +380,7 @@ export default function CRMContent() {
 
                       <div className="flex items-center justify-between pt-2 border-t border-white/10">
                         <span className="text-sm font-semibold text-[var(--gold)]">
-                          {formatCurrency(lead.estimated_value || 0)}
+                          {formatarEurosInteiros(lead.estimated_value || 0)}
                         </span>
                         <span className="text-xs text-gray-500">{lead.probability}% prob.</span>
                       </div>
