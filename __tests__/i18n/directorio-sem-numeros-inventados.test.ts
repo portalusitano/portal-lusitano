@@ -45,8 +45,14 @@ const CHAVES_DA_LISTAGEM = [
   "sort_antiguidade",
   "sort_cavalos",
   "filter_region",
-  "filter_specialty",
-  "region_all",
+  "filter_activity",
+  "activity_criacao",
+  "activity_dressage",
+  "activity_trabalho",
+  "activity_toureio",
+  "activity_turismo",
+  "activity_ensino",
+  "activity_venda",
   "filters_active_one",
   "filters_active_many",
   "results_count_one",
@@ -62,7 +68,6 @@ const CHAVES_DA_LISTAGEM = [
   "horses_many",
   "lineages_short",
   "no_photo",
-  "view_stud",
   "no_results",
   "no_results_hint",
   "empty_try_region",
@@ -83,21 +88,28 @@ describe("directório — o dicionário tem tudo o que a listagem lê", () => {
     });
   }
 
+  /** «Dressage» é a mesma palavra em português e em inglês. */
+  const IGUAIS_EM_INGLES = new Set(["activity_dressage"]);
+
   it("nenhuma chave da listagem ficou por traduzir para inglês", () => {
-    const porTraduzir = CHAVES_DA_LISTAGEM.filter((c) => bloco("pt")[c] === bloco("en")[c]);
+    const porTraduzir = CHAVES_DA_LISTAGEM.filter(
+      (c) => !IGUAIS_EM_INGLES.has(c) && bloco("pt")[c] === bloco("en")[c]
+    );
     expect(porTraduzir, `iguais a pt: ${porTraduzir.join(", ")}`).toEqual([]);
   });
 
   /**
-   * «Ordenar», «Recomendadas», «Todas», «Desde», «Ocultar mapa» e «Mapa de
-   * Portugal» escrevem-se da mesma maneira nas duas línguas. Tudo o resto que
+   * «Ordenar», «Recomendadas», «Desde», «Ocultar mapa» e «Mapa de Portugal»
+   * escrevem-se da mesma maneira nas duas línguas. Tudo o resto que
    * apareça igual em pt e es é uma linha copiada e esquecida.
    */
   const IGUAIS_DE_PROPOSITO = new Set([
     "sort_label",
     "sort_recomendadas",
-    "region_all",
     "since",
+    // «Dressage» e «Turismo» escrevem-se assim em português e em espanhol.
+    "activity_dressage",
+    "activity_turismo",
     "map_full",
     "map_hide",
     "filters_active_one",

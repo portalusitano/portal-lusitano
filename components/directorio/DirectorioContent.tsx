@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowRight, Map, MapPin, Search, X } from "lucide-react";
+import { Map, MapPin, Search, X } from "lucide-react";
 import LocalizedLink from "@/components/LocalizedLink";
 import Image from "next/image";
 import dynamic from "next/dynamic";
@@ -11,13 +11,14 @@ import Revelar, { atrasoEmGrelha } from "@/components/Revelar";
 import Seleccao from "@/components/ui/Seleccao";
 import { useLanguage } from "@/context/LanguageContext";
 import { capaDoCartao, iniciaisDe } from "@/lib/directorio-capas";
+import { lerListaDeTexto } from "@/lib/coudelaria-ficha";
 import {
   ORDENACOES,
   POR_PAGINA,
+  actividadesDisponiveis,
   aplicarFiltros,
   contarFiltrosActivos,
   escreverFiltros,
-  especialidadesDisponiveis,
   estatisticas,
   lerFiltros,
   ordenar,
@@ -28,6 +29,7 @@ import {
   type FiltrosDirectorio,
   type Ordenacao,
 } from "@/lib/directorio-filtros";
+import { ACTIVIDADES, type Actividade } from "@/lib/especialidades";
 
 const GloboMapa = dynamic(() => import("@/components/GloboMapa"), {
   ssr: false,
@@ -50,8 +52,12 @@ export interface Coudelaria {
   foto_capa?: string | null;
   num_cavalos?: number | null;
   ano_fundacao?: number | null;
-  especialidades?: string[] | null;
-  linhagens?: string[] | null;
+  /* `unknown` porque as duas colunas são `jsonb` e há linhas nesta base que
+     guardam uma **string** com JSON lá dentro em vez de um array. Foi assim
+     que a `cavalos_destaque` matou uma construção em produção. Quem lê estes
+     campos passa-os por `lerListaDeTexto`. */
+  especialidades?: unknown;
+  linhagens?: unknown;
   is_pro?: boolean | null;
   destaque?: boolean | null;
   views_count?: number | null;
@@ -183,8 +189,25 @@ function DirectorioInterior({
 
   // As facetas saem dos dados, não de uma lista escrita à mão: assim não há
   // pastilhas que não dão resultado nenhum nem regiões fora do alcance do filtro.
-  const regioes = useMemo(() => regioesDisponiveis(coudelarias), [coudelarias]);
-  const especialidades = useMemo(() => especialidadesDisponiveis(coudelarias), [coudelarias]);
+  //
+  // Cada uma conta-se contra os **outros** filtros, e não contra as vinte e
+  // nove: com o Alentejo escolhido, «Dressage 22» prometia vinte e duas e dava
+  // nove. O número numa pastilha só vale se for o que se recebe ao carregar
+  // nela. Excluir-se a si própria é o que faz a pastilha acesa continuar lá —
+  // e as que ficariam a zero desaparecem sozinhas, que é a mesma regra que
+  // deixou sete actividades onde havia cinquenta e oito.
+  const regioes = useMemo(
+    () => regioesDisponiveis(aplicarFiltros(coudelarias, { ...filtros, regiao: "" })),
+    [coudelarias, filtros]
+  );
+  const actividades = useMemo(
+    () => actividadesDisponiveis(aplicarFiltros(coudelarias, { ...filtros, actividade: "" })),
+    [coudelarias, filtros]
+  );
+  // As regiões que o ecrã vazio oferece contam-se sobre as vinte e nove, e não
+  // sobre o que sobrou: quem chega ali chegou porque não sobrou nada, e uma
+  // saída calculada a partir do beco é uma lista vazia.
+  const regioesTodas = useMemo(() => regioesDisponiveis(coudelarias), [coudelarias]);
   const numeros = useMemo(() => estatisticas(coudelarias), [coudelarias]);
 
   const resultados = useMemo(
@@ -227,6 +250,20 @@ function DirectorioInterior({
     antiguidade: t.directorio.sort_antiguidade,
     cavalos: t.directorio.sort_cavalos,
   };
+
+  // As sete actividades são chaves internas — vão para o URL e não se traduzem.
+  // Quem se traduz é o nome que se lê na pastilha.
+  const rotuloActividade: Record<Actividade, string> = {
+    criacao: t.directorio.activity_criacao,
+    dressage: t.directorio.activity_dressage,
+    trabalho: t.directorio.activity_trabalho,
+    toureio: t.directorio.activity_toureio,
+    turismo: t.directorio.activity_turismo,
+    ensino: t.directorio.activity_ensino,
+    venda: t.directorio.activity_venda,
+  };
+  const nomeDaActividade = (v: string) =>
+    ACTIVIDADES.includes(v as Actividade) ? rotuloActividade[v as Actividade] : v;
 
   // O painel do topo só mostra o que se conta. O terceiro número era «1000+»,
   // escrito à mão; agora é o ano de fundação mais antigo, e desaparece quando
@@ -344,21 +381,18 @@ function DirectorioInterior({
 
             <FaixaDeChips
               rotulo={t.directorio.filter_region}
-              todos={t.directorio.region_all}
               valor={filtros.regiao}
               facetas={regioes}
               aoEscolher={(v) => navegar({ regiao: v })}
             />
 
-            {especialidades.length > 1 && (
-              <FaixaDeChips
-                rotulo={t.directorio.filter_specialty}
-                todos={t.directorio.region_all}
-                valor={filtros.especialidade}
-                facetas={especialidades}
-                aoEscolher={(v) => navegar({ especialidade: v })}
-              />
-            )}
+            <FaixaDeChips
+              rotulo={t.directorio.filter_activity}
+              valor={filtros.actividade}
+              facetas={actividades}
+              nomeDe={nomeDaActividade}
+              aoEscolher={(v) => navegar({ actividade: v })}
+            />
           </div>
         </Revelar>
 
@@ -440,7 +474,7 @@ function DirectorioInterior({
         ) : (
           <Vazio
             t={t}
-            regioes={regioes.slice(0, 4).map((r) => r.valor)}
+            regioes={regioesTodas.slice(0, 4).map((r) => r.valor)}
             aoEscolherRegiao={(r) =>
               router.push(`${pathname}?${escreverFiltros({ ...FILTROS_VAZIOS, regiao: r })}`, {
                 scroll: false,
@@ -484,46 +518,66 @@ function DirectorioInterior({
  * Uma linha de filtros. As pastilhas trazem a contagem que as sustenta, o que
  * de caminho diz quanto vale carregar nelas — e o escolhido é branco
  * (`.chip-activo`), não dourado.
+ *
+ * **Não há pastilha «Todas».** Era a única acesa por omissão, o que fazia o
+ * estado de partida parecer uma escolha; e era a terceira maneira de fazer a
+ * mesma coisa, ao lado de voltar a carregar na pastilha acesa e do «limpar
+ * filtros» na barra de resultados. Em vez dela, a pastilha activa troca a
+ * contagem por um × — a contagem dela já está escrita na barra logo abaixo,
+ * e o × diz o que carregar ali faz.
+ *
+ * Uma faceta só não é um filtro: com menos de duas escolhas a linha não se
+ * desenha, em vez de oferecer um botão que devolve o que já está no ecrã.
+ *
+ * **A escolhida entra sempre**, mesmo que as contagens já não a tragam. Com
+ * `?search=zzzzz&regiao=Alentejo` as contagens correm sobre zero linhas e não
+ * devolvem região nenhuma: sem esta linha, o filtro que está a esvaziar o ecrã
+ * desaparecia dele e não havia por onde o desfazer.
  */
 function FaixaDeChips({
   rotulo,
-  todos,
   valor,
   facetas,
+  nomeDe,
   aoEscolher,
 }: {
   rotulo: string;
-  todos: string;
   valor: string;
   facetas: { valor: string; n: number }[];
+  nomeDe?: (v: string) => string;
   aoEscolher: (v: string) => void;
 }) {
-  if (facetas.length === 0) return null;
+  const lista =
+    valor && !facetas.some((f) => f.valor === valor) ? [{ valor, n: 0 }, ...facetas] : facetas;
+
+  if (lista.length < 2 && !valor) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="rotulo mr-1 w-full sm:w-auto">{rotulo}</span>
+    // O rótulo em coluna própria a partir de `sm` alinha as pastilhas das duas
+    // linhas na mesma margem; em telemóvel fica por cima, porque uma coluna de
+    // rótulo tirava um terço da largura às pastilhas.
+    <div className="grid gap-1.5 sm:grid-cols-[6rem_1fr] sm:items-start sm:gap-x-4 sm:gap-y-2">
+      <span className="rotulo sm:pt-1.5">{rotulo}</span>
       <div className="flex flex-wrap gap-2" role="group" aria-label={rotulo}>
-        <button
-          type="button"
-          onClick={() => aoEscolher("")}
-          aria-pressed={valor === ""}
-          className={`chip ${valor === "" ? "chip-activo" : ""}`}
-        >
-          {todos}
-        </button>
-        {facetas.map((f) => (
-          <button
-            key={f.valor}
-            type="button"
-            onClick={() => aoEscolher(valor === f.valor ? "" : f.valor)}
-            aria-pressed={valor === f.valor}
-            className={`chip ${valor === f.valor ? "chip-activo" : ""}`}
-          >
-            {f.valor}
-            <span className="font-mono tabular-nums opacity-60">{f.n}</span>
-          </button>
-        ))}
+        {lista.map((f) => {
+          const activo = valor === f.valor;
+          return (
+            <button
+              key={f.valor}
+              type="button"
+              onClick={() => aoEscolher(activo ? "" : f.valor)}
+              aria-pressed={activo}
+              className={`chip ${activo ? "chip-activo" : ""}`}
+            >
+              {nomeDe ? nomeDe(f.valor) : f.valor}
+              {activo ? (
+                <X size={12} aria-hidden="true" />
+              ) : (
+                <span className="font-mono tabular-nums opacity-60">{f.n}</span>
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -542,6 +596,12 @@ function FaixaDeChips({
  *
  * Quando não há fotografia **não se empresta uma**: desenha-se uma chapa com
  * as iniciais, do mesmo tamanho, para a grelha não ficar aos degraus.
+ *
+ * Não há linha «Ver coudelaria →» no fim. O cartão inteiro é a ligação, tem o
+ * nome da coudelaria e a localidade no `aria-label` e levanta-se ao passar o
+ * rato; a linha repetia a mesma frase vinte e quatro vezes por página e
+ * gastava nisso a altura de duas linhas de dados. O `HorseCard`, que é a
+ * grelha mais densa do site, também não a tem.
  */
 function Cartao({
   coudelaria: c,
@@ -552,8 +612,13 @@ function Cartao({
   capa: string | null;
   t: Dicionario;
 }) {
-  const especialidades = (c.especialidades ?? []).filter(Boolean);
-  const linhagens = (c.linhagens ?? []).filter(Boolean);
+  /* `lerListaDeTexto` e não `?? []`: uma string com JSON dentro não tem
+     `.filter` e rebentava a prerenderização da página inteira. A guarda pelo
+     `.length` não chegaria — uma string também tem `length`, portanto passa a
+     verificação e é o método a seguir que morre. Quem decide a forma do dado
+     é a função que o lê, e não o tipo que se escreveu à espera dela. */
+  const especialidades = lerListaDeTexto(c.especialidades);
+  const linhagens = lerListaDeTexto(c.linhagens);
   const sitio = [c.localizacao, c.regiao].filter(Boolean).join(", ");
 
   return (
@@ -614,45 +679,29 @@ function Cartao({
           </p>
         )}
 
+        {/* As especialidades em bruto ficam — deixaram de mandar no filtro mas
+            continuam a informar, e são elas que distinguem uma coudelaria da
+            do lado. O que saiu foram as pastilhas: numa grelha onde tudo o
+            que é clicável é pastilha, uma pastilha que não filtra promete o
+            que não cumpre. E como só cabiam duas, o cartão gastava uma linha
+            inteira num «+2» — o dado que distinguia ficava escondido
+            precisamente atrás desse algarismo. Duas linhas de texto corrido
+            dizem quatro ou cinco no mesmo espaço. */}
         {especialidades.length > 0 && (
-          <ul className="flex flex-wrap gap-1">
-            {especialidades.slice(0, 2).map((e) => (
-              <li
-                key={e}
-                className="meta rounded-[var(--raio-sm)] border border-[var(--border-soft)] px-1.5 py-0.5 text-[var(--foreground-secondary)]"
-              >
-                {e}
-              </li>
-            ))}
-            {especialidades.length > 2 && (
-              <li
-                className="meta rounded-[var(--raio-sm)] border border-[var(--border-soft)] px-1.5 py-0.5 font-mono"
-                title={especialidades.slice(2).join(", ")}
-              >
-                +{especialidades.length - 2}
-              </li>
-            )}
-          </ul>
+          <p className="meta line-clamp-2 text-[var(--foreground-secondary)]">
+            {especialidades.join(", ")}
+          </p>
         )}
 
         {/* O rótulo em cima e os valores por baixo: em linha, numa coluna de
             173px de telemóvel, sobrava «LINHAGENS Veiga,…» — o rótulo comia o
             dado que era suposto apresentar. */}
         {linhagens.length > 0 && (
-          <p>
+          <p className="mt-auto pt-0.5">
             <span className="rotulo block">{t.directorio.lineages_short}</span>
             <span className="meta line-clamp-1">{linhagens.slice(0, 3).join(", ")}</span>
           </p>
         )}
-
-        <span className="mt-auto flex items-center gap-1.5 pt-2 text-xs text-[var(--foreground-strong)]">
-          {t.directorio.view_stud}
-          <ArrowRight
-            size={12}
-            className="transition-transform duration-200 group-hover:translate-x-1"
-            aria-hidden="true"
-          />
-        </span>
       </div>
     </LocalizedLink>
   );

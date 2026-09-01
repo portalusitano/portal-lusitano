@@ -7,7 +7,7 @@ import {
   contarFiltrosActivos,
   contem,
   escreverFiltros,
-  especialidadesDisponiveis,
+  actividadesDisponiveis,
   estatisticas,
   lerFiltros,
   normalizar,
@@ -46,15 +46,33 @@ describe("lerFiltros", () => {
   it("lê os filtros que estão no URL", () => {
     expect(
       lerFiltros(
-        params({ search: "golega", regiao: "Ribatejo", especialidade: "Reprodução", pagina: "2" })
+        params({ search: "golega", regiao: "Ribatejo", actividade: "toureio", pagina: "2" })
       )
     ).toEqual({
       search: "golega",
       regiao: "Ribatejo",
-      especialidade: "Reprodução",
+      actividade: "toureio",
       ordenar: "recomendadas",
       pagina: 2,
     });
+  });
+
+  it("recusa uma actividade que não existe em vez de devolver um ecrã vazio", () => {
+    expect(lerFiltros(params({ actividade: "vinicultura" })).actividade).toBe("");
+    expect(lerFiltros(params({ actividade: "DRESSAGE" })).actividade).toBe("dressage");
+  });
+
+  it("um link antigo, com a especialidade em bruto, aterra na actividade dela", () => {
+    // `?especialidade=Turismo Equestre` foi partilhado enquanto o filtro era o
+    // texto da base. Passa pela taxonomia em vez de dar zero resultados.
+    expect(lerFiltros(params({ especialidade: "Turismo Equestre" })).actividade).toBe("turismo");
+    expect(lerFiltros(params({ especialidade: "Working Equitation" })).actividade).toBe("trabalho");
+    // O que a taxonomia não conhece dá «sem filtro», que mostra as vinte e nove.
+    expect(lerFiltros(params({ especialidade: "Produção de Feno" })).actividade).toBe("");
+    // Havendo as duas, manda a nova.
+    expect(
+      lerFiltros(params({ actividade: "toureio", especialidade: "Turismo Equestre" })).actividade
+    ).toBe("toureio");
   });
 
   it("ignora uma ordenação que não existe em vez de a passar adiante", () => {
@@ -73,7 +91,7 @@ describe("lerFiltros", () => {
 
   it("trata 'todas' como ausência de filtro, que era o valor da versão anterior", () => {
     expect(lerFiltros(params({ regiao: "todas" })).regiao).toBe("");
-    expect(lerFiltros(params({ especialidade: "all" })).especialidade).toBe("");
+    expect(lerFiltros(params({ actividade: "all" })).actividade).toBe("");
   });
 });
 
@@ -92,7 +110,7 @@ describe("escreverFiltros", () => {
     const estado = {
       search: "veiga",
       regiao: "Ribatejo",
-      especialidade: "Alta Escola",
+      actividade: "dressage",
       ordenar: "cavalos" as const,
       pagina: 3,
     };
@@ -109,7 +127,7 @@ describe("temFiltrosActivos / contarFiltrosActivos", () => {
   });
 
   it("conta os três que estreitam a lista", () => {
-    const f = { ...FILTROS_VAZIOS, search: "a", regiao: "b", especialidade: "c" };
+    const f = { ...FILTROS_VAZIOS, search: "a", regiao: "b", actividade: "c" };
     expect(temFiltrosActivos(f)).toBe(true);
     expect(contarFiltrosActivos(f)).toBe(3);
   });
@@ -131,13 +149,23 @@ describe("normalizar / contem", () => {
 
 describe("aplicarFiltros", () => {
   const lista = [
-    coudelaria({ slug: "a", nome: "Coudelaria Alter Real", localizacao: "Alter do Chão" }),
+    coudelaria({
+      slug: "a",
+      nome: "Coudelaria Alter Real",
+      localizacao: "Alter do Chão",
+      especialidades: ["Alta Escola", "Working Equitation"],
+    }),
     coudelaria({
       slug: "b",
       nome: "Companhia das Lezírias",
       localizacao: "Samora Correia",
       regiao: "Ribatejo",
-      especialidades: ["Alta Escola", "Reprodução"],
+      especialidades: [
+        "Alta Escola",
+        "Reprodução Selectiva",
+        "Equitação de Trabalho",
+        "Enoturismo",
+      ],
       linhagens: ["Andrade"],
     }),
     coudelaria({ slug: "c", nome: "Quinta da Hermida", regiao: "Centro", especialidades: [] }),
@@ -153,18 +181,30 @@ describe("aplicarFiltros", () => {
     ).toEqual(["b"]);
   });
 
-  it("filtra por especialidade", () => {
+  it("filtra pela actividade, e não pelo texto em bruto", () => {
+    // A `b` tem «Reprodução Selectiva», que é criação; a `a` e a `c` não.
     expect(
-      aplicarFiltros(lista, { ...FILTROS_VAZIOS, especialidade: "Reprodução" }).map((c) => c.slug)
+      aplicarFiltros(lista, { ...FILTROS_VAZIOS, actividade: "criacao" }).map((c) => c.slug)
+    ).toEqual(["b"]);
+    // «Working Equitation» e «Equitação de Trabalho» caem na mesma pastilha.
+    expect(
+      aplicarFiltros(lista, { ...FILTROS_VAZIOS, actividade: "trabalho" }).map((c) => c.slug)
+    ).toEqual(["a", "b"]);
+  });
+
+  it("a pesquisa continua a varrer o texto em bruto que já não é pastilha", () => {
+    // «Enoturismo» deixou de ter filtro próprio; quem o escrever tem de o achar.
+    expect(
+      aplicarFiltros(lista, { ...FILTROS_VAZIOS, search: "enoturismo" }).map((c) => c.slug)
     ).toEqual(["b"]);
   });
 
-  it("os filtros acumulam-se: região E especialidade E texto", () => {
+  it("os filtros acumulam-se: região E actividade E texto", () => {
     expect(
       aplicarFiltros(lista, {
         ...FILTROS_VAZIOS,
         regiao: "Ribatejo",
-        especialidade: "Alta Escola",
+        actividade: "dressage",
         search: "samora",
       }).map((c) => c.slug)
     ).toEqual(["b"]);
@@ -191,6 +231,30 @@ describe("aplicarFiltros", () => {
     expect(
       aplicarFiltros(lista, { ...FILTROS_VAZIOS, search: "reproducao" }).map((c) => c.slug)
     ).toEqual(["b"]);
+  });
+
+  it("uma coluna jsonb guardada como string vale o que lá está", () => {
+    /* As colunas são `jsonb` e há linhas nesta base que guardam uma **string**
+       com JSON dentro. O defeito era calado: `Array.isArray` dizia que não,
+       a lista saía vazia, e a coudelaria continuava no ecrã mas deixava de ser
+       encontrável pelo texto das especialidades e das linhagens — sem erro
+       nenhum, sem nada a que culpar. */
+    const enrolada = [
+      {
+        slug: "s",
+        nome: "Coudelaria Enrolada",
+        regiao: "Alentejo",
+        especialidades: '["Dressage","Enoturismo"]',
+        linhagens: '["Veiga"]',
+      },
+    ];
+    expect(aplicarFiltros(enrolada, { ...FILTROS_VAZIOS, search: "enoturismo" })).toHaveLength(1);
+    expect(aplicarFiltros(enrolada, { ...FILTROS_VAZIOS, search: "veiga" })).toHaveLength(1);
+    expect(aplicarFiltros(enrolada, { ...FILTROS_VAZIOS, actividade: "dressage" })).toHaveLength(1);
+    expect(actividadesDisponiveis(enrolada)).toEqual([
+      { valor: "dressage", n: 1 },
+      { valor: "turismo", n: 1 },
+    ]);
   });
 
   it("aguenta colunas nulas sem rebentar", () => {
@@ -250,7 +314,7 @@ describe("paginar", () => {
 describe("facetas", () => {
   const lista = [
     coudelaria({ regiao: "Alentejo", especialidades: ["Alta Escola"] }),
-    coudelaria({ regiao: "Alentejo", especialidades: ["Alta Escola", "Reprodução"] }),
+    coudelaria({ regiao: "Alentejo", especialidades: ["Alta Escola", "Reprodução Selectiva"] }),
     coudelaria({ regiao: "Ribatejo", especialidades: ["Alta Escola"] }),
     coudelaria({ regiao: "Beira Alta", especialidades: [] }),
   ];
@@ -269,10 +333,13 @@ describe("facetas", () => {
     expect(valores).toContain("Beira Alta");
   });
 
-  it("as especialidades vêm com a contagem", () => {
-    expect(especialidadesDisponiveis(lista)).toEqual([
-      { valor: "Alta Escola", n: 3 },
-      { valor: "Reprodução", n: 1 },
+  it("as actividades vêm pela ordem canónica, com a contagem, e sem as vazias", () => {
+    // As três «Alta Escola» são uma actividade só, `dressage`; a «Reprodução
+    // Selectiva» é `criacao`. Onde havia duas pastilhas de texto em bruto
+    // passa a haver duas actividades — e nos dados a sério, 58 passam a 7.
+    expect(actividadesDisponiveis(lista)).toEqual([
+      { valor: "criacao", n: 1 },
+      { valor: "dressage", n: 3 },
     ]);
   });
 

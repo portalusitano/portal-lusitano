@@ -13,6 +13,14 @@
  */
 
 import { paginar } from "@/lib/marketplace-filtros";
+import { lerListaDeTexto } from "@/lib/coudelaria-ficha";
+import {
+  ACTIVIDADES,
+  actividadesDe,
+  contarActividades,
+  temActividade,
+  type Actividade,
+} from "@/lib/especialidades";
 
 /** Coudelarias por página. */
 export const POR_PAGINA = 24;
@@ -25,7 +33,8 @@ export const ORDENACOES: Ordenacao[] = ["recomendadas", "nome", "antiguidade", "
 export interface FiltrosDirectorio {
   search: string;
   regiao: string;
-  especialidade: string;
+  /** Uma das sete actividades de `lib/especialidades`, ou vazio. */
+  actividade: string;
   ordenar: Ordenacao;
   pagina: number;
 }
@@ -33,7 +42,7 @@ export interface FiltrosDirectorio {
 export const FILTROS_VAZIOS: FiltrosDirectorio = {
   search: "",
   regiao: "",
-  especialidade: "",
+  actividade: "",
   ordenar: "recomendadas",
   pagina: 1,
 };
@@ -72,10 +81,28 @@ export function lerFiltros(params: LeitorParams): FiltrosDirectorio {
   return {
     search: texto(params.get("search")),
     regiao: texto(params.get("regiao"), 60),
-    especialidade: texto(params.get("especialidade"), 60),
+    actividade: lerActividade(params),
     ordenar,
     pagina,
   };
+}
+
+/**
+ * A actividade escolhida, validada contra as sete que existem.
+ *
+ * O parâmetro chamava-se `especialidade` e levava o texto em bruto da base —
+ * `?especialidade=Turismo%20Equestre`. Esses links foram partilhados e não
+ * podem passar a devolver um ecrã vazio sem explicação, por isso o valor
+ * antigo ainda se lê: passa pela taxonomia e aterra na actividade que lhe
+ * corresponde («Turismo Equestre» → `turismo`). O que não for reconhecido dá
+ * «sem filtro», que é o estado que mostra as vinte e nove.
+ */
+function lerActividade(params: LeitorParams): string {
+  const escolhida = texto(params.get("actividade"), 40).toLowerCase();
+  if (ACTIVIDADES.includes(escolhida as Actividade)) return escolhida;
+
+  const legado = texto(params.get("especialidade"), 60);
+  return legado ? (actividadesDe([legado])[0] ?? "") : "";
 }
 
 /**
@@ -88,7 +115,7 @@ export function escreverFiltros(f: FiltrosDirectorio): string {
   const p = new URLSearchParams();
   if (f.search) p.set("search", f.search);
   if (f.regiao) p.set("regiao", f.regiao);
-  if (f.especialidade) p.set("especialidade", f.especialidade);
+  if (f.actividade) p.set("actividade", f.actividade);
   if (f.ordenar !== "recomendadas") p.set("ordenar", f.ordenar);
   if (f.pagina > 1) p.set("pagina", String(f.pagina));
   return p.toString();
@@ -96,7 +123,7 @@ export function escreverFiltros(f: FiltrosDirectorio): string {
 
 /** Verdadeiro quando alguma coisa estreita a lista (a ordenação e a página não). */
 export function temFiltrosActivos(f: FiltrosDirectorio): boolean {
-  return Boolean(f.search || f.regiao || f.especialidade);
+  return Boolean(f.search || f.regiao || f.actividade);
 }
 
 /** Quantos filtros estão a estreitar a lista. */
@@ -104,7 +131,7 @@ export function contarFiltrosActivos(f: FiltrosDirectorio): number {
   let n = 0;
   if (f.search) n++;
   if (f.regiao) n++;
-  if (f.especialidade) n++;
+  if (f.actividade) n++;
   return n;
 }
 
@@ -117,8 +144,12 @@ export interface CoudelariaListavel {
   regiao?: string | null;
   ano_fundacao?: number | null;
   num_cavalos?: number | null;
-  especialidades?: string[] | null;
-  linhagens?: string[] | null;
+  /* `unknown` e não `string[]`: as duas colunas são `jsonb` e nesta base há
+     linhas que guardam uma **string** com JSON lá dentro em vez de um array.
+     Escrever `string[]` aqui era o tipo a prometer o que a base não cumpre —
+     e um tipo que mente é pior do que nenhum, porque cala a pergunta. */
+  especialidades?: unknown;
+  linhagens?: unknown;
   destaque?: boolean | null;
   views_count?: number | null;
 }
@@ -136,16 +167,31 @@ export function contem(texto: string, termo: string): boolean {
   return normalizar(texto).includes(normalizar(termo));
 }
 
-/** Lista limpa de uma coluna que pode vir nula. */
-function lista(v: string[] | null | undefined): string[] {
-  return Array.isArray(v) ? v.filter((x) => typeof x === "string" && x.trim() !== "") : [];
+/**
+ * Lista limpa de uma coluna `jsonb` que pode vir nula — ou vir como uma
+ * **string** com JSON lá dentro, que é o que acontece a algumas linhas desta
+ * base.
+ *
+ * A versão anterior devolvia `[]` para essas, e o defeito era calado: a
+ * coudelaria continuava na lista mas o texto das especialidades e das
+ * linhagens deixava de ser encontrável pela pesquisa, sem erro nenhum. Quem
+ * escrevesse «Veiga» não achava a coudelaria da Veiga e não havia nada a que
+ * culpar. `lerListaDeTexto` desembrulha a string antes de percorrer.
+ */
+function lista(v: unknown): string[] {
+  return lerListaDeTexto(v);
 }
 
 /**
- * Aplica os filtros activos. Acumulam-se: região **e** especialidade **e** texto.
+ * Aplica os filtros activos. Acumulam-se: região **e** actividade **e** texto.
  *
- * A pesquisa varre o que ajuda a encontrar uma coudelaria pelo que se sabe dela
- * — nome, localidade, região, especialidades e linhagens —, não só o nome.
+ * O filtro de fundo passou a ser a **actividade** e não o texto em bruto da
+ * coluna: `temActividade` junta «Toureio» com «Tauromaquia» e «Equitação de
+ * Trabalho» com «Working Equitation», que é o mesmo termo em duas línguas.
+ *
+ * A **pesquisa continua a varrer o texto em bruto**, e é de propósito: quem
+ * escreve «enoturismo» quer encontrar quem o oferece, mesmo que essa palavra
+ * já não seja uma pastilha. A taxonomia arruma o filtro; não apaga o dado.
  */
 export function aplicarFiltros<T extends CoudelariaListavel>(
   coudelarias: T[],
@@ -153,7 +199,7 @@ export function aplicarFiltros<T extends CoudelariaListavel>(
 ): T[] {
   return coudelarias.filter((c) => {
     if (f.regiao && (c.regiao ?? "") !== f.regiao) return false;
-    if (f.especialidade && !lista(c.especialidades).includes(f.especialidade)) return false;
+    if (f.actividade && !temActividade(c.especialidades, f.actividade)) return false;
 
     if (f.search) {
       const pesquisavel = [
@@ -217,9 +263,21 @@ export function regioesDisponiveis(coudelarias: CoudelariaListavel[]): Faceta[] 
   return facetas(coudelarias.map((c) => (c.regiao ?? "").trim()));
 }
 
-/** As especialidades presentes, da mais comum para a menos comum. */
-export function especialidadesDisponiveis(coudelarias: CoudelariaListavel[]): Faceta[] {
-  return facetas(coudelarias.flatMap((c) => lista(c.especialidades).map((e) => e.trim())));
+/**
+ * As actividades presentes, pela ordem canónica da taxonomia.
+ *
+ * Isto era `especialidadesDisponiveis` e devolvia o texto em bruto: **58
+ * valores para 29 coudelarias, 43 deles a aparecer uma única vez**. Um filtro
+ * em que três quartos das escolhas devolvem uma coudelaria não é um filtro, é
+ * a lista das vinte e nove escrita de lado — e em telemóvel era uma parede de
+ * pastilhas mais alta do que dois ecrãs.
+ *
+ * A ordem é a canónica e não a da contagem, ao contrário das regiões: sete
+ * escolhas fixas que trocam de lugar entre visitas custam mais a reencontrar
+ * do que a ordem que já se conhece.
+ */
+export function actividadesDisponiveis(coudelarias: CoudelariaListavel[]): Faceta[] {
+  return contarActividades(coudelarias);
 }
 
 function facetas(valores: string[]): Faceta[] {
