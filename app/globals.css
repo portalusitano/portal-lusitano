@@ -100,6 +100,12 @@ html.dark {
   --d-drill: 320ms;
   --d-header: 230ms;
   --d-reveal: 1000ms;
+  /* Um elemento que nasce por cima de uma cena já composta — os nomes das
+     coudelarias sobre o globo, escalonados. Não é o `--d-reveal`, que é a
+     entrada de um bloco inteiro ao entrar no ecrã: aqui são quinze pequenos
+     a acenderem-se em cascata, e a um segundo cada a cascata deixava de se
+     ler como cascata e passava a ler-se como a página a carregar devagar. */
+  --d-nascer: 700ms;
 }
 
 /* Light mode */
@@ -2361,7 +2367,7 @@ body {
       linear-gradient(#000 0 0);
     mask-composite: exclude;
     opacity: 0;
-    transition: opacity var(--d-fast) var(--ease-out);
+    transition: opacity 220ms var(--ease-out);
     pointer-events: none;
   }
 
@@ -2378,7 +2384,7 @@ body {
       transparent 62%
     );
     opacity: 0;
-    transition: opacity var(--d-fast) var(--ease-out);
+    transition: opacity 220ms var(--ease-out);
     pointer-events: none;
   }
 
@@ -2473,8 +2479,8 @@ body {
     opacity: 0;
     pointer-events: auto;
     will-change: transform, opacity;
-    transition: opacity 220ms var(--ease-out);
-    animation: etiqueta-nascer 700ms var(--ease-out) var(--entrada, 0ms) backwards;
+    transition: opacity var(--d-fast) var(--ease-out);
+    animation: etiqueta-nascer var(--d-nascer) var(--ease-out) var(--entrada, 0ms) backwards;
   }
 
   /* Nasce depois de a câmara pousar: escrever nomes por cima de uma
@@ -2609,6 +2615,25 @@ body {
      `inert`, que é outra coisa e vive no JavaScript. */
   .globo-etiqueta[data-oculta] {
     pointer-events: none;
+  }
+
+  /* ── Enquanto uma coudelaria está a ser escolhida ─────────────────────
+     A opacidade dos nomes é escrita pelo motor a cada quadro, e no resto do
+     tempo esta transição de 200ms serve para amaciar o esbatimento junto ao
+     horizonte. Durante a escolha estorva: o motor já está a interpolar com
+     o relógio da escolha, e uma segunda interpolação por cima dá um véu que
+     chega duzentos milissegundos atrasado em relação à argola que abre no
+     ponto — que é exactamente a diferença entre um movimento e dois.
+
+     A escolhida sobe por cima de tudo o resto: é a única que fica, e não
+     pode ficar por baixo de um nome que está a apagar-se. */
+  .globo-etiquetas[data-escolha] .globo-etiqueta,
+  .globo-etiquetas[data-escolha] .globo-mancha {
+    transition: none;
+  }
+
+  .globo-etiqueta[data-escolhida] {
+    z-index: 2;
   }
 
   /* Um botão a sério, não uma `div` com `role="button"`: assim o Enter e o
@@ -2750,8 +2775,8 @@ body {
     opacity: 0;
     pointer-events: auto;
     will-change: transform, opacity;
-    transition: opacity 220ms var(--ease-out);
-    animation: etiqueta-nascer 700ms var(--ease-out) var(--entrada, 0ms) backwards;
+    transition: opacity var(--d-fast) var(--ease-out);
+    animation: etiqueta-nascer var(--d-nascer) var(--ease-out) var(--entrada, 0ms) backwards;
   }
 
   /* Fora de jogo: sem lugar neste quadro. Sai do rato também — uma bolha
@@ -2815,7 +2840,7 @@ body {
 
   .globo-mancha[data-aberta] .globo-mancha__painel {
     display: block;
-    animation: globo-mancha-abrir 200ms var(--ease-out);
+    animation: globo-mancha-abrir var(--d-fast) var(--ease-out);
     transform-origin: top center;
   }
 

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { nomeCurto, sitioCurto } from "@/lib/nomes-globo";
 import * as THREE from "three";
+import { curvaDoToken, duracaoDoToken } from "@/lib/curvas-css";
 import { resolverCoordenadas, type CoudelariaNoMapa } from "@/lib/coordenadas-coudelarias";
 import { agrupar, kmPorPixel, raioEmDegraus } from "@/lib/agrupar-globo";
 
@@ -514,31 +515,114 @@ const FRAG_ESTRELAS = /* glsl */ `
  * pontos só, com o tamanho em pixéis no `gl_PointSize`. Uma chamada, tamanho
  * constante, e o núcleo e a orla desenhados no mesmo pixel — o degradê em
  * `canvas` que servia de textura ao halo deixa de ser preciso.
+ *
+ * ── O que o alfinete tem de dizer, e o que dizia a mais ───────────────────
+ *
+ * Sem uma palavra, um alfinete diz três coisas: **onde está**, **se está a
+ * ser apontado** e **se ali há mais do que uma**. Tudo o que não seja uma
+ * destas três é adorno, e o desenho anterior era quase todo adorno: um halo
+ * aditivo de dez pixéis com uma cauda a apagar-se aos sessenta por cento do
+ * raio. Um brilho é bonito e não é informação.
+ *
+ * Pior do que não ser informação, era informação errada em metade do quadro.
+ * Aditivo significa somar luz, e a esta altura metade do quadro é Alentejo
+ * ao sol — que é quase branco. Sobre ele o halo não fazia diferença nenhuma
+ * e o ponto perdia-se; sobre o mar de noite, o mesmo halo era uma bola. O
+ * mesmo alfinete lia-se com dois pesos conforme o chão por baixo.
+ *
+ * O que passa a haver:
+ *
+ *  · **Onde está** — um disco branco de cinco pixéis com uma sombra de
+ *    contacto em volta. A sombra não é uma segunda sombra decorativa: é o
+ *    que assenta o ponto no chão e o que faz com que ele se leia igual sobre
+ *    a serra e sobre o mar. Por isso a mistura deixou de ser aditiva: com
+ *    aditivo não há maneira de escurecer, e sem escurecer não há contraste
+ *    garantido.
+ *  · **Se está a ser apontado** — abre-se uma argola em volta. Não é o
+ *    ponto a engordar: engordar dava um alfinete com dois pesos e nenhuma
+ *    fronteira, e a marca que se aponta tem de continuar a marcar o mesmo
+ *    sítio com a mesma precisão.
+ *  · **Se ali há mais do que uma** — uma argola mais apertada, sempre
+ *    acesa. Antes isto era «o ponto é 1,6× maior», que não diz «são duas»:
+ *    diz «é maior», que é outra coisa e a olho é indistinguível de uma
+ *    coudelaria em destaque. Uma argola é um sinal; um tamanho é uma
+ *    grandeza.
+ *
+ * O destaque fica no tamanho do ponto — dois pixéis e meio contra três e um
+ * quarto de raio —, que é a hierarquia mais fraca das três de propósito: é a
+ * que menos importa a quem está a apontar.
+ *
+ * Branco em todos os casos, e o dourado em nenhum: era a regra da casa e
+ * continua a ser. Um acento em vinte e um dos vinte e nove pontos não
+ * assinala nada.
  */
 const VERT_PONTOS = /* glsl */ `
-  attribute float tamanho;
-  attribute float nucleo;
-  varying float vNucleo;
+  uniform float lado;
+  attribute float raio;
+  attribute float argola;
+  attribute float brilhoArgola;
+  attribute float brilho;
+  varying float vRaio;
+  varying float vArgola;
+  varying float vBrilhoArgola;
+  varying float vBrilho;
   void main() {
-    vNucleo = nucleo;
+    vRaio = raio;
+    vArgola = argola;
+    vBrilhoArgola = brilhoArgola;
+    vBrilho = brilho;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    gl_PointSize = tamanho;
+    /* O carimbo é sempre do mesmo tamanho. O que muda de estado é o desenho
+       lá dentro, e não a área que ele ocupa: assim o alfinete não muda de
+       peso no quadro por estar aceso, e o gl_PointSize deixa de ser mais um
+       número a viajar por quadro. */
+    gl_PointSize = lado;
   }
 `;
 
 const FRAG_PONTOS = /* glsl */ `
-  varying float vNucleo;
+  uniform float lado;
+  uniform float orla;
+  uniform float sombra;
+  varying float vRaio;
+  varying float vArgola;
+  varying float vBrilhoArgola;
+  varying float vBrilho;
+
   void main() {
-    float r = length(gl_PointCoord - 0.5) * 2.0;
-    /* As mesmas paragens do degradê que aqui estava — núcleo cheio, queda
-       curta a 22% do raio, cauda a apagar-se aos 60% — só que agora a
-       fronteira do núcleo é uma fracção do raio e não um número fixo, para
-       que o ponto aceso engorde o núcleo e não só a orla. */
-    float centro = 1.0 - smoothstep(vNucleo * 0.72, vNucleo, r);
-    float orla = 1.0 - smoothstep(0.12, 1.0, r);
-    float a = clamp(centro + orla * orla * 0.55, 0.0, 1.0);
+    if (vBrilho < 0.004) discard;
+    /* Em pixéis do ecrã, e não em fracções do carimbo: as três medidas do
+       alfinete — o ponto, a argola e a sombra de contacto — são medidas de
+       ícone, e um ícone tem o mesmo tamanho em todo o lado. */
+    float r = length(gl_PointCoord - 0.5) * lado;
+
+    // Onde está: um disco cheio, com uma orla de um pixel para não serrilhar.
+    float ponto = 1.0 - smoothstep(vRaio - orla, vRaio + orla, r);
+
+    /* Se há mais do que uma ali, e se está a ser apontado: uma argola fina à
+       volta do ponto. Um ponto maior não diz «são duas» — diz «é maior», que
+       é outra coisa e é mentira. Uma argola é um sinal, não um tamanho. */
+    float meia = orla;
+    float argola = vArgola > 0.0
+      ? (1.0 - smoothstep(vArgola + meia - orla, vArgola + meia + orla, r)) *
+        smoothstep(vArgola - meia - orla, vArgola - meia + orla, r) *
+        vBrilhoArgola
+      : 0.0;
+
+    float branco = clamp(ponto + argola, 0.0, 1.0);
+
+    /* A sombra de contacto, e a razão de ela não ser adorno: a esta altura
+       metade do quadro é o Alentejo ao sol, que é quase branco. Um ponto
+       branco sobre terreno branco não se vê, e era isso que o halo aditivo
+       que aqui estava fazia — somava luz onde já havia luz a mais. Um
+       escurecimento em volta assenta o ponto no chão e faz com que ele se
+       leia igual sobre a serra e sobre o mar. */
+    float escuro = (1.0 - smoothstep(vRaio * 0.5, vRaio + sombra, r)) * 0.62;
+
+    float a = branco + escuro * (1.0 - branco);
     if (a < 0.004) discard;
-    gl_FragColor = vec4(vec3(a), 1.0);
+    // Branco por cima de preto, já composto: sai a cor certa a qualquer alfa.
+    gl_FragColor = vec4(vec3(branco / a), a * vBrilho);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
   }
@@ -726,12 +810,14 @@ export default function GloboTerra({
         return;
       }
       if (!ev) {
+        entrarNaEscolha(c);
         encaminhadorRef.current.push(destino);
         return;
       }
       if (ev.defaultPrevented) return;
       if (ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
       ev.preventDefault();
+      entrarNaEscolha(c);
       encaminhadorRef.current.push(destino);
     };
 
@@ -811,6 +897,10 @@ export default function GloboTerra({
     let precisaMedir = true;
 
     const parado = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    /* Quanto tempo leva um nome a nascer. Sai do token, e não de um número
+       escrito à mão: é ele que decide quanto antes de a câmara pousar é que
+       a cascata tem de arrancar, para acabar com ela. */
+    const D_NASCER = duracaoDoToken("--d-nascer", 700);
 
     /* Tudo o que se cria à mão fica listado, porque nada disto se apaga
        sozinho. Um `ShaderMaterial.dispose()` não descarta as texturas que
@@ -1071,22 +1161,44 @@ export default function GloboTerra({
        contraste, e o que distingue um destaque passa a ser o tamanho. */
     const grupoAlfinetes = new THREE.Group();
 
-    /** Diâmetro do halo, em pixéis de ecrã, e do núcleo lá dentro.
-        São os mesmos que o par esfera+sprite dava no enquadramento de
-        repouso — 10px de halo e 6 de núcleo —, agora fixos em vez de
-        dependentes da distância. */
-    const PONTO = 10;
-    const PONTO_NUCLEO = 6;
-    const PONTO_ACESO = 18;
-    const NUCLEO_ACESO = 9;
+    /* As medidas do alfinete, em pixéis de ecrã e em raio — que é como o
+       shader as lê. A razão de cada uma está no comentário grande lá em
+       cima, por cima dos shaders. */
+
+    /** O quadrado que cada alfinete ocupa. Constante, e com folga para a
+        argola do apontado e para a argola da escolha caberem lá dentro. */
+    const LADO_ALFINETE = 34;
+    /** O ponto branco: onde a coudelaria está. */
+    const RAIO_PONTO = 2.5;
+    const RAIO_PONTO_DESTAQUE = 3.25;
+    const RAIO_PONTO_ACESO = 3.75;
+    /** A argola sempre acesa de um ponto que junta várias. */
+    const RAIO_PILHA = 6.5;
+    /** A argola de quem está a ser apontado. */
+    const RAIO_APONTADO = 9.5;
+    /** Até onde a argola da escolha se abre antes de a página mudar. */
+    const RAIO_ESCOLHA = 15.5;
+    /** Quanto é que a sombra de contacto sai para fora do ponto. */
+    const SOMBRA_PONTO = 3.5;
+
+    /** O maior ponto que esta GPU aceita desenhar, em pixéis do dispositivo. */
+    const ladoMaximo = (() => {
+      const gl = renderizador.getContext();
+      const faixa = gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE) as Float32Array | null;
+      return faixa && faixa.length > 1 && faixa[1] > 0 ? faixa[1] : 64;
+    })();
 
     const posPontos = new Float32Array(TECTO * 3);
-    const tamPontos = new Float32Array(TECTO);
-    const nucPontos = new Float32Array(TECTO);
+    const raioPontos = new Float32Array(TECTO);
+    const argolaPontos = new Float32Array(TECTO);
+    const brilhoArgolaPontos = new Float32Array(TECTO);
+    const brilhoPontos = new Float32Array(TECTO);
     const geoPontos = new THREE.BufferGeometry();
     geoPontos.setAttribute("position", new THREE.BufferAttribute(posPontos, 3));
-    geoPontos.setAttribute("tamanho", new THREE.BufferAttribute(tamPontos, 1));
-    geoPontos.setAttribute("nucleo", new THREE.BufferAttribute(nucPontos, 1));
+    geoPontos.setAttribute("raio", new THREE.BufferAttribute(raioPontos, 1));
+    geoPontos.setAttribute("argola", new THREE.BufferAttribute(argolaPontos, 1));
+    geoPontos.setAttribute("brilhoArgola", new THREE.BufferAttribute(brilhoArgolaPontos, 1));
+    geoPontos.setAttribute("brilho", new THREE.BufferAttribute(brilhoPontos, 1));
     geoPontos.setDrawRange(0, 0);
     /* Sem esfera de contenção calculada a partir de um buffer meio vazio: os
        pontos por usar estão todos na origem, e uma esfera que os apanhasse
@@ -1099,7 +1211,23 @@ export default function GloboTerra({
       new THREE.ShaderMaterial({
         vertexShader: VERT_PONTOS,
         fragmentShader: FRAG_PONTOS,
-        blending: THREE.AdditiveBlending,
+        uniforms: {
+          /* O tecto do `gl_PointSize` não é o mesmo em todo o lado: há GPUs
+             de telemóvel que param nos 63 pixéis. Pedir mais do que o
+             desenho cabe não dá erro — dá um alfinete cortado a meio sem
+             ninguém saber porquê. Pergunta-se ao contexto e respeita-se: as
+             medidas de dentro continuam em pixéis e certas, e o que se perde
+             é só a folga à volta. */
+          lado: { value: Math.min(LADO_ALFINETE * pontoDoEcra, ladoMaximo) },
+          /* Meia orla de anti-serrilhado, e a espessura da argola: um pixel
+             do ecrã, seja ele qual for. Um risco de um pixel lógico num ecrã
+             de dois pontos por pixel sai a meio pixel e cintila. */
+          orla: { value: 0.5 * pontoDoEcra },
+          sombra: { value: SOMBRA_PONTO * pontoDoEcra },
+        },
+        /* Normal, e não aditiva. Com aditiva não há maneira de escurecer, e
+           sem escurecer o ponto branco desaparece sobre o Alentejo ao sol. */
+        blending: THREE.NormalBlending,
         transparent: true,
         depthWrite: false,
       })
@@ -1110,20 +1238,31 @@ export default function GloboTerra({
     type Alfinete = {
       indice: number;
       posicao: THREE.Vector3;
-      /** Diâmetro em repouso, em pixéis. */
-      base: number;
-      /** Diâmetro do núcleo em repouso, em pixéis. */
-      nucleo: number;
+      /** Raio do ponto em repouso, em pixéis. */
+      raio: number;
+      /** Raio da argola em repouso: só a pilha tem uma. Zero é nenhuma. */
+      argola: number;
     };
 
     const alfinetesFeitos: Alfinete[] = [];
 
-    const escreverPonto = (a: Alfinete, ligado: boolean) => {
-      const d = ligado ? PONTO_ACESO : a.base;
-      const n = ligado ? NUCLEO_ACESO : a.nucleo;
-      tamPontos[a.indice] = d * pontoDoEcra;
-      // O núcleo vai em fracção do raio, que é o que o shader sabe medir.
-      nucPontos[a.indice] = Math.min(1, n / d);
+    /* Um estado por alfinete, e sempre o mesmo caminho para o escrever: o
+       ponto, a argola, e o quanto de cada um. Escrever os quatro números num
+       sítio só é o que impede um estado de ficar por metade — foi o que
+       aconteceu enquanto o realce mexia no tamanho e a escolha no brilho. */
+    const escreverPonto = (a: Alfinete, aceso: boolean, escolha: number, brilho: number) => {
+      const p = pontoDoEcra;
+      /* A argola do apontado abre para fora da da pilha; a da escolha abre
+         para fora dessa. É sempre a mesma argola a abrir-se, e é por isso
+         que as três se leem como um gesto só e não como três desenhos. */
+      const argolaBase = aceso ? Math.max(RAIO_APONTADO, a.argola) : a.argola;
+      const argola = escolha > 0 ? argolaBase + (RAIO_ESCOLHA - argolaBase) * escolha : argolaBase;
+      raioPontos[a.indice] = (aceso ? RAIO_PONTO_ACESO : a.raio) * p;
+      argolaPontos[a.indice] = argola * p;
+      /* A argola da escolha apaga-se à medida que se abre — é o que a faz
+         ler-se como uma onda a sair do ponto, e não como um anel a ficar. */
+      brilhoArgolaPontos[a.indice] = argola > 0 ? 1 - escolha * 0.85 : 0;
+      brilhoPontos[a.indice] = brilho;
     };
 
     const fazerAlfinete = (
@@ -1133,30 +1272,32 @@ export default function GloboTerra({
       grupo: boolean
     ): Alfinete => {
       const posicao = naEsfera(coords[0], coords[1], RAIO * 1.004);
-      /* O tamanho é o que diz a hierarquia, agora que a cor não a diz: mais
-         aberto num destaque, e mais aberto ainda onde há mais do que uma —
-         o ponto lê-se como pilha antes de se chegar a ler o «2». */
-      const base = grupo ? PONTO * 1.6 : destaque ? PONTO * 1.25 : PONTO;
-      const nucleo = grupo ? PONTO_NUCLEO * 1.35 : PONTO_NUCLEO;
-      const a: Alfinete = { indice, posicao, base, nucleo };
+      const a: Alfinete = {
+        indice,
+        posicao,
+        raio: destaque ? RAIO_PONTO_DESTAQUE : RAIO_PONTO,
+        argola: grupo ? RAIO_PILHA : 0,
+      };
       posPontos[indice * 3] = posicao.x;
       posPontos[indice * 3 + 1] = posicao.y;
       posPontos[indice * 3 + 2] = posicao.z;
-      escreverPonto(a, false);
+      escreverPonto(a, false, 0, 1);
       alfinetesFeitos.push(a);
       return a;
     };
 
-    /** Marcar os três buffers como sujos. Uma vez por mudança, não por ponto. */
+    /** Marcar os buffers como sujos. Uma vez por mudança, não por ponto. */
     const pontosMudaram = () => {
       geoPontos.attributes.position.needsUpdate = true;
-      geoPontos.attributes.tamanho.needsUpdate = true;
-      geoPontos.attributes.nucleo.needsUpdate = true;
+      geoPontos.attributes.raio.needsUpdate = true;
+      geoPontos.attributes.argola.needsUpdate = true;
+      geoPontos.attributes.brilhoArgola.needsUpdate = true;
+      geoPontos.attributes.brilho.needsUpdate = true;
     };
 
-    /** Acender ou apagar um alfinete: reescreve-se o tamanho daquele índice. */
+    /** Acender ou apagar um alfinete: abre-se ou fecha-se a argola dele. */
     const realcar = (a: Alfinete, ligado: boolean) => {
-      escreverPonto(a, ligado);
+      escreverPonto(a, ligado, 0, 1);
       pontosMudaram();
     };
 
@@ -1310,10 +1451,13 @@ export default function GloboTerra({
       ecraX: number;
       ecraY: number;
       noEcra: boolean;
-      /* O que já lá está escrito, para não sujar o estilo a cada quadro. */
+      /* O que já lá está escrito, para não sujar o estilo a cada quadro.
+         Em números e não em texto: comparam-se sem se fazer uma cadeia por
+         etiqueta por quadro. A opacidade vai em centésimos inteiros. */
       anterior: {
-        t: string;
-        op: string;
+        x: number;
+        y: number;
+        op: number;
         lado: string;
         vert: string;
         curto: boolean;
@@ -1369,7 +1513,7 @@ export default function GloboTerra({
       } else {
         nó.style.setProperty(
           "--entrada",
-          `${(parado ? 0 : DURACAO_ENTRADA - 700) + Math.min(i * 55, 1100)}ms`
+          `${(parado ? 0 : DURACAO_ENTRADA - D_NASCER) + Math.min(i * 55, 1100)}ms`
         );
       }
       /* Nasce inerte **e oculta**, que é o estado com que o `anterior` começa.
@@ -1530,7 +1674,18 @@ export default function GloboTerra({
         ecraX: 0,
         ecraY: 0,
         noEcra: false,
-        anterior: { t: "", op: "", lado: "", vert: "", curto: false, oculto: true, morto: true },
+        /* `NaN` e não zero: um nome que caia mesmo em (0,0) no primeiro
+           quadro tem de ser escrito na mesma, e `NaN !== NaN` garante-o. */
+        anterior: {
+          x: NaN,
+          y: NaN,
+          op: -1,
+          lado: "",
+          vert: "",
+          curto: false,
+          oculto: true,
+          morto: true,
+        },
       };
 
       cabeca.addEventListener("click", (ev) => {
@@ -1590,6 +1745,11 @@ export default function GloboTerra({
          não há nada para descartar aqui. */
       for (const e of etiquetas) e.nó.remove();
       alfinetesFeitos.length = 0;
+      /* Uma escolha a meio não sobrevive a uma reconstrução: o alfinete que
+         ela estava a acender deixa de existir na volta seguinte. */
+      escolhida = null;
+      escolhaT = 0;
+      delete camadaEtiquetas.dataset.escolha;
       sobAlfinete = null;
       sobEtiqueta = null;
       focada = null;
@@ -1621,8 +1781,38 @@ export default function GloboTerra({
     const normalMundo = new THREE.Vector3();
     const paraCamara = new THREE.Vector3();
     const ecra = new THREE.Vector3();
+    /* ── Nada disto se faz de novo a cada quadro ──────────────────────────
+     *
+     * A colocação corre a cada quadro do arrasto e, para cada etiqueta,
+     * experimenta oito sítios em duas medidas: são até duzentas caixas de
+     * teste por quadro. Enquanto cada uma era um objecto acabado de fazer,
+     * um arrasto de dois segundos alocava megabytes de caixas que viviam um
+     * quadro — trabalho a mais para a linha principal e para o colector, a
+     * meio do único gesto em que a fluidez se nota.
+     *
+     * Os dois vectores de caixas passam a ser depósitos: os objectos ficam,
+     * o que se reinicia é a contagem. O `length` deixa de servir de conta,
+     * porque o vector já não encolhe.
+     */
+    const criarCaixa = (): Caixa => ({ x: 0, y: 0, l: 0, a: 0 });
+    const copiar = (destino: Caixa, origem: Caixa) => {
+      destino.x = origem.x;
+      destino.y = origem.y;
+      destino.l = origem.l;
+      destino.a = origem.a;
+      return destino;
+    };
     const colocadas: Caixa[] = [];
+    let nColocadas = 0;
+    const guardarColocada = (c: Caixa) => {
+      const alvo = colocadas[nColocadas] ?? (colocadas[nColocadas] = criarCaixa());
+      nColocadas++;
+      return copiar(alvo, c);
+    };
     const alfinetesEcra: Caixa[] = [];
+    let nAlfinetesEcra = 0;
+    /** A caixa de teste. É sempre a mesma: só uma está em jogo de cada vez. */
+    const tentativa = criarCaixa();
     const ordem: Etiqueta[] = [];
     const sitios: number[] = [];
     /** As etiquetas que, neste quadro, não arranjaram lugar. */
@@ -1900,14 +2090,20 @@ export default function GloboTerra({
        nome não tem de ser a folga entre dois nomes. Com os doze pixéis do
        `FOLGA_X` não sobrava lugar nenhum num quadro cheio. */
     const FOLGA_MANCHA = 5;
-    const bateMancha = (c: Caixa) =>
-      colocadas.some(
-        (o) =>
+    const bateMancha = (c: Caixa) => {
+      for (let i = 0; i < nColocadas; i++) {
+        const o = colocadas[i];
+        if (
           c.x < o.x + o.l + FOLGA_MANCHA &&
           c.x + c.l + FOLGA_MANCHA > o.x &&
           c.y < o.y + o.a + FOLGA_MANCHA &&
           c.y + c.a + FOLGA_MANCHA > o.y
-      );
+        ) {
+          return true;
+        }
+      }
+      return false;
+    };
 
     const agruparSobras = (l: number) => {
       for (const m of manchas) m.usada = false;
@@ -1990,12 +2186,11 @@ export default function GloboTerra({
 
         let posta: Caixa | null = null;
         for (const [dx, dy] of ANEL_MANCHA) {
-          const c: Caixa = {
-            x: cx + dx - chipMedida.l / 2,
-            y: cy + dy - chipMedida.a / 2,
-            l: chipMedida.l,
-            a: chipMedida.a,
-          };
+          const c = tentativa;
+          c.x = cx + dx - chipMedida.l / 2;
+          c.y = cy + dy - chipMedida.a / 2;
+          c.l = chipMedida.l;
+          c.a = chipMedida.a;
           if (c.x < 2 || c.y < topoUtil + 2 || c.x + c.l > l - 2 || c.y + c.a > baseUtil - 2)
             continue;
           if (bateMancha(c)) continue;
@@ -2014,16 +2209,20 @@ export default function GloboTerra({
         /* Entra na lista das caixas ocupadas para que a mancha seguinte não
            lhe caia em cima — e para que, no quadro a seguir, nenhum nome
            pouse por cima dela. */
-        colocadas.push(posta);
+        guardarColocada(posta);
 
         const t = `translate3d(${Math.round(posta.x)}px, ${Math.round(posta.y)}px, 0)`;
         if (t !== m.anterior.t) {
           m.nó.style.transform = t;
           m.anterior.t = t;
         }
-        if (m.anterior.op !== "1") {
-          m.nó.style.opacity = "1";
-          m.anterior.op = "1";
+        /* Os algarismos recuam com os nomes: fazem parte do «tudo o resto»
+           que a escolha manda para trás, e um algarismo aceso ao lado de um
+           ponto escolhido lia-se como uma segunda escolha. */
+        const op = (escolhida ? 1 - escolhaT : 1).toFixed(2);
+        if (m.anterior.op !== op) {
+          m.nó.style.opacity = op;
+          m.anterior.op = op;
         }
         if (m.nó.hasAttribute("data-oculta")) m.nó.toggleAttribute("data-oculta", false);
         i++;
@@ -2076,26 +2275,42 @@ export default function GloboTerra({
       { lado: "centro", vert: "baixo" },
     ] as const;
 
-    const caixaDe = (x: number, y: number, m: Medida, h: (typeof hipoteses)[number]): Caixa => ({
-      x: h.lado === "direita" ? x + AFAST : h.lado === "esquerda" ? x - AFAST - m.l : x - m.l / 2,
-      y: h.vert === "cima" ? y - m.a - AFAST : h.vert === "baixo" ? y + AFAST : y - m.a / 2,
-      l: m.l,
-      a: m.a,
-    });
+    /** Escreve a caixa de teste no depósito, em vez de fazer uma nova. */
+    const caixaDe = (x: number, y: number, m: Medida, h: (typeof hipoteses)[number]): Caixa => {
+      tentativa.x =
+        h.lado === "direita" ? x + AFAST : h.lado === "esquerda" ? x - AFAST - m.l : x - m.l / 2;
+      tentativa.y =
+        h.vert === "cima" ? y - m.a - AFAST : h.vert === "baixo" ? y + AFAST : y - m.a / 2;
+      tentativa.l = m.l;
+      tentativa.a = m.a;
+      return tentativa;
+    };
 
-    const bate = (c: Caixa) =>
-      colocadas.some(
-        (o) =>
+    /* Voltas à mão e não `some`: um `some` com uma seta lá dentro faz um
+       fecho novo em cada chamada, e estas duas são chamadas até duzentas
+       vezes por quadro. */
+    const bate = (c: Caixa) => {
+      for (let i = 0; i < nColocadas; i++) {
+        const o = colocadas[i];
+        if (
           c.x < o.x + o.l + FOLGA_X &&
           c.x + c.l + FOLGA_X > o.x &&
           c.y < o.y + o.a + FOLGA_Y &&
           c.y + c.a + FOLGA_Y > o.y
-      );
+        ) {
+          return true;
+        }
+      }
+      return false;
+    };
 
-    const bateAlfinete = (c: Caixa) =>
-      alfinetesEcra.some(
-        (p) => c.x < p.x + p.l && c.x + c.l > p.x && c.y < p.y + p.a && c.y + c.a > p.y
-      );
+    const bateAlfinete = (c: Caixa) => {
+      for (let i = 0; i < nAlfinetesEcra; i++) {
+        const p = alfinetesEcra[i];
+        if (c.x < p.x + p.l && c.x + c.l > p.x && c.y < p.y + p.a && c.y + c.a > p.y) return true;
+      }
+      return false;
+    };
 
     /* Escrever no DOM só o que mudou. Pôr `style.opacity` com o mesmo valor a
        cada quadro reinicia a transição de 220ms sessenta vezes por segundo, e
@@ -2109,15 +2324,24 @@ export default function GloboTerra({
       perto: number
     ) => {
       const ant = e.anterior;
-      const t = `translate3d(${Math.round(c.x)}px, ${Math.round(c.y)}px, 0)`;
-      if (t !== ant.t) {
-        e.nó.style.transform = t;
-        ant.t = t;
+      /* Compara-se o número e só depois se faz o texto. Montar a cadeia do
+         `translate3d` antes de saber se ela mudou era uma cadeia por
+         etiqueta por quadro — quinze por quadro que não iam a lado nenhum,
+         num quadro em que o globo está parado e só um nome se acendeu. */
+      const x = Math.round(c.x);
+      const y = Math.round(c.y);
+      if (x !== ant.x || y !== ant.y) {
+        ant.x = x;
+        ant.y = y;
+        e.nó.style.transform = `translate3d(${x}px, ${y}px, 0)`;
       }
-      const op = perto.toFixed(2);
+      /* A opacidade arredonda-se a duas casas antes de se comparar: escrever
+         o mesmo valor a cada quadro reinicia a transição de 200ms sessenta
+         vezes por segundo, e a etiqueta nunca chega ao fim do esbatimento. */
+      const op = Math.round(perto * 100);
       if (op !== ant.op) {
-        e.nó.style.opacity = op;
         ant.op = op;
+        e.nó.style.opacity = (op / 100).toFixed(2);
       }
       if (lado !== ant.lado) {
         e.nó.dataset.lado = lado;
@@ -2157,9 +2381,9 @@ export default function GloboTerra({
     const esconder = (e: Etiqueta) => {
       e.colocada = false;
       const ant = e.anterior;
-      if (ant.op !== "0") {
+      if (ant.op !== 0) {
         e.nó.style.opacity = "0";
-        ant.op = "0";
+        ant.op = 0;
       }
       if (!ant.oculto) {
         e.nó.toggleAttribute("data-oculta", true);
@@ -2178,8 +2402,8 @@ export default function GloboTerra({
       // que só o `ResizeObserver` pode ter mudado.
       const l = larguraCaixa;
       const a = alturaCaixa;
-      colocadas.length = 0;
-      alfinetesEcra.length = 0;
+      nColocadas = 0;
+      nAlfinetesEcra = 0;
       sobras.length = 0;
 
       for (const e of etiquetas) {
@@ -2198,13 +2422,14 @@ export default function GloboTerra({
           e.ecraX < l + 20 &&
           e.ecraY > -20 &&
           e.ecraY < a + 20;
-        if (e.noEcra)
-          alfinetesEcra.push({
-            x: e.ecraX - MEIO_ALFINETE,
-            y: e.ecraY - MEIO_ALFINETE,
-            l: MEIO_ALFINETE * 2,
-            a: MEIO_ALFINETE * 2,
-          });
+        if (e.noEcra) {
+          const p = alfinetesEcra[nAlfinetesEcra] ?? (alfinetesEcra[nAlfinetesEcra] = criarCaixa());
+          p.x = e.ecraX - MEIO_ALFINETE;
+          p.y = e.ecraY - MEIO_ALFINETE;
+          p.l = MEIO_ALFINETE * 2;
+          p.a = MEIO_ALFINETE * 2;
+          nAlfinetesEcra++;
+        }
       }
 
       if (precisaMedir) {
@@ -2328,7 +2553,7 @@ export default function GloboTerra({
           sobras.push(e);
           continue;
         }
-        colocadas.push(posta);
+        guardarColocada(posta);
         e.colocada = true;
 
         // Esbate-se junto ao horizonte, onde a superfície foge do olhar.
@@ -2336,7 +2561,7 @@ export default function GloboTerra({
            esta a razão de as etiquetas continuarem a sobrepor-se depois de
            eu ter posto um teste de colisão. O teste estava certo; o que
            estava errado era o sítio onde eu punha o elemento a seguir. */
-        escrever(e, posta, lado, vert, curto, Math.min(1, (e.deFrente - 0.12) / 0.28));
+        escrever(e, posta, lado, vert, curto, Math.min(1, (e.deFrente - 0.12) / 0.28) * veu(e));
       }
 
       /* Por fim, o que ficou sem nome. Corre depois de tudo colocado, e é
@@ -2384,9 +2609,27 @@ export default function GloboTerra({
       return melhor;
     };
 
+    /* ── Onde está a lona na janela, em cache ─────────────────────────────
+     *
+     * Isto era um `getBoundingClientRect` por `pointermove` — e um deles a
+     * meio de um gesto é a pior altura possível para o pedir: as etiquetas
+     * acabaram de ser reescritas, o layout está sujo, e o browser tem de o
+     * refazer inteiro antes de responder ao movimento do dedo. É a mesma
+     * armadilha que o observador de revelações tinha, e que está escrita no
+     * CLAUDE.md.
+     *
+     * A caixa da lona só muda por duas razões, e as duas já têm quem as
+     * anuncie: a página rolou, ou a caixa mudou de tamanho. São essas que a
+     * esquecem; entre elas, lê-se a mesma. */
+    let caixaLona: DOMRect | null = null;
+    const esquecerCaixa = () => {
+      caixaLona = null;
+    };
+    const rectDaLona = () => (caixaLona ??= el.getBoundingClientRect());
+
     /** Onde está o ponteiro em coordenadas da caixa. */
     const noElemento = (e: PointerEvent) => {
-      const r = el.getBoundingClientRect();
+      const r = rectDaLona();
       return { x: e.clientX - r.left, y: e.clientY - r.top };
     };
 
@@ -2444,6 +2687,103 @@ export default function GloboTerra({
 
       // O alfinete mudou de tamanho e a etiqueta de forma: é preciso um quadro.
       if (mudou) pedirQuadro();
+    };
+
+    /* ── A escolha ────────────────────────────────────────────────────────
+     *
+     * Entre carregar num nome e a página mudar havia um vazio: nada
+     * acontecia no globo, e a ficha aparecia sem que nada tivesse dito qual
+     * dos vinte e nove pontos é que tinha sido escolhido. O globo tem de
+     * reconhecer a escolha antes de a página mudar.
+     *
+     * ── Um movimento, e não três ─────────────────────────────────────────
+     *
+     * A tentação é somar efeitos: a argola abre, os outros apagam-se, a
+     * câmara aproxima. São três ideias, cada uma com o seu tempo, e três
+     * ideias ao mesmo tempo leem-se como confusão — a mesma razão por que os
+     * painéis que se escrevem desligam a cascata de entrada lá dentro.
+     *
+     * Aqui há **um relógio só**, e dele saem duas coisas que são a mesma
+     * afirmação vista dos dois lados: **este, e mais nenhum**. A argola do
+     * ponto escolhido abre-se e apaga-se; tudo o resto — os outros pontos,
+     * os outros nomes, os algarismos das manchas — recua para o preto. Não
+     * são dois movimentos com dois tempos: é o mesmo `t`, com a mesma curva,
+     * a mandar nos dois. Sem o recuo, a argola era um adorno em cima de um
+     * quadro cheio; sem a argola, o recuo não dizia qual.
+     *
+     * A câmara não se mexe de propósito. Aproximar seria prometer um sítio
+     * onde nunca se chega a ficar — a página seguinte é a ficha, não o mapa
+     * — e é a promessa que faz uma transição parecer atada com arame.
+     *
+     * ── Corre uma vez, e larga ────────────────────────────────────────────
+     *
+     * A duração vem do `--d-drill`, que é o token de **entrar num sítio** —
+     * o mesmo dos submenus e o mesmo da pilha de regiões do `/mapa`. Não se
+     * inventa aqui um tempo próprio: escolher uma coudelaria é entrar nela.
+     *
+     * E larga-se sozinha, passado o dobro dessa duração. A razão é a mesma
+     * da cortina de entrada: se a página nunca chegar — a rede caiu, o
+     * pedido foi abortado, alguém carregou em «voltar» a meio — o que não
+     * pode acontecer é ficar um globo apagado para sempre, sem forma de
+     * saber que ele ainda lá está. O caso normal é a página chegar primeiro
+     * e este componente desaparecer com ela; o largar é a rede.
+     *
+     * Com `prefers-reduced-motion` não corre nada: vai-se direito à ficha.
+     */
+    const D_ESCOLHA = duracaoDoToken("--d-drill", 320);
+    const CURVA_ESCOLHA = curvaDoToken("--ease-out", suave);
+    /** Quanto tempo se segura o estado final antes de o largar. */
+    const ESPERA_ESCOLHA = 2;
+
+    let escolhida: Etiqueta | null = null;
+    let escolhaInicio = 0;
+    /** Quanto do movimento já correu, entre 0 e 1. */
+    let escolhaT = 0;
+
+    /** A etiqueta que representa esta coudelaria — a que tem o alfinete. */
+    const etiquetaDe = (c: CoudelariaNoMapa) => etiquetas.find((e) => e.alvos.has(c.id)) ?? null;
+
+    const entrarNaEscolha = (c: CoudelariaNoMapa) => {
+      if (parado || escolhida) return;
+      const e = etiquetaDe(c);
+      if (!e) return;
+      escolhida = e;
+      escolhaInicio = performance.now();
+      escolhaT = 0;
+      camadaEtiquetas.dataset.escolha = "1";
+      e.nó.toggleAttribute("data-escolhida", true);
+      pedirQuadro();
+    };
+
+    const largarEscolha = () => {
+      if (!escolhida) return;
+      escolhida.nó.toggleAttribute("data-escolhida", false);
+      escolhida = null;
+      escolhaT = 0;
+      delete camadaEtiquetas.dataset.escolha;
+      for (const a of alfinetesFeitos) escreverPonto(a, a === activa?.alfinete, 0, 1);
+      pontosMudaram();
+      pedirQuadro();
+    };
+
+    /** O véu, ponto a ponto e nome a nome: quem não foi escolhido recua. */
+    const veu = (e: Etiqueta) => (escolhida && e !== escolhida ? 1 - escolhaT : 1);
+
+    const correrEscolha = (agora: number) => {
+      if (!escolhida) return;
+      escolhaT = CURVA_ESCOLHA(Math.min(1, (agora - escolhaInicio) / D_ESCOLHA));
+      const alvo = escolhida.alfinete;
+      for (const a of alfinetesFeitos) {
+        const eleito = a === alvo;
+        escreverPonto(
+          a,
+          eleito || a === activa?.alfinete,
+          eleito ? escolhaT : 0,
+          eleito ? 1 : 1 - escolhaT
+        );
+      }
+      pontosMudaram();
+      if (agora - escolhaInicio >= D_ESCOLHA * ESPERA_ESCOLHA) largarEscolha();
     };
 
     /* ── Carregar num ponto ───────────────────────────────────────────────
@@ -2549,13 +2889,15 @@ export default function GloboTerra({
          da câmara. Assim o arrasto vertical move o chão a direito no ecrã —
          com `rotation.x`, que é o eixo X do mundo e aqui aponta para o lado,
          o arrasto vertical movia o chão na diagonal. */
+      // A escolha corre antes do desenho: o quadro que sai já a leva dentro.
+      if (escolhida) correrEscolha(performance.now());
       aplicarOrbita();
       colocarCamara();
       renderizador.render(cena, camara);
       etiquetar();
       actualizarComandos();
       // Só se encadeia enquanto alguma coisa se mexe.
-      if (aEntrar || ponteiros.size > 0) pedirQuadro();
+      if (aEntrar || escolhida || ponteiros.size > 0) pedirQuadro();
     }
 
     function pedirQuadro() {
@@ -2939,7 +3281,7 @@ export default function GloboTerra({
          O `clientX/Y` é a âncora: aproxima-se para onde o cursor aponta, e
          não para o meio do ecrã. */
       const passo = Math.max(-120, Math.min(120, e.deltaY)) / 120;
-      const r = el.getBoundingClientRect();
+      const r = rectDaLona();
       mudarAltura(Math.exp(passo * 0.22), e.clientX - r.left, e.clientY - r.top);
     };
 
@@ -3385,13 +3727,20 @@ export default function GloboTerra({
       relogioClique = window.setTimeout(pedirEstorvos, 320);
     };
 
-    window.addEventListener("scroll", pedirEstorvos, { passive: true });
+    /* Rolar a página muda onde a lona está na janela e pode trazer ou levar
+       um estorvo fixo. As duas coisas caducam ao mesmo sinal. */
+    const aoRolar = () => {
+      esquecerCaixa();
+      pedirEstorvos();
+    };
+    window.addEventListener("scroll", aoRolar, { passive: true });
     document.addEventListener("animationend", talvezEstorvo, true);
     document.addEventListener("transitionend", talvezEstorvo, true);
     document.addEventListener("click", aoClicarAlgures, true);
     const relogiosEstorvo = [0, 700, 2600].map((t) => window.setTimeout(pedirEstorvos, t));
 
     const observador = new ResizeObserver(() => {
+      esquecerCaixa();
       const l = el.clientWidth || 1;
       const a = el.clientHeight || 1;
       larguraCaixa = l;
@@ -3443,7 +3792,7 @@ export default function GloboTerra({
       window.clearTimeout(relogioRevelar);
       for (const r of relogiosEstorvo) window.clearTimeout(r);
       window.clearTimeout(relogioClique);
-      window.removeEventListener("scroll", pedirEstorvos);
+      window.removeEventListener("scroll", aoRolar);
       document.removeEventListener("animationend", talvezEstorvo, true);
       document.removeEventListener("transitionend", talvezEstorvo, true);
       document.removeEventListener("click", aoClicarAlgures, true);
