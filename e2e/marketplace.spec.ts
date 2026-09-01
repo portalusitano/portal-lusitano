@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { jaRespondeuAosCookies } from "./visitante";
 
 /**
  * Smoke test do marketplace.
@@ -48,6 +49,13 @@ test.describe("Marketplace", () => {
   // procure «Abrir menu» nunca o encontra. Fixar o idioma é o que torna as
   // asserções em português verdadeiras.
   test.use({ locale: "pt-PT" });
+
+  // Estes casos exercem o percurso de negócio, e o percurso de negócio é o de
+  // quem já respondeu ao pedido de cookies. O primeiro acesso tem um caso só
+  // dele, mais abaixo.
+  test.beforeEach(async ({ page }) => {
+    await jaRespondeuAosCookies(page);
+  });
 
   test("a homepage abre na pesquisa e mostra as duas acções", async ({ page }) => {
     await page.goto("/");
@@ -147,5 +155,49 @@ test.describe("Marketplace", () => {
       await page.goto(rota);
       await expect(page).toHaveURL(/\/login/);
     }
+  });
+});
+
+/**
+ * O primeiro acesso, que é o único onde o pedido de cookies aparece.
+ *
+ * Fica fora do `describe` de cima de propósito: é o `beforeEach` de lá que
+ * semeia a resposta, e um teste ao pedido de cookies num browser que já
+ * respondeu não testa coisa nenhuma.
+ */
+test.describe("Primeiro acesso", () => {
+  test.use({ locale: "pt-PT" });
+
+  test("o pedido de cookies aparece, tranca a página e não volta depois de respondido", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    const pedido = page.locator("#aviso-cookies");
+    await expect(pedido).toBeVisible();
+
+    // Enquanto está por responder, tranca mesmo: a acção principal da
+    // homepage não é alcançável. É a asserção que faltava — foi esta
+    // interposição que apanhou três casos desprevenidos.
+    const publicar = page.getByRole("link", { name: /publicar an[úu]ncio/i }).first();
+    await expect(publicar).toBeVisible();
+    let interposto = false;
+    try {
+      await publicar.click({ trial: true, timeout: 2000 });
+    } catch {
+      interposto = true;
+    }
+    expect(interposto, "o pedido de cookies devia estar a tapar a página").toBe(true);
+
+    // Recusar é uma resposta inteira, a um clique, na primeira camada.
+    await pedido.getByRole("button", { name: "Recusar todos" }).click();
+    await expect(pedido).toBeHidden();
+
+    // Respondido, a página responde.
+    await publicar.click();
+    await page.waitForURL(/\/vender-cavalo/);
+
+    // E não volta a perguntar na navegação seguinte.
+    await expect(page.locator("#aviso-cookies")).toHaveCount(0);
   });
 });
