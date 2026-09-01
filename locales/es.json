@@ -1485,15 +1485,11 @@
     "region": "Región",
     "studs_count": "yeguadas",
     "explore_regions": "Explorar Regiones",
-    "call": "Llamar",
-    "email": "Email",
-    "website": "Sitio Web",
-    "view_page": "Ver Página",
     "no_results": "Ninguna yeguada encontrada",
     "all_regions": "Todas",
     "select_region_hint": "Seleccione una región o haga clic en un pin del mapa",
     "view_globe": "Globo",
-    "globe_hint": "Arrastre para girar · toque un número para ver quién está allí",
+    "globe_hint": "Arrastre para girar · toque un nombre para abrir la ficha, un número para verlos todos",
     "title_highlight": "Portugal",
     "stat_horses_hint": "caballos declarados por las yeguadas del mapa",
     "showing": "mostrando",
@@ -1517,8 +1513,7 @@
     "globe_empty": "Sin yeguadas que encender",
     "featured": "Destacada",
     "search_label": "Buscar yeguada, pueblo o región",
-    "view_switch": "Modo de vista",
-    "dialog_close": "Cerrar"
+    "view_switch": "Modo de vista"
   },
   "cavalos_favoritos": {
     "title": "Caballos Favoritos",

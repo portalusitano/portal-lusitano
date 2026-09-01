@@ -5,6 +5,7 @@ import { logger } from "@/lib/logger";
 import { PASTA_CAPAS, mapaDeCapas } from "@/lib/directorio-capas";
 import MapaClient from "@/components/MapaClient";
 import type { Coudelaria } from "@/components/MapaClient";
+import { lerEstadoDoMapa } from "@/lib/mapa-coudelarias";
 
 /**
  * Que fotografias existem mesmo em `public/images/coudelarias/`.
@@ -38,6 +39,11 @@ function lerCapasEmDisco(): Record<string, string> {
  * render nenhum — e é aqui que os filtros de um link partilhado têm de ser
  * lidos. Feito no cliente dentro de um efeito, a primeira pintura mostrava o
  * país inteiro e só depois é que encolhia para a região pedida.
+ *
+ * É também aqui que o «voltar» do browser é atendido: quem sai do mapa para
+ * uma ficha volta a este endereço com os filtros que tinha. Quem os lê é o
+ * `lerEstadoDoMapa`, o mesmo módulo que os escreve no cliente — antes eram
+ * duas regras separadas e já discordavam no comprimento da pesquisa.
  */
 export default async function MapaPage({
   searchParams,
@@ -75,22 +81,10 @@ export default async function MapaPage({
   }));
 
   const params = await searchParams;
-  const texto = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
-
-  // A região só passa se existir mesmo nos dados: `?regiao=<qualquer coisa>`
-  // não deve conseguir pôr a página a mostrar zero coudelarias sem explicação.
-  const pedida = texto(params.regiao);
-  const regiao = coudelarias.some((c) => c.regiao === pedida) ? pedida : null;
-
-  return (
-    <MapaClient
-      coudelarias={coudelarias}
-      capas={lerCapasEmDisco()}
-      inicial={{
-        procura: texto(params.q).slice(0, 80),
-        regiao,
-        vista: texto(params.vista) === "lista" ? "list" : "globo",
-      }}
-    />
+  const inicial = lerEstadoDoMapa(
+    params,
+    coudelarias.map((c) => c.regiao)
   );
+
+  return <MapaClient coudelarias={coudelarias} capas={lerCapasEmDisco()} inicial={inicial} />;
 }

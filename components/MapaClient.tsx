@@ -1,26 +1,22 @@
 "use client";
 
 import { useState, useMemo, memo, useRef, useEffect, useLayoutEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import dynamic from "next/dynamic";
 import {
   MapPin,
-  Phone,
-  Mail,
   Globe,
   ChevronRight,
   ChevronLeft,
   X,
   List,
-  Navigation,
   Search,
-  Map,
   Layers,
   SearchX,
 } from "lucide-react";
-import LocalizedLink from "@/components/LocalizedLink";
-import Revelar, { atrasoEmGrelha } from "@/components/Revelar";
-import { useFocusTrap } from "@/hooks/useFocusTrap";
+import LocalizedLink, { localizeHref } from "@/components/LocalizedLink";
+import Revelar from "@/components/Revelar";
 import Image from "next/image";
 import {
   filtrar,
@@ -28,6 +24,11 @@ import {
   contarPorRegiao,
   formatarNumero,
   partirTitulo,
+  caminhoDaCoudelaria,
+  consultaDoMapa,
+  lerEstadoDoMapa,
+  ESTADO_LIMPO,
+  type EstadoDoMapa,
 } from "@/lib/mapa-coudelarias";
 import { capaDoCartao, iniciaisDe } from "@/lib/directorio-capas";
 
@@ -107,9 +108,9 @@ const Capa = memo(function Capa({
 
 /* ── Linha de coudelaria ─────────────────────────────────────────────────
    Era um botão que abria uma janela, e da janela é que se ia à ficha: dois
-   toques para chegar ao sítio a que a pessoa vinha. Passa a ser um link
-   directo. A janela continua a existir, mas só para o alfinete do globo, que
-   não tem outra maneira de se apresentar. */
+   toques para chegar ao sítio a que a pessoa vinha. É um link directo — e
+   agora o globo faz o mesmo, por isso já não há na página dois significados
+   para o mesmo gesto. */
 const LinhaCoudelaria = memo(function LinhaCoudelaria({
   coudelaria,
   capa,
@@ -121,7 +122,7 @@ const LinhaCoudelaria = memo(function LinhaCoudelaria({
 }) {
   return (
     <LocalizedLink
-      href={`/directorio/${coudelaria.slug}`}
+      href={caminhoDaCoudelaria(coudelaria.slug)}
       className="group flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-[var(--elevate-1)]"
     >
       <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg">
@@ -173,7 +174,7 @@ const CartaoGrelha = memo(function CartaoGrelha({
 }) {
   return (
     <LocalizedLink
-      href={`/directorio/${coudelaria.slug}`}
+      href={caminhoDaCoudelaria(coudelaria.slug)}
       className="group block cartao transition-colors hover:border-[var(--border-hover)]"
     >
       {capa && (
@@ -265,8 +266,8 @@ interface MapaClientProps {
   coudelarias: Coudelaria[];
   /** slug → caminho da capa que existe em disco, escolhido no servidor. */
   capas?: Record<string, string>;
-  /** Filtros vindos da query, já validados no servidor. */
-  inicial?: { procura: string; regiao: string | null; vista: "globo" | "list" };
+  /** Filtros vindos da query, já lidos e validados no servidor. */
+  inicial?: EstadoDoMapa;
 }
 
 /* ── A pilha de níveis ────────────────────────────────────────────────────
@@ -327,10 +328,11 @@ function Pilha({
 
 export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaClientProps) {
   const { t, language } = useLanguage();
-  const [regiao, setRegiao] = useState<string | null>(inicial?.regiao ?? null);
-  const [procura, setProcura] = useState(inicial?.procura ?? "");
-  const [aberta, setAberta] = useState<Coudelaria | null>(null);
-  const [viewMode, setViewMode] = useState<"globo" | "list">(inicial?.vista ?? "globo");
+  const router = useRouter();
+  const partida = inicial ?? ESTADO_LIMPO;
+  const [regiao, setRegiao] = useState<string | null>(partida.regiao);
+  const [procura, setProcura] = useState(partida.procura);
+  const [viewMode, setViewMode] = useState<"globo" | "list">(partida.vista);
 
   /* ── Um funil só ───────────────────────────────────────────────────────
      A pesquisa filtrava o globo e a lista; o painel de regiões contava por
@@ -352,7 +354,7 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
     setRegiao(null);
   }, []);
 
-  /* ── A vista é partilhável ─────────────────────────────────────────────
+  /* ── O endereço é a memória da página ──────────────────────────────────
      Quem encontrava as treze do Alentejo e mandava o link mandava a página em
      branco. O estado inicial vem do servidor (`/mapa` já é servida a pedido,
      por isso ler a query não custa render nenhum) e a partir daí é escrito na
@@ -360,11 +362,7 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
      `useSearchParams` — que obrigaria a um limite de Suspense — e sem voltar
      a montar o globo a cada tecla. */
   useEffect(() => {
-    const p = new URLSearchParams();
-    if (procura.trim()) p.set("q", procura.trim());
-    if (regiao) p.set("regiao", regiao);
-    if (viewMode === "list") p.set("vista", "lista");
-    const busca = p.toString();
+    const busca = consultaDoMapa({ procura, regiao, vista: viewMode });
     window.history.replaceState(
       null,
       "",
@@ -372,11 +370,60 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
     );
   }, [procura, regiao, viewMode]);
 
-  /* ── A janela do alfinete ──────────────────────────────────────────────
-     Não tinha papel de diálogo, nem `Escape`, nem laço de foco, e ao fechar
-     o foco caía no princípio da página. `useFocusTrap` trata das três. */
-  const janela = useRef<HTMLDivElement>(null);
-  useFocusTrap(janela, aberta !== null, () => setAberta(null));
+  /* ── …e é ela que paga a saída para a ficha ────────────────────────────
+     Sair do mapa só é aceitável se voltar trouxer o mesmo mapa. Não trazia:
+     medido, carregar em «voltar» a partir de uma ficha aterrava em `/mapa`
+     com as vinte e nove acesas, tendo-se saído das treze do Alentejo.
+
+     A causa é o encaminhador ter duas memórias. O browser repõe o endereço
+     `?regiao=Alentejo`, mas o payload de `/mapa` vem da cache do cliente — o
+     da primeira visita, sem consulta nenhuma — e por isso o `inicial` que
+     chega do servidor vem limpo. Pior: o efeito acima corre a seguir e
+     reescreve o endereço a partir desse estado limpo, apagando a única prova
+     que restava de onde a pessoa estava.
+
+     Por isso quem manda à chegada é o endereço, não o `inicial`: lê-se ao
+     montar e adopta-se se disser outra coisa. Num `useLayoutEffect` de
+     propósito, para correr antes do efeito que escreve — ao contrário, a
+     escrita limpava o endereço antes de alguém o ter lido. E quem o lê é o
+     mesmo `lerEstadoDoMapa` que o servidor usa, para não haver duas leituras
+     da mesma consulta. */
+  useLayoutEffect(() => {
+    const doEndereco = lerEstadoDoMapa(
+      Object.fromEntries(new URLSearchParams(window.location.search)),
+      coudelarias.map((c) => c.regiao)
+    );
+    if (doEndereco.regiao !== partida.regiao) setRegiao(doEndereco.regiao);
+    if (doEndereco.procura !== partida.procura) setProcura(doEndereco.procura);
+    if (doEndereco.vista !== partida.vista) setViewMode(doEndereco.vista);
+    // Só à chegada: daí em diante quem manda é o estado, e o endereço segue-o.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* ── Escolher no globo é ir lá ─────────────────────────────────────────
+     Carregar num alfinete ou num nome abria uma janela, e da janela é que se
+     ia à ficha. Dois toques para o destino, e — pior — dois significados para
+     o mesmo gesto na mesma página: a linha do painel ao lado já era um link
+     directo. Passa a ser o mesmo destino pelos três caminhos.
+
+     O que a janela dizia defender era espreitar sem perder o mapa. Medido: o
+     véu era `bg-black/90` sobre o ecrã inteiro e, a 390×700, a janela de
+     358×455 tapava a lona de 356×458 por completo — não se espreitava coisa
+     nenhuma, escondia-se o mapa atrás de um pano e voltava-se. E o que ela
+     mostrava era um subconjunto da ficha: fotografia, nome, terra, região,
+     descrição cortada, contagem de cavalos e três contactos, tudo isso a um
+     toque de distância e por inteiro. Um resumo que mostra menos do que o
+     destino e esconde o mapa para o mostrar não vale um toque.
+
+     Fica por pagar o enquadramento do globo, que se refaz ao voltar. Os
+     filtros esses voltam, porque estão no endereço. */
+  const irParaFicha = useCallback(
+    (slug: string) => {
+      const destino = localizeHref(caminhoDaCoudelaria(slug), language);
+      if (typeof destino === "string") router.push(destino);
+    },
+    [router, language]
+  );
 
   const contagem = `${formatarNumero(visiveis.length, language)} ${
     visiveis.length === 1 ? t.mapa.result_one : t.mapa.results
@@ -386,8 +433,6 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
     () => partirTitulo(t.mapa.title, t.mapa.title_highlight),
     [t.mapa.title, t.mapa.title_highlight]
   );
-
-  const capaAberta = aberta ? capaDoCartao(aberta.foto_capa, aberta.slug, capas) : null;
 
   /* Uma linha da lista. A cascata de entrada é da pilha, que sabe qual é o
      nível que está a entrar; a linha só sabe desenhar-se. */
@@ -400,7 +445,13 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
   );
 
   return (
-    <main className="min-h-screen bg-[var(--background)]">
+    /* Uma `div`, e não um `<main>`: o `app/layout.tsx` já embrulha tudo num
+       `<main id="main-content">`, e um dentro do outro dava dois marcos
+       «principal» ao leitor de ecrã — quem salta para o conteúdo não deve ter
+       de escolher qual. Custava também 64 pixéis: a regra
+       `@media (max-width:1024px) { main { padding-bottom: … } }` acertava nos
+       dois e o telemóvel levava a margem do rodapé a dobrar. */
+    <div className="min-h-screen bg-[var(--background)]">
       <div className="pointer-events-none fixed inset-0">
         <div
           aria-hidden="true"
@@ -573,10 +624,7 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
                         deixava a região escolhida sem efeito nenhum sobre o
                         globo: carregava-se em «Alentejo 13» e as vinte e nove
                         continuavam acesas. Agora recebe o que o funil deu. */}
-                    <GloboTerra
-                      coudelarias={visiveis}
-                      aoEscolher={(c) => setAberta(c as Coudelaria)}
-                    />
+                    <GloboTerra coudelarias={visiveis} aoEscolher={(c) => irParaFicha(c.slug)} />
                     <p className="pointer-events-none absolute inset-x-0 bottom-4 z-10 px-6 text-center text-xs text-[var(--foreground-muted)]">
                       {t.mapa.globe_hint}
                     </p>
@@ -737,126 +785,7 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
             )}
           </div>
         )}
-
-        {/* ── Janela do alfinete ─────────────────────────────────────── */}
-        {aberta && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
-            onClick={() => setAberta(null)}
-          >
-            <div
-              ref={janela}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="mapa-janela-titulo"
-              className="cartao anim-crescer w-full max-w-md"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* A faixa da fotografia só se abre quando há fotografia; sem
-                  ela ficava uma banda cinzenta de 144px a segurar duas letras.
-                  O botão de fechar sai da faixa e passa a viver ao lado do
-                  título, que é onde continua a estar quando não há faixa. */}
-              {capaAberta && (
-                <div className="relative h-36">
-                  <Capa
-                    coudelaria={aberta}
-                    capa={capaAberta}
-                    sizes="(max-width: 448px) 100vw, 448px"
-                  />
-                  <div
-                    aria-hidden="true"
-                    className="absolute inset-0 bg-gradient-to-t from-[var(--background-card)] to-transparent"
-                  />
-                </div>
-              )}
-              <div className="p-5">
-                <div className="mb-2 flex items-start gap-3">
-                  <h3
-                    id="mapa-janela-titulo"
-                    className="min-w-0 flex-1 text-xl text-[var(--foreground)]"
-                  >
-                    {aberta.nome}
-                  </h3>
-                  {aberta.destaque && (
-                    <span className="selo selo-forte mt-1 shrink-0 rounded-full">
-                      {t.mapa.featured}
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setAberta(null)}
-                    aria-label={t.mapa.dialog_close}
-                    className="-mr-1 -mt-1 shrink-0 rounded-full p-1.5 text-[var(--foreground-muted)] transition-colors hover:bg-[var(--elevate-1)] hover:text-[var(--foreground-strong)]"
-                  >
-                    <X size={18} aria-hidden="true" />
-                  </button>
-                </div>
-                <p className="mb-3 flex items-center gap-1 text-sm text-[var(--foreground-secondary)]">
-                  <MapPin size={12} className="text-[var(--foreground-muted)]" aria-hidden="true" />
-                  {aberta.localizacao}, {aberta.regiao}
-                </p>
-                <p className="mb-4 line-clamp-4 text-sm text-[var(--foreground-secondary)]">
-                  {aberta.descricao}
-                </p>
-                {typeof aberta.num_cavalos === "number" && (
-                  <p className="meta mb-4 font-mono tabular-nums">
-                    {aberta.num_cavalos} {t.mapa.horses}
-                  </p>
-                )}
-                <div className="mb-4 grid grid-cols-3 gap-2">
-                  {aberta.telefone && (
-                    <a
-                      href={`tel:${aberta.telefone}`}
-                      className="flex flex-col items-center rounded-lg bg-[var(--elevate-1)] p-2 text-center transition-colors hover:bg-[var(--elevate-2)]"
-                    >
-                      <Phone
-                        size={16}
-                        className="mb-1 text-[var(--foreground-muted)]"
-                        aria-hidden="true"
-                      />
-                      <span className="meta">{t.mapa.call}</span>
-                    </a>
-                  )}
-                  {aberta.email && (
-                    <a
-                      href={`mailto:${aberta.email}`}
-                      className="flex flex-col items-center rounded-lg bg-[var(--elevate-1)] p-2 text-center transition-colors hover:bg-[var(--elevate-2)]"
-                    >
-                      <Mail
-                        size={16}
-                        className="mb-1 text-[var(--foreground-muted)]"
-                        aria-hidden="true"
-                      />
-                      <span className="meta">{t.mapa.email}</span>
-                    </a>
-                  )}
-                  {aberta.website && (
-                    <a
-                      href={aberta.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex flex-col items-center rounded-lg bg-[var(--elevate-1)] p-2 text-center transition-colors hover:bg-[var(--elevate-2)]"
-                    >
-                      <Globe
-                        size={16}
-                        className="mb-1 text-[var(--foreground-muted)]"
-                        aria-hidden="true"
-                      />
-                      <span className="meta">{t.mapa.website}</span>
-                    </a>
-                  )}
-                </div>
-                <LocalizedLink
-                  href={`/directorio/${aberta.slug}`}
-                  className="btn btn-primario w-full gap-2 rounded-full"
-                >
-                  <Navigation size={16} aria-hidden="true" /> {t.mapa.view_page}
-                </LocalizedLink>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
-    </main>
+    </div>
   );
 }

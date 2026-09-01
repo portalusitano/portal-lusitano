@@ -1485,15 +1485,11 @@
     "region": "Region",
     "studs_count": "studs",
     "explore_regions": "Explore Regions",
-    "call": "Call",
-    "email": "Email",
-    "website": "Website",
-    "view_page": "View Page",
     "no_results": "No stud farms found",
     "all_regions": "All",
     "select_region_hint": "Select a region or click a pin on the map",
     "view_globe": "Globe",
-    "globe_hint": "Drag to rotate · tap a number to see who is there",
+    "globe_hint": "Drag to rotate · tap a name to open its page, a number to see them all",
     "title_highlight": "Portugal",
     "stat_horses_hint": "horses declared by the studs on the map",
     "showing": "showing",
@@ -1517,8 +1513,7 @@
     "globe_empty": "No stud farms to light up",
     "featured": "Featured",
     "search_label": "Search stud farm, town or region",
-    "view_switch": "View mode",
-    "dialog_close": "Close"
+    "view_switch": "View mode"
   },
   "cavalos_favoritos": {
     "title": "Favorite Horses",

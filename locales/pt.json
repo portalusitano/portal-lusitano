@@ -1485,15 +1485,11 @@
     "region": "Região",
     "studs_count": "coudelarias",
     "explore_regions": "Explorar Regiões",
-    "call": "Ligar",
-    "email": "Email",
-    "website": "Website",
-    "view_page": "Ver Página",
     "no_results": "Nenhuma coudelaria encontrada",
     "all_regions": "Todas",
     "select_region_hint": "Selecione uma região ou clique num pin no mapa",
     "view_globe": "Globo",
-    "globe_hint": "Arraste para rodar · toque num número para ver quem lá está",
+    "globe_hint": "Arraste para rodar · toque num nome para abrir a ficha, num número para os ver todos",
     "title_highlight": "Portugal",
     "stat_horses_hint": "cavalos declarados pelas coudelarias no mapa",
     "showing": "a mostrar",
@@ -1517,8 +1513,7 @@
     "globe_empty": "Sem coudelarias para acender",
     "featured": "Destaque",
     "search_label": "Pesquisar coudelaria, terra ou região",
-    "view_switch": "Modo de vista",
-    "dialog_close": "Fechar"
+    "view_switch": "Modo de vista"
   },
   "cavalos_favoritos": {
     "title": "Cavalos Favoritos",

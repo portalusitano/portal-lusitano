@@ -164,3 +164,79 @@ export function partirTitulo(
     depois: titulo.slice(i + destaque.length),
   };
 }
+
+/* ── Um destino só ────────────────────────────────────────────────────────
+ *
+ * À ficha de uma coudelaria chega-se por três caminhos — a linha do painel de
+ * regiões, o cartão da grelha e o nome no globo — e o defeito que motivou
+ * isto foi os três não concordarem: dois eram links directos e o terceiro
+ * abria uma janela de onde ainda era preciso carregar outra vez. A mesma
+ * coudelaria estava a um toque num sítio e a dois noutro.
+ *
+ * O caminho passa a sair daqui e de mais lado nenhum: quem quiser mudar o
+ * destino muda-o num sítio, e nenhum dos três pode divergir sem se ver.
+ */
+export function caminhoDaCoudelaria(slug: string): string {
+  return `/directorio/${slug}`;
+}
+
+/* ── O ida-e-volta da barra de endereço ───────────────────────────────────
+ *
+ * Sair do mapa para uma ficha só é aceitável se voltar trouxer a página como
+ * estava. Quem a traz é o endereço: o cliente escreve nele os filtros
+ * (`replaceState`) e o servidor volta a lê-los quando se carrega em «voltar».
+ *
+ * Estavam escritos em dois sítios — o `URLSearchParams` do efeito no
+ * `MapaClient` e o `texto()` com a validação da região no `app/mapa/page.tsx`
+ * — e nada obrigava os dois a concordar. Onde já não concordavam: o cliente
+ * escrevia a pesquisa inteira no endereço e o servidor cortava-a aos 80
+ * caracteres ao lê-la, por isso quem procurasse uma frase longa voltava com
+ * outra pesquisa. Agora quem escreve e quem lê são a mesma regra, e o teste
+ * prova a ida e a volta.
+ */
+export interface EstadoDoMapa {
+  /** O que está escrito na caixa de pesquisa. */
+  procura: string;
+  /** A região onde se entrou, ou `null` para o país inteiro. */
+  regiao: string | null;
+  /** Qual das duas vistas está no ecrã. */
+  vista: "globo" | "list";
+}
+
+/** Uma pesquisa mais longa do que isto não vai para o endereço. */
+export const LIMITE_DA_PROCURA = 80;
+
+/** O estado de quem chega a `/mapa` sem nada na consulta. */
+export const ESTADO_LIMPO: EstadoDoMapa = { procura: "", regiao: null, vista: "globo" };
+
+/** O que se escreve na barra de endereço. Vazio quando não há nada a dizer. */
+export function consultaDoMapa(estado: EstadoDoMapa): string {
+  const p = new URLSearchParams();
+  const procura = estado.procura.trim().slice(0, LIMITE_DA_PROCURA);
+  if (procura) p.set("q", procura);
+  if (estado.regiao) p.set("regiao", estado.regiao);
+  if (estado.vista === "list") p.set("vista", "lista");
+  return p.toString();
+}
+
+/**
+ * O que se lê de volta. `regioesConhecidas` são as que existem mesmo nos
+ * dados: `?regiao=<qualquer coisa>` não deve conseguir pôr a página a mostrar
+ * zero coudelarias sem explicação, por isso uma região que ninguém tem lê-se
+ * como país inteiro.
+ */
+export function lerEstadoDoMapa(
+  params: Record<string, string | string[] | undefined>,
+  regioesConhecidas: readonly string[] = []
+): EstadoDoMapa {
+  const texto = (v: string | string[] | undefined) => {
+    const s = Array.isArray(v) ? v[0] : v;
+    return (s ?? "").trim();
+  };
+  const pedida = texto(params.regiao);
+  return {
+    procura: texto(params.q).slice(0, LIMITE_DA_PROCURA),
+    regiao: pedida && regioesConhecidas.includes(pedida) ? pedida : null,
+    vista: texto(params.vista) === "lista" ? "list" : "globo",
+  };
+}
