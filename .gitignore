@@ -50,6 +50,8 @@ tmp_*
 
 # windows path artifacts
 CUsers*
+tmpclaude-*-cwd
+battery-report.html
 
 # typescript
 *.tsbuildinfo
