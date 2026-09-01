@@ -138,12 +138,32 @@ export default function Seleccao({
   useLayoutEffect(() => {
     if (!aberto) return;
     posicionar();
-    const aoMexer = () => posicionar();
-    window.addEventListener("scroll", aoMexer, true);
-    window.addEventListener("resize", aoMexer);
+
+    // A captura é precisa — a lista é filha do `body` e quem se desloca pode
+    // ser um contentor lá no meio, e esses eventos não sobem a `window`. O
+    // que não é preciso é bloquear o deslocamento enquanto se recoloca: com
+    // `true` à terceira, o ouvinte fica **não passivo**, e um ouvinte de
+    // scroll não passivo obriga o browser a esperar por JavaScript antes de
+    // deixar a página mexer-se. A forma longa diz as duas coisas.
+    //
+    // O recálculo passa por um `requestAnimationFrame`: `posicionar` lê a
+    // caixa do botão, e uma leitura de layout por evento de deslocamento é
+    // trabalho a mais para uma lista que só tem de acompanhar o botão.
+    const opcoes = { capture: true, passive: true } as const;
+    let quadro = 0;
+    const aoMexer = () => {
+      if (quadro) return;
+      quadro = requestAnimationFrame(() => {
+        quadro = 0;
+        posicionar();
+      });
+    };
+    window.addEventListener("scroll", aoMexer, opcoes);
+    window.addEventListener("resize", aoMexer, { passive: true });
     return () => {
-      window.removeEventListener("scroll", aoMexer, true);
+      window.removeEventListener("scroll", aoMexer, opcoes);
       window.removeEventListener("resize", aoMexer);
+      if (quadro) cancelAnimationFrame(quadro);
     };
   }, [aberto, posicionar]);
 

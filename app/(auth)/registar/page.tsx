@@ -681,17 +681,21 @@ function RegistarContent() {
             className="relative w-full py-3.5 btn btn-primario w-full gap-2 rounded-full disabled:cursor-not-allowed"
             aria-busy={loading}
           >
-            {/* Shimmer overlay */}
-            <div
-              className="absolute inset-0 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"
-              style={{
-                background:
-                  "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%)",
-                backgroundSize: "200% 100%",
-                animation: "auth-shimmer 1.5s ease-in-out infinite",
-              }}
-              aria-hidden="true"
-            />
+            {/* Havia aqui um brilho a varrer o botão sem parar. Saiu, e são
+                duas razões, cada uma suficiente:
+
+                1. Ninguém o via. Dependia de `group-hover/btn`, e não há
+                   `group/btn` nenhum nesta página — a camada estava a
+                   `opacity: 0` desde que a página existe.
+                2. Estava a animar `background-position`, que não é uma
+                   propriedade que o compositor saiba animar: cada quadro
+                   obrigava a repintar o botão. Infinito, invisível, e a
+                   pintar.
+
+                O `.animate-auth-shimmer` do `auth.css` já tinha o ciclo
+                desligado por escrito; este estilo em linha passava-lhe à
+                frente, porque um estilo em linha ganha sempre a uma classe.
+                A decisão volta a estar num sítio só. */}
             <span className="relative flex items-center gap-2">
               {loading ? (
                 <Loader2 size={18} className="animate-spin" aria-hidden="true" />

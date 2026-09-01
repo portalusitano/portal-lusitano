@@ -1,19 +1,24 @@
 @import "tailwindcss";
 @import "./print.css";
 
-/* ===== LENIS SMOOTH SCROLL ===== */
-html.lenis,
-html.lenis body {
-  height: auto;
-}
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
-.lenis.lenis-smooth [data-lenis-prevent] {
-  overscroll-behavior: contain;
-}
-.lenis.lenis-stopped {
-  overflow: hidden;
+/* ===== DESLOCAMENTO =======================================================
+ * O site deslocava-se com o Lenis, e este bloco era a folha de estilo que ele
+ * pedia — incluindo um `scroll-behavior: auto !important` que anulava o
+ * deslocamento suave nativo umas duzentas linhas abaixo.
+ *
+ * O motor saiu (a razão está escrita no `ClientShell`), e com ele sai a folha.
+ * Quem trata das âncoras internas é o par que fica: o `scroll-behavior:
+ * smooth` que já cá estava, dentro do `prefers-reduced-motion: no-preference`
+ * — logo já respeita quem não quer movimento, sem uma linha de JavaScript —
+ * e este `scroll-padding-top`, que faz o mesmo que o `offset: -80` que o
+ * Lenis aplicava à mão: afasta o destino de uma âncora da barra fixa, para o
+ * título a que se salta não ficar escondido por trás dela.
+ *
+ * Vale para tudo o que desloca o documento — âncoras, `scrollIntoView`,
+ * navegação por teclado —, e não só para os cliques que um ouvinte apanhasse.
+ * ========================================================================= */
+html {
+  scroll-padding-top: 5rem;
 }
 
 /* ===== VIEW TRANSITIONS — THEME SWITCH ===== */
@@ -1569,6 +1574,19 @@ body {
       opacity var(--rd, var(--d-reveal)) var(--ease-out) var(--rdelay, 0ms),
       transform var(--rd, var(--d-reveal)) var(--ease-out) var(--rdelay, 0ms);
     will-change: opacity, transform;
+  }
+
+  /* O `will-change` acima pede uma camada de composição por bloco, e é isso
+     que faz a entrada correr no compositor em vez de na linha principal. Mas
+     ficava pedida para sempre: numa página com trinta blocos eram trinta
+     camadas a ocupar memória de vídeo muito depois de a última animação ter
+     acabado — o contrário do que o `will-change` serve.
+
+     O `ObservadorRevelar` marca cada bloco como `assente` quando a entrada
+     dele acaba, e a camada é devolvida aqui. A promessa mantém-se enquanto é
+     precisa e acaba quando deixa de ser. */
+  .js [data-revelar].assente {
+    will-change: auto;
   }
 
   /* Direcções. O eixo é escolhido pelo valor do atributo; a distância é

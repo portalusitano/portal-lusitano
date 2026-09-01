@@ -270,6 +270,25 @@ As durações e as curvas são medidas, não inventadas. Vivem em tokens no
   passar o rato e é anulado por `prefers-reduced-motion`. A regra foi um só,
   depois dois, agora três — e cada degrau custou uma razão escrita. Um
   quarto custa outra.
+  Foram contados, e havia dois a mais — nenhum dos dois com razão escrita, e
+  nenhum dos dois visível. Um era o `.pro-border-active`, no
+  `components/pro-section.css`: um gradiente cónico a rodar com um
+  `@property --border-angle`, 4s lineares, para sempre. Uma propriedade
+  registada dentro de um gradiente não é animável pelo compositor — cada
+  quadro repintava a borda. A classe não era usada por ficheiro nenhum, e o
+  ficheiro era importado pelo `MinhaContaContent` só para isso; saiu o
+  ficheiro e saiu o `import`. O outro era um brilho a varrer o botão de
+  submeter do `/registar`, com
+  `animation: auth-shimmer 1.5s ease-in-out infinite` escrito **em linha** no
+  JSX — e o `auth.css` já tinha desligado esse ciclo por escrito
+  (`.animate-auth-shimmer { animation: none }`), só que um estilo em linha
+  ganha sempre a uma classe. Ainda por cima ninguém o via: dependia de
+  `group-hover/btn` e não há `group/btn` nenhum nessa página, logo a camada
+  esteve a `opacity: 0` desde sempre. Infinito, invisível, e a animar
+  `background-position`, que é pintura. Saiu. A lição dos dois é a mesma: uma
+  regra desligada numa folha de estilo não fica desligada se uma página a
+  puder reescrever em linha, e um ciclo que ninguém vê custa exactamente o
+  mesmo que um que se vê.
   Os esqueletos de carregamento usam `animate-pulse` do Tailwind: são a
   excepção aceite, porque só existem enquanto o conteúdo não chegou.
   Os dois globos do mapa também não fazem excepção: o de tiles voa até
@@ -282,6 +301,67 @@ As durações e as curvas são medidas, não inventadas. Vivem em tokens no
 - Há um bloco `prefers-reduced-motion: reduce` que anula tudo isto. Manter.
 - Preferir transição CSS a tween em JS: com dezenas de blocos, deixar opacidade
   e transform ao compositor não disputa a thread principal.
+- **O deslocamento é o nativo, e não há motor nenhum a substituí-lo.** Havia:
+  o site montava o Lenis em todas as páginas, no `ClientShell`. Medido, isso
+  custava um `requestAnimationFrame` em cadeia que nunca parava — 240 chamadas
+  em 4 segundos com a página completamente parada, em todas as páginas, com ou
+  sem alguém a rolar — e três ouvintes em `window` registados com
+  `passive: false` (`wheel`, `touchmove` e `scroll`). São esses três que
+  proíbem o browser de deslocar a página no compositor: com eles, cada volta
+  da roda e cada arrasto do dedo espera que a linha principal corra
+  JavaScript antes de a página se mexer, e é essa espera que se sente como
+  «lag». Eram também eles que disputavam a roda com o `<GloboTerra>` do
+  `/mapa`, que a escuta para aproximar.
+  O que se ganhava era uma curva de desaceleração. O deslocamento nativo já
+  tem uma, corre no compositor, respeita as definições do sistema operativo e
+  não custa nada. As âncoras internas, a outra coisa que o Lenis fazia, ficam
+  a cargo de duas linhas de CSS: o `scroll-behavior: smooth` que já cá estava
+  (dentro de `prefers-reduced-motion: no-preference`, logo já respeita quem
+  não quer movimento, sem uma linha de JavaScript — o Lenis anulava-o com um
+  `scroll-behavior: auto !important`) e um `scroll-padding-top: 5rem`, que faz
+  o que o `offset: -80` fazia à mão e vale para tudo o que desloca o
+  documento, não só para os cliques que um ouvinte apanhasse.
+  Medido depois: **zero chamadas de rAF em repouso em todas as páginas**, e
+  zero ouvintes de `wheel` e `touchmove` não passivos.
+- **Um só componente de entrada ao entrar no ecrã**, o `<Revelar>`. Havia
+  três a fazer o mesmo — `AnimateOnScroll`, `ui/RevealOnScroll` e este —, com
+  distâncias, durações e margens ligeiramente diferentes, o que se lia como
+  duas ideias de movimento na mesma página. Os dois primeiros não eram
+  importados por ficheiro nenhum; saíram, e com eles quatro componentes de
+  deslocamento igualmente órfãos (`ParallaxSection`,
+  `HorizontalScrollGallery`, `AnimatedCounter` e o hook `useInViewOnce`).
+- **Nada varre a página a cada deslocamento.** O `ObservadorRevelar` tinha um
+  ouvinte de `scroll` que corria um `querySelectorAll` por toda a página e um
+  `getBoundingClientRect` em cada bloco por revelar — 1663 leituras forçadas
+  de layout em dois segundos de roda na página inicial, e uma leitura de
+  layout a meio de um deslocamento obriga o browser a refazer o layout antes
+  de responder à roda. Quem entra no ecrã é o `IntersectionObserver`; quem
+  aparece depois (paginação, filtros) é apanhado por um `MutationObserver`,
+  que dispara quando o DOM muda em vez de perguntar a cada deslocamento se
+  mudou. O mesmo vale para o `<GrelhaHolofote>`, cuja cache de medidas passou
+  a estar em coordenadas do documento e por isso não caduca ao rolar. Medido:
+  1663 → 67 leituras na página inicial, 325 → 15 no directório.
+- **O `will-change` acaba quando a animação acaba.** O estado inicial do
+  `[data-revelar]` pede `will-change: opacity, transform`, e é isso que põe a
+  entrada no compositor — mas ficava pedido para sempre, uma camada por bloco
+  a ocupar memória de vídeo muito depois de a última animação ter corrido.
+  O observador marca cada bloco como `.assente` quando a entrada dele acaba e
+  a folha devolve o `will-change` a `auto`. Quem marca é um temporizador e
+  não um `transitionend`: um bloco revelado no mesmo quadro da primeira
+  pintura nunca chega a transitar, logo nunca haveria evento — acontecia a 3
+  dos 20 blocos da página inicial —, e um `transitionend` delegado no
+  documento acordaria a cada hover da página, que é trocar trabalho contínuo
+  por trabalho contínuo.
+- **A rede de segurança dos quatro segundos deixou de ser um interruptor.**
+  Revelava a página inteira, sempre — o que, com o observador a funcionar,
+  não é uma rede: é desligar a entrada ao entrar no ecrã e acender de uma vez
+  tudo o que está por baixo. Agora só o faz se o observador nunca tiver dado
+  sinal, que é o caso que a rede existe para cobrir; se deu, faz uma única
+  varredura da janela para fechar a única lacuna real da margem de −10%
+  (conteúdo nos últimos 10% do primeiro ecrã, numa página curta de mais para
+  se rolar, nunca intersecta a janela encolhida). A garantia mantém-se: nunca
+  fica um bloco invisível. Medido em cinco páginas, 63 blocos, zero
+  invisíveis.
 
 A classe `.js` que arma o estado inicial das animações é posta pelo script
 inline em `app/layout.tsx`, **antes da primeira pintura**. Posta na

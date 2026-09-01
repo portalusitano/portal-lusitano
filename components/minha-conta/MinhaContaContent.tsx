@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { logout } from "@/app/minha-conta/actions";
-import "../pro-section.css";
 
 interface Customer {
   firstName: string;
