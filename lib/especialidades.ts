@@ -22,6 +22,8 @@
  * há mais do que um do outro lado.
  */
 
+import { lerListaDeTexto } from "@/lib/coudelaria-ficha";
+
 export const ACTIVIDADES = [
   "criacao",
   "dressage",
@@ -131,11 +133,20 @@ function chave(bruto: string): string {
  * A que actividades pertence uma coudelaria, sem repetições.
  * O que não encaixar é simplesmente ignorado.
  */
-export function actividadesDe(especialidades: readonly string[] | null | undefined): Actividade[] {
-  if (!especialidades) return [];
+export function actividadesDe(especialidades: unknown): Actividade[] {
+  /* `lerListaDeTexto` e não um `for` directo, e a razão é boa: a coluna é
+     `jsonb` e há colunas nesta base que guardam uma **string** com JSON lá
+     dentro em vez de um array — foi assim que a `cavalos_destaque` matou uma
+     construção em produção.
+
+     Aqui o sintoma seria pior porque é calado: um `for…of` sobre uma string
+     percorre-a carácter a carácter, nenhum carácter bate certo na tabela, e
+     a função devolve lista vazia. A coudelaria desaparecia de todos os
+     filtros de actividade sem erro nenhum, sem aviso, e sem ninguém dar por
+     isso. Um defeito que não faz barulho é o pior tipo. */
+  const lista = lerListaDeTexto(especialidades);
   const vistas = new Set<Actividade>();
-  for (const e of especialidades) {
-    if (typeof e !== "string") continue;
+  for (const e of lista) {
     const a = MAPA[chave(e)];
     if (a) vistas.add(a);
   }
@@ -144,17 +155,14 @@ export function actividadesDe(especialidades: readonly string[] | null | undefin
 }
 
 /** Uma coudelaria pertence a esta actividade? */
-export function temActividade(
-  especialidades: readonly string[] | null | undefined,
-  actividade: string
-): boolean {
+export function temActividade(especialidades: unknown, actividade: string): boolean {
   if (!actividade) return true;
   return actividadesDe(especialidades).includes(actividade as Actividade);
 }
 
 /** Quantas coudelarias há em cada actividade, pela ordem canónica, sem as vazias. */
 export function contarActividades(
-  coudelarias: readonly { especialidades?: string[] | null }[]
+  coudelarias: readonly { especialidades?: unknown }[]
 ): { valor: Actividade; n: number }[] {
   const conta = new Map<Actividade, number>();
   for (const c of coudelarias) {

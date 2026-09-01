@@ -545,7 +545,7 @@
       "reclamar_cta": "Completar ficha",
       "onde_fica": "Onde fica",
       "ver_mapa": "Ver mapa",
-      "mapa_ajuda": "O mapa só carrega se o pedir — poupa cerca de 1,5 MB a quem não precisa dele.",
+      "mapa_ajuda": "O mapa só carrega se o pedir.",
       "fotografias": "Fotografias",
       "foto_anterior": "Fotografia anterior",
       "foto_seguinte": "Fotografia seguinte",
@@ -569,7 +569,15 @@
       "descricao_cavalos": "cavalos",
       "avaliacao_enviada": "Avaliação submetida. Será publicada depois de revista.",
       "avaliacao_erro": "Não foi possível submeter a avaliação. Tente novamente.",
-      "avaliacao_erro_rede": "Sem ligação. Verifique a Internet e tente novamente."
+      "avaliacao_erro_rede": "Sem ligação. Verifique a Internet e tente novamente.",
+      "vizinhas_titulo": "Coudelarias mais próximas",
+      "vizinhas_nota": "Distâncias em linha recta, a partir das coordenadas de cada uma.",
+      "vizinhas_km": "{km} km",
+      "vizinhas_ver_regiao": "Ver todas · {regiao}",
+      "visita_visita": "Visita",
+      "visita_compra": "Compra",
+      "visita_aulas": "Aulas",
+      "visita_eventos": "Evento"
     }
   },
   "eventos": {

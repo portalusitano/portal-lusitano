@@ -107,6 +107,23 @@ export default function Avaliacoes({
       ? t.directorio.ficha.avaliacao_singular
       : t.directorio.ficha.avaliacao_plural;
 
+  /**
+   * O tipo de visita é escrito na base pelo formulário aqui em baixo, e o que
+   * lá fica é o identificador — `visita`, `compra`, `aulas`, `eventos`. A
+   * lista escrevia-o tal e qual: em minúsculas, e em português mesmo numa
+   * página inglesa, ao lado de tudo o resto traduzido. O `<option>` já
+   * conhece o nome de cada um; é o mesmo dicionário que a linha usa. Um
+   * identificador que não esteja na lista mostra-se como veio, em vez de
+   * desaparecer — apagar um dado que existe é pior do que escrevê-lo mal.
+   */
+  const nomeDaVisita = (tipo: string): string =>
+    ({
+      visita: t.directorio.ficha.visita_visita,
+      compra: t.directorio.ficha.visita_compra,
+      aulas: t.directorio.ficha.visita_aulas,
+      eventos: t.directorio.ficha.visita_eventos,
+    })[tipo] ?? tipo;
+
   return (
     <section aria-labelledby="titulo-avaliacoes">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
@@ -273,7 +290,9 @@ export default function Avaliacoes({
                     </p>
                     <p className="meta flex flex-wrap items-center gap-x-2">
                       {avaliacao.autor_localizacao && <span>{avaliacao.autor_localizacao}</span>}
-                      {avaliacao.tipo_visita && <span>· {avaliacao.tipo_visita}</span>}
+                      {avaliacao.tipo_visita && (
+                        <span>· {nomeDaVisita(avaliacao.tipo_visita)}</span>
+                      )}
                     </p>
                   </div>
                   <Estrelas valor={avaliacao.avaliacao} tamanho={13} />

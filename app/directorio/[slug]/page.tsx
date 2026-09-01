@@ -1,5 +1,4 @@
 import { cache } from "react";
-import { lerCavalosDestaque } from "@/lib/cavalos-destaque";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
@@ -9,10 +8,14 @@ import type { Avaliacao } from "@/components/directorio/ficha/Avaliacoes";
 import {
   dadosEstruturados,
   descricaoFactual,
+  maisPerto,
+  normalizarCoudelaria,
   resumoParaMeta,
+  type CoudelariaBruta,
   type CoudelariaFicha,
 } from "@/lib/coudelaria-ficha";
 import { fotosDaCoudelaria } from "@/lib/fotos-coudelarias";
+import type { Vizinha } from "@/components/directorio/ficha/Vizinhas";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://portal-lusitano.pt";
 
@@ -43,14 +46,49 @@ const obterCoudelaria = cache(async (slug: string): Promise<CoudelariaFicha | nu
        trazem lá uma string com JSON dentro, não um array. A ficha fazia
        `.length ? … .map(…)`, e como uma string também tem `length`, a guarda
        deixava passar e o `.map` rebentava — a construção do site morria a
-       prerenderizar esta página. Os dados de fora normalizam-se aqui, na
-       fronteira, e daqui para dentro o tipo passa a ser verdade. */
-    const linha = data as unknown as CoudelariaFicha & { cavalos_destaque?: unknown };
-    return { ...linha, cavalos_destaque: lerCavalosDestaque(linha.cavalos_destaque) };
+       prerenderizar esta página.
+
+       A correcção anterior tratou a coluna; esta trata a **forma**. As outras
+       sete colunas de lista desta linha são lidas exactamente com a mesma
+       guarda e partem-se exactamente da mesma maneira. Passam todas por
+       `normalizarCoudelaria`, que é o único sítio em que se atravessa a
+       fronteira; daqui para dentro o tipo é verdade. */
+    return normalizarCoudelaria(data as unknown as CoudelariaBruta);
   } catch {
     return null;
   }
 });
+
+/**
+ * As coudelarias mais próximas desta, com a distância em linha recta.
+ *
+ * Uma consulta leve — sete colunas das vinte e nove linhas — partilhada por
+ * todas as fichas da mesma construção graças ao `cache`. Sem ela a ficha era
+ * um beco: quem não gostasse desta coudelaria tinha de voltar atrás no
+ * browser, e quem gostasse não sabia que havia outras três à mesma distância
+ * de casa.
+ */
+const obterVizinhas = cache(async (): Promise<CoudelariaVizinhaBruta[]> => {
+  try {
+    const { data } = await supabase
+      .from("coudelarias")
+      .select("slug, nome, localizacao, regiao, coordenadas_lat, coordenadas_lng, foto_capa")
+      .eq("status", "active");
+    return (data as CoudelariaVizinhaBruta[] | null) || [];
+  } catch {
+    return [];
+  }
+});
+
+interface CoudelariaVizinhaBruta {
+  slug: string;
+  nome: string;
+  localizacao?: string | null;
+  regiao?: string | null;
+  coordenadas_lat?: number | null;
+  coordenadas_lng?: number | null;
+  foto_capa?: string | null;
+}
 
 const obterAvaliacoes = cache(async (id: string): Promise<Avaliacao[]> => {
   try {
@@ -188,6 +226,18 @@ export default async function PaginaCoudelaria({ params }: { params: Promise<{ s
     galeriaDb: coudelaria.galeria,
   });
 
+  // As três mais próximas, cada uma com a sua capa escolhida pelo mesmo módulo
+  // que escolhe a desta — a fotografia do cartão tem de ser a fotografia que
+  // se vê ao entrar.
+  const vizinhas: Vizinha[] = maisPerto(coudelaria, await obterVizinhas(), 3).map((v) => ({
+    slug: v.slug,
+    nome: v.nome,
+    localizacao: v.localizacao || null,
+    regiao: v.regiao || null,
+    km: v.km,
+    capa: fotosDaCoudelaria({ slug: v.slug, capaDb: v.foto_capa }).capa,
+  }));
+
   const urlPagina = `${siteUrl}/directorio/${slug}`;
   const esquema = dadosEstruturados(coudelaria, {
     urlPagina,
@@ -220,6 +270,7 @@ export default async function PaginaCoudelaria({ params }: { params: Promise<{ s
         avaliacoes={avaliacoes}
         estatisticas={{ total, media }}
         urlPagina={urlPagina}
+        vizinhas={vizinhas}
       />
     </>
   );

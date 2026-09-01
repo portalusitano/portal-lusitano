@@ -54,6 +54,7 @@ const FICHEIROS_CROMADO = [
   "components/directorio/ficha/MapaDaCoudelaria.tsx",
   "components/directorio/ficha/PainelIdentidade.tsx",
   "components/directorio/ficha/Partilhar.tsx",
+  "components/directorio/ficha/Vizinhas.tsx",
 ];
 
 const ATRIBUTOS_DE_TEXTO = new Set([

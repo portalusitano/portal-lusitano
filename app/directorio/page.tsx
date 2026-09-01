@@ -1,4 +1,5 @@
 import { readdirSync } from "node:fs";
+import { lerListaDeTexto } from "@/lib/coudelaria-ficha";
 import { join } from "node:path";
 import type { Metadata } from "next";
 import { supabase } from "@/lib/supabase-admin";
@@ -72,5 +73,23 @@ export default async function DirectorioPage() {
     logger.error("[DirectorioPage] Supabase error:", error);
   }
 
-  return <DirectorioContent coudelarias={data || []} capas={lerCapasEmDisco()} />;
+  /* As colunas de lista normalizam-se aqui, na fronteira, e não onde são
+     desenhadas.
+
+     `especialidades` e `linhagens` são `jsonb`, e nesta base há colunas que
+     guardam uma **string** com JSON lá dentro em vez de um array — a
+     `cavalos_destaque` já matou uma construção em produção por isso. Aqui o
+     acidente seria o mesmo: o cartão faz `(c.especialidades ?? []).filter(…)`
+     e uma string não tem `.filter`. Reproduzido: o `next build` morre a
+     prerenderizar `/directorio` com «filter is not a function».
+
+     O `as` de que estes dados vinham não era uma verificação, era uma
+     promessa — e as promessas sobre dados de fora não se cumprem sozinhas. */
+  const coudelarias = (data ?? []).map((c) => ({
+    ...c,
+    especialidades: lerListaDeTexto((c as { especialidades?: unknown }).especialidades),
+    linhagens: lerListaDeTexto((c as { linhagens?: unknown }).linhagens),
+  }));
+
+  return <DirectorioContent coudelarias={coudelarias} capas={lerCapasEmDisco()} />;
 }

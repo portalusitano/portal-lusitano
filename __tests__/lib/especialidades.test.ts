@@ -96,3 +96,26 @@ describe("temActividade", () => {
     expect(temActividade(["Dressage"], "toureio")).toBe(false);
   });
 });
+
+describe("a forma dos dados, não só o conteúdo", () => {
+  /* A coluna é `jsonb` e há colunas nesta base que guardam uma string com
+     JSON dentro. Com a `cavalos_destaque` isso matou uma construção em
+     produção; aqui o sintoma seria calado — um `for…of` sobre uma string
+     percorre-a carácter a carácter e devolve lista vazia, portanto a
+     coudelaria desaparecia de todos os filtros sem ninguém dar por isso. */
+  it("uma string com JSON dentro vale o que lá está", () => {
+    expect(actividadesDe('["Dressage","Toureio"]')).toEqual(["dressage", "toureio"]);
+    expect(temActividade('["Tauromaquia"]', "toureio")).toBe(true);
+    expect(contarActividades([{ especialidades: '["Dressage"]' }])).toEqual([
+      { valor: "dressage", n: 1 },
+    ]);
+  });
+
+  it("e uma string solta é um valor, não os seus caracteres", () => {
+    /* O defeito era percorrer «Dressage» letra a letra e não encontrar
+       nenhuma actividade. Lida como um valor só, dá o que é evidente. */
+    expect(actividadesDe("Dressage")).toEqual(["dressage"]);
+    expect(actividadesDe("[]")).toEqual([]);
+    expect(actividadesDe("texto que não é nada")).toEqual([]);
+  });
+});

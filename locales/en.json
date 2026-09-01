@@ -545,7 +545,7 @@
       "reclamar_cta": "Complete the listing",
       "onde_fica": "Where it is",
       "ver_mapa": "Show map",
-      "mapa_ajuda": "The map only loads on request — it saves about 1.5 MB for everyone who does not need it.",
+      "mapa_ajuda": "The map loads only if you ask for it.",
       "fotografias": "Photographs",
       "foto_anterior": "Previous photograph",
       "foto_seguinte": "Next photograph",
@@ -569,7 +569,15 @@
       "descricao_cavalos": "horses",
       "avaliacao_enviada": "Review submitted. It will be published after review.",
       "avaliacao_erro": "The review could not be submitted. Please try again.",
-      "avaliacao_erro_rede": "No connection. Check your Internet and try again."
+      "avaliacao_erro_rede": "No connection. Check your Internet and try again.",
+      "vizinhas_titulo": "Nearest stud farms",
+      "vizinhas_nota": "Straight-line distances, from each farm's own coordinates.",
+      "vizinhas_km": "{km} km",
+      "vizinhas_ver_regiao": "See all · {regiao}",
+      "visita_visita": "Visit",
+      "visita_compra": "Purchase",
+      "visita_aulas": "Lessons",
+      "visita_eventos": "Event"
     }
   },
   "eventos": {

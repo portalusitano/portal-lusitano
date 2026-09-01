@@ -45,6 +45,7 @@ import Avaliacoes, { type Avaliacao } from "./Avaliacoes";
 import Galeria from "./Galeria";
 import MapaDaCoudelaria from "./MapaDaCoudelaria";
 import PainelIdentidade from "./PainelIdentidade";
+import Vizinhas, { type Vizinha } from "./Vizinhas";
 
 interface Props {
   coudelaria: CoudelariaFicha;
@@ -53,15 +54,29 @@ interface Props {
   estatisticas: { total: number; media: number };
   /** URL absoluto desta ficha, para a partilha. */
   urlPagina: string;
+  /** As coudelarias mais próximas, já com a distância medida. */
+  vizinhas: Vizinha[];
 }
 
 /**
  * A ficha de uma coudelaria.
  *
  * O que a página tem de fazer é uma coisa só: dar a quem procura um cavalo
- * razões para contactar aquela coudelaria, e o meio de o fazer. Daí a ordem —
- * quem é, onde é, o que faz, e o contacto sempre à mão (na coluna à direita
- * no ecrã grande, numa barra fixa no telemóvel).
+ * razões para contactar aquela coudelaria, e o meio de o fazer.
+ *
+ * **A ordem é a de quem decide**, e é a mesma nos dois tamanhos: quem são →
+ * o que dizem de si → o que fazem → **os factos e como lhes chegar** → as
+ * provas (fotografias, história, cavalos, prémios, testemunhos, avaliações) →
+ * onde fica → e, no fim, para onde ir a seguir.
+ *
+ * No ecrã grande os factos e o contacto vivem numa coluna à direita que
+ * acompanha a leitura. No telemóvel não há coluna à direita — havia uma
+ * pilha, e o contacto ficava a 47% da altura da página, atrás da galeria,
+ * dos cavalos e do bloco inteiro de avaliações. Aqui os dois blocos da
+ * coluna entram pelo meio do conteúdo, cada um no ponto em que alguém os
+ * procura. Quem faz isso é o `display: contents` — abaixo de `lg` os
+ * invólucros não desenham caixa nenhuma, e os quatro blocos passam a ser
+ * irmãos numa coluna de flex, onde uma ordem os arruma.
  *
  * Três regras que valem para tudo o que está aqui:
  *
@@ -69,9 +84,9 @@ interface Props {
  *    «Verificada» que aparecia em todas as fichas sem que ninguém verifique
  *    coisa nenhuma, e saiu a galeria de fotografias de stock do Unsplash que
  *    entrava quando a coudelaria não tinha fotografias suas.
- * 2. **Sem fotografia a página continua a ser uma página.** Quase nenhuma
- *    coudelaria tem capa; nesse caso a capa é composta com os dados — a ficha
- *    técnica em HTML, a receita dos previews — em vez de 65vh de preto.
+ * 2. **Sem fotografia a página continua a ser uma página.** Uma das vinte e
+ *    nove não tem capa; nesse caso o cabeçalho é composto com os dados — a
+ *    ficha técnica em HTML, a receita dos previews — em vez de 65vh de preto.
  * 3. **Todo o texto passa pelo dicionário**, nas três línguas.
  */
 export default function FichaCoudelaria({
@@ -80,6 +95,7 @@ export default function FichaCoudelaria({
   avaliacoes,
   estatisticas,
   urlPagina,
+  vizinhas,
 }: Props) {
   const { t, language } = useLanguage();
   const f = t.directorio.ficha;
@@ -127,6 +143,19 @@ export default function FichaCoudelaria({
   // Sem capa, o painel de identidade é o que preenche o cabeçalho; com capa,
   // vive na coluna da direita. Nunca nos dois sítios ao mesmo tempo.
   const painelNaCapa = !fotos.capa && haPainel;
+
+  /* Os cavalos em destaque chegam em duas qualidades muito diferentes: uns
+     trazem ano, pelagem, aptidão e preço; outros são só um nome — é o que
+     acontece nas linhas em que a coluna guardava texto corrido em vez de
+     objectos. Desenhados todos como cartões, os segundos ficavam caixas de
+     64px com uma palavra ao canto, lado a lado, a ler-se como campos de um
+     formulário por preencher. Um nome sozinho é um nome, e nomes arrumam-se
+     numa fila; só quem tem dados ganha um cartão. */
+  const cavalos = coudelaria.cavalos_destaque || [];
+  const temFicha = (c: (typeof cavalos)[number]) =>
+    Boolean(c.ano || c.pelagem || c.aptidao || c.preco || c.vendido);
+  const cavalosComFicha = cavalos.filter(temFicha);
+  const cavalosSoNome = cavalos.filter((c) => !temFicha(c));
 
   const locale = language === "en" ? "en-GB" : language === "es" ? "es-ES" : "pt-PT";
   const moeda = (valor: number) =>
@@ -224,310 +253,88 @@ export default function FichaCoudelaria({
           />
         </div>
 
-        <div className="mt-6 grid gap-10 lg:grid-cols-3 lg:gap-12">
-          {/* ── Coluna principal ── */}
-          <div className="min-w-0 space-y-10 lg:col-span-2 sm:space-y-12">
-            <Revelar>
-              <p className="max-w-prose text-base leading-relaxed text-[var(--foreground-secondary)] sm:text-lg">
-                {descricao}
-              </p>
-            </Revelar>
-
-            {coudelaria.especialidades?.length ? (
-              <Revelar atraso={60}>
-                <section aria-labelledby="t-especialidades">
-                  <Titulo id="t-especialidades">{t.directorio.specialties}</Titulo>
-                  <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
-                    {coudelaria.especialidades.map((especialidade) => (
-                      <li
-                        key={especialidade}
-                        className="rounded-full border border-[var(--border-soft)] bg-[var(--elevate-1)] px-3 py-1.5 text-xs text-[var(--foreground)]"
-                      >
-                        {especialidade}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
+        {/* No telemóvel isto é uma coluna de flex com quatro blocos por
+            ordem; a partir de `lg` são duas colunas verdadeiras, e os
+            invólucros com `contents` voltam a ser caixas. */}
+        <div className="mt-6 flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-12">
+          {/* ── Conteúdo, partido em dois para o contacto entrar pelo meio ── */}
+          <div className="contents lg:flex lg:min-w-0 lg:flex-1 lg:flex-col lg:gap-12">
+            {/* Abertura: o que dizem de si e o que fazem. */}
+            <div className="order-1 space-y-10 lg:order-none">
+              <Revelar>
+                <p className="max-w-prose text-base leading-relaxed text-[var(--foreground-secondary)] sm:text-lg">
+                  {descricao}
+                </p>
               </Revelar>
-            ) : null}
 
-            {historia.length > 0 && (
-              <Revelar atraso={60}>
-                <section aria-labelledby="t-historia">
-                  <Titulo id="t-historia">{t.directorio.history}</Titulo>
-                  <div className="max-w-prose space-y-3">
-                    {historia.map((paragrafo, i) => (
-                      <p key={i} className="leading-relaxed text-[var(--foreground-secondary)]">
-                        {paragrafo}
-                      </p>
-                    ))}
-                  </div>
-                </section>
-              </Revelar>
-            )}
+              {coudelaria.especialidades?.length ? (
+                <Revelar atraso={60}>
+                  <section aria-labelledby="t-especialidades">
+                    <Titulo id="t-especialidades">{t.directorio.specialties}</Titulo>
+                    <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
+                      {coudelaria.especialidades.map((especialidade) => (
+                        <li
+                          key={especialidade}
+                          className="rounded-full border border-[var(--border-soft)] bg-[var(--elevate-1)] px-3 py-1.5 text-xs text-[var(--foreground)]"
+                        >
+                          {especialidade}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                </Revelar>
+              ) : null}
+            </div>
 
-            {fotos.galeria.length > 0 && (
-              <Revelar atraso={60}>
-                <section aria-labelledby="t-fotografias">
-                  <Titulo id="t-fotografias">{f.fotografias}</Titulo>
-                  <Galeria fotos={fotos.galeria} nome={coudelaria.nome} />
-                </section>
-              </Revelar>
-            )}
-
-            {coudelaria.premios?.length ? (
-              <Revelar atraso={60}>
-                <section aria-labelledby="t-premios">
-                  <Titulo id="t-premios">{t.directorio.awards}</Titulo>
-                  <ul className="m-0 list-none space-y-2 p-0">
-                    {coudelaria.premios.map((premio) => (
-                      <li
-                        key={premio}
-                        className="flex items-start gap-3 rounded-[var(--raio)] border border-[var(--border-soft)] bg-[var(--background-card)] p-3.5"
-                      >
-                        <Award
-                          size={16}
-                          className="mt-0.5 flex-shrink-0 text-[var(--foreground-muted)]"
-                          aria-hidden="true"
-                        />
-                        <span className="text-sm leading-relaxed text-[var(--foreground-secondary)]">
-                          {premio}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              </Revelar>
-            ) : null}
-
-            {coudelaria.cavalos_destaque?.length ? (
-              <Revelar atraso={60}>
-                <section aria-labelledby="t-cavalos">
-                  <Titulo id="t-cavalos">{t.directorio.featured_horses}</Titulo>
-                  <ul className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2">
-                    {coudelaria.cavalos_destaque.map((cavalo) => (
-                      <li
-                        key={cavalo.nome}
-                        className={`rounded-[var(--raio)] border border-[var(--border-soft)] bg-[var(--background-card)] p-4 ${
-                          cavalo.vendido ? "opacity-60" : ""
-                        }`}
-                      >
-                        <div className="mb-2 flex items-start justify-between gap-2">
-                          <h3 className="titulo-seccao min-w-0 truncate">{cavalo.nome}</h3>
-                          {cavalo.vendido && (
-                            <span className="selo selo-neutro flex-shrink-0">
-                              {t.directorio.sold}
-                            </span>
-                          )}
-                        </div>
-                        <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-                          {cavalo.ano ? (
-                            <DadoCavalo rotulo={f.ano} valor={String(cavalo.ano)} numerico />
-                          ) : null}
-                          {cavalo.pelagem ? (
-                            <DadoCavalo rotulo={f.pelagem} valor={cavalo.pelagem} />
-                          ) : null}
-                          {cavalo.aptidao ? (
-                            <DadoCavalo rotulo={f.aptidao} valor={cavalo.aptidao} largo />
-                          ) : null}
-                        </dl>
-                        {cavalo.preco && !cavalo.vendido ? (
-                          <p className="mt-3 font-mono text-base tabular-nums text-[var(--foreground-strong)]">
-                            {moeda(cavalo.preco)}
-                          </p>
-                        ) : null}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              </Revelar>
-            ) : null}
-
-            {coudelaria.testemunhos?.length ? (
-              <Revelar atraso={60}>
-                <section aria-labelledby="t-testemunhos">
-                  <Titulo id="t-testemunhos">{t.directorio.testimonials}</Titulo>
-                  <ul className="m-0 list-none space-y-3 p-0">
-                    {coudelaria.testemunhos.map((testemunho) => (
-                      <li key={`${testemunho.autor}-${testemunho.data ?? ""}`}>
-                        <blockquote className="rounded-[var(--raio)] border border-[var(--border-soft)] bg-[var(--background-card)] p-4 sm:p-5">
-                          <Quote
-                            size={16}
-                            className="mb-2 text-[var(--foreground-muted)]"
-                            aria-hidden="true"
-                          />
-                          <p className="leading-relaxed text-[var(--foreground-secondary)]">
-                            {testemunho.texto}
-                          </p>
-                          <footer className="mt-3 flex flex-wrap items-baseline justify-between gap-2">
-                            <cite className="text-sm not-italic text-[var(--foreground-strong)]">
-                              {testemunho.autor}
-                            </cite>
-                            {testemunho.data && <span className="meta">{testemunho.data}</span>}
-                          </footer>
-                        </blockquote>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              </Revelar>
-            ) : null}
-
-            <Revelar atraso={60}>
-              <Avaliacoes
-                coudelariaId={coudelaria.id}
-                nome={coudelaria.nome}
-                avaliacoesIniciais={avaliacoes}
-                estatisticasIniciais={estatisticas}
-              />
-            </Revelar>
-          </div>
-
-          {/* ── Coluna do contacto ── */}
-          <aside className="min-w-0 lg:col-span-1" aria-label={f.contactar}>
-            <div className="space-y-4 lg:sticky lg:top-28">
-              {!painelNaCapa && haPainel && (
-                <Revelar direccao="left">
-                  <PainelIdentidade
-                    titulo={f.identidade}
-                    etiqueta={coudelaria.regiao || undefined}
-                    linhas={linhas}
-                  />
+            {/* Provas: o que sustenta o que a abertura diz. */}
+            <div className="order-3 space-y-10 lg:order-none sm:space-y-12">
+              {/* As fotografias sobem à frente da história de propósito: é o
+                  que se vê que faz alguém ler o que está escrito, e não o
+                  contrário. Com história e sem esta troca, quem chega ao
+                  telemóvel apanha até quatro parágrafos antes da primeira
+                  fotografia da coudelaria. */}
+              {fotos.galeria.length > 0 && (
+                <Revelar atraso={60}>
+                  <section aria-labelledby="t-fotografias">
+                    <Titulo id="t-fotografias">{f.fotografias}</Titulo>
+                    <Galeria fotos={fotos.galeria} nome={coudelaria.nome} />
+                  </section>
                 </Revelar>
               )}
 
-              <Revelar direccao="left" atraso={60}>
-                <section className="cartao p-4 sm:p-5" aria-labelledby="t-contacto" id="contacto">
-                  <h2 id="t-contacto" className="titulo-seccao mb-4">
-                    {t.directorio.contact_info}
-                  </h2>
-
-                  {temContactoDirecto ? (
-                    <div className="space-y-2">
-                      {telefone && (
-                        <a href={telefone} className="btn btn-primario w-full justify-start">
-                          <Phone size={15} aria-hidden="true" />
-                          <span className="truncate font-mono tabular-nums">
-                            {telefoneLegivel(coudelaria.telefone)}
-                          </span>
-                        </a>
-                      )}
-                      {email && (
-                        <a
-                          href={email}
-                          className={`btn w-full justify-start ${telefone ? "btn-secundario" : "btn-primario"}`}
-                        >
-                          <Mail size={15} aria-hidden="true" />
-                          <span className="min-w-0 truncate">{coudelaria.email}</span>
-                        </a>
-                      )}
-                      {website && (
-                        <a
-                          href={website}
-                          target="_blank"
-                          rel="noopener noreferrer nofollow"
-                          className={`btn w-full justify-start ${telefone || email ? "btn-secundario" : "btn-primario"}`}
-                        >
-                          <Globe size={15} aria-hidden="true" />
-                          <span className="min-w-0 truncate">{dominioLegivel(website)}</span>
-                          <ExternalLink size={12} aria-hidden="true" className="flex-shrink-0" />
-                        </a>
-                      )}
+              {historia.length > 0 && (
+                <Revelar atraso={60}>
+                  <section aria-labelledby="t-historia">
+                    <Titulo id="t-historia">{t.directorio.history}</Titulo>
+                    <div className="max-w-prose space-y-3">
+                      {historia.map((paragrafo, i) => (
+                        <p key={i} className="leading-relaxed text-[var(--foreground-secondary)]">
+                          {paragrafo}
+                        </p>
+                      ))}
                     </div>
-                  ) : (
-                    <div className="rounded-[var(--raio)] border border-dashed border-[var(--border-soft)] p-3.5">
-                      <p className="rotulo-forte mb-1">{f.sem_contactos_titulo}</p>
-                      <p className="meta">{f.sem_contactos_texto}</p>
-                    </div>
-                  )}
+                  </section>
+                </Revelar>
+              )}
 
-                  {/* Sem «Como chegar» aqui: ele vive no cartão «Onde fica»,
-                      logo a seguir, e repetido em dois cartões encostados
-                      lia-se como um erro. Quando não há contactos, o que este
-                      cartão tem para dizer é justamente que não há. */}
-                  {video && (
-                    <a
-                      href={video}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-subtil mt-2 w-full justify-start"
-                    >
-                      <Play size={15} aria-hidden="true" />
-                      {f.ver_video}
-                      <ExternalLink size={12} aria-hidden="true" className="flex-shrink-0" />
-                    </a>
-                  )}
-
-                  {(instagram || facebook || youtube) && (
-                    <ul className="m-0 mt-4 flex list-none gap-2 border-t border-[var(--border-soft)] p-0 pt-4">
-                      {instagram && (
-                        <li>
-                          <a
-                            href={instagram.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label={`Instagram ${instagram.etiqueta}`}
-                            className="flex h-11 w-11 items-center justify-center rounded-[var(--raio-sm)] border border-[var(--border-soft)] text-[var(--foreground-secondary)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground-strong)]"
-                          >
-                            <Instagram size={16} aria-hidden="true" />
-                          </a>
-                        </li>
-                      )}
-                      {facebook && (
-                        <li>
-                          <a
-                            href={facebook}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label="Facebook"
-                            className="flex h-11 w-11 items-center justify-center rounded-[var(--raio-sm)] border border-[var(--border-soft)] text-[var(--foreground-secondary)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground-strong)]"
-                          >
-                            <Facebook size={16} aria-hidden="true" />
-                          </a>
-                        </li>
-                      )}
-                      {youtube && (
-                        <li>
-                          <a
-                            href={youtube}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label="YouTube"
-                            className="flex h-11 w-11 items-center justify-center rounded-[var(--raio-sm)] border border-[var(--border-soft)] text-[var(--foreground-secondary)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground-strong)]"
-                          >
-                            <Youtube size={16} aria-hidden="true" />
-                          </a>
-                        </li>
-                      )}
-                    </ul>
-                  )}
-
-                  {coudelaria.horario && (
-                    <div className="mt-4 border-t border-[var(--border-soft)] pt-4">
-                      <p className="rotulo mb-1 flex items-center gap-1.5">
-                        <Clock size={13} aria-hidden="true" />
-                        {t.directorio.schedule}
-                      </p>
-                      <p className="meta leading-relaxed">{coudelaria.horario}</p>
-                    </div>
-                  )}
-                </section>
-              </Revelar>
-
-              {coudelaria.servicos?.length ? (
-                <Revelar direccao="left" atraso={60}>
-                  <section className="cartao p-4 sm:p-5" aria-labelledby="t-servicos">
-                    <h2 id="t-servicos" className="titulo-seccao mb-3">
-                      {t.directorio.services}
-                    </h2>
+              {coudelaria.premios?.length ? (
+                <Revelar atraso={60}>
+                  <section aria-labelledby="t-premios">
+                    <Titulo id="t-premios">{t.directorio.awards}</Titulo>
                     <ul className="m-0 list-none space-y-2 p-0">
-                      {coudelaria.servicos.map((servico) => (
+                      {coudelaria.premios.map((premio) => (
                         <li
-                          key={servico}
-                          className="flex items-center gap-2.5 text-sm text-[var(--foreground-secondary)]"
+                          key={premio}
+                          className="flex items-start gap-3 rounded-[var(--raio)] border border-[var(--border-soft)] bg-[var(--background-card)] p-3.5"
                         >
-                          <span className="ponto bg-[var(--foreground-muted)]" aria-hidden="true" />
-                          {servico}
+                          <Award
+                            size={16}
+                            className="mt-0.5 flex-shrink-0 text-[var(--foreground-muted)]"
+                            aria-hidden="true"
+                          />
+                          <span className="text-sm leading-relaxed text-[var(--foreground-secondary)]">
+                            {premio}
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -535,31 +342,333 @@ export default function FichaCoudelaria({
                 </Revelar>
               ) : null}
 
-              {direccoes && (
-                <Revelar direccao="left" atraso={60}>
-                  <MapaDaCoudelaria
-                    coudelaria={coudelaria}
-                    capa={fotos.capa}
-                    direccoes={direccoes}
-                    sitio={sitio}
-                  />
+              {cavalos.length > 0 && (
+                <Revelar atraso={60}>
+                  <section aria-labelledby="t-cavalos">
+                    <Titulo id="t-cavalos">{t.directorio.featured_horses}</Titulo>
+                    {cavalosComFicha.length > 0 && (
+                      <ul className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2">
+                        {cavalosComFicha.map((cavalo) => (
+                          /* O cartão do cavalo vendido levava `opacity-60`.
+                             Medido no browser: o valor de cada campo caía de
+                             7,89:1 para 3,33:1 — abaixo do mínimo de 4,5:1 —
+                             e o rótulo de 3,45:1 para 1,87:1. E não era
+                             preciso: quem diz que está vendido é o
+                             distintivo, e a falta do preço confirma-o. Um
+                             cavalo vendido continua a ser prova do que aquela
+                             coudelaria produz, e uma prova não se lê a meia
+                             luz. */
+                          <li
+                            key={cavalo.nome}
+                            className="rounded-[var(--raio)] border border-[var(--border-soft)] bg-[var(--background-card)] p-4"
+                          >
+                            <div className="mb-2 flex items-start justify-between gap-2">
+                              <h3 className="titulo-seccao min-w-0 truncate">{cavalo.nome}</h3>
+                              {cavalo.vendido && (
+                                <span className="selo selo-neutro flex-shrink-0">
+                                  {t.directorio.sold}
+                                </span>
+                              )}
+                            </div>
+                            <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                              {cavalo.ano ? (
+                                <DadoCavalo rotulo={f.ano} valor={String(cavalo.ano)} numerico />
+                              ) : null}
+                              {cavalo.pelagem ? (
+                                <DadoCavalo rotulo={f.pelagem} valor={cavalo.pelagem} />
+                              ) : null}
+                              {cavalo.aptidao ? (
+                                <DadoCavalo rotulo={f.aptidao} valor={cavalo.aptidao} largo />
+                              ) : null}
+                            </dl>
+                            {cavalo.preco && !cavalo.vendido ? (
+                              <p className="mt-3 font-mono text-base tabular-nums text-[var(--foreground-strong)]">
+                                {moeda(cavalo.preco)}
+                              </p>
+                            ) : null}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {cavalosSoNome.length > 0 && (
+                      <ul
+                        className={`m-0 flex list-none flex-wrap gap-2 p-0 ${
+                          cavalosComFicha.length > 0 ? "mt-3" : ""
+                        }`}
+                      >
+                        {cavalosSoNome.map((cavalo) => (
+                          <li
+                            key={cavalo.nome}
+                            className="rounded-full border border-[var(--border-soft)] bg-[var(--elevate-1)] px-3 py-1.5 text-xs text-[var(--foreground)]"
+                          >
+                            {cavalo.nome}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </section>
                 </Revelar>
               )}
 
-              <Revelar direccao="left" atraso={60}>
-                <section className="cartao p-4 sm:p-5" aria-labelledby="t-reclamar">
-                  <h2 id="t-reclamar" className="titulo-seccao mb-2">
-                    {f.reclamar_titulo}
-                  </h2>
-                  <p className="meta mb-4 leading-relaxed">{f.reclamar_texto}</p>
-                  <LocalizedLink href="/directorio/registar" className="btn btn-secundario w-full">
-                    {f.reclamar_cta}
-                  </LocalizedLink>
-                </section>
+              {coudelaria.testemunhos?.length ? (
+                <Revelar atraso={60}>
+                  <section aria-labelledby="t-testemunhos">
+                    <Titulo id="t-testemunhos">{t.directorio.testimonials}</Titulo>
+                    <ul className="m-0 list-none space-y-3 p-0">
+                      {coudelaria.testemunhos.map((testemunho) => (
+                        <li key={`${testemunho.autor}-${testemunho.data ?? ""}`}>
+                          <blockquote className="rounded-[var(--raio)] border border-[var(--border-soft)] bg-[var(--background-card)] p-4 sm:p-5">
+                            <Quote
+                              size={16}
+                              className="mb-2 text-[var(--foreground-muted)]"
+                              aria-hidden="true"
+                            />
+                            <p className="leading-relaxed text-[var(--foreground-secondary)]">
+                              {testemunho.texto}
+                            </p>
+                            <footer className="mt-3 flex flex-wrap items-baseline justify-between gap-2">
+                              <cite className="text-sm not-italic text-[var(--foreground-strong)]">
+                                {testemunho.autor}
+                              </cite>
+                              {testemunho.data && <span className="meta">{testemunho.data}</span>}
+                            </footer>
+                          </blockquote>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                </Revelar>
+              ) : null}
+
+              <Revelar atraso={60}>
+                <Avaliacoes
+                  coudelariaId={coudelaria.id}
+                  nome={coudelaria.nome}
+                  avaliacoesIniciais={avaliacoes}
+                  estatisticasIniciais={estatisticas}
+                />
               </Revelar>
             </div>
-          </aside>
+          </div>
+
+          {/* ── Coluna do contacto ──
+              Nem `<aside>` nem `aria-label`: abaixo de `lg` esta coluna não
+              existe como coluna — as duas metades entram no meio do conteúdo,
+              e um marco de navegação que só é verdade a partir dos 1024px
+              seria uma mentira nos outros tamanhos. Cada cartão aqui dentro
+              já tem o seu `<h2>` e o seu `aria-labelledby`, que é o que um
+              leitor de ecrã usa para saltar para «Informações de contacto». */}
+          <div className="contents lg:block lg:w-[21rem] lg:flex-none lg:self-stretch">
+            <div className="contents lg:block lg:sticky lg:top-28">
+              {/* Primeira metade: os factos e como chegar a quem os tem. */}
+              <div className="order-2 space-y-4 lg:order-none">
+                {!painelNaCapa && haPainel && (
+                  <Revelar direccao="left">
+                    <PainelIdentidade
+                      titulo={f.identidade}
+                      etiqueta={coudelaria.regiao || undefined}
+                      linhas={linhas}
+                    />
+                  </Revelar>
+                )}
+
+                <Revelar direccao="left" atraso={60}>
+                  <section className="cartao p-4 sm:p-5" aria-labelledby="t-contacto" id="contacto">
+                    <h2 id="t-contacto" className="titulo-seccao mb-4">
+                      {t.directorio.contact_info}
+                    </h2>
+
+                    {temContactoDirecto ? (
+                      <div className="space-y-2">
+                        {telefone && (
+                          <a href={telefone} className="btn btn-primario w-full justify-start">
+                            <Phone size={15} aria-hidden="true" />
+                            <span className="truncate font-mono tabular-nums">
+                              {telefoneLegivel(coudelaria.telefone)}
+                            </span>
+                          </a>
+                        )}
+                        {email && (
+                          <a
+                            href={email}
+                            className={`btn w-full justify-start ${telefone ? "btn-secundario" : "btn-primario"}`}
+                          >
+                            <Mail size={15} aria-hidden="true" />
+                            <span className="min-w-0 truncate">{coudelaria.email}</span>
+                          </a>
+                        )}
+                        {website && (
+                          <a
+                            href={website}
+                            target="_blank"
+                            rel="noopener noreferrer nofollow"
+                            className={`btn w-full justify-start ${telefone || email ? "btn-secundario" : "btn-primario"}`}
+                          >
+                            <Globe size={15} aria-hidden="true" />
+                            <span className="min-w-0 truncate">{dominioLegivel(website)}</span>
+                            <ExternalLink size={12} aria-hidden="true" className="flex-shrink-0" />
+                          </a>
+                        )}
+                      </div>
+                    ) : (
+                      /* Sem contactos, este cartão dizia que não havia
+                         contactos e ficava por aí — no melhor lugar da
+                         página, com a única acção capaz de mudar isso a
+                         quatro cartões de distância, lá em baixo. Passa a
+                         trazê-la consigo: a explicação e o que fazer com ela
+                         no mesmo sítio. Quando há contactos, o pedido volta
+                         para o fim da coluna, que é onde o dono da coudelaria
+                         o encontra depois de ver a ficha e não onde tira o
+                         lugar ao telefone. */
+                      <div className="rounded-[var(--raio)] border border-dashed border-[var(--border-soft)] p-3.5">
+                        <p className="rotulo-forte mb-1">{f.sem_contactos_titulo}</p>
+                        <p className="meta mb-3">{f.sem_contactos_texto}</p>
+                        <LocalizedLink
+                          href="/directorio/registar"
+                          className="btn btn-secundario btn-sm w-full"
+                        >
+                          {f.reclamar_cta}
+                        </LocalizedLink>
+                      </div>
+                    )}
+
+                    {/* Sem «Como chegar» aqui: ele vive no cartão «Onde fica»,
+                      logo a seguir, e repetido em dois cartões encostados
+                      lia-se como um erro. Quando não há contactos, o que este
+                      cartão tem para dizer é justamente que não há. */}
+                    {video && (
+                      <a
+                        href={video}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-subtil mt-2 w-full justify-start"
+                      >
+                        <Play size={15} aria-hidden="true" />
+                        {f.ver_video}
+                        <ExternalLink size={12} aria-hidden="true" className="flex-shrink-0" />
+                      </a>
+                    )}
+
+                    {(instagram || facebook || youtube) && (
+                      <ul className="m-0 mt-4 flex list-none gap-2 border-t border-[var(--border-soft)] p-0 pt-4">
+                        {instagram && (
+                          <li>
+                            <a
+                              href={instagram.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label={`Instagram ${instagram.etiqueta}`}
+                              className="flex h-11 w-11 items-center justify-center rounded-[var(--raio-sm)] border border-[var(--border-soft)] text-[var(--foreground-secondary)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground-strong)]"
+                            >
+                              <Instagram size={16} aria-hidden="true" />
+                            </a>
+                          </li>
+                        )}
+                        {facebook && (
+                          <li>
+                            <a
+                              href={facebook}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label="Facebook"
+                              className="flex h-11 w-11 items-center justify-center rounded-[var(--raio-sm)] border border-[var(--border-soft)] text-[var(--foreground-secondary)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground-strong)]"
+                            >
+                              <Facebook size={16} aria-hidden="true" />
+                            </a>
+                          </li>
+                        )}
+                        {youtube && (
+                          <li>
+                            <a
+                              href={youtube}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label="YouTube"
+                              className="flex h-11 w-11 items-center justify-center rounded-[var(--raio-sm)] border border-[var(--border-soft)] text-[var(--foreground-secondary)] transition-colors hover:border-[var(--border)] hover:text-[var(--foreground-strong)]"
+                            >
+                              <Youtube size={16} aria-hidden="true" />
+                            </a>
+                          </li>
+                        )}
+                      </ul>
+                    )}
+
+                    {coudelaria.horario && (
+                      <div className="mt-4 border-t border-[var(--border-soft)] pt-4">
+                        <p className="rotulo mb-1 flex items-center gap-1.5">
+                          <Clock size={13} aria-hidden="true" />
+                          {t.directorio.schedule}
+                        </p>
+                        <p className="meta leading-relaxed">{coudelaria.horario}</p>
+                      </div>
+                    )}
+                  </section>
+                </Revelar>
+              </div>
+
+              {/* Segunda metade: o que se lê depois de decidir que vale a pena.
+                  No telemóvel entra a seguir às avaliações; o «Como chegar»
+                  que alguém possa querer antes disso está na barra fixa. */}
+              <div className="order-4 space-y-4 lg:order-none lg:mt-4">
+                {coudelaria.servicos?.length ? (
+                  <Revelar direccao="left" atraso={60}>
+                    <section className="cartao p-4 sm:p-5" aria-labelledby="t-servicos">
+                      <h2 id="t-servicos" className="titulo-seccao mb-3">
+                        {t.directorio.services}
+                      </h2>
+                      <ul className="m-0 list-none space-y-2 p-0">
+                        {coudelaria.servicos.map((servico) => (
+                          <li
+                            key={servico}
+                            className="flex items-center gap-2.5 text-sm text-[var(--foreground-secondary)]"
+                          >
+                            <span
+                              className="ponto bg-[var(--foreground-muted)]"
+                              aria-hidden="true"
+                            />
+                            {servico}
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  </Revelar>
+                ) : null}
+
+                {direccoes && (
+                  <Revelar direccao="left" atraso={60}>
+                    <MapaDaCoudelaria
+                      coudelaria={coudelaria}
+                      capa={fotos.capa}
+                      direccoes={direccoes}
+                      sitio={sitio}
+                    />
+                  </Revelar>
+                )}
+
+                {/* Só quando o cartão do contacto não o traz já: o mesmo
+                    botão duas vezes na mesma coluna lê-se como um erro. */}
+                {temContactoDirecto && (
+                  <Revelar direccao="left" atraso={60}>
+                    <section className="cartao p-4 sm:p-5" aria-labelledby="t-reclamar">
+                      <h2 id="t-reclamar" className="titulo-seccao mb-2">
+                        {f.reclamar_titulo}
+                      </h2>
+                      <p className="meta mb-4 leading-relaxed">{f.reclamar_texto}</p>
+                      <LocalizedLink
+                        href="/directorio/registar"
+                        className="btn btn-secundario w-full"
+                      >
+                        {f.reclamar_cta}
+                      </LocalizedLink>
+                    </section>
+                  </Revelar>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
+
+        <Vizinhas vizinhas={vizinhas} regiao={coudelaria.regiao || undefined} />
       </div>
 
       {/* ── Barra de contacto no telemóvel ─────────────────────────────────── */}

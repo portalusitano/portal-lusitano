@@ -3,11 +3,17 @@ import {
   contaInstagram,
   dadosEstruturados,
   descricaoFactual,
+  distanciaKm,
   dominioLegivel,
   fichaTecnica,
   hrefDireccoes,
   hrefEmail,
   hrefTelefone,
+  kmLegivel,
+  lerListaDeTexto,
+  lerTestemunhos,
+  maisPerto,
+  normalizarCoudelaria,
   painelValeAPena,
   paragrafos,
   resumoParaMeta,
@@ -288,5 +294,169 @@ describe("dadosEstruturados", () => {
       { urlPagina: url, descricao: "x" }
     );
     expect(esquema.geo).toMatchObject({ latitude: 39.19, longitude: -7.66 });
+  });
+});
+
+/* ─── A fronteira ─────────────────────────────────────────────────────────────
+ *
+ * O defeito que matou a construção em produção não era da coluna
+ * `cavalos_destaque`: era da forma. Todas as colunas de lista desta linha são
+ * `jsonb` lidas com `.length ? … .map(…)`, e uma string tem `length`. Estes
+ * testes são sobre a forma, e por isso valem para as oito colunas de uma vez.
+ */
+describe("lerListaDeTexto", () => {
+  it("aceita o array, que é a forma boa", () => {
+    expect(lerListaDeTexto(["Dressage", "Toureio"])).toEqual(["Dressage", "Toureio"]);
+    expect(lerListaDeTexto([])).toEqual([]);
+  });
+
+  it("desembrulha a string com JSON dentro — a forma que partiu a construção", () => {
+    expect(lerListaDeTexto('["Dressage","Alta Escola"]')).toEqual(["Dressage", "Alta Escola"]);
+  });
+
+  it("uma string que não é JSON é um elemento, não um erro", () => {
+    expect(lerListaDeTexto("Dressage")).toEqual(["Dressage"]);
+  });
+
+  it("nulo, vazio e lixo dão lista vazia", () => {
+    expect(lerListaDeTexto(null)).toEqual([]);
+    expect(lerListaDeTexto(undefined)).toEqual([]);
+    expect(lerListaDeTexto("")).toEqual([]);
+    expect(lerListaDeTexto("   ")).toEqual([]);
+    expect(lerListaDeTexto(42)).toEqual([]);
+    expect(lerListaDeTexto({ a: 1 })).toEqual([]);
+  });
+
+  it("deita fora o que não é texto, o que é espaço e o que se repete", () => {
+    expect(lerListaDeTexto([" Dressage ", "", 7, null, "Dressage", "Toureio"])).toEqual([
+      "Dressage",
+      "Toureio",
+    ]);
+  });
+});
+
+describe("lerTestemunhos", () => {
+  it("aceita o array de objectos e a string com JSON dentro", () => {
+    const um = [{ autor: "Ana", texto: "Óptimo", data: "2024" }];
+    expect(lerTestemunhos(um)).toEqual(um);
+    expect(lerTestemunhos(JSON.stringify(um))).toEqual(um);
+  });
+
+  it("sem autor ou sem texto não há citação", () => {
+    expect(
+      lerTestemunhos([{ autor: "Ana" }, { texto: "Óptimo" }, { autor: " ", texto: "x" }, null, 3])
+    ).toEqual([]);
+  });
+
+  it("a data só entra quando existe", () => {
+    expect(lerTestemunhos([{ autor: "Ana", texto: "Bom", data: "  " }])).toEqual([
+      { autor: "Ana", texto: "Bom" },
+    ]);
+  });
+});
+
+describe("normalizarCoudelaria", () => {
+  it("põe as oito colunas de lista na forma prometida, venham como vierem", () => {
+    const normalizada = normalizarCoudelaria({
+      id: "1",
+      nome: "X",
+      slug: "x",
+      especialidades: '["Dressage"]',
+      linhagens: "Veiga",
+      premios: null,
+      servicos: ["Desbaste"],
+      tags: '"nao e um array"',
+      galeria: '["/a.jpg"]',
+      cavalos_destaque: '[{"nome":"Firme"}]',
+      testemunhos: '[{"autor":"Ana","texto":"Bom"}]',
+    });
+    expect(normalizada.especialidades).toEqual(["Dressage"]);
+    expect(normalizada.linhagens).toEqual(["Veiga"]);
+    expect(normalizada.premios).toEqual([]);
+    expect(normalizada.servicos).toEqual(["Desbaste"]);
+    expect(normalizada.tags).toEqual([]);
+    expect(normalizada.galeria).toEqual(["/a.jpg"]);
+    expect(normalizada.cavalos_destaque).toEqual([{ nome: "Firme" }]);
+    expect(normalizada.testemunhos).toEqual([{ autor: "Ana", texto: "Bom" }]);
+  });
+
+  it("depois dela, `.map` nunca rebenta em nenhuma das oito", () => {
+    const nada = normalizarCoudelaria({ id: "1", nome: "X", slug: "x" });
+    for (const lista of [
+      nada.especialidades,
+      nada.linhagens,
+      nada.premios,
+      nada.servicos,
+      nada.tags,
+      nada.galeria,
+      nada.cavalos_destaque,
+      nada.testemunhos,
+    ]) {
+      expect(Array.isArray(lista)).toBe(true);
+    }
+  });
+});
+
+// ─── Vizinhança ──────────────────────────────────────────────────────────────
+
+describe("distanciaKm", () => {
+  it("mede o que se sabe medir", () => {
+    // Alter do Chão → Golegã: ~72 km em linha recta.
+    const km = distanciaKm({ lat: 39.1994, lng: -7.6614 }, { lat: 39.4028, lng: -8.4839 });
+    expect(km).toBeGreaterThan(65);
+    expect(km).toBeLessThan(80);
+  });
+
+  it("o mesmo ponto dá zero e a ordem não conta", () => {
+    const a = { lat: 38.7, lng: -9.1 };
+    const b = { lat: 39.4, lng: -8.4 };
+    expect(distanciaKm(a, a)).toBe(0);
+    expect(distanciaKm(a, b)).toBeCloseTo(distanciaKm(b, a)!, 9);
+  });
+
+  it("sem coordenadas devolve nada, e não zero — zero seria dizer «aqui ao lado»", () => {
+    expect(distanciaKm({ lat: 1, lng: 1 }, { lat: null, lng: 2 })).toBeNull();
+    expect(distanciaKm({}, {})).toBeNull();
+    expect(distanciaKm({ lat: NaN, lng: 1 }, { lat: 2, lng: 2 })).toBeNull();
+  });
+});
+
+describe("maisPerto", () => {
+  const lista = [
+    { slug: "aqui", nome: "Aqui", coordenadas_lat: 39.0, coordenadas_lng: -8.0 },
+    { slug: "perto", nome: "Perto", coordenadas_lat: 39.05, coordenadas_lng: -8.0 },
+    { slug: "medio", nome: "Médio", coordenadas_lat: 39.5, coordenadas_lng: -8.0 },
+    { slug: "longe", nome: "Longe", coordenadas_lat: 41.0, coordenadas_lng: -8.0 },
+    { slug: "sem-sitio", nome: "Sem sítio" },
+  ];
+  const origem = { slug: "aqui", coordenadas_lat: 39.0, coordenadas_lng: -8.0 };
+
+  it("ordena pela distância e não se devolve a si própria", () => {
+    expect(maisPerto(origem, lista).map((c) => c.slug)).toEqual(["perto", "medio", "longe"]);
+  });
+
+  it("quem não tem coordenadas fica de fora — «—» seria uma linha a dizer que não sabe", () => {
+    expect(maisPerto(origem, lista, 9).some((c) => c.slug === "sem-sitio")).toBe(false);
+  });
+
+  it("sem coordenadas na origem não há vizinhança nenhuma", () => {
+    expect(maisPerto({ slug: "aqui" }, lista)).toEqual([]);
+  });
+
+  it("respeita o limite pedido", () => {
+    expect(maisPerto(origem, lista, 1)).toHaveLength(1);
+    expect(maisPerto(origem, lista, 0)).toHaveLength(0);
+  });
+});
+
+describe("kmLegivel", () => {
+  it("abaixo de dez leva uma casa: entre 1,2 e 8,7 há duas coudelarias diferentes", () => {
+    expect(kmLegivel(1.24, "pt-PT")).toBe("1,2");
+    expect(kmLegivel(8.71, "pt-PT")).toBe("8,7");
+  });
+
+  it("a partir de dez arredonda, que é a precisão que a linha recta tem", () => {
+    expect(kmLegivel(42.4, "pt-PT")).toBe("42");
+    expect(kmLegivel(120.6, "en-GB")).toBe("121");
   });
 });

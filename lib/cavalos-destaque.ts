@@ -20,20 +20,31 @@ import type { CavaloDestaque } from "@/lib/coudelaria-ficha";
  * na fronteira, e o tipo passa a ser verdade a partir daqui.
  */
 export function lerCavalosDestaque(valor: unknown): CavaloDestaque[] {
-  const bruto = desembrulhar(valor);
+  const bruto = desembrulharJson(valor);
   if (!Array.isArray(bruto)) return [];
   return bruto.map(comoCavalo).filter((c): c is CavaloDestaque => c !== null);
 }
 
-/** Uma string que contenha JSON conta como o JSON que contém. */
-function desembrulhar(valor: unknown): unknown {
+/**
+ * Uma string que contenha JSON conta como o JSON que contém.
+ *
+ * Exportada de propósito: **o defeito não era desta coluna, era desta forma**.
+ * `especialidades`, `linhagens`, `premios`, `servicos`, `tags`, `galeria` e
+ * `testemunhos` são todas colunas de lista lidas com `.length ? … .map(…)`, e
+ * qualquer uma delas parte a construção exactamente da mesma maneira no dia
+ * em que uma importação as codificar duas vezes. Quem desembrulha tem de ser
+ * o mesmo em todas — uma regra só, testada uma vez.
+ *
+ * Uma string que não é JSON conta como um elemento: é o que a base tem numa
+ * coudelaria cujos «cavalos em destaque» são texto corrido.
+ */
+export function desembrulharJson(valor: unknown): unknown {
   if (typeof valor !== "string") return valor;
   const texto = valor.trim();
   if (!texto) return null;
   try {
     return JSON.parse(texto);
   } catch {
-    // Uma string que não é JSON é um nome de cavalo, e não um erro.
     return [texto];
   }
 }

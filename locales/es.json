@@ -545,7 +545,7 @@
       "reclamar_cta": "Completar la ficha",
       "onde_fica": "Dónde está",
       "ver_mapa": "Ver el mapa",
-      "mapa_ajuda": "El mapa solo se carga si lo pide — ahorra unos 1,5 MB a quien no lo necesita.",
+      "mapa_ajuda": "El mapa solo se carga si lo pide.",
       "fotografias": "Fotografías",
       "foto_anterior": "Fotografía anterior",
       "foto_seguinte": "Fotografía siguiente",
@@ -569,7 +569,15 @@
       "descricao_cavalos": "caballos",
       "avaliacao_enviada": "Valoración enviada. Se publicará después de revisarla.",
       "avaliacao_erro": "No se ha podido enviar la valoración. Inténtelo de nuevo.",
-      "avaliacao_erro_rede": "Sin conexión. Compruebe Internet e inténtelo de nuevo."
+      "avaliacao_erro_rede": "Sin conexión. Compruebe Internet e inténtelo de nuevo.",
+      "vizinhas_titulo": "Yeguadas más cercanas",
+      "vizinhas_nota": "Distancias en línea recta, a partir de las coordenadas de cada una.",
+      "vizinhas_km": "{km} km",
+      "vizinhas_ver_regiao": "Ver todas · {regiao}",
+      "visita_visita": "Visita",
+      "visita_compra": "Compra",
+      "visita_aulas": "Clases",
+      "visita_eventos": "Evento"
     }
   },
   "eventos": {

@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import { supabase } from "@/lib/supabase-admin";
+import { lerListaDeTexto } from "@/lib/coudelaria-ficha";
 
 export const runtime = "edge";
 export const alt = "Coudelaria — Portal Lusitano";
@@ -45,7 +46,13 @@ export default async function Image({ params }: { params: Promise<{ slug: string
       localizacao = data.localizacao || "";
       regiao = data.regiao || "";
       anoFundacao = data.ano_fundacao || null;
-      especialidades = (data.especialidades || []).slice(0, 3);
+      /* `lerListaDeTexto` e não `data.especialidades || []`: esta é `jsonb`
+         como a `cavalos_destaque` que partiu a construção, e uma string
+         escapava daqui de pé — `"…".slice(0, 3)` dá três letras, `.length`
+         é 3, e o `.map` logo abaixo rebentava. Uma imagem de partilha em
+         falta não estoira a página, mas deixa a coudelaria sem cartão no
+         WhatsApp, que era justamente o que se acabou de arranjar. */
+      especialidades = lerListaDeTexto(data.especialidades).slice(0, 3);
     }
   } catch {
     // Cartão genérico; melhor isso do que nenhuma imagem.

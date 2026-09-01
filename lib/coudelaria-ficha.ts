@@ -7,6 +7,8 @@
  * não aparece; não se inventa um valor por omissão nem um distintivo.
  */
 
+import { desembrulharJson, lerCavalosDestaque } from "./cavalos-destaque";
+
 export interface CoudelariaFicha {
   id: string;
   nome: string;
@@ -54,6 +56,92 @@ export interface Testemunho {
   autor: string;
   texto: string;
   data?: string;
+}
+
+// ─── A fronteira ─────────────────────────────────────────────────────────────
+
+/**
+ * A linha **como ela vem da base**, que não é como o tipo promete.
+ *
+ * `cavalos_destaque` é `jsonb` e onze das vinte e nove linhas trazem lá uma
+ * string com JSON dentro. Isso foi encontrado e corrigido depois de a
+ * construção do site morrer em produção — mas foi corrigido **só nessa
+ * coluna**, e a coluna não tem nada de especial: há sete outras lidas com o
+ * mesmo `.length ? … .map(…)`, e uma string também tem `length`. O mesmo
+ * acidente de importação noutra coluna dá o mesmo apagão.
+ *
+ * Por isso o tipo de entrada diz a verdade — estas colunas são `unknown` — e
+ * há **um** sítio onde se passa de `unknown` para o tipo declarado. Daqui
+ * para dentro o tipo é verdade; daqui para fora não se acredita em nada.
+ */
+export type ColunaDeLista =
+  | "especialidades"
+  | "linhagens"
+  | "premios"
+  | "servicos"
+  | "tags"
+  | "galeria"
+  | "cavalos_destaque"
+  | "testemunhos";
+
+export type CoudelariaBruta = Omit<CoudelariaFicha, ColunaDeLista> &
+  Partial<Record<ColunaDeLista, unknown>>;
+
+/**
+ * Uma coluna de texto em lista: `especialidades`, `linhagens`, `premios`,
+ * `servicos`, `tags`, `galeria`.
+ *
+ * Aceita o array (a forma boa), a string com JSON dentro, e a string simples
+ * — que conta como um elemento só. Deita fora o que não é texto e o que é
+ * espaço em branco, e não repete.
+ */
+export function lerListaDeTexto(valor: unknown): string[] {
+  const bruto = desembrulharJson(valor);
+  if (!Array.isArray(bruto)) return [];
+  const saida: string[] = [];
+  for (const item of bruto) {
+    if (typeof item !== "string") continue;
+    const texto = item.trim();
+    if (!texto || saida.includes(texto)) continue;
+    saida.push(texto);
+  }
+  return saida;
+}
+
+/**
+ * A coluna `testemunhos`. Sem autor **e** sem texto não há citação: uma aspa
+ * a abrir um bloco vazio lê-se como um erro da página, não como um dado que
+ * falta.
+ */
+export function lerTestemunhos(valor: unknown): Testemunho[] {
+  const bruto = desembrulharJson(valor);
+  if (!Array.isArray(bruto)) return [];
+  const saida: Testemunho[] = [];
+  for (const item of bruto) {
+    if (!item || typeof item !== "object") continue;
+    const o = item as Record<string, unknown>;
+    const autor = typeof o.autor === "string" ? o.autor.trim() : "";
+    const texto = typeof o.texto === "string" ? o.texto.trim() : "";
+    if (!autor || !texto) continue;
+    const data = typeof o.data === "string" && o.data.trim() ? o.data.trim() : undefined;
+    saida.push(data ? { autor, texto, data } : { autor, texto });
+  }
+  return saida;
+}
+
+/** O único sítio onde uma linha da base passa a ser uma `CoudelariaFicha`. */
+export function normalizarCoudelaria(linha: CoudelariaBruta): CoudelariaFicha {
+  return {
+    ...linha,
+    especialidades: lerListaDeTexto(linha.especialidades),
+    linhagens: lerListaDeTexto(linha.linhagens),
+    premios: lerListaDeTexto(linha.premios),
+    servicos: lerListaDeTexto(linha.servicos),
+    tags: lerListaDeTexto(linha.tags),
+    galeria: lerListaDeTexto(linha.galeria),
+    cavalos_destaque: lerCavalosDestaque(linha.cavalos_destaque),
+    testemunhos: lerTestemunhos(linha.testemunhos),
+  };
 }
 
 // ─── Contactos ───────────────────────────────────────────────────────────────
@@ -290,6 +378,103 @@ export function fichaTecnica(
  */
 export function painelValeAPena(linhas: LinhaFicha[]): boolean {
   return linhas.some((l) => l.chave !== "localizacao" && l.chave !== "regiao");
+}
+
+// ─── Vizinhança ──────────────────────────────────────────────────────────────
+
+/**
+ * Quantos quilómetros há entre dois pontos, **em linha recta**.
+ *
+ * Fórmula do semi-verseno sobre uma esfera de 6371 km. Não é a distância de
+ * estrada e nunca se escreve como se fosse: sobre estas latitudes o erro do
+ * raio médio é de décimas por cento, mas a estrada entre duas coudelarias do
+ * Ribatejo pode ser metade outra vez mais longa do que a recta. Quem escreve
+ * o número tem de escrever também que é em linha recta.
+ */
+export function distanciaKm(
+  a: { lat?: number | null; lng?: number | null },
+  b: { lat?: number | null; lng?: number | null }
+): number | null {
+  if (
+    typeof a.lat !== "number" ||
+    typeof a.lng !== "number" ||
+    typeof b.lat !== "number" ||
+    typeof b.lng !== "number" ||
+    !Number.isFinite(a.lat) ||
+    !Number.isFinite(a.lng) ||
+    !Number.isFinite(b.lat) ||
+    !Number.isFinite(b.lng)
+  ) {
+    return null;
+  }
+  const rad = (g: number) => (g * Math.PI) / 180;
+  const dLat = rad(b.lat - a.lat);
+  const dLng = rad(b.lng - a.lng);
+  const h =
+    Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+export interface CoudelariaVizinha {
+  slug: string;
+  nome: string;
+  localizacao?: string | null;
+  regiao?: string | null;
+  coordenadas_lat?: number | null;
+  coordenadas_lng?: number | null;
+  /** Quilómetros em linha recta até à coudelaria de onde se parte. */
+  km: number;
+}
+
+/**
+ * As coudelarias mais próximas desta.
+ *
+ * Vale a pena porque os dados o sustentam: das vinte e nove, vinte e seis têm
+ * três outras a menos de 72 km, e a mediana da terceira mais próxima é 31 km.
+ * Quem está a decidir se contacta uma coudelaria está muitas vezes a decidir
+ * se faz a viagem — e três nomes a meia hora dali mudam essa conta.
+ *
+ * Sem coordenadas de um dos lados o par simplesmente não entra: uma distância
+ * a `null` desenhada como «—» seria uma linha a dizer que não sabe.
+ */
+export function maisPerto<
+  T extends {
+    slug: string;
+    nome: string;
+    coordenadas_lat?: number | null;
+    coordenadas_lng?: number | null;
+  },
+>(
+  origem: { slug: string; coordenadas_lat?: number | null; coordenadas_lng?: number | null },
+  candidatas: readonly T[],
+  quantas = 3
+): (T & { km: number })[] {
+  const daqui = { lat: origem.coordenadas_lat, lng: origem.coordenadas_lng };
+  return (
+    candidatas
+      .filter((c) => c.slug !== origem.slug)
+      .map((c) => ({
+        ...c,
+        km: distanciaKm(daqui, { lat: c.coordenadas_lat, lng: c.coordenadas_lng }),
+      }))
+      .filter((c): c is T & { km: number } => c.km !== null)
+      // Empates pelo nome, para a lista não dançar entre construções.
+      .sort((a, b) => a.km - b.km || a.nome.localeCompare(b.nome, "pt"))
+      .slice(0, Math.max(0, quantas))
+  );
+}
+
+/**
+ * Quilómetros como se escrevem. Abaixo de dez, uma casa decimal — entre «1 km»
+ * e «9 km» cabem duas coudelarias que estão a 1,2 e a 8,7, e arredondar as
+ * duas para o mesmo número seria perder o que a linha tem para dizer.
+ */
+export function kmLegivel(km: number, locale: string): string {
+  const casas = km < 10 ? 1 : 0;
+  return km.toLocaleString(locale, {
+    minimumFractionDigits: casas,
+    maximumFractionDigits: casas,
+  });
 }
 
 // ─── Dados estruturados ──────────────────────────────────────────────────────
