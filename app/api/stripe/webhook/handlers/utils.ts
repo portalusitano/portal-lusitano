@@ -23,7 +23,7 @@ export async function registerPayment(
     throw new Error("Stripe session is missing customer_details.email, amount_total, or currency");
   }
 
-  return supabase
+  const resultado = await supabase
     .from("payments")
     .insert({
       stripe_payment_intent_id: stripePaymentOrSubscriptionId,
@@ -38,6 +38,24 @@ export async function registerPayment(
     })
     .select()
     .single();
+
+  // A falha aqui não pode passar em silêncio, e quem chama esta função só
+  // desembrulhava o `data`. Sem linha em `payments` acontecem duas coisas: o
+  // dinheiro entrou e não há registo dele, e — pior — a guarda de duplicados do
+  // webhook procura precisamente por `stripe_session_id` em `payments`, portanto
+  // a entrega seguinte do mesmo evento não é reconhecida como repetida e insere
+  // um segundo cavalo pelo mesmo pagamento. Ao rebentar, o webhook devolve 500,
+  // o evento fica na fila de repetição e o Stripe volta a tentar.
+  if (resultado.error) {
+    logger.error("Falha ao registar pagamento", {
+      sessionId: session.id,
+      productType,
+      erro: resultado.error.message,
+    });
+    throw new Error(`Failed to register payment for session ${session.id}`);
+  }
+
+  return resultado;
 }
 
 export async function linkPaymentToSubmission(
