@@ -18,7 +18,18 @@ import { createTranslator } from "@/lib/tr";
  * isso por palavras, em vez de deixar o botão a girar para sempre.
  */
 
-type Fornecedor = "google" | "apple";
+/* Só o Google.
+ *
+ * O botão da Apple esteve aqui e saiu. Entrar com Apple exige conta de
+ * programador Apple (99 €/ano), um Services ID, o Team ID, um Key ID e uma
+ * chave `.p8` — nada disso existe, e sem isso o botão devolve
+ * «provider is not enabled» a quem lhe toca. Um botão que promete uma
+ * maneira de entrar que não funciona é da mesma família dos números que este
+ * site anunciava e não tinha: custa mais confiança do que ganha em escolha.
+ *
+ * Volta em três linhas no dia em que houver credenciais: acrescenta-se
+ * "apple" ao tipo e a entrada respectiva ao mapa dos logótipos. */
+type Fornecedor = "google";
 
 const LOGOS: Record<Fornecedor, { nome: string; icone: React.ReactNode }> = {
   google: {
@@ -41,14 +52,6 @@ const LOGOS: Record<Fornecedor, { nome: string; icone: React.ReactNode }> = {
           fill="#EA4335"
           d="M12 4.75c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.46 14.97.5 12 .5A11 11 0 0 0 2.18 7.05l3.66 2.84C6.71 7.29 9.14 4.75 12 4.75Z"
         />
-      </svg>
-    ),
-  },
-  apple: {
-    nome: "Apple",
-    icone: (
-      <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true">
-        <path d="M17.05 12.54c-.02-2.2 1.8-3.26 1.88-3.31-1.02-1.5-2.61-1.7-3.18-1.73-1.35-.14-2.64.79-3.33.79-.69 0-1.75-.77-2.88-.75-1.48.02-2.85.86-3.61 2.18-1.54 2.67-.39 6.62 1.11 8.79.73 1.06 1.6 2.25 2.74 2.21 1.1-.05 1.52-.71 2.85-.71 1.33 0 1.7.71 2.86.69 1.18-.02 1.93-1.08 2.65-2.15.84-1.23 1.18-2.42 1.2-2.48-.03-.01-2.29-.88-2.31-3.49ZM14.9 5.36c.6-.74 1.01-1.75.9-2.77-.87.04-1.94.59-2.57 1.32-.56.64-1.06 1.68-.93 2.67.98.08 1.98-.5 2.6-1.22Z" />
       </svg>
     ),
   },

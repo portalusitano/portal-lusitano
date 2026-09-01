@@ -33,8 +33,20 @@ export default function RecuperarSenhaPage() {
 
     try {
       const supabase = createSupabaseBrowserClient();
+      /* Passa pelo `/auth/callback`, e não directamente por `/perfil`.
+         O Supabase só honra um `redirectTo` que esteja na lista de Redirect
+         URLs do projecto; `/perfil` não está lá, e nesse caso ele não falha —
+         cai calado no «Site URL» do projecto. Como esse estava em
+         `http://localhost:3000`, o email de recuperação mandava as pessoas
+         para o computador delas. O link não funcionava para ninguém.
+
+         O `/auth/callback` está na lista, é ele que troca o código pela
+         sessão, e leva o destino no `next` (validado pelo `destinoSeguro`).
+         Assim a recuperação deixa de depender de uma definição no painel. */
+      const destino = new URL("/auth/callback", window.location.origin);
+      destino.searchParams.set("next", "/perfil");
       await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/perfil`,
+        redirectTo: destino.toString(),
       });
       // Always show success to prevent email enumeration
       setSent(true);
