@@ -152,13 +152,47 @@ export async function medirRepouso(ctx) {
     }
   }
 
-  const contadasEmNomes = lidas.reduce((s, e) => s + e.quantos, 0);
-  const contadasEmManchas = ler.manchas.filter((m) => !m.oculta).reduce((s, m) => s + m.quantos, 0);
+  /* Contar por **slug distinto**, e não somando `quantos` por etiqueta.
+     Somar deixou de servir quando os alfinetes passaram a agrupar-se: a mesma
+     coudelaria podia ser contada pela etiqueta do grupo e outra vez pela
+     mancha, e o relatório chegou a dizer «17 de 16 coudelarias» — um
+     absurdo aritmético que marcava como GRAVE uma versão que estava boa.
+     Um instrumento que acusa o que está certo é pior do que nenhum, porque
+     ensina a ignorá-lo.
+
+     O slug é único por coudelaria e está no `href` de cada nome — os nomes
+     soltos, os das pilhas e os das manchas são todos `<a href>` desde que
+     carregar num nome passou a levar à ficha. */
+  const porSlug = await pagina.evaluate(() => {
+    const visivel = (e) => {
+      const r = e.getBoundingClientRect();
+      const s = getComputedStyle(e);
+      return r.width > 1 && s.visibility !== "hidden" && parseFloat(s.opacity) > 0.05;
+    };
+    const slug = (a) => {
+      const h = a.getAttribute("href") || "";
+      const i = h.indexOf("/directorio/");
+      return i < 0 ? null : h.slice(i + 12).split(/[?#]/)[0] || null;
+    };
+    const todos = new Set();
+    const alcancaveis = new Set();
+    for (const a of document.querySelectorAll('a[href*="/directorio/"]')) {
+      const s = slug(a);
+      if (!s) continue;
+      todos.add(s);
+      /* Alcançável = o nome está à vista, ou está dentro de uma mancha ou
+         pilha que está à vista (a lista abre ao carregar, mas o algarismo
+         que a abre está lá). */
+      const dono = a.closest(".globo-etiqueta, .globo-mancha");
+      if (dono ? visivel(dono) : visivel(a)) alcancaveis.add(s);
+    }
+    return { todos: todos.size, alcancaveis: alcancaveis.size };
+  });
 
   return {
     repouso,
     caixa: ler.caixa,
-    total: ler.etiquetas.reduce((s, e) => s + e.quantos, 0),
+    total: porSlug.todos,
     pontos: ler.etiquetas.length,
     nomesLidos: lidas.length,
     nomesAccionaveis: lidas.filter((e) => e.accionavel).length,
@@ -167,7 +201,7 @@ export async function medirRepouso(ctx) {
       .length,
     visiveisInertes: lidas.filter((e) => e.inerte).length,
     manchas: ler.manchas.filter((m) => !m.oculta).map((m) => m.quantos),
-    contadas: contadasEmNomes + contadasEmManchas,
+    contadas: porSlug.alcancaveis,
     entreNomes,
     nomesContraManchas,
     foraDaLona,
@@ -270,7 +304,10 @@ async function primeiroSolto(pagina) {
       if (n.hasAttribute("data-grupo") || n.hasAttribute("data-oculta")) continue;
       if (Number(n.style.opacity || "0") <= 0.55) continue;
       const c = n.querySelector(".globo-etiqueta__cabeca");
-      if (!c || c.tagName !== "BUTTON") continue;
+      // A cabeça de um nome solto é um `<a href>` desde que carregar nela
+      // leva à ficha; a de um ajuntamento continua a ser `<button>`, porque
+      // não há ficha para onde ir. O banco tem de aceitar as duas.
+      if (!c || (c.tagName !== "BUTTON" && c.tagName !== "A")) continue;
       const r = c.getBoundingClientRect();
       return { nome: c.title || c.textContent, x: r.left + r.width / 2, y: r.top + r.height / 2 };
     }
