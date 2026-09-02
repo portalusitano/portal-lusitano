@@ -777,8 +777,11 @@ export default function MapaClient({
                   escondida que só aparece quando recebe o foco. Não ocupa um
                   pixel a quem tem rato, custa uma paragem a quem não tem, e
                   leva o foco directamente ao painel. */}
+              {/* Com a base em baixo o painel não existe, e um atalho para um
+                  sítio vazio é uma promessa falha: sai do caminho também. */}
               <a
                 href="#mapa-regioes"
+                hidden={falhou}
                 className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[10001] focus:bg-[var(--foreground-strong)] focus:px-6 focus:py-3 focus:text-sm focus:font-bold focus:uppercase focus:tracking-wider focus:text-black"
               >
                 {t.mapa.skip_to_regions}
