@@ -70,6 +70,59 @@ export function mapaDeCapas(pastas: Record<string, readonly string[]>): Record<s
 }
 
 /**
+ * Bancos de imagens. Uma fotografia daqui não é uma fotografia daquela casa.
+ *
+ * Comparam-se **anfitriões**, não pedaços de texto: um `includes("unsplash")`
+ * apanharia `unsplash.exemplo.pt`, e um `startsWith` apanharia o contrário. O
+ * mesmo erro está por corrigir noutro sítio do projecto, na verificação de
+ * origem de um `upload` — aqui não se repete.
+ */
+const BANCOS_DE_IMAGENS = [
+  "unsplash.com",
+  "pexels.com",
+  "pixabay.com",
+  "shutterstock.com",
+  "istockphoto.com",
+  "gettyimages.com",
+  "freepik.com",
+  "stock.adobe.com",
+  "dreamstime.com",
+  "depositphotos.com",
+  "123rf.com",
+] as const;
+
+/**
+ * A fotografia é de um banco de imagens?
+ *
+ * O cabeçalho do `lib/fotos-coudelarias` diz, desde que foi escrito: «ou a
+ * fotografia é da coudelaria, ou não há fotografia. Nunca stock.» Só que a
+ * regra estava escrita e não estava a ser cumprida por ninguém — e por isso
+ * uma entrou pela base de dados: a capa da Dressage Plus era um cavalo do
+ * Unsplash apresentado como sendo daquela coudelaria, numa ficha que também
+ * apresentava um Hanoveriano como Lusitano.
+ *
+ * Uma chapa com as iniciais diz a verdade — que não há fotografia. Um cavalo
+ * emprestado diz uma mentira, e num classificados onde se compram cavalos a
+ * mentira é sobre o produto.
+ *
+ * Um caminho local devolve `false` sem mais: o que é nosso é nosso.
+ */
+export function eDeBancoDeImagens(caminho: string): boolean {
+  const texto = caminho.trim();
+  if (!texto || texto.startsWith("/")) return false;
+
+  let anfitriao: string;
+  try {
+    anfitriao = new URL(texto).hostname.toLowerCase();
+  } catch {
+    // Não é um endereço que se consiga ler; não é deste caso que se trata.
+    return false;
+  }
+
+  return BANCOS_DE_IMAGENS.some((banco) => anfitriao === banco || anfitriao.endsWith(`.${banco}`));
+}
+
+/**
  * Aquele caminho aponta para um ficheiro que temos mesmo?
  *
  * A base guarda caminhos que a nossa própria pasta pública tem de servir. Se
@@ -129,7 +182,10 @@ export function capaDoCartao(
   capasEmDisco: Record<string, string>
 ): string | null {
   const bd = (fotoCapa ?? "").trim();
-  if (bd) return bd;
+  // A regra do «nunca stock» vive aqui e não em cada chamador: são quatro
+  // hoje — o cartão do directório, os dois do painel do mapa e a ficha — e o
+  // quinto que aparecer herda-a sem ter de a pedir.
+  if (bd && !eDeBancoDeImagens(bd)) return bd;
   return capasEmDisco[slug] ?? null;
 }
 

@@ -18,6 +18,7 @@ import {
   PASTA_CAPAS,
   apontaParaFicheiroQueTemos,
   capaDoCartao,
+  eDeBancoDeImagens,
   escolherCapa,
 } from "./directorio-capas";
 
@@ -45,7 +46,13 @@ export function montarFotos(entrada: {
   ficheirosLocais?: readonly string[];
 }): FotosCoudelaria {
   const locais = entrada.ficheirosLocais || [];
-  const existe = (caminho: string) => apontaParaFicheiroQueTemos(caminho, entrada.slug, locais);
+  // Duas maneiras de uma fotografia não ser fotografia daquela casa: não
+  // existir, e ser emprestada de um banco de imagens. A segunda é julgada
+  // dentro do `capaDoCartao`, que é por onde a capa passa em todo o site; aqui
+  // acrescenta-se a primeira, que só se pode julgar onde há o varrimento do
+  // disco — ou seja, só aqui.
+  const serve = (caminho: string) =>
+    apontaParaFicheiroQueTemos(caminho, entrada.slug, locais) && !eDeBancoDeImagens(caminho);
   const capaLocal = escolherCapa(entrada.slug, locais);
 
   // Uma capa que a base aponta para um ficheiro que não temos não é uma capa:
@@ -53,7 +60,7 @@ export function montarFotos(entrada: {
   // disco entra — e é a fotografia certa daquela casa, não uma emprestada.
   const capaDb = (entrada.capaDb ?? "").trim();
   const capa = capaDoCartao(
-    capaDb && existe(capaDb) ? capaDb : null,
+    capaDb && apontaParaFicheiroQueTemos(capaDb, entrada.slug, locais) ? capaDb : null,
     entrada.slug,
     capaLocal ? { [entrada.slug]: capaLocal } : {}
   );
@@ -65,7 +72,7 @@ export function montarFotos(entrada: {
     // coudelaria carregou manda. Mas entrar primeiro sendo inexistente era o
     // pior dos dois mundos — numa casa que só tem `capa.jpg`, a capa saía por
     // repetida e sobrava uma galeria feita só de imagens mortas.
-    .filter(existe);
+    .filter(serve);
   const doDisco = ordenar(locais.filter((f) => EXTENSOES.test(f))).map(
     (f) => `/${PASTA_CAPAS}/${entrada.slug}/${f}`
   );

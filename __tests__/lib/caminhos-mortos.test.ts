@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { apontaParaFicheiroQueTemos } from "@/lib/directorio-capas";
+import {
+  apontaParaFicheiroQueTemos,
+  capaDoCartao,
+  eDeBancoDeImagens,
+} from "@/lib/directorio-capas";
 import { montarFotos } from "@/lib/fotos-coudelarias";
 
 /**
@@ -125,5 +129,54 @@ describe("montarFotos com caminhos mortos na base", () => {
       "/images/coudelarias/alter-real/galeria-3.jpg",
       "/images/coudelarias/alter-real/galeria-2.jpg",
     ]);
+  });
+});
+
+describe("nunca stock", () => {
+  it("reconhece os bancos de imagens conhecidos", () => {
+    // O caso real: a capa da Dressage Plus era um cavalo do Unsplash
+    // apresentado como sendo daquela coudelaria.
+    expect(
+      eDeBancoDeImagens("https://images.unsplash.com/photo-1534307671554-9a6d81f4d629?w=1200")
+    ).toBe(true);
+    expect(eDeBancoDeImagens("https://www.pexels.com/foto/cavalo-123")).toBe(true);
+    expect(eDeBancoDeImagens("https://stock.adobe.com/x.jpg")).toBe(true);
+  });
+
+  it("compara anfitriões, não pedaços de texto", () => {
+    // Um `includes` deixaria passar o primeiro e um `startsWith` o segundo.
+    expect(eDeBancoDeImagens("https://unsplash.com.exemplo.pt/foto.jpg")).toBe(false);
+    expect(eDeBancoDeImagens("https://naoeunsplash.com/foto.jpg")).toBe(false);
+    expect(eDeBancoDeImagens("https://coudelaria.pt/?fonte=unsplash.com")).toBe(false);
+  });
+
+  it("deixa passar o que é nosso e o que é da própria coudelaria", () => {
+    expect(eDeBancoDeImagens("/images/coudelarias/x/capa.jpg")).toBe(false);
+    expect(eDeBancoDeImagens("https://www.casacadaval.pt/fotos/capa.jpg")).toBe(false);
+    expect(eDeBancoDeImagens("")).toBe(false);
+    expect(eDeBancoDeImagens("nem sequer é um endereço")).toBe(false);
+  });
+
+  it("uma capa de banco de imagens não é capa, em todo o site", () => {
+    // O `capaDoCartao` é por onde a capa passa no cartão do directório, nos
+    // dois cartões do painel do mapa e na ficha.
+    expect(capaDoCartao("https://images.unsplash.com/photo-1.jpg", "dressage-plus", {})).toBeNull();
+    // E quando a casa tem uma fotografia sua, é essa que entra.
+    expect(
+      capaDoCartao("https://images.unsplash.com/photo-1.jpg", "x", {
+        x: "/images/coudelarias/x/capa.jpg",
+      })
+    ).toBe("/images/coudelarias/x/capa.jpg");
+  });
+
+  it("a galeria também não aceita emprestadas", () => {
+    const r = montarFotos({
+      slug: "dressage-plus",
+      capaDb: "https://images.unsplash.com/photo-1.jpg",
+      galeriaDb: ["https://images.pexels.com/2.jpg", "/images/coudelarias/dressage-plus/capa.jpg"],
+      ficheirosLocais: ["capa.jpg"],
+    });
+    expect(r.capa).toBe("/images/coudelarias/dressage-plus/capa.jpg");
+    expect(r.galeria).toEqual([]);
   });
 });
