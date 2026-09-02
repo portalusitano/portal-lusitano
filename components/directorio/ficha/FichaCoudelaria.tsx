@@ -293,13 +293,20 @@ export default function FichaCoudelaria({
                   contrário. Com história e sem esta troca, quem chega ao
                   telemóvel apanha até quatro parágrafos antes da primeira
                   fotografia da coudelaria. */}
+              {/* A secção inteira — `Revelar`, `section` e título — vive
+                  dentro da `Galeria`, e não aqui. A razão é a das ligações
+                  mortas: metade das fotografias das coudelarias responde 404,
+                  e isso só se sabe no browser. Se todas falharem, o que tem de
+                  desaparecer é a secção inteira, e não ficar um título
+                  «Fotografias» sozinho por cima de nada. Quem sabe que
+                  falharam é a galeria; logo é ela que decide se a secção
+                  existe. */}
               {fotos.galeria.length > 0 && (
-                <Revelar atraso={60}>
-                  <section aria-labelledby="t-fotografias">
-                    <Titulo id="t-fotografias">{f.fotografias}</Titulo>
-                    <Galeria fotos={fotos.galeria} nome={coudelaria.nome} />
-                  </section>
-                </Revelar>
+                <Galeria
+                  fotos={fotos.galeria}
+                  nome={coudelaria.nome}
+                  titulo={<Titulo id="t-fotografias">{f.fotografias}</Titulo>}
+                />
               )}
 
               {historia.length > 0 && (
