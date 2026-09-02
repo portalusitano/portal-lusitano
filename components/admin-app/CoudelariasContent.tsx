@@ -44,15 +44,21 @@ interface Coudelaria {
   proprietario_email: string | null;
 }
 
+/**
+ * Os contadores, como a rota os devolve.
+ *
+ * `bronze`, `prata` e `ouro` estavam aqui e a rota nunca os enviou: o cartão
+ * «Planos Pagos» somava três `undefined` e escrevia `NaN`. E `pendente`,
+ * `aprovado` e `rejeitado` contavam valores que a coluna `status` não tem em
+ * linha nenhuma — os três cartões mostravam sempre zero.
+ */
 interface Stats {
   total: number;
-  pendente: number;
-  aprovado: number;
-  rejeitado: number;
+  pending: number;
+  active: number;
+  inactive: number;
   destaque: number;
-  bronze: number;
-  prata: number;
-  ouro: number;
+  pro: number;
 }
 
 interface CoudelariasContentProps {
@@ -70,18 +76,19 @@ export default function CoudelariasContent({ voltarHref }: CoudelariasContentPro
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [planoFilter, setPlanoFilter] = useState("all");
+  const [regiaoFilter, setRegiaoFilter] = useState("all");
+  const [regioes, setRegioes] = useState<string[]>([]);
 
   useEffect(() => {
     loadCoudelarias();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, planoFilter, searchTerm]);
+  }, [statusFilter, regiaoFilter, searchTerm]);
 
   const loadCoudelarias = async () => {
     try {
       const params = new URLSearchParams();
       if (statusFilter !== "all") params.append("status", statusFilter);
-      if (planoFilter !== "all") params.append("plano", planoFilter);
+      if (regiaoFilter !== "all") params.append("regiao", regiaoFilter);
       if (searchTerm) params.append("search", searchTerm);
 
       const res = await fetch(`/api/admin/coudelarias?${params}`);
@@ -89,6 +96,7 @@ export default function CoudelariasContent({ voltarHref }: CoudelariasContentPro
 
       setCoudelarias(data.coudelarias || []);
       setStats(data.stats);
+      setRegioes(data.regioes || []);
     } catch (error) {
       if (process.env.NODE_ENV === "development") console.error("[CoudelariasContent]", error);
     } finally {
@@ -182,28 +190,30 @@ export default function CoudelariasContent({ voltarHref }: CoudelariasContentPro
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
           <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-4">
             <div className="text-sm text-gray-400 mb-1">Total</div>
             <div className="text-2xl font-bold text-white">{stats.total}</div>
           </div>
           <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-4">
             <div className="text-sm text-gray-400 mb-1">Pendentes</div>
-            <div className="text-2xl font-bold text-yellow-400">{stats.pendente}</div>
+            <div className="text-2xl font-bold text-yellow-400">{stats.pending}</div>
           </div>
           <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-4">
-            <div className="text-sm text-gray-400 mb-1">Aprovadas</div>
-            <div className="text-2xl font-bold text-green-400">{stats.aprovado}</div>
+            <div className="text-sm text-gray-400 mb-1">Publicadas</div>
+            <div className="text-2xl font-bold text-green-400">{stats.active}</div>
+          </div>
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-4">
+            <div className="text-sm text-gray-400 mb-1">Não publicadas</div>
+            <div className="text-2xl font-bold text-red-400">{stats.inactive}</div>
           </div>
           <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-4">
             <div className="text-sm text-gray-400 mb-1">Destaque</div>
             <div className="text-2xl font-bold text-[var(--gold)]">{stats.destaque}</div>
           </div>
           <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-4">
-            <div className="text-sm text-gray-400 mb-1">Planos Pagos</div>
-            <div className="text-2xl font-bold text-blue-400">
-              {stats.bronze + stats.prata + stats.ouro}
-            </div>
+            <div className="text-sm text-gray-400 mb-1">Pro</div>
+            <div className="text-2xl font-bold text-blue-400">{stats.pro}</div>
           </div>
         </div>
       )}
@@ -237,17 +247,18 @@ export default function CoudelariasContent({ voltarHref }: CoudelariasContentPro
             ))}
           </Seleccao>
 
-          {/* Plano Filter */}
+          {/* Filtro por região */}
           <Seleccao
-            value={planoFilter}
-            onChange={(e) => setPlanoFilter(e.target.value)}
+            value={regiaoFilter}
+            onChange={(e) => setRegiaoFilter(e.target.value)}
             className="px-4 py-2 bg-[var(--background)] border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
           >
-            <option value="all">Todos os Planos</option>
-            <option value="gratis">Grátis</option>
-            <option value="bronze">Bronze</option>
-            <option value="prata">Prata</option>
-            <option value="ouro">Ouro</option>
+            <option value="all">Todas as regiões</option>
+            {regioes.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
           </Seleccao>
         </div>
       </div>

@@ -18,7 +18,13 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const status = searchParams.get("status") || "all";
     const search = searchParams.get("search") || "";
-    const distrito = searchParams.get("distrito") || "all";
+    // O painel enviava `?plano=…` e esta rota lia `?distrito=…`: um filtro
+    // que não filtrava, com quatro opções (`gratis`, `bronze`, `prata`,
+    // `ouro`) que a coluna `plan` não tem em linha nenhuma. E `distrito` está
+    // a `NULL` nas 35 linhas, por isso escolher um distrito devolvia sempre
+    // zero. Ficou `regiao`, que é `NOT NULL`, tem dados e é o mesmo eixo por
+    // que o directório público filtra.
+    const regiao = searchParams.get("regiao") || "all";
 
     // Buscar todas as coudelarias (não-deletadas)
     let query = supabase
@@ -32,8 +38,8 @@ export async function GET(req: NextRequest) {
       query = query.eq("status", status);
     }
 
-    if (distrito !== "all") {
-      query = query.eq("distrito", distrito);
+    if (regiao !== "all") {
+      query = query.eq("regiao", regiao);
     }
 
     // Pesquisa (sanitizada contra PostgREST filter injection)
@@ -56,19 +62,40 @@ export async function GET(req: NextRequest) {
 
     if (error) throw error;
 
-    // Calcular estatísticas
-    const allCoudelarias = coudelarias || [];
+    // As estatísticas contavam `pendente`, `aprovado` e `rejeitado` — três
+    // valores que a coluna `status` não tem em linha nenhuma: os três cartões
+    // mostravam sempre zero. E contavam sobre a lista **já filtrada**, por isso
+    // escolher um estado punha os outros contadores a zero: uma estatística
+    // que muda com o filtro não é uma estatística, é a mesma lista contada
+    // outra vez. Agora vêm de uma consulta própria, sem filtros para lá do
+    // apagado, e contam o vocabulário a sério.
+    const { data: todas, error: erroStats } = await supabase
+      .from("coudelarias")
+      .select("status, destaque, is_pro, regiao")
+      .is("deleted_at", null);
+
+    if (erroStats) throw erroStats;
+
+    const linhas = todas || [];
     const stats = {
-      total: count || 0,
-      pendente: allCoudelarias.filter((c) => c.status === "pendente").length,
-      aprovado: allCoudelarias.filter((c) => c.status === "aprovado").length,
-      rejeitado: allCoudelarias.filter((c) => c.status === "rejeitado").length,
-      destaque: allCoudelarias.filter((c) => c.destaque).length,
+      total: linhas.length,
+      pending: linhas.filter((c) => c.status === COUDELARIA_STATUS.PENDING).length,
+      active: linhas.filter((c) => c.status === COUDELARIA_STATUS.ACTIVE).length,
+      inactive: linhas.filter((c) => c.status === COUDELARIA_STATUS.INACTIVE).length,
+      destaque: linhas.filter((c) => c.destaque).length,
+      pro: linhas.filter((c) => c.is_pro).length,
     };
+
+    // As regiões que o filtro pode oferecer saem dos dados, não de uma lista
+    // escrita à mão que envelhece sozinha.
+    const regioes = Array.from(
+      new Set(linhas.map((c) => c.regiao).filter((r): r is string => Boolean(r)))
+    ).sort((a, b) => a.localeCompare(b, "pt"));
 
     return NextResponse.json({
       coudelarias,
       stats,
+      regioes,
       count,
     });
   } catch (error) {
