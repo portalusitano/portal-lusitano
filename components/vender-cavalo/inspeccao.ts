@@ -165,6 +165,20 @@ const IDADE_POTRO_TARDIO = 10;
 // Utensílios
 // ---------------------------------------------------------------------------
 
+/**
+ * O texto de um campo, mesmo que o campo não exista.
+ *
+ * Não é paranóia: o rascunho é reposto com `{ ...initialFormData, ...guardado }`
+ * e um rascunho gravado por uma versão anterior do formulário não tem os campos
+ * que essa versão ainda não pedia. Ler `.trim()` de um `undefined` rebentava a
+ * página inteira — e rebentava-a no `useMemo` da inspecção, que corre a cada
+ * tecla, portanto sem sequer chegar a mostrar o formulário.
+ */
+function texto(formData: FormData, campo: keyof FormData): string {
+  const valor = formData[campo];
+  return typeof valor === "string" ? valor : "";
+}
+
 /** Um número escrito por gente: vírgula decimal, espaços, símbolo de moeda. */
 function numero(valor: string): number | null {
   const limpo = valor.trim().replace(/\s/g, "").replace(",", ".");
@@ -227,8 +241,9 @@ export function inspeccionar(
   };
 
   // --- Microchip: ISO 11784/11785 ------------------------------------------
-  if (formData.microchip.trim()) {
-    const chip = lerMicrochip(formData.microchip);
+  const microchip = texto(formData, "microchip");
+  if (microchip.trim()) {
+    const chip = lerMicrochip(microchip);
     if (chip.problema === "nao-numerico") apontar("microchip", "erro", m.microchipNaoNumerico);
     else if (chip.problema === "comprimento")
       apontar("microchip", "erro", m.microchipComprimento(chip.diferencaDigitos ?? 0));
@@ -238,8 +253,9 @@ export function inspeccionar(
   }
 
   // --- NIF: nove algarismos com dígito de controlo módulo 11 ---------------
-  if (formData.proprietario_nif.trim()) {
-    const nif = lerNif(formData.proprietario_nif);
+  const nifEscrito = texto(formData, "proprietario_nif");
+  if (nifEscrito.trim()) {
+    const nif = lerNif(nifEscrito);
     if (nif.problema === "nao-numerico" || nif.problema === "comprimento")
       apontar("proprietario_nif", "erro", m.nifComprimento);
     else if (nif.problema === "prefixo" || nif.problema === "controlo")
@@ -248,10 +264,10 @@ export function inspeccionar(
       // O primeiro algarismo diz o tipo de contribuinte, e isso casa — ou não
       // casa — com o «Tipo de Vendedor». Quem escolheu «Particular» e escreveu
       // o NIF da empresa vai receber uma factura em nome errado.
-      const eEmpresa = ehVendedorColectivo(formData.tipo_proprietario);
+      const eEmpresa = ehVendedorColectivo(texto(formData, "tipo_proprietario"));
       if (eEmpresa && nif.tipo === "singular")
         apontar("proprietario_nif", "aviso", m.nifSingularEmpresa);
-      if (formData.tipo_proprietario && !eEmpresa && nif.tipo === "colectiva")
+      if (texto(formData, "tipo_proprietario") && !eEmpresa && nif.tipo === "colectiva")
         apontar("proprietario_nif", "aviso", m.nifColectivoParticular);
     }
   }
@@ -261,9 +277,10 @@ export function inspeccionar(
   // vale o mínimo que vale em todo o lado, e mais nada: a numeração de cada
   // país é a dele, e recusar um número francês por não ser português custa
   // um anúncio e não impede nenhum engano.
-  const emPortugal = formData.pais_proprietario === "" || formData.pais_proprietario === "Portugal";
+  const pais = texto(formData, "pais_proprietario");
+  const emPortugal = pais === "" || pais === "Portugal";
   for (const campo of ["proprietario_telefone", "proprietario_whatsapp"] as const) {
-    const valor = formData[campo].trim();
+    const valor = texto(formData, campo).trim();
     if (!valor) continue;
     if (emPortugal) {
       if (!lerTelefonePT(valor).valido) apontar(campo, "erro", m.telefoneInvalido);
@@ -273,7 +290,7 @@ export function inspeccionar(
   }
 
   // --- Email: sugestão, nunca recusa ---------------------------------------
-  const sugestao = sugerirDominioEmail(formData.proprietario_email);
+  const sugestao = sugerirDominioEmail(texto(formData, "proprietario_email"));
   if (sugestao) {
     apontar(
       "proprietario_email",
@@ -284,7 +301,7 @@ export function inspeccionar(
   }
 
   // --- Altura ---------------------------------------------------------------
-  const altura = numero(formData.altura);
+  const altura = numero(texto(formData, "altura"));
   if (altura !== null) {
     const emMaos =
       altura >= MAOS_PLAUSIVEIS.min && altura <= MAOS_PLAUSIVEIS.max
@@ -300,7 +317,7 @@ export function inspeccionar(
   }
 
   // --- Peso -----------------------------------------------------------------
-  const peso = numero(formData.peso);
+  const peso = numero(texto(formData, "peso"));
   if (peso !== null) {
     if (peso < PESO_POSSIVEL.min || peso > PESO_POSSIVEL.max)
       apontar("peso", "erro", m.pesoImpossivel);
@@ -309,7 +326,7 @@ export function inspeccionar(
   }
 
   // --- Preço ----------------------------------------------------------------
-  const preco = numero(formData.preco);
+  const preco = numero(texto(formData, "preco"));
   if (preco !== null && preco > 0) {
     if (preco < PRECO_ZERO_A_MENOS)
       apontar("preco", "sugestao", m.precoZeroAMenos, String(Math.round(preco * 10)));
@@ -318,7 +335,7 @@ export function inspeccionar(
   }
 
   // --- Pontuação morfológica APSL ------------------------------------------
-  const pontuacao = numero(formData.nivel_apsl);
+  const pontuacao = numero(texto(formData, "nivel_apsl"));
   if (pontuacao !== null) {
     if (pontuacao < PONTUACAO_ESCALA.min || pontuacao > PONTUACAO_ESCALA.max)
       apontar("nivel_apsl", "erro", m.pontuacaoForaDaEscala);
@@ -327,8 +344,9 @@ export function inspeccionar(
   }
 
   // --- Número de registo ----------------------------------------------------
-  if (formData.numero_registo.trim()) {
-    const registo = lerRegistoApsl(formData.numero_registo, formData.nome);
+  const registoEscrito = texto(formData, "numero_registo");
+  if (registoEscrito.trim()) {
+    const registo = lerRegistoApsl(registoEscrito, texto(formData, "nome"));
     if (registo.problema === "curto") apontar("numero_registo", "erro", m.registoCurto);
     else if (registo.problema === "repetido") apontar("numero_registo", "erro", m.registoRepetido);
     else if (registo.problema === "e-o-nome") apontar("numero_registo", "erro", m.registoEONome);
@@ -341,13 +359,13 @@ export function inspeccionar(
 
   // --- Vídeos ---------------------------------------------------------------
   for (const campo of ["videos_url", "videos_url_2"] as const) {
-    const valor = formData[campo].trim();
+    const valor = texto(formData, campo).trim();
     if (valor && !identificarVideo(valor)) apontar(campo, "aviso", m.videoNaoReconhecido);
   }
 
   // --- Idade contra nível de treino ----------------------------------------
-  const idade = idadeEmAnos(formData.data_nascimento, contexto.hoje);
-  const nivel = indiceNivelTreino(formData.nivel_treino);
+  const idade = idadeEmAnos(texto(formData, "data_nascimento"), contexto.hoje);
+  const nivel = indiceNivelTreino(texto(formData, "nivel_treino"));
   if (idade !== null && idade >= 0 && nivel >= 0) {
     if (idade < IDADE_DESBASTE && nivel > NIVEL_POTRO)
       apontar("nivel_treino", "aviso", m.treinoCedoDemais(idade));

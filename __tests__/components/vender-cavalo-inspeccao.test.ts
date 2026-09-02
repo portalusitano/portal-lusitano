@@ -38,6 +38,23 @@ describe("um formulário vazio não tem nada a dizer", () => {
   });
 });
 
+describe("um formulário a que faltam campos não rebenta", () => {
+  it("um rascunho de uma versão anterior não tem os campos que ela não pedia", () => {
+    // O rascunho é reposto com `{ ...initialFormData, ...guardado }`, e é o
+    // guardado que manda nas chaves que tem. Ler `.trim()` de um `undefined`
+    // rebentava no `useMemo` da inspecção — que corre a cada tecla — e a
+    // página nem chegava a aparecer.
+    const incompleto = { nome: "Zíngaro", preco: "25000" } as unknown as FormData;
+    expect(() => inspeccionar(incompleto, m)).not.toThrow();
+    expect(inspeccionar(incompleto, m)).toEqual([]);
+  });
+
+  it("e os campos que lá estão continuam a ser lidos", () => {
+    const incompleto = { altura: "193" } as unknown as FormData;
+    expect(nivel(inspeccionar(incompleto, m), "altura")).toBe("aviso");
+  });
+});
+
 describe("microchip", () => {
   it("um chip válido passa em silêncio", () => {
     expect(de(ver({ microchip: "620098100123456" }), "microchip")).toEqual([]);
