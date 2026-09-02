@@ -1,4 +1,5 @@
 import type { ErrosPorCampo } from "@/components/vender-cavalo/campos-com-erro";
+import type { ApontamentosPorCampo } from "@/components/vender-cavalo/inspeccao";
 
 export interface FormData {
   // Dados do Proprietario
@@ -129,6 +130,15 @@ export interface Documentos {
 
 export type DocumentType = keyof Documentos;
 
+export interface AccoesCampo {
+  aoFocar: (campo: string, valor: string) => void;
+  aoSair: (campo: string) => void;
+  /** Uma escolha numa lista é um acto acabado: fala logo, sem esperar pelo `blur`. */
+  aoEscolher: (campo: string) => void;
+  /** Escreve no campo a correcção que uma sugestão propõe. */
+  aoAceitar: (campo: string, valor: string) => void;
+}
+
 export interface StepProps {
   formData: FormData;
   updateField: (field: keyof FormData, value: FormData[keyof FormData]) => void;
@@ -139,4 +149,17 @@ export interface StepProps {
    * procurar.
    */
   erros: ErrosPorCampo;
+  /**
+   * O que cada campo tem a dizer sobre si próprio e que **não** o impede de
+   * avançar — 193cm de altura, um preço com um zero a menos, um domínio de
+   * email a um passo de `gmail.com`. Chega já filtrado pelo momento: um campo
+   * onde ainda ninguém entrou não aparece aqui (ver `usar-inspeccao.ts`).
+   */
+  apontamentos: ApontamentosPorCampo;
+  /**
+   * Os três momentos de um campo. É deles que sai a regra de nunca marcar a
+   * vermelho quem ainda está a escrever, e a de avisar ao sair em vez de
+   * esperar pelo botão de Continuar.
+   */
+  campo: AccoesCampo;
 }

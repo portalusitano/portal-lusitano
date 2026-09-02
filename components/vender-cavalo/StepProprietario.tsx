@@ -7,11 +7,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
 import Seleccao from "@/components/ui/Seleccao";
 import Detalhes from "@/components/vender-cavalo/Detalhes";
-import {
-  ErroDoCampo,
-  atributosErro,
-  classeCampo,
-} from "@/components/vender-cavalo/campos-com-erro";
+import { ErroDoCampo, classeCampo } from "@/components/vender-cavalo/campos-com-erro";
+import { ApontamentoDoCampo, ligarCampo } from "@/components/vender-cavalo/apontamentos";
 
 /**
  * Quem vende.
@@ -22,7 +19,8 @@ import {
  * verificado, dois deles tinham um asterisco que não correspondia a regra
  * nenhuma, e a facturação faz-se depois de o anúncio existir, não antes.
  */
-export default function StepProprietario({ formData, updateField, erros }: StepProps) {
+export default function StepProprietario(props: StepProps) {
+  const { formData, updateField, erros, apontamentos, campo } = props;
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
 
@@ -50,7 +48,7 @@ export default function StepProprietario({ formData, updateField, erros }: StepP
             onChange={(e) => updateField("proprietario_nome", e.target.value)}
             className={classeCampo(erros, "proprietario_nome")}
             placeholder={t.vender_cavalo.placeholder_full_name}
-            {...atributosErro(erros, "proprietario_nome")}
+            {...ligarCampo("proprietario_nome", formData.proprietario_nome, props)}
           />
           <ErroDoCampo erros={erros} campo="proprietario_nome" />
         </div>
@@ -72,9 +70,14 @@ export default function StepProprietario({ formData, updateField, erros }: StepP
               onChange={(e) => updateField("proprietario_email", e.target.value)}
               className={classeCampo(erros, "proprietario_email")}
               placeholder={t.vender_cavalo.placeholder_email}
-              {...atributosErro(erros, "proprietario_email")}
+              {...ligarCampo("proprietario_email", formData.proprietario_email, props)}
             />
             <ErroDoCampo erros={erros} campo="proprietario_email" />
+            <ApontamentoDoCampo
+              apontamentos={apontamentos}
+              campo="proprietario_email"
+              aoAceitar={campo.aoAceitar}
+            />
           </div>
           <div>
             <label
@@ -92,9 +95,10 @@ export default function StepProprietario({ formData, updateField, erros }: StepP
               onChange={(e) => updateField("proprietario_telefone", e.target.value)}
               className={classeCampo(erros, "proprietario_telefone")}
               placeholder={t.vender_cavalo.placeholder_phone}
-              {...atributosErro(erros, "proprietario_telefone")}
+              {...ligarCampo("proprietario_telefone", formData.proprietario_telefone, props)}
             />
             <ErroDoCampo erros={erros} campo="proprietario_telefone" />
+            <ApontamentoDoCampo apontamentos={apontamentos} campo="proprietario_telefone" />
           </div>
         </div>
 
@@ -123,7 +127,12 @@ export default function StepProprietario({ formData, updateField, erros }: StepP
                 <Seleccao
                   id="tipo_proprietario"
                   value={formData.tipo_proprietario}
-                  onChange={(e) => updateField("tipo_proprietario", e.target.value)}
+                  onChange={(e) => {
+                    updateField("tipo_proprietario", e.target.value);
+                    // O tipo de vendedor decide se o NIF devia ser de empresa
+                    // ou de pessoa: mudá-lo é mudar a resposta sobre o NIF.
+                    campo.aoEscolher("proprietario_nif");
+                  }}
                   className="campo"
                 >
                   <option value="">{t.vender_cavalo.select}</option>
@@ -144,7 +153,13 @@ export default function StepProprietario({ formData, updateField, erros }: StepP
                 <Seleccao
                   id="pais_proprietario"
                   value={formData.pais_proprietario}
-                  onChange={(e) => updateField("pais_proprietario", e.target.value)}
+                  onChange={(e) => {
+                    updateField("pais_proprietario", e.target.value);
+                    // O país decide qual é a regra do telefone: a portuguesa
+                    // ou o mínimo internacional. Mudá-lo reavalia os dois.
+                    campo.aoEscolher("proprietario_telefone");
+                    campo.aoEscolher("proprietario_whatsapp");
+                  }}
                   className="campo"
                 >
                   <option value="">{t.vender_cavalo.select}</option>
@@ -172,9 +187,12 @@ export default function StepProprietario({ formData, updateField, erros }: StepP
                   maxLength={9}
                   value={formData.proprietario_nif}
                   onChange={(e) => updateField("proprietario_nif", e.target.value)}
-                  className="campo"
+                  className={classeCampo(erros, "proprietario_nif")}
                   placeholder={t.vender_cavalo.placeholder_nif}
+                  {...ligarCampo("proprietario_nif", formData.proprietario_nif, props)}
                 />
+                <ErroDoCampo erros={erros} campo="proprietario_nif" />
+                <ApontamentoDoCampo apontamentos={apontamentos} campo="proprietario_nif" />
               </div>
               <div>
                 <label
@@ -196,9 +214,12 @@ export default function StepProprietario({ formData, updateField, erros }: StepP
                   inputMode="tel"
                   value={formData.proprietario_whatsapp}
                   onChange={(e) => updateField("proprietario_whatsapp", e.target.value)}
-                  className="campo"
+                  className={classeCampo(erros, "proprietario_whatsapp")}
                   placeholder="+351 9XX XXX XXX"
+                  {...ligarCampo("proprietario_whatsapp", formData.proprietario_whatsapp, props)}
                 />
+                <ErroDoCampo erros={erros} campo="proprietario_whatsapp" />
+                <ApontamentoDoCampo apontamentos={apontamentos} campo="proprietario_whatsapp" />
               </div>
             </div>
 

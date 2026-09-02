@@ -3263,6 +3263,66 @@ body {
     line-height: 1.5;
   }
 
+  /* --- Apontamentos: o que não impede, mas vale a pena perguntar ------------
+   * Um erro trava o passo, é vermelho e vai ao resumo do topo. Estes dois não
+   * travam nada, e por isso não são vermelhos: 193cm de altura é possível, e
+   * pintar de vermelho o que é possível ensina a ignorar o vermelho.
+   *
+   * A cor é a do `.painel-nota` — o secundário sobre uma hairline —, e não uma
+   * quarta cor inventada para o site. Sobre preto, quem diz «olhe para isto» é
+   * o contraste e o ícone. O que separa um aviso de uma sugestão é a hairline
+   * da esquerda: a da sugestão é a activa, porque a sugestão tem uma acção
+   * dentro dela e a outra não tem. */
+  .apontamento {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.375rem;
+    margin-top: 0.375rem;
+    padding-left: 0.5rem;
+    border-left: 2px solid var(--border-soft);
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: var(--foreground-secondary);
+  }
+
+  .apontamento--sugestao {
+    border-left-color: var(--border);
+  }
+
+  /* O botão que aceita a sugestão escreve o próprio valor que propõe — ler
+     «gmail.com» e carregar em «gmail.com» é uma acção só, sem intermediário.
+     Vai a mono porque o que ele mostra é um dado: um domínio, um número de
+     centímetros, um preço. */
+  .apontamento__aceitar {
+    display: inline-block;
+    margin-left: 0.375rem;
+    padding: 0.0625rem 0.375rem;
+    border: 1px solid var(--border);
+    border-radius: var(--raio-sm);
+    background: var(--elevate-1);
+    color: var(--foreground-strong);
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 0.6875rem;
+    line-height: 1.5;
+    cursor: pointer;
+    transition:
+      background var(--d-fast) var(--ease-out),
+      border-color var(--d-fast) var(--ease-out);
+  }
+
+  .apontamento__aceitar:hover {
+    background: var(--foreground-strong);
+    border-color: var(--foreground-strong);
+    color: var(--background);
+  }
+
+  /* O campo que está a ser verificado contra a base. Não é um estado de erro
+     nem de sucesso — é «ainda não se sabe» —, e por isso só um texto ténue.
+     Sem ciclo nenhum a rodar: a espera é de um pedido e acaba sozinha. */
+  .apontamento--espera {
+    color: var(--foreground-muted);
+  }
+
   /* --- Detalhes opcionais --------------------------------------------------
    * Um passo com quarenta e sete campos à entrada não se lê: percorre-se. O
    * que é preciso para publicar fica à vista; o resto fica aqui dentro,

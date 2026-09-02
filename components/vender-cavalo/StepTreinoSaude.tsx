@@ -16,11 +16,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
 import Seleccao from "@/components/ui/Seleccao";
 import Detalhes from "@/components/vender-cavalo/Detalhes";
-import {
-  ErroDoCampo,
-  atributosErro,
-  classeCampo,
-} from "@/components/vender-cavalo/campos-com-erro";
+import { ErroDoCampo, classeCampo } from "@/components/vender-cavalo/campos-com-erro";
+import { ApontamentoDoCampo, atributosCampo } from "@/components/vender-cavalo/apontamentos";
 
 interface StepTreinoSaudeProps extends StepProps {
   documentos: Documentos;
@@ -37,6 +34,8 @@ export default function StepTreinoSaude({
   onToggleDisciplina,
   onToggleUso,
   erros,
+  apontamentos,
+  campo,
 }: StepTreinoSaudeProps) {
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
@@ -57,9 +56,15 @@ export default function StepTreinoSaude({
           <Seleccao
             id="nivel_treino"
             value={formData.nivel_treino}
-            onChange={(e) => updateField("nivel_treino", e.target.value)}
+            onChange={(e) => {
+              updateField("nivel_treino", e.target.value);
+              // Escolher é um acto acabado, e este nível é lido contra a data
+              // de nascimento: a incoerência aparece na escolha, não no `blur`
+              // — um `<Seleccao>` não tem nenhum de que se possa depender.
+              campo.aoEscolher("nivel_treino");
+            }}
             className={classeCampo(erros, "nivel_treino")}
-            {...atributosErro(erros, "nivel_treino")}
+            {...atributosCampo(erros, apontamentos, "nivel_treino")}
           >
             <option value="">{t.vender_cavalo.select}</option>
             {(niveisTreino[language] || niveisTreino.pt).map((n) => (
@@ -69,6 +74,7 @@ export default function StepTreinoSaude({
             ))}
           </Seleccao>
           <ErroDoCampo erros={erros} campo="nivel_treino" />
+          <ApontamentoDoCampo apontamentos={apontamentos} campo="nivel_treino" />
         </div>
 
         {/* As disciplinas são o que a grelha de anúncios filtra e o que o
@@ -441,7 +447,7 @@ export default function StepTreinoSaude({
               value={formData.estado_saude}
               onChange={(e) => updateField("estado_saude", e.target.value)}
               className={classeCampo(erros, "estado_saude")}
-              {...atributosErro(erros, "estado_saude")}
+              {...atributosCampo(erros, apontamentos, "estado_saude")}
             >
               <option value="">{t.vender_cavalo.select}</option>
               <option value="Excelente">{t.vender_cavalo.health_excellent}</option>

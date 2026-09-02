@@ -8,24 +8,16 @@ import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
 import Seleccao from "@/components/ui/Seleccao";
 import Detalhes from "@/components/vender-cavalo/Detalhes";
-import {
-  ErroDoCampo,
-  atributosErro,
-  classeCampo,
-} from "@/components/vender-cavalo/campos-com-erro";
+import { ErroDoCampo, classeCampo } from "@/components/vender-cavalo/campos-com-erro";
+import { ligarCampo } from "@/components/vender-cavalo/apontamentos";
 
 interface StepLinhagemProps extends StepProps {
   documentos: Documentos;
   onDocUpload: (type: DocumentType, file: File) => void;
 }
 
-export default function StepLinhagem({
-  formData,
-  updateField,
-  documentos,
-  onDocUpload,
-  erros,
-}: StepLinhagemProps) {
+export default function StepLinhagem(props: StepLinhagemProps) {
+  const { formData, updateField, documentos, onDocUpload, erros } = props;
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
 
@@ -53,7 +45,7 @@ export default function StepLinhagem({
                 value={formData.pai_nome}
                 onChange={(e) => updateField("pai_nome", e.target.value)}
                 className={classeCampo(erros, "pai_nome")}
-                {...atributosErro(erros, "pai_nome")}
+                {...ligarCampo("pai_nome", formData.pai_nome, props)}
               />
               <ErroDoCampo erros={erros} campo="pai_nome" />
             </div>
@@ -94,7 +86,7 @@ export default function StepLinhagem({
                 value={formData.mae_nome}
                 onChange={(e) => updateField("mae_nome", e.target.value)}
                 className={classeCampo(erros, "mae_nome")}
-                {...atributosErro(erros, "mae_nome")}
+                {...ligarCampo("mae_nome", formData.mae_nome, props)}
               />
               <ErroDoCampo erros={erros} campo="mae_nome" />
             </div>

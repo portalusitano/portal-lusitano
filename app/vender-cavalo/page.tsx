@@ -23,6 +23,9 @@ import {
   type MensagensValidacao,
 } from "@/components/vender-cavalo/validacao";
 import { porCampo } from "@/components/vender-cavalo/campos-com-erro";
+import { errosDeInspeccao, type MensagensInspeccao } from "@/components/vender-cavalo/inspeccao";
+import { useInspeccao } from "@/components/vender-cavalo/usar-inspeccao";
+import { useRegistoApsl } from "@/components/vender-cavalo/usar-registo-apsl";
 import {
   guardarRascunho,
   lerRascunho,
@@ -113,6 +116,189 @@ export default function VenderCavaloPage() {
     [t, tr]
   );
 
+  /**
+   * As frases da inspecção. Vivem ao lado das da validação e pela mesma razão:
+   * a camada que decide não sabe de línguas, e as três línguas escrevem-se
+   * uma vez só, aqui.
+   */
+  const mensagensInspeccao: MensagensInspeccao = useMemo(
+    () => ({
+      microchipComprimento: (faltam) =>
+        faltam > 0
+          ? tr(
+              `Um microchip tem 15 algarismos — faltam ${faltam}.`,
+              `A microchip has 15 digits — ${faltam} missing.`,
+              `Un microchip tiene 15 dígitos — faltan ${faltam}.`
+            )
+          : tr(
+              `Um microchip tem 15 algarismos — há ${-faltam} a mais.`,
+              `A microchip has 15 digits — ${-faltam} too many.`,
+              `Un microchip tiene 15 dígitos — hay ${-faltam} de más.`
+            ),
+      microchipNaoNumerico: tr(
+        "O microchip é só algarismos. Com letras, o número que tem à frente é outro — talvez o do passaporte.",
+        "A microchip is digits only. With letters, that is another number — the passport, perhaps.",
+        "El microchip son sólo dígitos. Con letras, ése es otro número — quizá el del pasaporte."
+      ),
+      microchipPrefixo: tr(
+        "Os três primeiros algarismos são o código do país (620 em Portugal) ou 900–999 do fabricante. Confirme o início.",
+        "The first three digits are the country code (620 in Portugal) or 900–999 for a manufacturer. Check the start.",
+        "Los tres primeros dígitos son el código de país (620 en Portugal) o 900–999 del fabricante. Compruebe el inicio."
+      ),
+      microchipRepetido: tr(
+        "Quinze algarismos iguais não são um microchip.",
+        "Fifteen identical digits are not a microchip.",
+        "Quince dígitos iguales no son un microchip."
+      ),
+      nifComprimento: tr(
+        "O NIF tem nove algarismos.",
+        "A Portuguese tax number has nine digits.",
+        "El NIF tiene nueve dígitos."
+      ),
+      nifControlo: tr(
+        "Este NIF não fecha — o último algarismo é de controlo e não bate certo com os outros oito.",
+        "This tax number does not check out — the last digit is a checksum and does not match the other eight.",
+        "Este NIF no cuadra — el último dígito es de control y no coincide con los otros ocho."
+      ),
+      nifSingularEmpresa: tr(
+        "Escolheu vender como empresa mas o NIF é de pessoa singular. A factura sai com este nome.",
+        "You are selling as a business but this tax number belongs to an individual. The invoice will use it.",
+        "Vende como empresa pero el NIF es de persona física. La factura saldrá con éste."
+      ),
+      nifColectivoParticular: tr(
+        "Escolheu vender como particular mas o NIF é de pessoa colectiva. Confirme qual deles quer na factura.",
+        "You are selling as a private individual but this is a company tax number. Check which you want on the invoice.",
+        "Vende como particular pero el NIF es de persona jurídica. Compruebe cuál quiere en la factura."
+      ),
+      telefoneInvalido: tr(
+        "Um número português é 9 seguido de 1, 2, 3 ou 6 e mais sete algarismos, ou um fixo com nove a começar por 2.",
+        "A Portuguese number is 9 followed by 1, 2, 3 or 6 and seven more digits, or a nine-digit landline starting with 2.",
+        "Un número portugués es 9 seguido de 1, 2, 3 o 6 y siete dígitos más, o un fijo de nueve que empieza por 2."
+      ),
+      telefoneInternacional: tr(
+        "Este número não tem algarismos que cheguem. Inclua o indicativo do país.",
+        "That number has too few digits. Include the country code.",
+        "Ese número no tiene dígitos suficientes. Incluya el prefijo del país."
+      ),
+      emailDominio: (sugerido) =>
+        tr(
+          `Quis dizer ${sugerido}? A confirmação da compra vai por email.`,
+          `Did you mean ${sugerido}? The purchase confirmation goes by email.`,
+          `¿Quiso decir ${sugerido}? La confirmación de la compra va por email.`
+        ),
+      alturaEmMaos: (cm) =>
+        tr(
+          `Isso parecem mãos, e a caixa pede centímetros — dá ${cm}cm.`,
+          `That looks like hands, and this box asks for centimetres — that is ${cm}cm.`,
+          `Eso parecen manos, y la casilla pide centímetros — son ${cm}cm.`
+        ),
+      alturaImpossivel: tr(
+        "A altura vai em centímetros, ao garrote.",
+        "Height goes in centimetres, at the withers.",
+        "La altura va en centímetros, a la cruz."
+      ),
+      alturaInvulgar: tr(
+        "Um Lusitano adulto anda pelos 150–170cm. Confirme se é mesmo esta.",
+        "An adult Lusitano is usually 150–170cm. Please confirm.",
+        "Un Lusitano adulto ronda los 150–170cm. Confirme si es ésta."
+      ),
+      pesoImpossivel: tr(
+        "O peso vai em quilogramas.",
+        "Weight goes in kilograms.",
+        "El peso va en kilogramos."
+      ),
+      pesoInvulgar: tr(
+        "Um Lusitano adulto anda pelos 400–650kg. Confirme se é mesmo este.",
+        "An adult Lusitano is usually 400–650kg. Please confirm.",
+        "Un Lusitano adulto ronda los 400–650kg. Confirme si es éste."
+      ),
+      precoZeroAMenos: tr(
+        "Para um PSL registado isto é muito baixo — faltou um zero?",
+        "That is very low for a registered PSL — is a zero missing?",
+        "Para un PSL registrado es muy bajo — ¿falta un cero?"
+      ),
+      precoBaixo: tr(
+        "É um preço baixo para um PSL registado. Confirme antes de publicar.",
+        "That is a low price for a registered PSL. Please check before publishing.",
+        "Es un precio bajo para un PSL registrado. Compruébelo antes de publicar."
+      ),
+      precoAlto: tr(
+        "É um preço muito alto. Confirme o número de zeros.",
+        "That is a very high price. Please check the zeros.",
+        "Es un precio muy alto. Compruebe los ceros."
+      ),
+      pontuacaoForaDaEscala: tr(
+        "A pontuação morfológica é numa escala até 100.",
+        "The conformation score runs on a scale up to 100.",
+        "La puntuación morfológica va en una escala hasta 100."
+      ),
+      pontuacaoInvulgar: tr(
+        "As pontuações atribuídas andam quase sempre entre 60 e 80. Confirme.",
+        "Awarded scores are almost always between 60 and 80. Please check.",
+        "Las puntuaciones otorgadas suelen estar entre 60 y 80. Compruébelo."
+      ),
+      registoCurto: tr(
+        "Um número de registo tem mais do que dois caracteres.",
+        "A registration number has more than two characters.",
+        "Un número de registro tiene más de dos caracteres."
+      ),
+      registoRepetido: tr(
+        "Isto é o mesmo caractere repetido, não um número de registo.",
+        "That is one character repeated, not a registration number.",
+        "Eso es un mismo carácter repetido, no un número de registro."
+      ),
+      registoEONome: tr(
+        "Aqui vai o número do Livro Azul, não o nome do cavalo.",
+        "This box takes the stud-book number, not the horse's name.",
+        "Aquí va el número del Libro Azul, no el nombre del caballo."
+      ),
+      registoSemAlgarismos: tr(
+        "Não tem um único algarismo. Confirme que copiou o número certo.",
+        "There is not a single digit in it. Check you copied the right number.",
+        "No tiene ni un dígito. Compruebe que copió el número correcto."
+      ),
+      registoDuplicado: tr(
+        "Já há um anúncio com este número de registo. Se o cavalo é o mesmo, não precisa de o publicar outra vez.",
+        "There is already a listing with this registration number. If it is the same horse, no need to publish it twice.",
+        "Ya hay un anuncio con este número de registro. Si es el mismo caballo, no hace falta publicarlo otra vez."
+      ),
+      videoNaoReconhecido: tr(
+        "Só reconhecemos YouTube e Vimeo — o resto fica como ligação e não como vídeo no anúncio.",
+        "We recognise YouTube and Vimeo only — anything else stays a link, not a video in the listing.",
+        "Sólo reconocemos YouTube y Vimeo — el resto queda como enlace y no como vídeo en el anuncio."
+      ),
+      treinoCedoDemais: (idade) =>
+        tr(
+          `Com ${idade} anos ainda não há desbaste. Confirme a data de nascimento ou o nível.`,
+          `At ${idade} a horse is not yet started. Check the date of birth or the level.`,
+          `Con ${idade} años aún no hay doma. Compruebe la fecha de nacimiento o el nivel.`
+        ),
+      treinoAltaEscolaCedo: (idade) =>
+        tr(
+          `Alta Escola com ${idade} anos é muito cedo. Confirme a data de nascimento ou o nível.`,
+          `High School at ${idade} is very early. Check the date of birth or the level.`,
+          `Alta Escuela con ${idade} años es muy pronto. Compruebe la fecha de nacimiento o el nivel.`
+        ),
+      treinoPotroTarde: (idade) =>
+        tr(
+          `Um cavalo de ${idade} anos ainda sem desbaste é raro. Confirme.`,
+          `A ${idade}-year-old still unbroken is rare. Please confirm.`,
+          `Un caballo de ${idade} años aún sin domar es raro. Confirme.`
+        ),
+    }),
+    [tr]
+  );
+
+  // ---- A inspecção de cada campo ------------------------------------------
+  // O número de registo é o único que precisa de perguntar a um servidor, e
+  // por isso tem estado próprio; o resultado dele entra na inspecção como
+  // contexto, para que a mensagem do duplicado saia do mesmo sítio que as
+  // outras e não de um canto à parte da página.
+  const registoApsl = useRegistoApsl();
+  const inspeccao = useInspeccao(formData, mensagensInspeccao, {
+    registoDuplicado: registoApsl.duplicado,
+  });
+
   // ---- Rascunho -----------------------------------------------------------
   // Ler antes de gravar. Sem esta ordem o primeiro `guardarRascunho` do
   // arranque escrevia o formulário vazio por cima do que lá estava.
@@ -164,7 +350,50 @@ export default function VenderCavaloPage() {
     setErrors((prev) =>
       prev.some((e) => e.campo === field) ? prev.filter((e) => e.campo !== field) : prev
     );
+    // E um campo que está a ser corrigido cala-se enquanto o está. Sem isto,
+    // corrigir um email a partir do meio da palavra dá uma mensagem diferente
+    // a cada tecla — que é exactamente o que não se quer fazer a quem escreve.
+    if (typeof value === "string") inspeccao.aoEscrever(String(field), value);
+    if (field === "numero_registo") registoApsl.esquecer();
   };
+
+  /**
+   * Os quatro momentos de um campo, montados uma vez e passados a todos os
+   * passos. É aqui que se cumpre a regra do «ao sair do campo, não ao
+   * submeter»: quem acabou de escrever ainda está a pensar naquilo.
+   */
+  const accoesDeCampo = useMemo(
+    () => ({
+      aoFocar: inspeccao.aoFocar,
+      aoSair: (campo: string) => {
+        inspeccao.aoSair(campo);
+        // Um apontamento de nível `erro` aparece no instante em que se sai do
+        // campo, e não à espera do botão. Os avisos e as sugestões não passam
+        // por aqui: mostra-os o próprio campo, e nenhum deles trava nada.
+        const erro = inspeccao.erroDe(campo);
+        if (erro) {
+          setErrors((antes) => [
+            ...antes.filter((e) => e.campo !== campo),
+            { campo, mensagem: erro.mensagem },
+          ]);
+        }
+        // A única verificação de existência possível hoje é contra a nossa
+        // própria base, e faz-se aqui — ao sair do campo, não a cada tecla.
+        if (campo === "numero_registo") {
+          registoApsl.verificar(formData.numero_registo, formData.nome);
+        }
+      },
+      aoEscolher: inspeccao.marcarTocado,
+      aoAceitar: (campo: string, valor: string) => {
+        updateField(campo as keyof FormData, valor);
+        inspeccao.marcarTocado(campo);
+      },
+    }),
+    // `updateField` é recriada a cada render de propósito — fecha sobre o
+    // `inspeccao` desta passagem —, e por isso não entra nas dependências.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [inspeccao, registoApsl, formData.numero_registo, formData.nome]
+  );
 
   const toggleDisciplina = (disc: string) => {
     setFormData((prev) => ({
@@ -191,8 +420,17 @@ export default function VenderCavaloPage() {
       { formData, documentos, imagens, termosAceites: termsAccepted },
       mensagens
     );
-    setErrors(encontrados);
-    return encontrados;
+    // Um apontamento de nível `erro` trava o passo onde o campo vive. Sem
+    // isto, bastava não sair do campo para publicar um microchip de catorze
+    // algarismos — e o que ficava guardado era lixo. Só entram os campos que
+    // a validação ainda não acusou: dizer duas vezes a mesma coisa sobre o
+    // mesmo campo é pior do que dizê-la uma.
+    const daInspeccao = errosDeInspeccao(passo, inspeccao.todos).filter(
+      (e) => !encontrados.some((j) => j.campo === e.campo)
+    );
+    const todos = [...encontrados, ...daInspeccao];
+    setErrors(todos);
+    return todos;
   };
 
   /**
@@ -454,6 +692,7 @@ export default function VenderCavaloPage() {
   const tierData = LISTING_TIERS[selectedTier] || LISTING_TIERS.standard;
   const maxImages = tierData.maxPhotos === -1 ? 50 : tierData.maxPhotos;
   const errosPorCampo = useMemo(() => porCampo(errors), [errors]);
+  const apontamentos = inspeccao.visiveis;
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-24 md:pt-32 pb-32 px-4 sm:px-6 md:px-12">
@@ -524,12 +763,17 @@ export default function VenderCavaloPage() {
                 formData={formData}
                 updateField={updateField}
                 erros={errosPorCampo}
+                apontamentos={apontamentos}
+                campo={accoesDeCampo}
               />
               <div className="mt-8 pt-8 border-t border-[var(--border)]">
                 <StepIdentificacao
                   formData={formData}
                   updateField={updateField}
                   erros={errosPorCampo}
+                  apontamentos={apontamentos}
+                  campo={accoesDeCampo}
+                  registoApsl={registoApsl.estado}
                 />
               </div>
             </>
@@ -544,6 +788,8 @@ export default function VenderCavaloPage() {
                 documentos={documentos}
                 onDocUpload={handleDocUpload}
                 erros={errosPorCampo}
+                apontamentos={apontamentos}
+                campo={accoesDeCampo}
               />
               <div className="mt-8 pt-8 border-t border-[var(--border)]">
                 <StepTreinoSaude
@@ -554,6 +800,8 @@ export default function VenderCavaloPage() {
                   onToggleDisciplina={toggleDisciplina}
                   onToggleUso={toggleUso}
                   erros={errosPorCampo}
+                  apontamentos={apontamentos}
+                  campo={accoesDeCampo}
                 />
               </div>
             </>
@@ -569,6 +817,8 @@ export default function VenderCavaloPage() {
               onRemoveImage={removeImage}
               maxImages={maxImages}
               erros={errosPorCampo}
+              apontamentos={apontamentos}
+              campo={accoesDeCampo}
             />
           )}
 

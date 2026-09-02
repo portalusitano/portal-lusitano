@@ -15,11 +15,13 @@ import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
 import Seleccao from "@/components/ui/Seleccao";
 import Detalhes from "@/components/vender-cavalo/Detalhes";
+import { ErroDoCampo, classeCampo } from "@/components/vender-cavalo/campos-com-erro";
 import {
-  ErroDoCampo,
-  atributosErro,
-  classeCampo,
-} from "@/components/vender-cavalo/campos-com-erro";
+  ApontamentoDoCampo,
+  atributosCampo,
+  ligarCampo,
+} from "@/components/vender-cavalo/apontamentos";
+import type { RegistoVerificado } from "@/components/vender-cavalo/usar-registo-apsl";
 
 /**
  * O cavalo.
@@ -35,7 +37,13 @@ import {
  * é o campo mais caro do formulário — e nada, do anúncio à aprovação, o lê
  * antes de o documento chegar.
  */
-export default function StepIdentificacao({ formData, updateField, erros }: StepProps) {
+interface StepIdentificacaoProps extends StepProps {
+  /** Em que pé vai a consulta do número de registo à nossa base. */
+  registoApsl: RegistoVerificado["estado"];
+}
+
+export default function StepIdentificacao(props: StepIdentificacaoProps) {
+  const { formData, updateField, erros, apontamentos, campo, registoApsl } = props;
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
 
@@ -61,7 +69,7 @@ export default function StepIdentificacao({ formData, updateField, erros }: Step
               onChange={(e) => updateField("nome", e.target.value)}
               className={classeCampo(erros, "nome")}
               placeholder={t.vender_cavalo.placeholder_horse_name}
-              {...atributosErro(erros, "nome")}
+              {...ligarCampo("nome", formData.nome, props)}
             />
             <ErroDoCampo erros={erros} campo="nome" />
           </div>
@@ -79,9 +87,19 @@ export default function StepIdentificacao({ formData, updateField, erros }: Step
               onChange={(e) => updateField("numero_registo", e.target.value)}
               className={classeCampo(erros, "numero_registo")}
               placeholder={t.vender_cavalo.placeholder_registration_number}
-              {...atributosErro(erros, "numero_registo")}
+              {...ligarCampo("numero_registo", formData.numero_registo, props)}
             />
             <ErroDoCampo erros={erros} campo="numero_registo" />
+            <ApontamentoDoCampo apontamentos={apontamentos} campo="numero_registo" />
+            {registoApsl === "a-verificar" && (
+              <p className="apontamento apontamento--espera">
+                {tr(
+                  "A verificar se já existe um anúncio com este número…",
+                  "Checking whether a listing already uses this number…",
+                  "Comprobando si ya hay un anuncio con este número…"
+                )}
+              </p>
+            )}
           </div>
         </div>
 
@@ -99,7 +117,7 @@ export default function StepIdentificacao({ formData, updateField, erros }: Step
               value={formData.data_nascimento}
               onChange={(e) => updateField("data_nascimento", e.target.value)}
               className={classeCampo(erros, "data_nascimento")}
-              {...atributosErro(erros, "data_nascimento")}
+              {...ligarCampo("data_nascimento", formData.data_nascimento, props)}
             />
             <ErroDoCampo erros={erros} campo="data_nascimento" />
           </div>
@@ -112,7 +130,7 @@ export default function StepIdentificacao({ formData, updateField, erros }: Step
               value={formData.sexo}
               onChange={(e) => updateField("sexo", e.target.value)}
               className={classeCampo(erros, "sexo")}
-              {...atributosErro(erros, "sexo")}
+              {...atributosCampo(erros, apontamentos, "sexo")}
             >
               <option value="">{t.vender_cavalo.select}</option>
               <option value="Garanhão">{t.vender_cavalo.stallion}</option>
@@ -133,7 +151,7 @@ export default function StepIdentificacao({ formData, updateField, erros }: Step
               value={formData.pelagem}
               onChange={(e) => updateField("pelagem", e.target.value)}
               className={classeCampo(erros, "pelagem")}
-              {...atributosErro(erros, "pelagem")}
+              {...atributosCampo(erros, apontamentos, "pelagem")}
             >
               <option value="">{t.vender_cavalo.select}</option>
               {(pelagens[language] || pelagens.pt).map((p) => (
@@ -161,10 +179,17 @@ export default function StepIdentificacao({ formData, updateField, erros }: Step
               inputMode="numeric"
               value={formData.altura}
               onChange={(e) => updateField("altura", e.target.value)}
-              className="campo"
+              className={classeCampo(erros, "altura")}
               placeholder={t.vender_cavalo.placeholder_height}
-              min={140}
-              max={180}
+              min={100}
+              max={220}
+              {...ligarCampo("altura", formData.altura, props)}
+            />
+            <ErroDoCampo erros={erros} campo="altura" />
+            <ApontamentoDoCampo
+              apontamentos={apontamentos}
+              campo="altura"
+              aoAceitar={campo.aoAceitar}
             />
           </div>
           <div>
@@ -235,9 +260,12 @@ export default function StepIdentificacao({ formData, updateField, erros }: Step
                   maxLength={15}
                   value={formData.microchip}
                   onChange={(e) => updateField("microchip", e.target.value)}
-                  className="campo"
+                  className={classeCampo(erros, "microchip")}
                   placeholder={t.vender_cavalo.placeholder_microchip}
+                  {...ligarCampo("microchip", formData.microchip, props)}
                 />
+                <ErroDoCampo erros={erros} campo="microchip" />
+                <ApontamentoDoCampo apontamentos={apontamentos} campo="microchip" />
               </div>
             </div>
 
@@ -317,11 +345,14 @@ export default function StepIdentificacao({ formData, updateField, erros }: Step
                   inputMode="numeric"
                   value={formData.peso}
                   onChange={(e) => updateField("peso", e.target.value)}
-                  className="campo"
+                  className={classeCampo(erros, "peso")}
                   placeholder="500"
-                  min={100}
-                  max={900}
+                  min={50}
+                  max={1200}
+                  {...ligarCampo("peso", formData.peso, props)}
                 />
+                <ErroDoCampo erros={erros} campo="peso" />
+                <ApontamentoDoCampo apontamentos={apontamentos} campo="peso" />
               </div>
             </div>
 
@@ -424,9 +455,12 @@ export default function StepIdentificacao({ formData, updateField, erros }: Step
                   type="text"
                   value={formData.nivel_apsl}
                   onChange={(e) => updateField("nivel_apsl", e.target.value)}
-                  className="campo"
+                  className={classeCampo(erros, "nivel_apsl")}
                   placeholder="Ex: 78.5 pontos — Muito Bom"
+                  {...ligarCampo("nivel_apsl", formData.nivel_apsl, props)}
                 />
+                <ErroDoCampo erros={erros} campo="nivel_apsl" />
+                <ApontamentoDoCampo apontamentos={apontamentos} campo="nivel_apsl" />
               </div>
             </div>
 
