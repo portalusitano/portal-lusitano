@@ -1073,3 +1073,72 @@ poderem ficar no ar como estão: `coudelaria-andrade`, `dressage-plus`,
 
 **Contactos** — `joao-pedro-rodrigues` (o telefone com `XXX`) e `vila-vicosa`
 (o endereço de terceiros).
+
+---
+
+## O que fica no repositório
+
+### `supabase/migrations/20260902000001_coudelarias_distrito_codigo_postal.sql`
+
+A migração mais aborrecida que se conseguiu escrever, e é isso que se pretende.
+Só entra o que é dedução ou mudança de sítio:
+
+- **`distrito`**, deduzido do concelho que a morada já nomeia. Que Alpiarça é
+  do distrito de Santarém não é um facto sobre a coudelaria — é a divisão
+  administrativa do país. Preenche 34 das 35.
+- **`codigo_postal`**, retirado de dentro de `localizacao` por expressão
+  regular. Não há lista nenhuma: se a morada não tiver um `NNNN-NNN`, a linha
+  não é tocada. Preenche 8.
+
+O `dressage-plus` fica sem distrito de propósito: a `localizacao` dele é
+«Portugal», não há concelho de onde deduzir, e escolher um seria a invenção que
+se anda a caçar. As coordenadas e o telefone com `XXX` também não se tocam —
+corrigir uma coordenada exige saber onde a coudelaria fica, e isso pergunta-se
+à casa.
+
+**Validada contra um PostgreSQL 16 local**, com um exemplar que reproduz o
+estado real (e **sem** as duas colunas, para que a migração as tenha de criar):
+
+- primeira passagem: 34 distritos, 8 códigos postais, 1 linha por preencher;
+- segunda passagem: **hash idêntico** do conteúdo das duas colunas —
+  `083967f1e1ae68a1312f3e88f5aec700` nas duas vezes;
+- com uma correcção feita à mão numa linha, a terceira passagem **não lhe
+  toca**; e uma linha reposta a `NULL` volta a ser preenchida. Quem editou à
+  mão ganha sempre a esta migração.
+
+### `lib/auditoria-coudelarias.ts` e `__tests__/lib/auditoria-coudelarias.test.ts`
+
+A parte desta auditoria que uma máquina consegue repetir, com 33 testes. A
+fronteira é deliberada: nenhuma função sabe se a Coudelaria de Alter foi mesmo
+fundada em 1748. O que se apanha são defeitos de forma e de coerência interna —
+e isso foi metade dos achados.
+
+Apanha: código postal mal formado ou escondido na morada; telefone que é espaço
+reservado; `website` que aponta para um directório de terceiros; capa que é
+fotografia de banco de imagens; coordenada que é conversão de graus e minutos;
+as duas colunas de coordenadas a discordar; ano de fundação escrito na prosa e
+ausente da coluna; idade relativa sem âncora; frases partilhadas entre
+coudelarias; e ligações de imagem que não existem em disco.
+
+Apontado aos dados reais, reproduz exactamente os números apurados à mão: **9**
+coordenadas de centro de povoação, **6** pares de colunas em conflito com as
+mesmas distâncias ao décimo, **8** códigos postais escondidos na morada.
+
+Há um teste que não é sobre uma função: afirma que **todas as fotografias em
+`public/images/coudelarias/` são `.jpg`**, e nenhuma é `.webp`. É essa
+assimetria que faz nascer mortas as galerias gravadas como `imagem-NN.webp`.
+Quando a conversão acontecer, o teste falha — e é o sinal de que este relatório
+precisa de ser revisto.
+
+### Uma nota para quem tratar da galeria
+
+O `montarFotos` (`lib/fotos-coudelarias.ts`) monta a galeria com os caminhos
+**da base primeiro** e os do disco a seguir. Numa coudelaria que só tenha
+`capa.jpg` em disco, a capa sai por repetida e o que fica na galeria são
+**exclusivamente** os caminhos mortos. Não é uma galeria com falhas: é uma
+galeria inteira de imagens que não existem.
+
+Há remédio já escrito no repositório: o `scripts/sync-galeria.ts` reescreve
+`foto_capa` e `galeria` a partir do que está mesmo em disco. É também ele que
+explica os três `Captura de ecrã 2026-02-23 …png` da `coudelaria-andrade` —
+aceita qualquer nome de ficheiro, sem perguntar o que é.
