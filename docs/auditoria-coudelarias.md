@@ -250,8 +250,8 @@ em `http://` simples.
 
 ## O que **não** está mal, e vale a pena dizer
 
-Quatro suspeitas fortes foram levantadas e **caíram** depois de medidas. As
-duas últimas são correcções a versões anteriores deste próprio relatório, e
+Cinco suspeitas fortes foram levantadas e **caíram** depois de medidas. As
+três últimas são correcções a versões anteriores deste próprio relatório, e
 ficam escritas com o mesmo destaque que os achados: quem audita também erra, e
 um achado retirado em silêncio vale menos do que um achado retirado por
 escrito.
@@ -290,6 +290,14 @@ escrito.
    organizado pela ABEL —
    [cavalo-lusitano.com](http://www.cavalo-lusitano.com/pt/noticias-sobre-cavalo-lusitano/belgica-campeonato-do-cavalo-lusitano).
    A ficha estava certa até ao mês.
+
+5. **O Morgado Lusitano não se contradiz sobre onde fica.** A morada diz
+   Alverca do Ribatejo e a história diz «região vitivinícola de Bucelas», e eu
+   li isso como dois concelhos incompatíveis. A quinta fica na **EN 116, entre
+   Alverca e Bucelas** —
+   [rhlt.pt](https://www.rhlt.pt/en/portfolio/morgado-lusitano-en/) —, com
+   morada postal de um lado e região vinhateira do outro. As duas frases são
+   verdade ao mesmo tempo.
 
 ---
 
@@ -379,19 +387,19 @@ casa — mas não pode ficar como está.
 
 `Samora Correia` · Ribatejo · 1836 · 150 cavalos · **activa**
 
-| Afirmação                                                    | Estado            | Fonte / razão                                                                                                                                                                        |
-| ------------------------------------------------------------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Companhia das Lezírias fundada em 1836                       | **Confirmado**    | [en.wikipedia.org/wiki/Companhia_das_Lezírias](https://en.wikipedia.org/wiki/Companhia_das_Lez%C3%ADrias)                                                                            |
-| Maior exploração agro-pecuária do país, ~18.000 hectares     | **Confirmado**    | [en.wikipedia.org](https://en.wikipedia.org/wiki/Companhia_das_Lez%C3%ADrias), [coudelaria.cl.pt](https://coudelaria.cl.pt/en/history/)                                              |
-| Dedica-se exclusivamente ao Puro Sangue Lusitano             | **Confirmado**    | [coudelaria.cl.pt/en/history](https://coudelaria.cl.pt/en/history/)                                                                                                                  |
-| `ano_fundacao = 1836` **para a coudelaria**                  | **Contradito**    | a própria `historia` diz apenas «A Coudelaria foi criada no século XIX», sem ano. 1836 é a data da **empresa**, não da coudelaria — e é essa que a ficha mostra como ano de fundação |
-| Sócia n.º 46 da APSL                                         | **Por confirmar** | não encontrado nos resultados                                                                                                                                                        |
-| 16 éguas de ventre                                           | **Por confirmar** | e discorda de `num_cavalos = 150`, que conta outra coisa                                                                                                                             |
-| 1.º lugar no Concurso Nacional de Coudelarias, Santarém 2017 | **Por confirmar** | (sem tentativa)                                                                                                                                                                      |
-| ZINQUE — Campeão Mundial Equitação de Trabalho 2018          | **Por confirmar** | (sem tentativa)                                                                                                                                                                      |
-| HASA — Campeã de Campeões Festival Internacional 2014        | **Por confirmar** | (sem tentativa)                                                                                                                                                                      |
-| QUEFINA — Campeã de Campeões Holanda 2010                    | **Por confirmar** | (sem tentativa)                                                                                                                                                                      |
-| Coordenada                                                   | **Contradito**    | **6,3 km** de distância da coluna `latitude` da mesma linha; e é conversão de graus e minutos (centro de povoação)                                                                   |
+| Afirmação                                                           | Estado            | Fonte / razão                                                                                                                                                                                                                                                                                                                                                             |
+| ------------------------------------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Companhia das Lezírias fundada em 1836                              | **Confirmado**    | [en.wikipedia.org/wiki/Companhia_das_Lezírias](https://en.wikipedia.org/wiki/Companhia_das_Lez%C3%ADrias)                                                                                                                                                                                                                                                                 |
+| Maior exploração agro-pecuária do país, ~18.000 hectares            | **Confirmado**    | [en.wikipedia.org](https://en.wikipedia.org/wiki/Companhia_das_Lez%C3%ADrias), [coudelaria.cl.pt](https://coudelaria.cl.pt/en/history/)                                                                                                                                                                                                                                   |
+| Dedica-se exclusivamente ao Puro Sangue Lusitano                    | **Confirmado**    | [coudelaria.cl.pt/en/history](https://coudelaria.cl.pt/en/history/)                                                                                                                                                                                                                                                                                                       |
+| `ano_fundacao = 1836` **para a coudelaria**                         | **Contradito**    | a própria `historia` diz apenas «A Coudelaria foi criada no século XIX», sem ano. 1836 é a data da **empresa**, não da coudelaria — e é essa que a ficha mostra como ano de fundação                                                                                                                                                                                      |
+| Sócia n.º 46 da APSL                                                | **Por confirmar** | não encontrado nos resultados                                                                                                                                                                                                                                                                                                                                             |
+| 16 éguas de ventre                                                  | **Por confirmar** | e discorda de `num_cavalos = 150`, que conta outra coisa                                                                                                                                                                                                                                                                                                                  |
+| 1.º lugar no Concurso Nacional de Coudelarias, Santarém 2017        | **Por confirmar** | (sem tentativa)                                                                                                                                                                                                                                                                                                                                                           |
+| ZINQUE das Lezírias — Campeão Mundial de Equitação de Trabalho 2018 | **Confirmado**    | Campeão do Mundo individual em 2018, montado por Gilberto Filipe, com o ferro da Companhia das Lezírias — [cl.pt](https://www.cl.pt/gilberto-filipe-silva-e-zinque-das-lezirias-renovam-o-seu-titulo-de-campeoes-4/), [cavalo-lusitano.com (APSL)](https://www.cavalo-lusitano.com/pt/cavalo-lusitano/exitos-desportivos/equitacao-de-trabalho). Renovou o título em 2022 |
+| HASA — Campeã de Campeões Festival Internacional 2014               | **Por confirmar** | (sem tentativa)                                                                                                                                                                                                                                                                                                                                                           |
+| QUEFINA — Campeã de Campeões Holanda 2010                           | **Por confirmar** | (sem tentativa)                                                                                                                                                                                                                                                                                                                                                           |
+| Coordenada                                                          | **Contradito**    | **6,3 km** de distância da coluna `latitude` da mesma linha; e é conversão de graus e minutos (centro de povoação)                                                                                                                                                                                                                                                        |
 
 **Forma:** «Atualmente» — única linha, com a `quinta-da-hermida`, fora da norma
 ortográfica do site.
@@ -943,14 +951,14 @@ melhor palmarés documentado do directório e não tem uma imagem decente.
 
 `Quinta da Portela, Cabeço da Rosa, EN 116, 2615-365 Alverca do Ribatejo` · Lisboa · **`ano_fundacao` NULL** · 15 cavalos · **activa**
 
-| Afirmação                                                                                                                             | Estado            | Fonte / razão                                                                                                                                               |
-| ------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Fica em **Alverca do Ribatejo** (`localizacao`, código postal 2615) / fica «em plena região vitivinícola de **Bucelas**» (`historia`) | **Contradito**    | são dois concelhos diferentes — Vila Franca de Xira e Loures. A EN 116 liga-os, mas a coudelaria só pode estar num                                          |
-| Quinta da Portela é do século XVIII, mandada erguer pelo «Marquês de Castelo Melhor, Conde da Ribeira Grande»                         | **Por confirmar** | são dois títulos de **casas diferentes** (Vasconcelos e Sousa; Câmara), atribuídos aqui à mesma pessoa. Pode haver explicação, mas assim escrito é suspeito |
-| «a 15 minutos do Aeroporto de Lisboa»                                                                                                 | **Por confirmar** | dito duas vezes, na `descricao` e na `historia`                                                                                                             |
-| Pacotes de 7 e 4 noites, 2.055 €/1.915 €/1.220 €/1.080 € por pessoa                                                                   | **Por confirmar** | **catorze preços em euros, nenhum datado.** É o registo com mais preços do directório depois do `cavalos-na-areia`                                          |
-| Visita à EPAE, aulas privadas 110 €/45 min, massagem 80 €/h…                                                                          | **Por confirmar** | idem                                                                                                                                                        |
-| `ano_fundacao` NULL                                                                                                                   | —                 | e a `historia` também não dá ano nenhum para a coudelaria                                                                                                   |
+| Afirmação                                                                                                                    | Estado            | Fonte / razão                                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------------------------------------------------------------------------------------------------------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Fica em Alverca do Ribatejo (`localizacao`, código postal 2615) **e** «em plena região vitivinícola de Bucelas» (`historia`) | **Confirmado**    | não é contradição: a quinta fica na **EN 116, entre Alverca e Bucelas** — [rhlt.pt](https://www.rhlt.pt/en/portfolio/morgado-lusitano-en/), [riding-vacations.info](https://www.riding-vacations.info/dr00787). A morada postal é de Alverca e a região vinhateira é a de Bucelas. **Isto corrige um achado anterior deste relatório**, que lia os dois campos como dois concelhos incompatíveis |
+| Quinta da Portela é do século XVIII, mandada erguer pelo «Marquês de Castelo Melhor, Conde da Ribeira Grande»                | **Por confirmar** | são dois títulos de **casas diferentes** (Vasconcelos e Sousa; Câmara), atribuídos aqui à mesma pessoa. Pode haver explicação, mas assim escrito é suspeito                                                                                                                                                                                                                                      |
+| «a 15 minutos do Aeroporto de Lisboa»                                                                                        | **Por confirmar** | dito duas vezes, na `descricao` e na `historia`                                                                                                                                                                                                                                                                                                                                                  |
+| Pacotes de 7 e 4 noites, 2.055 €/1.915 €/1.220 €/1.080 € por pessoa                                                          | **Por confirmar** | **catorze preços em euros, nenhum datado.** É o registo com mais preços do directório depois do `cavalos-na-areia`                                                                                                                                                                                                                                                                               |
+| Visita à EPAE, aulas privadas 110 €/45 min, massagem 80 €/h…                                                                 | **Por confirmar** | idem                                                                                                                                                                                                                                                                                                                                                                                             |
+| `ano_fundacao` NULL                                                                                                          | —                 | e a `historia` também não dá ano nenhum para a coudelaria                                                                                                                                                                                                                                                                                                                                        |
 
 **Recomendação:** um preço numa página pública é uma oferta. Catorze preços
 sem data, numa ficha que ninguém revê, tornam-se catorze promessas que a casa
@@ -1049,8 +1057,8 @@ Por ordem, e com a razão:
 
 Menções logo a seguir: **`santa-margarida`** (a coordenada aponta para uma
 povoação que o próprio texto desmente, e não tem uma única fotografia) e
-**`morgado-lusitano`** (dois concelhos diferentes no mesmo registo, catorze
-preços sem data).
+**`morgado-lusitano`** (catorze preços em euros, nenhum datado, e `ano_fundacao`
+vazio).
 
 ---
 
@@ -1058,12 +1066,12 @@ preços sem data).
 
 | Estado            | Afirmações |
 | ----------------- | ---------: |
-| **Confirmado**    |         54 |
-| **Contradito**    |         50 |
-| **Por confirmar** |        123 |
+| **Confirmado**    |         56 |
+| **Contradito**    |         49 |
+| **Por confirmar** |        122 |
 | **Total**         |    **227** |
 
-As 123 «por confirmar» dividem-se em duas famílias muito diferentes:
+As 122 «por confirmar» dividem-se em duas famílias muito diferentes:
 
 - **as que se podem verificar** — prémios com cavalo, prova e ano; números de
   sócio da APSL; datas de constituição de sociedade; produtos registados no
