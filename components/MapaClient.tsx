@@ -918,7 +918,16 @@ export default function MapaClient({
                                   </span>
                                 </button>
                               </h2>
-                              <div className="no-scrollbar divide-y divide-[var(--border-soft)] lg:max-h-[calc(var(--altura-globo)-11rem)] lg:overflow-y-auto">
+                              {/* A lista rola, e agora diz que rola. Medido
+                                  com o Alentejo aberto: a cabeça escrevia 12,
+                                  a caixa mostrava 6 inteiras, o conteúdo tinha
+                                  731px dentro de 422 — e a barra media 0
+                                  pixéis, porque o `no-scrollbar` a escondia.
+                                  Metade das coudelarias da região estava atrás
+                                  de um gesto que nada anunciava. A barra do
+                                  site tem 8px e já está desenhada nos tokens:
+                                  mostrá-la diz que há mais e diz quanto. */}
+                              <div className="divide-y divide-[var(--border-soft)] lg:max-h-[calc(var(--altura-globo)-11rem)] lg:overflow-y-auto">
                                 {listaDoPainel.map((c, i) => (
                                   <div
                                     key={c.id}
