@@ -50,6 +50,25 @@ export interface RascunhoLido {
 
 const semArmazenamento = (): boolean => typeof window === "undefined" || !window.localStorage;
 
+/**
+ * Um formulário em que ninguém tocou não é um rascunho.
+ *
+ * Parece uma subtileza e não é: o «Recomeçar de novo» limpa o armazenamento e
+ * repõe o formulário, e repor o formulário volta a disparar o guardar — que
+ * escrevia por cima um rascunho vazio. Da vez seguinte a pessoa era recebida
+ * com «rascunho restaurado automaticamente» num formulário sem uma única
+ * letra. Foi um teste de ponta a ponta que o apanhou.
+ */
+export function temConteudo(formData: FormData, fotografias: number, documentos: number): boolean {
+  if (fotografias > 0 || documentos > 0) return true;
+  return Object.values(formData).some((valor) => {
+    if (typeof valor === "string") return valor.trim() !== "";
+    if (typeof valor === "boolean") return valor;
+    if (Array.isArray(valor)) return valor.length > 0;
+    return false;
+  });
+}
+
 export function guardarRascunho(dados: {
   formData: FormData;
   passo: number;
@@ -58,6 +77,12 @@ export function guardarRascunho(dados: {
   documentos: number;
 }): void {
   if (semArmazenamento()) return;
+
+  if (!temConteudo(dados.formData, dados.fotografias, dados.documentos)) {
+    limparRascunho();
+    return;
+  }
+
   const rascunho: Rascunho = {
     versao: VERSAO_RASCUNHO,
     guardadoEm: Date.now(),

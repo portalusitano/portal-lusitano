@@ -61,13 +61,9 @@ test.describe("Publicar anúncio", () => {
 
   test.beforeEach(async ({ page }) => {
     await jaRespondeuAosCookies(page);
-    await page.addInitScript(() => {
-      try {
-        localStorage.removeItem("vender-cavalo-draft");
-      } catch {
-        // sem armazenamento o caso do rascunho falha a dizê-lo, que é o correcto
-      }
-    });
+    // Não se limpa o rascunho aqui: cada caso corre num contexto novo, logo o
+    // armazenamento já começa vazio. Limpá-lo a cada carregamento apagava-o
+    // também no regresso que o caso do rascunho existe para exercer.
     await page.goto("/vender-cavalo");
     await page.waitForSelector("#proprietario_nome");
   });
@@ -77,7 +73,10 @@ test.describe("Publicar anúncio", () => {
     await continuar.scrollIntoViewIfNeeded();
     await continuar.click();
 
-    const resumo = page.locator("[role='alert']");
+    // `.resumo-erros` e não `[role="alert"]`: o anunciador de rotas do Next
+    // também é um `role="alert"`, e um selector que apanha os dois não aponta
+    // a nada em concreto.
+    const resumo = page.locator(".resumo-erros");
     await expect(resumo).toBeVisible();
     // Não basta existir: tem de estar dentro da janela. Era isto que faltava.
     await expect(resumo).toBeInViewport();

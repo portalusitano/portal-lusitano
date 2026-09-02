@@ -73,8 +73,15 @@ export default function FormNavigation({ step, onPrev }: FormNavigationProps) {
         )}
       </div>
 
-      {/* Espaço para o conteúdo não ficar debaixo da barra fixa */}
-      <div className="sm:hidden h-20" />
+      {/* Não há espaçador aqui, e é de propósito. Havia um `h-20`, do tempo em
+          que esta página era um `<main>` dentro do `<main>` do layout: a regra
+          sem camada `@media (max-width:1024px) { main { padding-bottom } }`
+          ganhava ao `pb-32` da página e calava-o, e as 5rem deste div eram o
+          que sobrava para o conteúdo não ficar debaixo da barra fixa. Com o
+          `<main>` a mais fora, o `pb-32` vale o que diz — 128px, mais os 64px
+          que a regra dá ao `<main>` de fora — e chegam de sobra para uma barra
+          que ocupa 136px. Medido: 272px de folga passaram a 192px, e nenhum
+          campo fica tapado. */}
     </>
   );
 }

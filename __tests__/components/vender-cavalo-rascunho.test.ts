@@ -6,6 +6,7 @@ import {
   lerRascunho,
   limparRascunho,
   passoSeguro,
+  temConteudo,
   type Rascunho,
 } from "@/components/vender-cavalo/rascunho";
 import { initialFormData } from "@/components/vender-cavalo/data";
@@ -91,6 +92,53 @@ describe("o rascunho do anúncio", () => {
   it("sem ficheiros não avisa de nada", () => {
     guardar();
     expect(lerRascunho().perdeuFicheiros).toBe(false);
+  });
+});
+
+describe("um formulário em que ninguém tocou não é um rascunho", () => {
+  beforeEach(() => limparRascunho());
+
+  it("não guarda um formulário vazio", () => {
+    guardarRascunho({
+      formData: initialFormData,
+      passo: 1,
+      plano: "standard",
+      fotografias: 0,
+      documentos: 0,
+    });
+    expect(localStorage.getItem(CHAVE_RASCUNHO)).toBeNull();
+  });
+
+  it("apaga o que lá estivesse quando o formulário volta a zero", () => {
+    // É este o caso do «Recomeçar de novo»: limpa o armazenamento e repõe o
+    // formulário, e repor o formulário volta a disparar o guardar. Sem esta
+    // regra ficava lá um rascunho vazio, e da vez seguinte a pessoa era
+    // recebida com «rascunho restaurado» num formulário sem uma letra.
+    guardar();
+    expect(localStorage.getItem(CHAVE_RASCUNHO)).not.toBeNull();
+    guardarRascunho({
+      formData: initialFormData,
+      passo: 1,
+      plano: "standard",
+      fotografias: 0,
+      documentos: 0,
+    });
+    expect(localStorage.getItem(CHAVE_RASCUNHO)).toBeNull();
+  });
+
+  it("uma letra num campo já é conteúdo", () => {
+    expect(temConteudo({ ...initialFormData, nome: "Z" }, 0, 0)).toBe(true);
+  });
+
+  it("espaços em branco não são conteúdo", () => {
+    expect(temConteudo({ ...initialFormData, nome: "   " }, 0, 0)).toBe(false);
+  });
+
+  it("uma caixa marcada, uma disciplina escolhida ou uma foto já são conteúdo", () => {
+    expect(temConteudo({ ...initialFormData, negociavel: true }, 0, 0)).toBe(true);
+    expect(temConteudo({ ...initialFormData, disciplinas: ["Dressage"] }, 0, 0)).toBe(true);
+    expect(temConteudo(initialFormData, 1, 0)).toBe(true);
+    expect(temConteudo(initialFormData, 0, 1)).toBe(true);
   });
 });
 

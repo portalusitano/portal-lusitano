@@ -51,7 +51,7 @@ export default function VenderCavaloSucessoContent() {
   ];
 
   return (
-    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-24 md:pt-32 pb-32 px-4 sm:px-6 md:px-12">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-24 md:pt-32 pb-32 px-4 sm:px-6 md:px-12">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[var(--elevate-1)] border border-[var(--border-soft)] mb-6">
@@ -99,6 +99,6 @@ export default function VenderCavaloSucessoContent() {
           </LocalizedLink>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

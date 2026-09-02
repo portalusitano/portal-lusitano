@@ -456,7 +456,7 @@ export default function VenderCavaloPage() {
   const errosPorCampo = useMemo(() => porCampo(errors), [errors]);
 
   return (
-    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-24 md:pt-32 pb-32 px-4 sm:px-6 md:px-12">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-24 md:pt-32 pb-32 px-4 sm:px-6 md:px-12">
       <div data-revelar="" suppressHydrationWarning>
         <PageHeader />
       </div>
@@ -591,6 +591,6 @@ export default function VenderCavaloPage() {
 
         <FormNavigation step={step} onPrev={prevStep} />
       </form>
-    </main>
+    </div>
   );
 }
