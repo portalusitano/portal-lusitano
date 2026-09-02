@@ -35,11 +35,17 @@ export async function GET(req: NextRequest) {
     }
 
     // Pesquisa (sanitizada contra PostgREST filter injection)
+    //
+    // `cidade` não é coluna de `coudelarias` — o PostgREST devolvia 42703 e a
+    // rota respondia 500: escrever seja o que fosse na caixa de pesquisa
+    // esvaziava a tabela. A morada vive em `localizacao` e `regiao`.
+    // `distrito` existe mas está a `NULL` nas 35 linhas, por isso não
+    // acrescenta um resultado a nenhuma pesquisa.
     if (search) {
       const safeSearch = sanitizeSearchInput(search);
       if (safeSearch) {
         query = query.or(
-          `nome.ilike.%${safeSearch}%,cidade.ilike.%${safeSearch}%,distrito.ilike.%${safeSearch}%,proprietario_nome.ilike.%${safeSearch}%`
+          `nome.ilike.%${safeSearch}%,localizacao.ilike.%${safeSearch}%,regiao.ilike.%${safeSearch}%,proprietario_nome.ilike.%${safeSearch}%`
         );
       }
     }

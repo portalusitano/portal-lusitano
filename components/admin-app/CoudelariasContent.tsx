@@ -5,23 +5,35 @@ import Link from "next/link";
 import { Home, Search, Pencil, Trash2, Check, X, Star, Eye } from "lucide-react";
 import Seleccao from "@/components/ui/Seleccao";
 
+/**
+ * Uma linha da tabela `coudelarias` como a base a tem.
+ *
+ * O que aqui estava não era o esquema: `cidade`, `plano`, `plano_ativo` e
+ * `plano_fim` não existem em coluna nenhuma. A rota devolve `select("*")`, por
+ * isso o TypeScript não protegia nada e os quatro campos chegavam a
+ * `undefined` — a coluna «Localização» aparecia vazia e o
+ * `coudelaria.plano.toUpperCase()` rebentava com a página inteira à primeira
+ * linha. A morada real vive em `localizacao` e `regiao`, e o plano em `plan`.
+ *
+ * `distrito` existe mas está a `NULL` nas 35 linhas em produção, por isso não
+ * se mostra: uma coluna sempre vazia é ruído.
+ */
 interface Coudelaria {
   id: string;
   nome: string;
   slug: string;
-  cidade: string;
-  distrito: string;
-  telefone: string;
-  email: string;
-  website: string;
-  plano: string;
-  plano_ativo: boolean;
-  plano_fim: string | null;
-  status: string;
-  destaque: boolean;
+  localizacao: string | null;
+  regiao: string | null;
+  telefone: string | null;
+  email: string | null;
+  website: string | null;
+  plan: string | null;
+  is_pro: boolean | null;
+  status: string | null;
+  destaque: boolean | null;
   created_at: string;
-  proprietario_nome: string;
-  proprietario_email: string;
+  proprietario_nome: string | null;
+  proprietario_email: string | null;
 }
 
 interface Stats {
@@ -108,24 +120,31 @@ export default function CoudelariasContent({ voltarHref }: CoudelariasContentPro
     }
   };
 
-  const getPlanoColor = (plano: string) => {
+  /**
+   * Os planos que a coluna `plan` guarda de facto. O SQL declara
+   * `'gratuito','pro','pro_instagram'`, e em produção há ainda `free`, escrito
+   * por código mais antigo — duas grafias para a mesma coisa. Mostram-se as
+   * duas tal como estão; corrigir a grafia é uma escrita na base, e este
+   * painel não a faz por sua conta.
+   */
+  const getPlanoColor = (plano: string | null) => {
     const colors: Record<string, string> = {
-      gratis: "text-gray-400 bg-gray-500/10",
-      bronze: "text-orange-400 bg-orange-500/10",
-      prata: "text-gray-300 bg-gray-400/10",
-      ouro: "text-yellow-400 bg-yellow-500/10",
+      free: "text-gray-400 bg-gray-500/10",
+      gratuito: "text-gray-400 bg-gray-500/10",
+      pro: "text-yellow-400 bg-yellow-500/10",
+      pro_instagram: "text-yellow-400 bg-yellow-500/10",
     };
-    return colors[plano] || "text-gray-400 bg-gray-500/10";
+    return colors[plano ?? ""] || "text-gray-400 bg-gray-500/10";
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | null) => {
     const colors: Record<string, string> = {
       pendente: "text-yellow-400 bg-yellow-500/10",
       aprovado: "text-green-400 bg-green-500/10",
       rejeitado: "text-red-400 bg-red-500/10",
       suspenso: "text-orange-400 bg-orange-500/10",
     };
-    return colors[status] || "text-gray-400 bg-gray-500/10";
+    return colors[status ?? ""] || "text-gray-400 bg-gray-500/10";
   };
 
   if (isLoading) {
@@ -263,17 +282,17 @@ export default function CoudelariasContent({ voltarHref }: CoudelariasContentPro
                 </td>
                 <td className="px-4 py-3">
                   <div className="text-sm text-gray-300">
-                    {coudelaria.cidade}
-                    {coudelaria.distrito && `, ${coudelaria.distrito}`}
+                    {coudelaria.localizacao || "—"}
+                    {coudelaria.regiao && `, ${coudelaria.regiao}`}
                   </div>
                 </td>
                 <td className="px-4 py-3">
                   <span
                     className={`px-2 py-1 rounded text-xs font-medium ${getPlanoColor(
-                      coudelaria.plano
+                      coudelaria.plan
                     )}`}
                   >
-                    {coudelaria.plano.toUpperCase()}
+                    {coudelaria.plan ? coudelaria.plan.toUpperCase() : "—"}
                   </span>
                 </td>
                 <td className="px-4 py-3">
