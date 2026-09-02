@@ -3406,3 +3406,418 @@ body {
     }
   }
 }
+
+/* ==========================================================================
+ * Galeria da coudelaria — uma folha que se levanta da pilha
+ *
+ * As fotografias são o que vende uma coudelaria, e passar de uma para a
+ * seguinte não pode ser um corte. É **uma** ideia, e é esta: as fotografias
+ * são uma pilha de provas em papel, e mudar de fotografia é levantar a de
+ * cima. Tudo o resto sai daqui.
+ *
+ * O que a faz ler-se como uma folha e não como um carrossel:
+ *
+ * 1. **As duas camadas não andam à mesma velocidade.** A que chega percorre
+ *    7% da largura; a que fica cede 2,5% para o lado contrário. É essa
+ *    diferença — e não a distância — que dá profundidade. Com as duas a
+ *    andar o mesmo, lê-se uma tira a deslizar.
+ * 2. **A que fica nunca se apaga.** Um cruzamento de opacidades deixa, a
+ *    meio, dois fantasmas e nenhuma fotografia; e sobretudo: enquanto a nova
+ *    não chegou da rede, é a antiga que se vê. **Nunca há um buraco preto** —
+ *    é a mesma regra do mapa, que só entra quando tem o que mostrar. Quem
+ *    tira a camada de baixo é o JavaScript, e só depois de a de cima ter
+ *    carregado.
+ * 3. **Um fio de luz na aresta de ataque.** É o risco do `.cartao-seco__costura`
+ *    posto de pé: a aresta da folha a apanhar luz ao pousar. Acende e apaga
+ *    dentro da mesma animação — não é um segundo movimento, é a beira do
+ *    primeiro.
+ *
+ * Duração e curva são as de **entrar num sítio** — `--d-drill` e
+ * `--ease-in-out-cubic`, as mesmas dos submenus e da pilha de regiões do
+ * `/mapa`. Ver a fotografia seguinte é entrar nela; não se inventa aqui um
+ * tempo próprio. Corre uma vez e pára: não há ciclo nenhum e não há passagem
+ * automática. Quem está a ver cavalos quer parar num.
+ * ========================================================================= */
+
+@layer components {
+  .galeria-pilha {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--raio-lg);
+    border: 1px solid var(--border-soft);
+    background: var(--background-card);
+    /* O dedo desloca a página na vertical sem passar por JavaScript nenhum:
+       o eixo Y fica com o browser, no compositor, e só o X vem ter connosco
+       por eventos de ponteiro. É por isto que esta galeria não regista um
+       único ouvinte de `touchmove` nem de `wheel` — a lição do Lenis. */
+    touch-action: pan-y;
+  }
+
+  .galeria-folha {
+    position: absolute;
+    inset: 0;
+  }
+
+  .galeria-folha__foto {
+    object-fit: cover;
+  }
+
+  /* No visor de ecrã inteiro vê-se a fotografia inteira, não um recorte. */
+  .galeria-visor .galeria-folha__foto {
+    object-fit: contain;
+  }
+
+  .galeria-folha--leito {
+    z-index: 1;
+    animation: folha-ceder var(--d-drill) var(--ease-in-out-cubic) both;
+  }
+
+  .galeria-folha--topo {
+    z-index: 2;
+    animation: folha-pousar var(--d-drill) var(--ease-in-out-cubic) both;
+  }
+
+  @keyframes folha-pousar {
+    from {
+      opacity: 0;
+      transform: translate3d(calc(var(--sentido, 1) * 7%), 0, 0) scale(1.035);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+  }
+
+  /* O `--partida` é onde o dedo largou a folha. Sem ele, largar um arrasto a
+     meio fazia a camada de baixo saltar para zero antes de ceder. */
+  @keyframes folha-ceder {
+    from {
+      transform: translate3d(var(--partida, 0px), 0, 0) scale(1);
+    }
+    to {
+      transform: translate3d(calc(var(--sentido, 1) * -2.5%), 0, 0) scale(0.99);
+    }
+  }
+
+  .galeria-folha__fio {
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    opacity: 0;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(214, 235, 253, 0.85) 50%,
+      transparent 100%
+    );
+  }
+
+  .galeria-folha--topo .galeria-folha__fio {
+    animation: folha-fio var(--d-drill) var(--ease-out) both;
+  }
+
+  .galeria-folha--topo[data-sentido="1"] .galeria-folha__fio {
+    left: 0;
+  }
+
+  .galeria-folha--topo[data-sentido="-1"] .galeria-folha__fio {
+    right: 0;
+  }
+
+  @keyframes folha-fio {
+    0% {
+      opacity: 0;
+    }
+    35% {
+      opacity: 0.9;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  /* --- Arrasto ------------------------------------------------------------- */
+  /* Enquanto o dedo manda, manda o dedo: a animação sai da frente e o que
+     desenha a posição é o `--arrasto`. Vem depois do `--topo` de propósito —
+     mesma especificidade, ganha a ordem. */
+  .galeria-folha--arrasta {
+    animation: none;
+    transform: translate3d(var(--arrasto, 0px), 0, 0);
+  }
+
+  .galeria-folha--arrasta[data-solta="sim"] {
+    transition: transform var(--d-fast) var(--ease-out);
+  }
+
+  /* --- Comandos sobre a fotografia ---------------------------------------- */
+  .galeria-comando {
+    position: absolute;
+    z-index: 3;
+    display: flex;
+    height: 2.75rem;
+    width: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--background) 62%, transparent);
+    color: var(--foreground-strong);
+    backdrop-filter: blur(8px);
+    transition:
+      background-color var(--d-fast) var(--ease-out),
+      transform var(--d-fast) var(--ease-out),
+      opacity var(--d-fast) var(--ease-out);
+  }
+
+  .galeria-comando:hover {
+    background: var(--background);
+  }
+
+  .galeria-comando--anterior {
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .galeria-comando--seguinte {
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .galeria-comando--anterior:hover {
+    transform: translateY(-50%) translateX(-2px);
+  }
+
+  .galeria-comando--seguinte:hover {
+    transform: translateY(-50%) translateX(2px);
+  }
+
+  /* O botão de ampliar cobre a fotografia: o alvo é a fotografia, e o ícone
+     é só onde ele se anuncia. Fica por baixo das setas em z. */
+  .galeria-ampliar {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    cursor: zoom-in;
+  }
+
+  .galeria-ampliar__marca {
+    position: absolute;
+    left: 0.75rem;
+    bottom: 0.75rem;
+    display: flex;
+    height: 2.25rem;
+    width: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: 1px solid var(--border-soft);
+    background: color-mix(in srgb, var(--background) 62%, transparent);
+    color: var(--foreground-strong);
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    transform: translateY(4px);
+    transition:
+      opacity var(--d-fast) var(--ease-out),
+      transform var(--d-fast) var(--ease-out);
+  }
+
+  .galeria-pilha:hover .galeria-ampliar__marca,
+  .galeria-ampliar:focus-visible .galeria-ampliar__marca {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Sem rato não há hover que revele coisa nenhuma: no telemóvel a marca
+     está sempre lá. */
+  @media (pointer: coarse) {
+    .galeria-ampliar__marca {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .galeria-conta {
+    position: absolute;
+    z-index: 3;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid var(--border-soft);
+    background: color-mix(in srgb, var(--background) 62%, transparent);
+    padding: 0.25rem 0.625rem;
+    backdrop-filter: blur(8px);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* --- Fita de miniaturas -------------------------------------------------- */
+  .galeria-fita {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding: 0.25rem 0;
+    /* A barra de deslocamento do sistema é um widget do sistema — cinzenta,
+       com setas nas pontas em Windows, tipo de letra e cantos do sistema — e
+       não há CSS que lhe chegue. É a mesma razão pela qual aqui não se usa
+       `<select>` nativo. Quem diz que há mais fotografias é o esbatido nas
+       pontas, que é da casa e só aparece do lado onde há mesmo mais. */
+    scrollbar-width: none;
+    --fim-esq: 0px;
+    --fim-dir: 0px;
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent 0,
+      #000 var(--fim-esq),
+      #000 calc(100% - var(--fim-dir)),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      90deg,
+      transparent 0,
+      #000 var(--fim-esq),
+      #000 calc(100% - var(--fim-dir)),
+      transparent 100%
+    );
+  }
+
+  .galeria-fita::-webkit-scrollbar {
+    display: none;
+  }
+
+  .galeria-fita[data-mais-esq="sim"] {
+    --fim-esq: 2.5rem;
+  }
+
+  .galeria-fita[data-mais-dir="sim"] {
+    --fim-dir: 2.5rem;
+  }
+
+  .galeria-mini {
+    position: relative;
+    display: block;
+    flex: none;
+    width: 5rem;
+    height: 3.5rem;
+    overflow: hidden;
+    border-radius: var(--raio-sm);
+    border: 1px solid var(--border-soft);
+    background: var(--background-card);
+    opacity: 0.5;
+    transition:
+      opacity var(--d-fast) var(--ease-out),
+      border-color var(--d-fast) var(--ease-out),
+      transform var(--d-fast) var(--ease-out);
+  }
+
+  .galeria-mini:hover {
+    opacity: 0.85;
+  }
+
+  /* Estado escolhido é branco, não dourado — a regra do sistema. E não é só
+     opacidade: sobre onze fotografias parecidas, «esta é mais nítida do que
+     as outras» não se lê. O que se lê é a linha branca por baixo. */
+  .galeria-mini[aria-current="true"] {
+    opacity: 1;
+    border-color: var(--foreground-strong);
+    transform: translateY(-2px);
+  }
+
+  .galeria-mini__risco {
+    pointer-events: none;
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    height: 2px;
+    width: 0;
+    transform: translateX(-50%);
+    background: var(--foreground-strong);
+    transition: width var(--d-fast) var(--ease-out);
+  }
+
+  .galeria-mini[aria-current="true"] .galeria-mini__risco {
+    width: 60%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .galeria-folha--topo,
+    .galeria-folha--leito {
+      animation: none;
+    }
+
+    .galeria-folha--topo {
+      opacity: 1;
+      transform: none;
+    }
+
+    .galeria-folha__fio {
+      display: none;
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
+ * Visor de ecrã inteiro
+ *
+ * Ver uma fotografia de uma coudelaria a 720px de largura não é ver a
+ * fotografia. Aqui ela ocupa a janela e vê-se inteira (`object-fit: contain`,
+ * herdado da regra da pilha) — o recorte a 3:2 do quadro serve a grelha, não
+ * a fotografia.
+ *
+ * O fundo é o mesmo idioma do menu de ecrã inteiro: preto quase opaco com
+ * desfoque, e não uma caixa por cima da página. Entra com opacidade em
+ * `--d-menu`, corre uma vez e pára.
+ * ------------------------------------------------------------------------ */
+
+@layer components {
+  .galeria-visor {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    display: flex;
+    flex-direction: column;
+    background: color-mix(in srgb, var(--background) 94%, transparent);
+    backdrop-filter: blur(24px);
+    animation: visor-nascer var(--d-menu) var(--ease-in-out-cubic) both;
+  }
+
+  @keyframes visor-nascer {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .galeria-visor__barra {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    color: var(--foreground-secondary);
+  }
+
+  /* O botão de fechar é o único comando da barra, e por isso encosta à
+     direita mesmo quando não há contador ao lado. */
+  .galeria-visor__barra > :only-child {
+    margin-left: auto;
+  }
+
+  .galeria-visor__quadro {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    touch-action: pan-y;
+  }
+
+  .galeria-comando--fechar {
+    position: static;
+  }
+}
