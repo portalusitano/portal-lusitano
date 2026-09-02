@@ -5,16 +5,7 @@ import { sanitizeSearchInput } from "@/lib/sanitize";
 import { strictLimiter } from "@/lib/rate-limit";
 import { coudelariaRegistoSchema, parseWithZod } from "@/lib/schemas";
 import { COUDELARIA_STATUS } from "@/lib/coudelaria-status";
-
-// Criar slug a partir do nome
-function createSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // Remove acentos
-    .replace(/[^a-z0-9]+/g, "-") // Substitui caracteres especiais por hífen
-    .replace(/^-+|-+$/g, ""); // Remove hífens no início e fim
-}
+import { criarSlug } from "@/lib/slug";
 
 // GET - Listar coudelarias
 export async function GET(request: NextRequest) {
@@ -96,7 +87,7 @@ export async function POST(request: NextRequest) {
     const { nome, descricao, localizacao, regiao, telefone, email, website } = parsed.data;
 
     // Criar slug único
-    let slug = createSlug(nome);
+    let slug = criarSlug(nome);
 
     // Verificar se slug já existe
     const { data: existingSlug } = await supabase

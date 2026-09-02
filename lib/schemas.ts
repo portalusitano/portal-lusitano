@@ -57,16 +57,20 @@ export const coudelariaRegistoSchema = z.object({
 // Admin Coudelaria (create/update)
 export const adminCoudelariaSchema = z.object({
   nome: z.string().min(1, "Nome é obrigatório").max(200),
-  descricao: z.string().max(5000).optional().or(z.literal("")),
+  // `descricao` é `NOT NULL` na tabela.
+  descricao: z.string().min(1, "Descrição é obrigatória").max(5000),
   historia: z.string().max(10000).optional().or(z.literal("")),
   especialidades: z.array(z.string()).optional(),
-  morada: z.string().max(300).optional().or(z.literal("")),
-  cidade: z.string().max(100).optional().or(z.literal("")),
+  // A morada da coudelaria vive em `localizacao`, e a região em `regiao`.
+  // Ambas são `NOT NULL` na tabela, por isso são obrigatórias aqui: o `POST`
+  // aceitava-as em falta e a inserção falhava depois, com um 500 e sem dizer
+  // o quê. `morada`, `cidade` e `telemovel` estavam aqui e não são colunas.
+  localizacao: z.string().min(1, "Localização é obrigatória").max(255),
+  regiao: z.string().min(1, "Região é obrigatória").max(100),
   distrito: z.string().max(100).optional().or(z.literal("")),
   codigo_postal: z.string().max(20).optional().or(z.literal("")),
   pais: z.string().max(100).optional().or(z.literal("")),
   telefone: z.string().max(20).optional().or(z.literal("")),
-  telemovel: z.string().max(20).optional().or(z.literal("")),
   email: z.string().email().optional().or(z.literal("")),
   website: z.string().url().optional().or(z.literal("")),
   facebook: z.string().max(300).optional().or(z.literal("")),

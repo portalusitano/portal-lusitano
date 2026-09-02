@@ -5,6 +5,7 @@ import { logger } from "@/lib/logger";
 import { sanitizeSearchInput } from "@/lib/sanitize";
 import { adminCoudelariaSchema, parseWithZod } from "@/lib/schemas";
 import { COUDELARIA_STATUS } from "@/lib/coudelaria-status";
+import { criarSlug } from "@/lib/slug";
 
 // GET - Listar coudelarias com filtros
 export async function GET(req: NextRequest) {
@@ -99,13 +100,12 @@ export async function POST(req: NextRequest) {
       descricao,
       historia,
       especialidades,
-      morada,
-      cidade,
+      localizacao,
+      regiao,
       distrito,
       codigo_postal,
       pais,
       telefone,
-      telemovel,
       email: coudelariaEmail,
       website,
       facebook,
@@ -124,21 +124,23 @@ export async function POST(req: NextRequest) {
       destaque,
     } = parsed.data;
 
-    // Criar coudelaria
+    // `slug` é `NOT NULL UNIQUE` e esta rota nunca o escrevia: toda a inserção
+    // falhava, ainda antes de chegar às colunas inventadas. Deriva-se do nome,
+    // como já se faz no registo público.
     const { data: coudelaria, error } = await supabase
       .from("coudelarias")
       .insert({
         nome,
+        slug: criarSlug(nome),
         descricao,
         historia,
         especialidades,
-        morada,
-        cidade,
+        localizacao,
+        regiao,
         distrito,
         codigo_postal,
         pais: pais || "Portugal",
         telefone,
-        telemovel,
         email: coudelariaEmail,
         website,
         facebook,
