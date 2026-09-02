@@ -32,6 +32,25 @@ import path from "node:path";
  * - As tabelas que os tipos gerados não conhecem de todo (as do marketplace
  *   novo) não são verificadas: aí não há autoridade nenhuma para comparar, e
  *   acusar por comparação com o SQL daria falsos positivos.
+ *
+ * ─── O ponto cego, medido ───────────────────────────────────────────────────
+ *
+ * `lib/database.types.ts` está velho, e isso abre um buraco nos dois sentidos.
+ * Comparado com o esquema vivo de `cavalos_venda` (lido de `information_schema`
+ * em 2026-09-02), o ficheiro gerado **declara oito colunas que a base não tem**
+ * — `raca`, `nome_cavalo`, `image_url`, `nivel`, `pontuacao_apsl`,
+ * `contacto_nome`, `contacto_email` e `contacto_telefone` — e **desconhece
+ * quinze que ela tem**, entre elas `user_id`, `listing_tier` e `verificado`
+ * (essas chegam pelas migrações).
+ *
+ * As oito a mais são o buraco que interessa: uma consulta que peça `raca` passa
+ * aqui e devolve 42703 em produção. Foi o que aconteceu com
+ * `app/api/cavalos/route.ts`, que a pede no `.select(...)` desde sempre — o
+ * teste «a listagem de cavalos pede colunas que existem» dava verde sobre uma
+ * coluna que não existia. A migração `20260902000002` cria `raca`, porque ela é
+ * também o destino do campo `raca_confirmada` do formulário, o que fecha esse
+ * caso pelo lado certo. Os outros sete continuam por fechar até alguém regerar
+ * os tipos, e é por isso que isto fica escrito aqui e não só no relatório.
  */
 
 const RAIZ = path.resolve(__dirname, "../..");
@@ -177,6 +196,55 @@ describe("colunas pedidas ao Supabase", () => {
     expect(tabelas.cavalos_venda.has("aviso_expiracao_dias")).toBe(true);
     // um CREATE TABLE IF NOT EXISTS não conta como autoridade
     expect(tabelas.coudelarias.has("morada")).toBe(false);
+  });
+
+  it("conhece as colunas que dão destino aos campos do formulário", () => {
+    // A migração `20260902000002` dá coluna a 22 campos que o formulário pedia
+    // e que ninguém guardava (ver `docs/campos-do-anuncio.md`). Se um dia for
+    // reescrita numa forma que este leitor não sabe ler — um bloco `DO $$`,
+    // por exemplo, que o corte por `;` parte ao meio —, as colunas deixam de
+    // ser conhecidas e o teste seguinte passa a acusar como inexistente tudo o
+    // que as use. Vale mais dar por isso aqui.
+    const tabelas = lerEsquema();
+    const novas = [
+      "raca",
+      "nome_registo",
+      "microchip",
+      "passaporte_equino",
+      "pais_nascimento",
+      "peso_kg",
+      "nivel_apsl",
+      "prova_aptidao_apsl",
+      "temperamento",
+      "coudelaria_origem",
+      "anos_treino",
+      "nivel_cavaleiro",
+      "uso_atual",
+      "vendedor_tipo",
+      "vendedor_pais",
+      "vendedor_website",
+      "video_url_2",
+      "morfologia",
+      "treino",
+      "comportamento",
+      "maneio",
+      "saude",
+      "condicoes_venda",
+    ];
+    expect(novas.filter((c) => !tabelas.cavalos_venda.has(c))).toEqual([]);
+  });
+
+  it("a tabela dos ascendentes não é verificada, e é de propósito", () => {
+    // `cavalos_venda_ascendentes` nasce de um `CREATE TABLE IF NOT EXISTS`, e a
+    // regra deste ficheiro é não tirar autoridade daí: numa base onde a tabela
+    // já existisse com outra forma, o statement não corre e as colunas que
+    // declara podem nunca ter sido criadas. Sem autoridade não se acusa —
+    // acusar por comparação com o SQL dava falsos positivos.
+    //
+    // O contrato dela está garantido do outro lado: a migração foi validada
+    // contra um PostgreSQL local, e `__tests__/api/stripe-webhook-handlers.test.ts`
+    // prova que o webhook lhe escreve as cinco colunas com os nomes certos.
+    expect(lerEsquema().cavalos_venda_ascendentes).toBeUndefined();
   });
 
   it("não pede colunas que a base não tem, fora da dívida já apurada", () => {
