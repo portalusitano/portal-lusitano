@@ -360,8 +360,17 @@ describe("o repositório em si", () => {
       }
     }
     expect(total).toBeGreaterThan(0);
-    // Se isto passar a incluir `.webp`, a conversão aconteceu e o relatório
-    // em docs/auditoria-coudelarias.md precisa de ser revisto.
-    expect([...extensoes].sort()).toEqual([".jpg"]);
+    // O `.webp` está de volta, e não por conversão: os 82 ficheiros que a base
+    // pedia estavam no histórico do git, apagados pelo commit 11b4b3a, e foram
+    // repostos de lá. A auditoria escreveu-se quando só havia `.jpg` em disco,
+    // e é por isso que o relatório fala de 85 ligações mortas em 166; hoje
+    // sobram duas, as capturas de ecrã da Coudelaria Andrade, que nunca
+    // chegaram a ser enviadas.
+    //
+    // Este continua a ser o alarme de que o conteúdo de `public/` mudou: se
+    // aparecer aqui uma terceira extensão, ou se o total descer, alguém mexeu
+    // nas fotografias e o relatório precisa de ser revisto.
+    expect([...extensoes].sort()).toEqual([".jpg", ".webp"]);
+    expect(total).toBe(163);
   });
 });

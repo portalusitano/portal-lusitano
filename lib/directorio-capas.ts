@@ -70,6 +70,52 @@ export function mapaDeCapas(pastas: Record<string, readonly string[]>): Record<s
 }
 
 /**
+ * Aquele caminho aponta para um ficheiro que temos mesmo?
+ *
+ * A base guarda caminhos que a nossa própria pasta pública tem de servir. Se
+ * um deles nomeia um ficheiro que não está lá, **está morto, e sabe-se aqui**:
+ * no servidor, durante a construção, a partir do varrimento do disco que já se
+ * faz — sem um pedido de rede e sem esperar pelo `onError` de ninguém.
+ *
+ * Medido na base real: 85 de 166 caminhos de galeria apontavam para
+ * `imagem-NN.webp`, e em `public/images/coudelarias/` não existe um único
+ * `.webp` — são 81 ficheiros, todos `.jpg`. Vinte coudelarias afectadas, e em
+ * várias delas a galeria era **inteiramente** de imagens mortas, porque os
+ * caminhos da base entram antes dos do disco.
+ *
+ * Só se julga o que se pode julgar: um caminho para fora desta pasta — um
+ * endereço externo, outra origem — devolve `true`, porque daqui não há como
+ * saber se responde. Esse fica para a sonda do cliente, na galeria.
+ */
+export function apontaParaFicheiroQueTemos(
+  caminho: string,
+  slug: string,
+  ficheiros: readonly string[]
+): boolean {
+  const prefixo = `/${PASTA_CAPAS}/${slug}/`;
+  // O `?` e o `#` não fazem parte do nome do ficheiro.
+  const semAdornos = caminho.split(/[?#]/)[0] ?? "";
+  if (!semAdornos.startsWith(prefixo)) return true;
+
+  const resto = semAdornos.slice(prefixo.length);
+  // Uma subpasta não é um nome de ficheiro, e o varrimento não a conhece:
+  // não se declara morto o que não se chegou a olhar.
+  if (!resto || resto.includes("/")) return true;
+
+  // A base guarda tanto nomes crus («Captura de ecrã ….png», com espaços e
+  // acentos) como nomes escapados. O `decodeURIComponent` rebenta com um `%`
+  // que não seja um escape válido, e um nome desses é um nome cru.
+  let nome = resto;
+  try {
+    nome = decodeURIComponent(resto);
+  } catch {
+    nome = resto;
+  }
+
+  return ficheiros.includes(nome) || ficheiros.includes(resto);
+}
+
+/**
  * A capa a usar num cartão: a da base de dados manda, o disco é a reserva.
  *
  * `foto_capa` é o que a coudelaria carregou; quando está vazio fica o que o
