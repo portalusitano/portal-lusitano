@@ -23,6 +23,7 @@
     "e2e:headed": "playwright test --headed",
     "e2e:debug": "playwright test --debug",
     "db:types": "npx supabase gen types typescript --project-id yrfcepsagtzkxwnnrztd > lib/database.types.ts",
+    "migracao:validar": "scripts/migracoes/validar.sh",
     "generate-pdf": "node scripts/generate-ebook-pdf.js",
     "generate-pdf:premium": "node scripts/generate-ebook-pdf-premium.js",
     "sync-images": "node scripts/sync-coudelaria-images.js",

@@ -27,19 +27,19 @@ import PhotoGallery from "@/components/PhotoGallery";
 
 import { CavaloVenda } from "@/types/cavalo";
 import { filtroNaoExpirado, visibilidadeFicha } from "@/lib/marketplace-listings";
+import { normalizarLinhaDoCavalo } from "@/lib/cavalo-ficha";
 
 // cache() deduplicates this call between generateMetadata and the page component
 // within a single server request — saves 1 Supabase round-trip per page load
 const getCavalo = cache(async (id: string) => {
   const { data } = await supabase.from("cavalos_venda").select("*").eq("id", id).single();
   if (!data) return null;
-  // Normalize DB column names → component-expected names
-  // Live DB uses 'nome'/'foto_principal', components expect 'nome_cavalo'/'image_url'
-  return {
-    ...data,
-    nome_cavalo: data.nome_cavalo || (data as unknown as Record<string, unknown>)["nome"],
-    image_url: data.image_url || (data as unknown as Record<string, unknown>)["foto_principal"],
-  };
+  // Os nomes das colunas da base traduzidos para os que esta página lê. A
+  // tradução ficava-se por dois — `nome_cavalo` e `image_url` — e faltavam
+  // quatro, três deles os do contacto do vendedor. Ver `lib/cavalo-ficha.ts`.
+  return normalizarLinhaDoCavalo(
+    data as unknown as Record<string, unknown>
+  ) as unknown as CavaloDetalhe;
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://portal-lusitano.pt";
