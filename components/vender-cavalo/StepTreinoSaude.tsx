@@ -15,6 +15,12 @@ import {
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
 import Seleccao from "@/components/ui/Seleccao";
+import Detalhes from "@/components/vender-cavalo/Detalhes";
+import {
+  ErroDoCampo,
+  atributosErro,
+  classeCampo,
+} from "@/components/vender-cavalo/campos-com-erro";
 
 interface StepTreinoSaudeProps extends StepProps {
   documentos: Documentos;
@@ -30,18 +36,14 @@ export default function StepTreinoSaude({
   onDocUpload,
   onToggleDisciplina,
   onToggleUso,
+  erros,
 }: StepTreinoSaudeProps) {
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
 
   return (
     <div className="bg-[var(--background-secondary)]/50 cartao p-6">
-      <h2 className="text-xl mb-6 flex items-center gap-3">
-        <span className="w-8 h-8 bg-[var(--foreground-strong)] rounded-full flex items-center justify-center text-black text-sm font-bold">
-          4
-        </span>
-        {t.vender_cavalo.step_training_title}
-      </h2>
+      <h2 className="text-xl mb-6">{t.vender_cavalo.step_training_title}</h2>
 
       <div className="space-y-6">
         {/* Treino */}
@@ -54,10 +56,10 @@ export default function StepTreinoSaude({
           </label>
           <Seleccao
             id="nivel_treino"
-            required
             value={formData.nivel_treino}
             onChange={(e) => updateField("nivel_treino", e.target.value)}
-            className="campo"
+            className={classeCampo(erros, "nivel_treino")}
+            {...atributosErro(erros, "nivel_treino")}
           >
             <option value="">{t.vender_cavalo.select}</option>
             {(niveisTreino[language] || niveisTreino.pt).map((n) => (
@@ -66,30 +68,11 @@ export default function StepTreinoSaude({
               </option>
             ))}
           </Seleccao>
+          <ErroDoCampo erros={erros} campo="nivel_treino" />
         </div>
 
-        {/* Uso Atual */}
-        <div>
-          <label className="block text-sm text-[var(--foreground-secondary)] mb-2">
-            {tr("Uso Atual do Cavalo", "Current Horse Use", "Uso Actual del Caballo")}
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {(usosAtuais[language] || usosAtuais.pt).map((uso) => (
-              <button
-                key={uso}
-                type="button"
-                onClick={() => onToggleUso(uso)}
-                className={`chip touch-manipulation ${
-                  formData.uso_atual.includes(uso) ? "chip-activo" : ""
-                }`}
-              >
-                {uso}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Disciplinas */}
+        {/* As disciplinas são o que a grelha de anúncios filtra e o que o
+            cartão mostra: ficam à vista. */}
         <div>
           <label className="block text-sm text-[var(--foreground-secondary)] mb-2">
             {t.vender_cavalo.disciplines}
@@ -100,11 +83,10 @@ export default function StepTreinoSaude({
                 key={disc}
                 type="button"
                 onClick={() => onToggleDisciplina(disc)}
-                className={`px-3 py-1.5 rounded-lg text-sm transition-colors touch-manipulation ${
-                  formData.disciplinas.includes(disc)
-                    ? "bg-[var(--foreground-strong)] text-black"
-                    : "bg-[var(--background-card)] text-[var(--foreground-secondary)] hover:bg-[var(--surface-hover)]"
+                className={`chip touch-manipulation ${
+                  formData.disciplinas.includes(disc) ? "chip-activo" : ""
                 }`}
+                aria-pressed={formData.disciplinas.includes(disc)}
               >
                 {disc}
               </button>
@@ -112,150 +94,194 @@ export default function StepTreinoSaude({
           </div>
         </div>
 
-        {/* Anos de Treino + Nível Cavaleiro */}
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label
-              htmlFor="anos_treino"
-              className="block text-sm text-[var(--foreground-secondary)] mb-1"
-            >
-              {tr("Anos de Treino", "Training Years", "Años de Entrenamiento")}
-              <span className="text-[var(--foreground-muted)] text-xs ml-1">
-                {tr("(anos em trabalho)", "(years in work)", "(años en trabajo)")}
-              </span>
-            </label>
-            <input
-              id="anos_treino"
-              type="number"
-              min={0}
-              max={30}
-              value={formData.anos_treino}
-              onChange={(e) => updateField("anos_treino", e.target.value)}
-              className="campo"
-              placeholder="Ex: 5"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="nivel_cavaleiro"
-              className="block text-sm text-[var(--foreground-secondary)] mb-1"
-            >
-              {tr(
-                "Nível de Cavaleiro Recomendado *",
-                "Recommended Rider Level *",
-                "Nivel de Jinete Recomendado *"
-              )}
-            </label>
-            <Seleccao
-              id="nivel_cavaleiro"
-              required
-              value={formData.nivel_cavaleiro}
-              onChange={(e) => updateField("nivel_cavaleiro", e.target.value)}
-              className="campo"
-            >
-              <option value="">{t.vender_cavalo.select}</option>
-              {(niveisCavaleiro[language] || niveisCavaleiro.pt).map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </Seleccao>
-          </div>
+        <div>
+          <label
+            htmlFor="nivel_cavaleiro"
+            className="block text-sm text-[var(--foreground-secondary)] mb-1"
+          >
+            {tr(
+              "Nível de Cavaleiro Recomendado",
+              "Recommended Rider Level",
+              "Nivel de Jinete Recomendado"
+            )}
+          </label>
+          <Seleccao
+            id="nivel_cavaleiro"
+            value={formData.nivel_cavaleiro}
+            onChange={(e) => updateField("nivel_cavaleiro", e.target.value)}
+            className="campo"
+          >
+            <option value="">{t.vender_cavalo.select}</option>
+            {(niveisCavaleiro[language] || niveisCavaleiro.pt).map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </Seleccao>
         </div>
 
-        {/* Treinador + Ginete */}
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label
-              htmlFor="treinador_atual"
-              className="block text-sm text-[var(--foreground-secondary)] mb-1"
-            >
-              {tr("Treinador Atual", "Current Trainer", "Entrenador Actual")}
-              <span className="text-[var(--foreground-muted)] text-xs ml-1">
-                {tr("(opcional)", "(optional)", "(opcional)")}
-              </span>
-            </label>
-            <input
-              id="treinador_atual"
-              type="text"
-              value={formData.treinador_atual}
-              onChange={(e) => updateField("treinador_atual", e.target.value)}
-              className="campo"
-              placeholder="Nome do treinador"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="ginete_habitual"
-              className="block text-sm text-[var(--foreground-secondary)] mb-1"
-            >
-              {tr("Ginete Habitual", "Regular Rider", "Jinete Habitual")}
-              <span className="text-[var(--foreground-muted)] text-xs ml-1">
-                {tr("(opcional)", "(optional)", "(opcional)")}
-              </span>
-            </label>
-            <input
-              id="ginete_habitual"
-              type="text"
-              value={formData.ginete_habitual}
-              onChange={(e) => updateField("ginete_habitual", e.target.value)}
-              className="campo"
-              placeholder="Nome do cavaleiro habitual"
-            />
-          </div>
-        </div>
+        {/* Tudo o que não é o nível de treino, as disciplinas e o estado de
+            saúde vive dentro de painéis fechados. Medido antes: 47 campos e
+            15 caixas de selecção à entrada deste passo, 5,4 ecrãs de altura —
+            e destes, dois é que travavam a passagem. */}
+        <Detalhes
+          titulo={tr(
+            "Uso, competições e quem o monta",
+            "Use, competitions and who rides it",
+            "Uso, competiciones y quién lo monta"
+          )}
+          campos={6}
+          nota={tr(
+            "Opcional. Dá matéria ao texto do anúncio.",
+            "Optional. Gives the listing text something to say.",
+            "Opcional. Da materia al texto del anuncio."
+          )}
+        >
+          <div className="space-y-4">
+            {/* Uso Atual */}
+            <div>
+              <label className="block text-sm text-[var(--foreground-secondary)] mb-2">
+                {tr("Uso Atual do Cavalo", "Current Horse Use", "Uso Actual del Caballo")}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {(usosAtuais[language] || usosAtuais.pt).map((uso) => (
+                  <button
+                    key={uso}
+                    type="button"
+                    onClick={() => onToggleUso(uso)}
+                    className={`chip touch-manipulation ${
+                      formData.uso_atual.includes(uso) ? "chip-activo" : ""
+                    }`}
+                    aria-pressed={formData.uso_atual.includes(uso)}
+                  >
+                    {uso}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        {/* Competições */}
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label
-              htmlFor="competicoes"
-              className="block text-sm text-[var(--foreground-secondary)] mb-1"
-            >
-              {t.vender_cavalo.competitions}
-            </label>
-            <input
-              id="competicoes"
-              type="text"
-              value={formData.competicoes}
-              onChange={(e) => updateField("competicoes", e.target.value)}
-              className="campo"
-              placeholder={t.vender_cavalo.placeholder_competitions}
-            />
+            <div>
+              <label
+                htmlFor="anos_treino"
+                className="block text-sm text-[var(--foreground-secondary)] mb-1"
+              >
+                {tr("Anos de Treino", "Training Years", "Años de Entrenamiento")}
+                <span className="text-[var(--foreground-muted)] text-xs ml-1">
+                  {tr("(anos em trabalho)", "(years in work)", "(años en trabajo)")}
+                </span>
+              </label>
+              <input
+                id="anos_treino"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={30}
+                value={formData.anos_treino}
+                onChange={(e) => updateField("anos_treino", e.target.value)}
+                className="campo"
+                placeholder="Ex: 5"
+              />
+            </div>
+
+            {/* Treinador + Ginete */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="treinador_atual"
+                  className="block text-sm text-[var(--foreground-secondary)] mb-1"
+                >
+                  {tr("Treinador Atual", "Current Trainer", "Entrenador Actual")}
+                  <span className="text-[var(--foreground-muted)] text-xs ml-1">
+                    {tr("(opcional)", "(optional)", "(opcional)")}
+                  </span>
+                </label>
+                <input
+                  id="treinador_atual"
+                  type="text"
+                  value={formData.treinador_atual}
+                  onChange={(e) => updateField("treinador_atual", e.target.value)}
+                  className="campo"
+                  placeholder="Nome do treinador"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="ginete_habitual"
+                  className="block text-sm text-[var(--foreground-secondary)] mb-1"
+                >
+                  {tr("Ginete Habitual", "Regular Rider", "Jinete Habitual")}
+                  <span className="text-[var(--foreground-muted)] text-xs ml-1">
+                    {tr("(opcional)", "(optional)", "(opcional)")}
+                  </span>
+                </label>
+                <input
+                  id="ginete_habitual"
+                  type="text"
+                  value={formData.ginete_habitual}
+                  onChange={(e) => updateField("ginete_habitual", e.target.value)}
+                  className="campo"
+                  placeholder="Nome do cavaleiro habitual"
+                />
+              </div>
+            </div>
+
+            {/* Competições */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="competicoes"
+                  className="block text-sm text-[var(--foreground-secondary)] mb-1"
+                >
+                  {t.vender_cavalo.competitions}
+                </label>
+                <input
+                  id="competicoes"
+                  type="text"
+                  value={formData.competicoes}
+                  onChange={(e) => updateField("competicoes", e.target.value)}
+                  className="campo"
+                  placeholder={t.vender_cavalo.placeholder_competitions}
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="premios"
+                  className="block text-sm text-[var(--foreground-secondary)] mb-1"
+                >
+                  {t.vender_cavalo.awards}
+                </label>
+                <input
+                  id="premios"
+                  type="text"
+                  value={formData.premios}
+                  onChange={(e) => updateField("premios", e.target.value)}
+                  className="campo"
+                  placeholder={t.vender_cavalo.placeholder_awards}
+                />
+              </div>
+            </div>
           </div>
-          <div>
-            <label
-              htmlFor="premios"
-              className="block text-sm text-[var(--foreground-secondary)] mb-1"
-            >
-              {t.vender_cavalo.awards}
-            </label>
-            <input
-              id="premios"
-              type="text"
-              value={formData.premios}
-              onChange={(e) => updateField("premios", e.target.value)}
-              className="campo"
-              placeholder={t.vender_cavalo.placeholder_awards}
-            />
-          </div>
-        </div>
+        </Detalhes>
 
         {/* Comportamento e Maneabilidade */}
-        <div className="border-t border-[var(--border)] pt-6">
-          <h3 className="text-sm font-medium text-[var(--foreground)] mb-4 flex items-center gap-2">
-            <Shield size={18} className="text-[var(--foreground-muted)]" />
-            {tr(
-              "Comportamento e Maneabilidade",
-              "Behaviour & Tractability",
-              "Comportamiento y Manejabilidad"
-            )}
-          </h3>
+        <Detalhes
+          titulo={tr(
+            "Comportamento e Maneabilidade",
+            "Behaviour & Tractability",
+            "Comportamiento y Manejabilidad"
+          )}
+          campos={8}
+          nota={tr(
+            "Opcional, e das mais valorizadas por quem compra.",
+            "Optional, and among the most valued by buyers.",
+            "Opcional, y de lo más valorado por quien compra."
+          )}
+        >
           <p className="text-xs text-[var(--foreground-muted)] mb-4">
             {tr(
-              "Assinale as características confirmadas. Esta informação é muito valorizada pelos compradores.",
-              "Mark confirmed characteristics. This information is highly valued by buyers.",
-              "Marque las características confirmadas. Esta información es muy valorada por los compradores."
+              "Assinale as características confirmadas.",
+              "Mark the confirmed characteristics.",
+              "Marque las características confirmadas."
             )}
           </p>
           <div className="grid sm:grid-cols-2 gap-3">
@@ -285,15 +311,18 @@ export default function StepTreinoSaude({
               </label>
             ))}
           </div>
-        </div>
+        </Detalhes>
 
         {/* Maneio */}
-        <div className="border-t border-[var(--border)] pt-6">
-          <h3 className="text-sm font-medium text-[var(--foreground)] mb-4 flex items-center gap-2">
-            <Shield size={18} className="text-[var(--foreground-muted)]" />
-            {tr("Maneio e Rotina", "Management & Routine", "Manejo y Rutina")}
-          </h3>
-
+        <Detalhes
+          titulo={tr("Maneio e Rotina", "Management & Routine", "Manejo y Rutina")}
+          campos={5}
+          nota={tr(
+            "Opcional. Como vive e quanto trabalha.",
+            "Optional. How it lives and how much it works.",
+            "Opcional. Cómo vive y cuánto trabaja."
+          )}
+        >
           <div className="grid sm:grid-cols-2 gap-4 mb-4">
             <div>
               <label
@@ -391,7 +420,7 @@ export default function StepTreinoSaude({
               <span className="text-sm">Seguro equino ativo</span>
             </label>
           </div>
-        </div>
+        </Detalhes>
 
         {/* Saúde */}
         <div className="border-t border-[var(--border)] pt-6">
@@ -409,16 +438,17 @@ export default function StepTreinoSaude({
             </label>
             <Seleccao
               id="estado_saude"
-              required
               value={formData.estado_saude}
               onChange={(e) => updateField("estado_saude", e.target.value)}
-              className="campo"
+              className={classeCampo(erros, "estado_saude")}
+              {...atributosErro(erros, "estado_saude")}
             >
               <option value="">{t.vender_cavalo.select}</option>
               <option value="Excelente">{t.vender_cavalo.health_excellent}</option>
               <option value="Bom">{t.vender_cavalo.health_good}</option>
               <option value="Regular">{t.vender_cavalo.health_fair}</option>
             </Seleccao>
+            <ErroDoCampo erros={erros} campo="estado_saude" />
           </div>
 
           <div className="mt-4 space-y-3">
@@ -433,7 +463,11 @@ export default function StepTreinoSaude({
                 onChange={(e) => updateField("vacinacao_atualizada", e.target.checked)}
                 className="w-5 h-5 accent-[var(--foreground-strong)]"
               />
-              <span className="text-sm">{t.vender_cavalo.vaccination_updated} *</span>
+              {/* Era obrigatória: um cavalo com a vacinação em atraso não podia
+                  ser anunciado de todo, e a única saída era declarar o que não
+                  era verdade para o formulário deixar passar. Continua a ser
+                  perguntada; deixou de ser um portão. */}
+              <span className="text-sm">{t.vender_cavalo.vaccination_updated}</span>
             </label>
             <label
               htmlFor="desparasitacao_atualizada"
@@ -489,130 +523,152 @@ export default function StepTreinoSaude({
             </label>
           </div>
 
-          {/* Datas vacinação/desparasitação + Veterinário */}
-          <div className="mt-4 grid sm:grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="data_ultima_vacinacao"
-                className="block text-sm text-[var(--foreground-secondary)] mb-1"
-              >
-                Data da Última Vacinação
-              </label>
-              <input
-                id="data_ultima_vacinacao"
-                type="date"
-                value={formData.data_ultima_vacinacao}
-                onChange={(e) => updateField("data_ultima_vacinacao", e.target.value)}
-                className="campo"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="data_ultima_desparasitacao"
-                className="block text-sm text-[var(--foreground-secondary)] mb-1"
-              >
-                Data da Última Desparasitação
-              </label>
-              <input
-                id="data_ultima_desparasitacao"
-                type="date"
-                value={formData.data_ultima_desparasitacao}
-                onChange={(e) => updateField("data_ultima_desparasitacao", e.target.value)}
-                className="campo"
-              />
-            </div>
-          </div>
-
+          {/* Datas, veterinário, ferragem e histórico: dez campos que só o
+              comprador que já está interessado vai ler, e nenhum deles trava
+              a publicação. */}
           <div className="mt-4">
-            <label
-              htmlFor="nome_veterinario"
-              className="block text-sm text-[var(--foreground-secondary)] mb-1"
+            <Detalhes
+              titulo={tr(
+                "Datas, veterinário e histórico clínico",
+                "Dates, vet and clinical history",
+                "Fechas, veterinario e historial clínico"
+              )}
+              campos={7}
+              nota={tr(
+                "Opcional. Responde de antemão às perguntas do comprador.",
+                "Optional. Answers the buyer's questions up front.",
+                "Opcional. Responde de antemano a las preguntas del comprador."
+              )}
             >
-              Médico Veterinário de Referência
-              <span className="text-[var(--foreground-muted)] text-xs ml-1">(nome e contacto)</span>
-            </label>
-            <input
-              id="nome_veterinario"
-              type="text"
-              value={formData.nome_veterinario}
-              onChange={(e) => updateField("nome_veterinario", e.target.value)}
-              className="campo"
-              placeholder="Ex: Dr. João Silva — +351 912 345 678"
-            />
-          </div>
+              <div className="mt-4 grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="data_ultima_vacinacao"
+                    className="block text-sm text-[var(--foreground-secondary)] mb-1"
+                  >
+                    Data da Última Vacinação
+                  </label>
+                  <input
+                    id="data_ultima_vacinacao"
+                    type="date"
+                    value={formData.data_ultima_vacinacao}
+                    onChange={(e) => updateField("data_ultima_vacinacao", e.target.value)}
+                    className="campo"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="data_ultima_desparasitacao"
+                    className="block text-sm text-[var(--foreground-secondary)] mb-1"
+                  >
+                    Data da Última Desparasitação
+                  </label>
+                  <input
+                    id="data_ultima_desparasitacao"
+                    type="date"
+                    value={formData.data_ultima_desparasitacao}
+                    onChange={(e) => updateField("data_ultima_desparasitacao", e.target.value)}
+                    className="campo"
+                  />
+                </div>
+              </div>
 
-          {/* Ferragem */}
-          <div className="mt-4 grid sm:grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="data_ultima_ferragem"
-                className="block text-sm text-[var(--foreground-secondary)] mb-1"
-              >
-                Data da Última Ferragem
-              </label>
-              <input
-                id="data_ultima_ferragem"
-                type="date"
-                value={formData.data_ultima_ferragem}
-                onChange={(e) => updateField("data_ultima_ferragem", e.target.value)}
-                className="campo"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="tipo_ferragem"
-                className="block text-sm text-[var(--foreground-secondary)] mb-1"
-              >
-                {tr("Tipo de Ferragem", "Shoeing Type", "Tipo de Herraje")}
-              </label>
-              <Seleccao
-                id="tipo_ferragem"
-                value={formData.tipo_ferragem}
-                onChange={(e) => updateField("tipo_ferragem", e.target.value)}
-                className="campo"
-              >
-                <option value="">{tr("Selecionar", "Select", "Seleccionar")}</option>
-                {(tiposFerragemOpcoes[language] || tiposFerragemOpcoes.pt).map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </Seleccao>
-            </div>
-          </div>
+              <div className="mt-4">
+                <label
+                  htmlFor="nome_veterinario"
+                  className="block text-sm text-[var(--foreground-secondary)] mb-1"
+                >
+                  Médico Veterinário de Referência
+                  <span className="text-[var(--foreground-muted)] text-xs ml-1">
+                    (nome e contacto)
+                  </span>
+                </label>
+                <input
+                  id="nome_veterinario"
+                  type="text"
+                  value={formData.nome_veterinario}
+                  onChange={(e) => updateField("nome_veterinario", e.target.value)}
+                  className="campo"
+                  placeholder="Ex: Dr. João Silva — +351 912 345 678"
+                />
+              </div>
 
-          {/* Histórico de Lesões */}
-          <div className="mt-4">
-            <label
-              htmlFor="historico_lesoes"
-              className="block text-sm text-[var(--foreground-secondary)] mb-1"
-            >
-              Histórico de Lesões / Cirurgias
-              <span className="text-[var(--foreground-muted)] text-xs ml-1">(se aplicável)</span>
-            </label>
-            <textarea
-              id="historico_lesoes"
-              value={formData.historico_lesoes}
-              onChange={(e) => updateField("historico_lesoes", e.target.value)}
-              className="campo h-20 resize-none"
-              placeholder="Ex: Cólica cirúrgica em 2021, totalmente recuperado. Sem lesões articulares."
-            />
-          </div>
+              {/* Ferragem */}
+              <div className="mt-4 grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="data_ultima_ferragem"
+                    className="block text-sm text-[var(--foreground-secondary)] mb-1"
+                  >
+                    Data da Última Ferragem
+                  </label>
+                  <input
+                    id="data_ultima_ferragem"
+                    type="date"
+                    value={formData.data_ultima_ferragem}
+                    onChange={(e) => updateField("data_ultima_ferragem", e.target.value)}
+                    className="campo"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="tipo_ferragem"
+                    className="block text-sm text-[var(--foreground-secondary)] mb-1"
+                  >
+                    {tr("Tipo de Ferragem", "Shoeing Type", "Tipo de Herraje")}
+                  </label>
+                  <Seleccao
+                    id="tipo_ferragem"
+                    value={formData.tipo_ferragem}
+                    onChange={(e) => updateField("tipo_ferragem", e.target.value)}
+                    className="campo"
+                  >
+                    <option value="">{tr("Selecionar", "Select", "Seleccionar")}</option>
+                    {(tiposFerragemOpcoes[language] || tiposFerragemOpcoes.pt).map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </Seleccao>
+                </div>
+              </div>
 
-          <div className="mt-4">
-            <label
-              htmlFor="observacoes_saude"
-              className="block text-sm text-[var(--foreground-secondary)] mb-1"
-            >
-              {t.vender_cavalo.health_notes}
-            </label>
-            <textarea
-              id="observacoes_saude"
-              value={formData.observacoes_saude}
-              onChange={(e) => updateField("observacoes_saude", e.target.value)}
-              className="campo h-24 resize-none"
-              placeholder={t.vender_cavalo.placeholder_health_notes}
-            />
+              {/* Histórico de Lesões */}
+              <div className="mt-4">
+                <label
+                  htmlFor="historico_lesoes"
+                  className="block text-sm text-[var(--foreground-secondary)] mb-1"
+                >
+                  Histórico de Lesões / Cirurgias
+                  <span className="text-[var(--foreground-muted)] text-xs ml-1">
+                    (se aplicável)
+                  </span>
+                </label>
+                <textarea
+                  id="historico_lesoes"
+                  value={formData.historico_lesoes}
+                  onChange={(e) => updateField("historico_lesoes", e.target.value)}
+                  className="campo h-20 resize-none"
+                  placeholder="Ex: Cólica cirúrgica em 2021, totalmente recuperado. Sem lesões articulares."
+                />
+              </div>
+
+              <div className="mt-4">
+                <label
+                  htmlFor="observacoes_saude"
+                  className="block text-sm text-[var(--foreground-secondary)] mb-1"
+                >
+                  {t.vender_cavalo.health_notes}
+                </label>
+                <textarea
+                  id="observacoes_saude"
+                  value={formData.observacoes_saude}
+                  onChange={(e) => updateField("observacoes_saude", e.target.value)}
+                  className="campo h-24 resize-none"
+                  placeholder={t.vender_cavalo.placeholder_health_notes}
+                />
+              </div>
+            </Detalhes>
           </div>
 
           {/* Upload Exame Veterinário */}
@@ -620,7 +676,7 @@ export default function StepTreinoSaude({
             <div className="mt-4 bg-[var(--background-card)]/50 cartao p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">{t.vender_cavalo.vet_report}</span>
-                {documentos.exameVet && <CheckCircle size={18} className="text-green-400" />}
+                {documentos.exameVet && <CheckCircle size={18} className="text-[var(--ok)]" />}
               </div>
               <label className="flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-[var(--border)] rounded-lg cursor-pointer hover:border-[var(--border-hover)] transition-colors touch-manipulation">
                 <Upload size={18} className="text-[var(--foreground-muted)]" />

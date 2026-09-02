@@ -1,34 +1,84 @@
 "use client";
 
+import { forwardRef } from "react";
 import { AlertCircle } from "lucide-react";
+import type { ErroCampo } from "@/components/vender-cavalo/validacao";
 import { useLanguage } from "@/context/LanguageContext";
 
 interface FormErrorsProps {
-  errors: string[];
+  erros: ErroCampo[];
 }
 
-export default function FormErrors({ errors }: FormErrorsProps) {
+/**
+ * O resumo do que falta, no topo do passo.
+ *
+ * Duas coisas mudaram, e as duas foram medidas antes:
+ *
+ * 1. **Cada linha leva ao campo.** Carregar em «Continuar» com o passo 1 vazio
+ *    dava dez frases e mais nada; num passo com vinte e sete campos, saber que
+ *    «Sexo é obrigatório» ainda deixa a pessoa a procurar onde. Agora cada
+ *    linha é um botão que rola até ao campo e lhe põe o foco.
+ * 2. **Ele próprio recebe o foco.** Medido: em computador o resumo aparecia
+ *    1302px acima do que estava no ecrã, porque o botão fica no fim de uma
+ *    página de 2987px; em telemóvel aparecia 1452px abaixo da dobra, porque o
+ *    botão vive numa barra fixa. Nos dois casos a pessoa carregava e não
+ *    acontecia nada visível. É por isso que a página o chama pelo `ref`.
+ */
+const FormErrors = forwardRef<HTMLDivElement, FormErrorsProps>(function FormErrors({ erros }, ref) {
   const { t } = useLanguage();
 
-  if (errors.length === 0) return null;
+  if (erros.length === 0) return null;
+
+  const irAoCampo = (campo: string) => {
+    const alvo =
+      document.getElementById(campo) ||
+      document.querySelector<HTMLElement>(`[data-campo="${campo}"]`);
+    if (!alvo) return;
+    alvo.scrollIntoView({ block: "center", behavior: "smooth" });
+    // Um `<Seleccao>` esconde um `<select>` verdadeiro e mostra um botão; é o
+    // botão que recebe o foco de quem navega, e é a ele que se chama.
+    const focavel =
+      alvo instanceof HTMLElement && alvo.tabIndex >= 0 && alvo.offsetParent !== null
+        ? alvo
+        : alvo.parentElement?.querySelector<HTMLElement>("button, input, textarea");
+    focavel?.focus({ preventScroll: true });
+  };
 
   return (
     <div
-      className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6"
+      ref={ref}
+      tabIndex={-1}
+      className="resumo-erros mb-6 scroll-mt-24 focus:outline-none"
       role="alert"
       aria-live="assertive"
     >
       <div className="flex items-start gap-3">
-        <AlertCircle size={20} className="text-red-400 flex-shrink-0 mt-0.5" />
-        <div>
-          <p className="text-sm font-medium text-red-400 mb-2">{t.vender_cavalo.fix_errors}</p>
-          <ul className="text-sm text-red-300 space-y-1">
-            {errors.map((error, i) => (
-              <li key={i}>• {error}</li>
+        <AlertCircle
+          size={20}
+          className="text-[var(--erro)] flex-shrink-0 mt-0.5"
+          aria-hidden="true"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-[var(--erro)] mb-1">
+            {t.vender_cavalo.fix_errors}
+          </p>
+          <ul>
+            {erros.map((erro) => (
+              <li key={erro.campo + erro.mensagem}>
+                <button
+                  type="button"
+                  className="resumo-erros__ir"
+                  onClick={() => irAoCampo(erro.campo)}
+                >
+                  {erro.mensagem}
+                </button>
+              </li>
             ))}
           </ul>
         </div>
       </div>
     </div>
   );
-}
+});
+
+export default FormErrors;

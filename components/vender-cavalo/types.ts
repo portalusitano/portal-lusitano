@@ -1,3 +1,5 @@
+import type { ErrosPorCampo } from "@/components/vender-cavalo/campos-com-erro";
+
 export interface FormData {
   // Dados do Proprietario
   proprietario_nome: string;
@@ -130,4 +132,11 @@ export type DocumentType = keyof Documentos;
 export interface StepProps {
   formData: FormData;
   updateField: (field: keyof FormData, value: FormData[keyof FormData]) => void;
+  /**
+   * Os campos deste passo que estão a travar quem quer avançar, por `id`.
+   * Chega a cada passo para que o erro se veja no campo e não só num resumo
+   * no topo — num passo de quarenta e sete campos, o resumo sozinho manda
+   * procurar.
+   */
+  erros: ErrosPorCampo;
 }

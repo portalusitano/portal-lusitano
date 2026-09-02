@@ -7,6 +7,7 @@ import type { FormData } from "@/components/vender-cavalo/types";
 import { LISTING_TIERS } from "@/lib/listing-tiers";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
+import { ErroDoCampo, type ErrosPorCampo } from "@/components/vender-cavalo/campos-com-erro";
 
 interface StepPagamentoProps {
   formData: FormData;
@@ -15,7 +16,7 @@ interface StepPagamentoProps {
   termsAccepted: boolean;
   onTermsChange: (checked: boolean) => void;
   loading: boolean;
-  onSubmit: () => void;
+  erros: ErrosPorCampo;
 }
 
 export default function StepPagamento({
@@ -25,7 +26,7 @@ export default function StepPagamento({
   termsAccepted,
   onTermsChange,
   loading,
-  onSubmit,
+  erros,
 }: StepPagamentoProps) {
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
@@ -46,12 +47,7 @@ export default function StepPagamento({
 
   return (
     <div className="bg-[var(--background-secondary)]/50 cartao p-6">
-      <h2 className="text-xl mb-6 flex items-center gap-3">
-        <span className="w-8 h-8 bg-[var(--foreground-strong)] rounded-full flex items-center justify-center text-black text-sm font-bold">
-          6
-        </span>
-        {t.vender_cavalo.step_payment_title}
-      </h2>
+      <h2 className="text-xl mb-6">{t.vender_cavalo.step_payment_title}</h2>
 
       {/* Resumo do cavalo */}
       <div className="bg-[var(--background-card)]/50 rounded-lg p-4 mb-6">
@@ -92,9 +88,7 @@ export default function StepPagamento({
               {tr("Plano", "Plan", "Plan")} {tier.name}
             </span>
             {tier.badge && (
-              <span className="px-2 py-0.5 bg-[var(--elevate-1)] text-[var(--foreground-muted)] text-[10px] font-bold uppercase tracking-wider rounded">
-                {tier.badge}
-              </span>
+              <span className="rotulo px-2 py-0.5 bg-[var(--elevate-1)] rounded">{tier.badge}</span>
             )}
           </div>
           <span className="text-xl font-bold text-[var(--foreground-muted)]">{precoTotal}€</span>
@@ -145,6 +139,8 @@ export default function StepPagamento({
             checked={termsAccepted}
             onChange={(e) => onTermsChange(e.target.checked)}
             className="w-5 h-5 accent-[var(--foreground-strong)] mt-0.5"
+            aria-invalid={erros.termos_aceites ? true : undefined}
+            aria-describedby={erros.termos_aceites ? "erro-termos_aceites" : undefined}
           />
           <span className="text-sm text-[var(--foreground-secondary)]">
             {t.vender_cavalo.terms_agree}{" "}
@@ -164,24 +160,34 @@ export default function StepPagamento({
             . {t.vender_cavalo.terms_confirm}
           </span>
         </label>
+        <ErroDoCampo erros={erros} campo="termos_aceites" />
       </div>
 
       {/* Info Verificação */}
-      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
-        <div className="flex items-start gap-3">
-          <Shield size={18} className="text-blue-400 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-300">
-            <p className="font-medium mb-1">{t.vender_cavalo.doc_verification_title}</p>
-            <p className="text-blue-300/80">{t.vender_cavalo.doc_verification_desc}</p>
-          </div>
+      <div className="painel-nota mb-6">
+        <Shield size={16} className="flex-none mt-0.5" aria-hidden="true" />
+        <div>
+          <p className="font-medium text-[var(--foreground)] mb-1">
+            {t.vender_cavalo.doc_verification_title}
+          </p>
+          <p>{t.vender_cavalo.doc_verification_desc}</p>
         </div>
       </div>
 
-      {/* Botão Pagamento */}
+      {/* O botão de pagar é `type="submit"` e não tem `onClick`: quem paga é o
+          `onSubmit` do formulário, o mesmo caminho da tecla Enter.
+
+          Deixou de estar `disabled` enquanto os termos não estão aceites. Um
+          botão apagado não diz porquê, e a caixa dos termos fica acima dele —
+          quem chega ao fundo do passo vê um botão que não responde. Agora
+          responde: carrega, e a validação diz o que falta e leva lá.
+
+          É o dourado do sistema, e é o sítio dele: publicar um anúncio é o
+          CTA que o `CLAUDE.md` reserva para o `.btn-acento`. */}
       <button
-        onClick={onSubmit}
-        disabled={loading || !termsAccepted}
-        className="w-full py-4 btn btn-primario w-full gap-3 rounded-full disabled:cursor-not-allowed"
+        type="submit"
+        disabled={loading}
+        className="w-full py-4 btn btn-acento gap-3 rounded-full disabled:cursor-not-allowed"
       >
         {loading ? (
           <>

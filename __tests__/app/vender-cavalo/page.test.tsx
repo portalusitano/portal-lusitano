@@ -81,25 +81,33 @@ vi.mock("@/components/vender-cavalo/StepIndicator", () => ({
   ),
 }));
 
+// Os erros deixaram de ser frases soltas: cada um sabe de que campo é, para
+// que o resumo possa levar lá quem o lê. O `ref` existe porque é a página que
+// chama o foco ao resumo quando a validação falha.
 vi.mock("@/components/vender-cavalo/FormErrors", () => ({
-  default: ({ errors }: { errors: string[] }) => (
-    <div data-testid="form-errors">{errors.join(", ")}</div>
-  ),
+  default: ({
+    erros,
+    ref,
+  }: {
+    erros: { campo: string; mensagem: string }[];
+    ref?: React.Ref<HTMLDivElement>;
+  }) =>
+    erros.length === 0 ? null : (
+      <div data-testid="form-errors" ref={ref} tabIndex={-1}>
+        {erros.map((e) => `${e.campo}:${e.mensagem}`).join(", ")}
+      </div>
+    ),
 }));
 
+// O «Proximo» é um botão de submissão e não tem `onClick`: quem avança o passo
+// é o `onSubmit` do formulário, que é o mesmo caminho da tecla Enter.
 vi.mock("@/components/vender-cavalo/FormNavigation", () => ({
-  default: ({
-    step: _step,
-    onPrev,
-    onNext,
-  }: {
-    step: number;
-    onPrev: () => void;
-    onNext: () => void;
-  }) => (
+  default: ({ step: _step, onPrev }: { step: number; onPrev: () => void }) => (
     <div data-testid="form-navigation">
-      <button onClick={onPrev}>Anterior</button>
-      <button onClick={onNext}>Proximo</button>
+      <button type="button" onClick={onPrev}>
+        Anterior
+      </button>
+      <button type="submit">Proximo</button>
     </div>
   ),
 }));
@@ -149,18 +157,14 @@ vi.mock("@/components/vender-cavalo/StepPrecoApresentacao", () => ({
 vi.mock("@/components/vender-cavalo/StepPagamento", () => ({
   default: ({
     formData: _formData,
-    opcaoDestaque: _opcaoDestaque,
     termsAccepted,
     onTermsChange,
     loading,
-    onSubmit,
   }: {
     formData: Record<string, unknown>;
-    opcaoDestaque: boolean;
     termsAccepted: boolean;
     onTermsChange: (value: boolean) => void;
     loading: boolean;
-    onSubmit: () => void;
   }) => (
     <div data-testid="step-pagamento">
       <input
@@ -168,7 +172,9 @@ vi.mock("@/components/vender-cavalo/StepPagamento", () => ({
         checked={termsAccepted}
         onChange={(e) => onTermsChange(e.target.checked)}
       />
-      <button onClick={onSubmit} disabled={loading}>
+      {/* Também é de submissão, e por isso não leva `onSubmit`: carregar em
+          pagar e carregar em Enter passam pelo mesmo sítio. */}
+      <button type="submit" disabled={loading}>
         {loading ? "A processar..." : "Finalizar"}
       </button>
     </div>
@@ -181,6 +187,11 @@ import VenderCavaloPage from "@/app/vender-cavalo/page";
 describe("VenderCavaloPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // A página guarda um rascunho no `localStorage` a cada alteração, e o
+    // jsdom partilha-o entre casos. Sem isto, o caso que escreve um nome
+    // deixava-o preenchido para o caso seguinte, que passava a exercer outra
+    // coisa que não a que diz exercer.
+    localStorage.clear();
   });
 
   it("renders page header", () => {
