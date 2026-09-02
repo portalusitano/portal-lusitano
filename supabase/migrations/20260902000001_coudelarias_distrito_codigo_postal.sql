@@ -5,8 +5,8 @@
 -- `codigo_postal` a NULL — duas colunas inteiras por preencher.
 --
 -- Esta migração é deliberadamente a mais aborrecida que se conseguiu escrever.
--- A auditoria encontrou cinquenta afirmações contraditas e cento e vinte e
--- três por confirmar, e **nada disso se toca aqui**. Um campo vazio é
+-- A auditoria encontrou quarenta e nove afirmações contraditas e cento e
+-- vinte e duas por confirmar, e **nada disso se toca aqui**. Um campo vazio é
 -- honesto; um campo com um facto plausível e falso é o defeito que se foi
 -- caçar. Por isso só entra o que é dedução ou mudança de sítio:
 --

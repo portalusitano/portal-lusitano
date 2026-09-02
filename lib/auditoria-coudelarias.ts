@@ -3,7 +3,7 @@
  * processo.
  *
  * A auditoria de conteúdo — `docs/auditoria-coudelarias.md` — foi feita à mão
- * uma vez, e à mão encontrou 50 afirmações contraditas em 35 fichas. O que
+ * uma vez, e à mão encontrou 49 afirmações contraditas em 35 fichas. O que
  * este módulo faz é a parte dessa auditoria que **uma máquina consegue
  * repetir**, para a lista não voltar a crescer sem se dar por isso.
  *
