@@ -1531,7 +1531,8 @@
     "view_switch": "Modo de vista",
     "offline_title": "O mapa não conseguiu carregar as coudelarias",
     "offline_hint": "Não é a sua pesquisa: foi a nossa base de dados que não respondeu. Tente daqui a pouco — o directório continua a funcionar.",
-    "offline_retry": "Tentar outra vez"
+    "offline_retry": "Tentar outra vez",
+    "skip_to_regions": "Saltar o globo e ir às regiões"
   },
   "cavalos_favoritos": {
     "title": "Cavalos Favoritos",

@@ -1531,7 +1531,8 @@
     "view_switch": "View mode",
     "offline_title": "The map could not load the stud farms",
     "offline_hint": "This is not your search: our database did not answer. Try again in a moment — the directory is still working.",
-    "offline_retry": "Try again"
+    "offline_retry": "Try again",
+    "skip_to_regions": "Skip the globe, go to the regions"
   },
   "cavalos_favoritos": {
     "title": "Favorite Horses",

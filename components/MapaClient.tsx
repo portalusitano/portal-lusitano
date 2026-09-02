@@ -764,6 +764,25 @@ export default function MapaClient({
             className="vista-troca grid gap-4 [--altura-globo:460px] sm:[--altura-globo:560px] lg:grid-cols-12 lg:gap-6 lg:[--altura-globo:max(320px,min(680px,calc(100dvh-22rem)))]"
           >
             <div className="min-w-0 lg:col-span-8">
+              {/* ── O atalho para o painel ─────────────────────────────────
+                  Medido com o teclado, a partir da barra de endereço: mais de
+                  34 tabulações em desktop e 28 em telemóvel até chegar à
+                  primeira região. Entre a caixa de pesquisa e o painel estão
+                  os dois botões de aproximação do globo e as dezassete
+                  paragens dos nomes e das manchas — que são conteúdo, e não se
+                  tiram. Quem quer filtrar por região não pode ter de os
+                  atravessar todos.
+
+                  A resposta é a que o site já usa no topo: uma ligação
+                  escondida que só aparece quando recebe o foco. Não ocupa um
+                  pixel a quem tem rato, custa uma paragem a quem não tem, e
+                  leva o foco directamente ao painel. */}
+              <a
+                href="#mapa-regioes"
+                className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[10001] focus:bg-[var(--foreground-strong)] focus:px-6 focus:py-3 focus:text-sm focus:font-bold focus:uppercase focus:tracking-wider focus:text-black"
+              >
+                {t.mapa.skip_to_regions}
+              </a>
               {/* Sem nada para acender, a moldura encolhe. Manter 680px de
                   preto à volta de uma frase de duas linhas é pedir a quem não
                   encontrou nada que role meio ecrã para ler que não encontrou
@@ -806,7 +825,9 @@ export default function MapaClient({
                 região (e o globo obedece), em baixo estão as coudelarias que
                 a escolha deixou — com link directo à ficha. */}
             <div className="min-w-0 lg:col-span-4">
-              <div className="lg:sticky lg:top-24">
+              {/* `tabIndex={-1}`: sem isto o salto muda o endereço e deixa o
+                  foco onde estava, e a tabulação seguinte voltava ao globo. */}
+              <div id="mapa-regioes" tabIndex={-1} className="lg:sticky lg:top-24">
                 {/* Com a base em baixo o painel era uma caixa oca: a cabeça a
                     dizer «Explorar Regiões 0» e nada por baixo dela. Um
                     instrumento que não tem nada para operar não se mostra
