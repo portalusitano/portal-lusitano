@@ -3,6 +3,7 @@ import { supabaseAdmin as supabase } from "@/lib/supabase-admin";
 import { verifySession } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { invalidate, CacheTags } from "@/lib/revalidate";
+import { isListingStatus } from "@/lib/marketplace-listings";
 
 // PUT - Atualizar cavalo
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -79,8 +80,17 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       updated_at: new Date().toISOString(),
     };
 
-    // Support status update
+    // O estado tem de ser um dos seis de `LISTING_STATUS`. Aceitava-se aqui
+    // qualquer texto, e foi por aí que `aprovado` — palavra de um vocabulário
+    // que esta tabela nunca usou — entrou na coluna: `/comprar` filtra por
+    // `active`, por isso o anúncio ficava pago e invisível.
     if (body.status !== undefined) {
+      if (!isListingStatus(body.status)) {
+        return NextResponse.json(
+          { error: `Estado inválido: ${String(body.status)}` },
+          { status: 400 }
+        );
+      }
       updateData.status = body.status;
     }
 

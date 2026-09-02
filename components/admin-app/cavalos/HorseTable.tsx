@@ -5,6 +5,7 @@ import { Edit, Trash2, Eye, Star, MapPin } from "lucide-react";
 import { CavaloAdmin } from "@/types/cavalo";
 import Seleccao from "@/components/ui/Seleccao";
 import { formatarPrecoCavalo } from "@/lib/format";
+import { LISTING_STATUS_LABEL, LISTING_STATUS_VALUES } from "@/lib/marketplace-listings";
 
 const sexoOptions = [
   { value: "macho", label: "Garanhão" },
@@ -12,11 +13,15 @@ const sexoOptions = [
   { value: "castrado", label: "Castrado" },
 ];
 
+// Ver a nota em `components/admin-app/CavalosContent.tsx`: `pending` faltava
+// nos dois sítios, e é o estado em que um anúncio pago entra.
 const statusColors: Record<string, string> = {
+  pending: "bg-amber-100 text-amber-900",
   active: "bg-green-100 text-green-800",
   vendido: "bg-gray-100 text-gray-800",
   reservado: "bg-amber-100 text-amber-800",
   inativo: "bg-red-100 text-red-800",
+  removido: "bg-red-100 text-red-900",
 };
 
 interface HorseTableProps {
@@ -102,10 +107,11 @@ export default function HorseTable({
                   onChange={(e) => onUpdateStatus(cavalo.id, e.target.value)}
                   className={`px-2 py-1 rounded text-xs font-medium ${statusColors[cavalo.status] || "bg-gray-100"}`}
                 >
-                  <option value="active">Ativo</option>
-                  <option value="reservado">Reservado</option>
-                  <option value="vendido">Vendido</option>
-                  <option value="inativo">Inativo</option>
+                  {LISTING_STATUS_VALUES.map((s) => (
+                    <option key={s} value={s}>
+                      {LISTING_STATUS_LABEL[s]}
+                    </option>
+                  ))}
                 </Seleccao>
               </td>
               <td className="px-6 py-4 text-gray-600">{cavalo.views_count || 0}</td>

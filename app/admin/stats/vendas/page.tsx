@@ -1,5 +1,10 @@
 import { supabaseAdmin as supabase } from "@/lib/supabase-admin";
 import { revalidatePath } from "next/cache";
+import {
+  LISTING_STATUS,
+  LISTING_STATUS_LABEL,
+  type ListingStatus,
+} from "@/lib/marketplace-listings";
 
 export default async function AdminVendasPage({
   searchParams,
@@ -10,7 +15,11 @@ export default async function AdminVendasPage({
   if (sParams?.dev !== "true") return null;
 
   // FUNÇÃO DE ENGENHARIA: Server Action para atualizar o estado
-  async function updateStatus(id: string, newStatus: string) {
+  // Aprovar escrevia `aprovado` e rejeitar escrevia `rejeitado` — duas
+  // palavras que `cavalos_venda.status` não usa. `/comprar` filtra por
+  // `active`, por isso aprovar aqui era esconder o anúncio. O vocabulário
+  // desta tabela é o `LISTING_STATUS`, e rejeitar é `inativo`.
+  async function updateStatus(id: string, newStatus: ListingStatus) {
     "use server";
     await supabase.from("cavalos_venda").update({ status: newStatus }).eq("id", id);
 
@@ -18,7 +27,7 @@ export default async function AdminVendasPage({
     revalidatePath("/admin/vendas");
   }
 
-  // Vai buscar todos os cavalos (pendentes, aprovados e rejeitados)
+  // Vai buscar todos os cavalos
   const { data: cavalos } = await supabase
     .from("cavalos_venda")
     .select("*")
@@ -79,14 +88,14 @@ export default async function AdminVendasPage({
                   <td className="py-8 px-6">
                     <span
                       className={`px-4 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider border ${
-                        c.status === "aprovado"
+                        c.status === LISTING_STATUS.ACTIVE
                           ? "border-green-500/50 text-green-500 bg-green-500/5"
-                          : c.status === "rejeitado"
+                          : c.status === LISTING_STATUS.INATIVO
                             ? "border-red-500/50 text-red-500 bg-red-500/5"
                             : "border-zinc-700 text-zinc-500 bg-zinc-900"
                       }`}
                     >
-                      {c.status}
+                      {LISTING_STATUS_LABEL[c.status as ListingStatus] ?? c.status}
                     </span>
                   </td>
                   <td className="py-8 px-6 text-right">
@@ -94,7 +103,7 @@ export default async function AdminVendasPage({
                       <form
                         action={async () => {
                           "use server";
-                          await updateStatus(c.id, "aprovado");
+                          await updateStatus(c.id, LISTING_STATUS.ACTIVE);
                         }}
                       >
                         <button
@@ -107,7 +116,7 @@ export default async function AdminVendasPage({
                       <form
                         action={async () => {
                           "use server";
-                          await updateStatus(c.id, "rejeitado");
+                          await updateStatus(c.id, LISTING_STATUS.INATIVO);
                         }}
                       >
                         <button

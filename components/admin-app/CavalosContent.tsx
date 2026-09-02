@@ -6,6 +6,11 @@ import { Plus, Edit, Trash2, Eye, Star, MapPin, X, Search } from "lucide-react";
 import { CavaloAdmin } from "@/types/cavalo";
 import Seleccao from "@/components/ui/Seleccao";
 import { formatarPrecoCavalo } from "@/lib/format";
+import {
+  LISTING_STATUS,
+  LISTING_STATUS_LABEL,
+  LISTING_STATUS_VALUES,
+} from "@/lib/marketplace-listings";
 
 const sexoOptions = [
   { value: "macho", label: "Garanhão" },
@@ -20,11 +25,20 @@ const nivelOptions = [
   { value: "competicao", label: "Competição" },
 ];
 
+/**
+ * `pending` faltava aqui e no selector de estado. Um anúncio pago entra em
+ * `pending` (`checkout-cavalo.ts`) e o `<Seleccao>` ficava sem opção que
+ * casasse com o valor da linha — o `<select>` mostrava a primeira, «Ativo»,
+ * enquanto o valor a sério era outro. Quem olhasse para a tabela via um
+ * anúncio activo que `/comprar` não mostra.
+ */
 const statusColors: Record<string, string> = {
+  pending: "bg-amber-100 text-amber-900",
   active: "bg-green-100 text-green-800",
   vendido: "bg-gray-100 text-gray-800",
   reservado: "bg-amber-100 text-amber-800",
   inativo: "bg-red-100 text-red-800",
+  removido: "bg-red-100 text-red-900",
 };
 
 export default function CavalosContent() {
@@ -227,14 +241,27 @@ export default function CavalosContent() {
 
       <div className="px-6 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
           <div className="bg-[var(--background-secondary)] border border-[var(--background-elevated)] p-4 rounded-lg">
             <p className="text-3xl font-bold text-white">{cavalos.length}</p>
             <p className="text-gray-400">Total</p>
           </div>
+          {/*
+            «Em aprovação» é o cartão que faltava. Um anúncio pago entra em
+            `pending` e não aparecia em conta nenhuma: não era «Ativo», não era
+            «Vendido», e o total não distingue. Ficava invisível em `/comprar`
+            e invisível no painel — pago e sem ninguém a saber que estava à
+            espera de alguém.
+          */}
+          <div className="bg-[var(--background-secondary)] border border-[var(--background-elevated)] p-4 rounded-lg">
+            <p className="text-3xl font-bold text-amber-500">
+              {cavalos.filter((c) => c.status === LISTING_STATUS.PENDING).length}
+            </p>
+            <p className="text-gray-400">Em aprovação</p>
+          </div>
           <div className="bg-[var(--background-secondary)] border border-[var(--background-elevated)] p-4 rounded-lg">
             <p className="text-3xl font-bold text-green-500">
-              {cavalos.filter((c) => c.status === "active").length}
+              {cavalos.filter((c) => c.status === LISTING_STATUS.ACTIVE).length}
             </p>
             <p className="text-gray-400">Ativos</p>
           </div>
@@ -246,7 +273,7 @@ export default function CavalosContent() {
           </div>
           <div className="bg-[var(--background-secondary)] border border-[var(--background-elevated)] p-4 rounded-lg">
             <p className="text-3xl font-bold text-gray-400">
-              {cavalos.filter((c) => c.status === "vendido").length}
+              {cavalos.filter((c) => c.status === LISTING_STATUS.VENDIDO).length}
             </p>
             <p className="text-gray-400">Vendidos</p>
           </div>
@@ -339,10 +366,11 @@ export default function CavalosContent() {
                         onChange={(e) => updateStatus(cavalo.id, e.target.value)}
                         className={`px-2 py-1 rounded text-xs font-medium ${statusColors[cavalo.status] || "bg-gray-100"}`}
                       >
-                        <option value="active">Ativo</option>
-                        <option value="reservado">Reservado</option>
-                        <option value="vendido">Vendido</option>
-                        <option value="inativo">Inativo</option>
+                        {LISTING_STATUS_VALUES.map((s) => (
+                          <option key={s} value={s}>
+                            {LISTING_STATUS_LABEL[s]}
+                          </option>
+                        ))}
                       </Seleccao>
                     </td>
                     <td className="px-6 py-4 text-gray-400">{cavalo.views_count || 0}</td>

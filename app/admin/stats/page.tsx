@@ -1,4 +1,5 @@
 import { supabaseAdmin as supabase } from "@/lib/supabase-admin";
+import { LISTING_STATUS } from "@/lib/marketplace-listings";
 
 export default async function AdminStatsPage({
   searchParams,
@@ -12,8 +13,11 @@ export default async function AdminStatsPage({
   const { data: todosCavalos } = await supabase.from("cavalos_venda").select("*");
 
   // Lógica de Negócio
-  const aprovados = todosCavalos?.filter((c) => c.status === "active") || [];
-  const pendentes = todosCavalos?.filter((c) => c.status === "pendente") || [];
+  // `pendente` não é valor desta coluna: o contador ficava sempre a zero e um
+  // anúncio pago à espera de aprovação não aparecia em conta nenhuma. É
+  // `pending` — ver `lib/marketplace-listings.ts`.
+  const aprovados = todosCavalos?.filter((c) => c.status === LISTING_STATUS.ACTIVE) || [];
+  const pendentes = todosCavalos?.filter((c) => c.status === LISTING_STATUS.PENDING) || [];
 
   // Cálculo do valor total do mercado aprovado usando LaTeX para formalismo
   // $$ \text{Market Value} = \sum \text{preço de cada exemplar aprovado} $$
