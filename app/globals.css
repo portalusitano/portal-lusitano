@@ -3459,6 +3459,11 @@ body {
   .barra-dir__seccao--busca {
     flex: 1;
     padding-left: 0.875rem;
+    /* A folga à direita fica na **secção** e não no `padding` da caixa de
+       texto: uma caixa de texto corta o que transborda no limite da caixa de
+       padding, portanto um `padding-right` lá dentro não impede o marcador de
+       ir bater na curva do comprimido. Aqui encolhe a caixa, e aí impede. */
+    padding-right: 0.875rem;
   }
 
   /* O realce do foco é uma camada à parte, e não a borda a mudar de cor:
@@ -3567,7 +3572,9 @@ body {
     justify-content: center;
     width: 1.75rem;
     height: 1.75rem;
-    margin-right: 0.3125rem;
+    /* A folga até à curva do comprimido é a da secção; aqui só se recupera
+       parte dela, senão o × fica a flutuar longe do fim do texto. */
+    margin-right: -0.375rem;
     border-radius: 999px;
     color: var(--foreground-muted);
     transition: color var(--d-fast) var(--ease-out);
@@ -3723,6 +3730,29 @@ body {
     animation-delay: calc(min(var(--i, 0), 10) * 30ms);
   }
 
+  /* Uma pastilha acesa não se apaga ao passar o rato por cima.
+   *
+   * O `.chip:hover` tem especificidade 0,2,0 e o `.chip-activo` tem 0,1,0,
+   * portanto ao passar o rato numa pastilha escolhida o texto voltava a
+   * `--foreground-strong` — branco sobre o fundo branco do próprio estado
+   * escolhido. Ou seja: uma pastilha em branco, sem palavra nenhuma lá
+   * dentro, exactamente enquanto lhe apontam. Vinha de antes desta barra e
+   * via-se em todas as grelhas de filtros do site.
+   *
+   * Não se mexe em nenhuma das duas regras — acrescenta-se a que faltava,
+   * com a especificidade da que estava a ganhar. Exige as **duas** classes
+   * para não apanhar o `btn chip-activo` da ficha, que não é uma pastilha e
+   * não tem este defeito. */
+  .chip.chip-activo:hover {
+    border-color: var(--foreground-strong);
+    color: #000;
+  }
+
+  html.light .chip.chip-activo:hover {
+    border-color: #0a0a0a;
+    color: #fff;
+  }
+
   /* A contagem dentro da pastilha. */
   .chip__conta {
     display: inline-flex;
@@ -3753,4 +3783,56 @@ body {
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* O anel do teclado, na caixa de pesquisa, toma a forma da concha.
+ *
+ * A regra global do foco desenha um rectângulo de cantos a 8px à volta do
+ * elemento focado. Nos dois botões da direita isso está certo — é preciso
+ * ver **qual** dos três está focado. Na caixa de texto não: ela ocupa a
+ * concha quase toda, e um rectângulo lá dentro lê-se como uma caixa dentro
+ * de outra, que é exactamente o que este sistema visual evita. O anel não se
+ * tira — muda de sítio: passa para a concha, com a mesma cor e a mesma
+ * espessura, e com o raio dela.
+ *
+ * Tem de ser **fora de qualquer camada e com `!important`**, porque é isso
+ * que a regra global é, e CSS sem camada ganha a qualquer `@layer`.
+ *
+ * Quem marca o estado é o `data-busca` que o componente põe ao focar, e não
+ * um `:has(.barra-dir__busca:focus-visible)`: o `:has()` foi escrito
+ * primeiro e o compilador de CSS **deitou a regra fora** — os alvos de
+ * browser deste projecto não o garantem, e uma regra que desaparece em
+ * silêncio deixava a caixa de pesquisa com o anel rectangular outra vez.
+ * Um `:focus-within` também não serve: acendia a concha inteira quando o
+ * foco fosse num dos dois botões, e aí o anel deixava de dizer qual.
+ *
+ * Sem JavaScript o atributo nunca aparece e fica o anel de origem — que é o
+ * comportamento seguro: nunca fica uma caixa de pesquisa sem foco visível. */
+@media (min-width: 768px) {
+  .barra-dir[data-busca]::after {
+    opacity: 1;
+    box-shadow:
+      inset 0 0 0 1px var(--border),
+      0 0 0 2px rgba(255, 255, 255, 0.45);
+  }
+}
+
+@media (max-width: 767px) {
+  .barra-dir__seccao[data-busca]::after {
+    opacity: 1;
+    box-shadow:
+      inset 0 0 0 1px var(--border),
+      0 0 0 2px rgba(255, 255, 255, 0.45);
+  }
+}
+
+html.light .barra-dir[data-busca]::after,
+html.light .barra-dir__seccao[data-busca]::after {
+  box-shadow:
+    inset 0 0 0 1px var(--border),
+    0 0 0 2px rgba(0, 0, 0, 0.45);
+}
+
+.barra-dir[data-busca] .barra-dir__busca:focus-visible {
+  outline: none !important;
 }

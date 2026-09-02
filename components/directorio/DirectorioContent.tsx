@@ -259,6 +259,11 @@ function DirectorioInterior({
   const idGaveta = useId();
   const idBusca = useId();
   const [gavetaAberta, setGavetaAberta] = useState(false);
+  /* Quem tem o foco dentro da concha. Serve para o anel do teclado tomar a
+     forma dela em vez de desenhar um rectângulo lá dentro — e é um atributo
+     e não um `:has()` porque o compilador de CSS deita `:has()` fora nos
+     alvos deste projecto. A razão comprida está no `globals.css`. */
+  const [buscaFocada, setBuscaFocada] = useState(false);
   const botaoGaveta = useRef<HTMLButtonElement>(null);
   const conteudoGaveta = useRef<HTMLDivElement>(null);
   const [alturaGaveta, setAlturaGaveta] = useState(0);
@@ -418,8 +423,11 @@ function DirectorioInterior({
             sem esmagar a caixa de texto, que é o controlo principal. */}
         <Revelar atraso={150}>
           <div className="mb-6" role="search" aria-label={t.directorio.search_label}>
-            <div className="barra-dir">
-              <div className="barra-dir__seccao barra-dir__seccao--busca">
+            <div className="barra-dir" data-busca={buscaFocada || undefined}>
+              <div
+                className="barra-dir__seccao barra-dir__seccao--busca"
+                data-busca={buscaFocada || undefined}
+              >
                 <Search className="barra-dir__lupa" size={15} aria-hidden="true" />
                 {/* Um rótulo a sério e não só um `aria-label`: assim carregar
                     nele põe o cursor no campo, que é o que um rótulo faz. */}
@@ -432,6 +440,8 @@ function DirectorioInterior({
                   placeholder={t.directorio.search_placeholder}
                   value={rascunho}
                   onChange={(e) => setRascunho(e.target.value)}
+                  onFocus={() => setBuscaFocada(true)}
+                  onBlur={() => setBuscaFocada(false)}
                   className="barra-dir__busca"
                 />
                 {rascunho && (
@@ -541,6 +551,7 @@ function DirectorioInterior({
               {pagina.total === 1
                 ? t.directorio.results_count_one
                 : comN(t.directorio.results_count_many, pagina.total)}
+              {nActivos > 0 && " · "}
               {nActivos > 0 &&
                 (nActivos === 1
                   ? t.directorio.filters_active_one
