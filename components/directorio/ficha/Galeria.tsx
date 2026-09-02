@@ -216,6 +216,7 @@ export default function Galeria({
   const [mortas, setMortas] = useState<number[]>([]);
   const [vista, setVista] = useState(false);
   const [contaCerta, setContaCerta] = useState(false);
+  const [poupaDados, setPoupaDados] = useState(false);
   const [visor, setVisor] = useState(false);
 
   const raizRef = useRef<HTMLElement | null>(null);
@@ -342,6 +343,29 @@ export default function Galeria({
     const id = window.setTimeout(() => setContaCerta(true), ESPERA_CONTADOR);
     return () => window.clearTimeout(id);
   }, [vista, contaCerta]);
+
+  /* Quem pediu para se pouparem dados, ou está numa ligação de segunda
+     geração, não leva a fotografia seguinte adiantada. São ~44 KB por
+     fotografia que pode nunca ser vista, e num plano contado isso não é uma
+     cortesia — é gastar o dinheiro de outra pessoa a adivinhar. As
+     miniaturas ficam: 2,7 KB cada é o que custa saber quantas fotografias
+     existem, e sem isso o contador mente. */
+  useEffect(() => {
+    const rede = (
+      navigator as Navigator & {
+        connection?: { saveData?: boolean; effectiveType?: string };
+      }
+    ).connection;
+    if (!rede) return;
+    const ver = () =>
+      setPoupaDados(
+        Boolean(rede.saveData) || rede.effectiveType === "2g" || rede.effectiveType === "slow-2g"
+      );
+    ver();
+    const alvo = rede as unknown as EventTarget;
+    alvo.addEventListener?.("change", ver);
+    return () => alvo.removeEventListener?.("change", ver);
+  }, []);
 
   /* --- Fita ------------------------------------------------------------- */
 
@@ -568,9 +592,9 @@ export default function Galeria({
   const proximaAdiante =
     total > 1 ? vivas[(posicao + (sentido === 1 ? 1 : -1) + total) % total] : -1;
   const adiante =
-    vista && total > 1 && prontas.includes(activa) && proximaAdiante !== activa
-      ? proximaAdiante
-      : null;
+    poupaDados || !vista || total < 2 || !prontas.includes(activa) || proximaAdiante === activa
+      ? null
+      : proximaAdiante;
 
   const estado: EstadoPilha = {
     fotos,
