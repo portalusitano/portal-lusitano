@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase-admin";
 import { logger } from "@/lib/logger";
+import { COUDELARIA_STATUS } from "@/lib/coudelaria-status";
 
 // Atomic view counter increment via Supabase RPC
 // Falls back to read-then-write if RPC is unavailable
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         "id, nome, slug, descricao, historia, localizacao, regiao, telefone, email, website, instagram, facebook, youtube, num_cavalos, ano_fundacao, especialidades, linhagens, premios, servicos, horario, coordenadas_lat, coordenadas_lng, foto_capa, galeria, video_url, cavalos_destaque, testemunhos, is_pro, destaque, views_count"
       )
       .eq("slug", slug)
-      .eq("status", "active")
+      .eq("status", COUDELARIA_STATUS.ACTIVE)
       .single();
 
     if (error || !coudelaria) {

@@ -4,6 +4,7 @@ import { logger } from "@/lib/logger";
 import { sanitizeSearchInput } from "@/lib/sanitize";
 import { strictLimiter } from "@/lib/rate-limit";
 import { coudelariaRegistoSchema, parseWithZod } from "@/lib/schemas";
+import { COUDELARIA_STATUS } from "@/lib/coudelaria-status";
 
 // Criar slug a partir do nome
 function createSlug(name: string): string {
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
       .select(
         "id, slug, nome, descricao, localizacao, regiao, telefone, email, website, foto_capa, destaque, ordem_destaque, is_pro, coordenadas_lat, coordenadas_lng, num_cavalos, especialidades, views_count"
       )
-      .eq("status", "active")
+      .eq("status", COUDELARIA_STATUS.ACTIVE)
       .order("destaque", { ascending: false })
       .order("ordem_destaque", { ascending: true })
       .order("views_count", { ascending: false })
@@ -124,7 +125,7 @@ export async function POST(request: NextRequest) {
         num_cavalos: body.num_cavalos || null,
         especialidades: body.especialidades || [],
         fotos: [],
-        status: "pending", // Ficam pendentes para revisão
+        status: COUDELARIA_STATUS.PENDING, // Ficam pendentes para revisão
       })
       .select()
       .single();

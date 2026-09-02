@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { supabase } from "@/lib/supabase-admin";
 import { lerListaDeTexto } from "@/lib/coudelaria-ficha";
+import { COUDELARIA_STATUS } from "@/lib/coudelaria-status";
 
 export const runtime = "edge";
 export const alt = "Coudelaria — Portal Lusitano";
@@ -39,7 +40,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
       .from("coudelarias")
       .select("nome, localizacao, regiao, ano_fundacao, especialidades")
       .eq("slug", slug)
-      .eq("status", "active")
+      .eq("status", COUDELARIA_STATUS.ACTIVE)
       .single();
     if (data) {
       nome = data.nome || nome;

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { COUDELARIA_STATUS_VALUES, type CoudelariaStatus } from "@/lib/coudelaria-status";
 
 // Newsletter
 export const newsletterSchema = z.object({
@@ -80,7 +81,12 @@ export const adminCoudelariaSchema = z.object({
   proprietario_nome: z.string().max(200).optional().or(z.literal("")),
   proprietario_email: z.string().email().optional().or(z.literal("")),
   proprietario_telefone: z.string().max(20).optional().or(z.literal("")),
-  status: z.enum(["pendente", "ativo", "inativo", "rejeitado"]).optional(),
+  // O vocabulário do estado é o da base — ver `lib/coudelaria-status.ts`. Aqui
+  // estava um terceiro: `pendente|ativo|inativo|rejeitado`, que não coincidia
+  // nem com a base (`pending|active|inactive`) nem com o do painel
+  // (`pendente|aprovado|rejeitado`). O POST desta rota rejeitava com 400 o
+  // único valor que a base aceita.
+  status: z.enum(COUDELARIA_STATUS_VALUES as [CoudelariaStatus, ...CoudelariaStatus[]]).optional(),
   destaque: z.boolean().optional(),
 });
 

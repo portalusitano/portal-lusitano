@@ -3,6 +3,7 @@ import { supabaseAdmin as supabase } from "@/lib/supabase-admin";
 import { verifySession } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { invalidate, CacheTags } from "@/lib/revalidate";
+import { COUDELARIA_STATUS, isCoudelariaStatus } from "@/lib/coudelaria-status";
 
 // GET - Obter uma coudelaria específica
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -143,9 +144,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       updates.plano_fim = plano_fim ? new Date(plano_fim).toISOString() : null;
     }
     if (plano_ativo !== undefined) updates.plano_ativo = plano_ativo;
+    // O estado só é aceite se for do vocabulário da base. Sem isto, um `PATCH`
+    // com `status: "aprovado"` — que era o que o painel enviava — escrevia na
+    // coluna um valor que a política RLS não deixa passar, e a coudelaria
+    // aprovada desaparecia do directório, do mapa e da pesquisa.
     if (status !== undefined) {
+      if (!isCoudelariaStatus(status)) {
+        return NextResponse.json({ error: `Estado inválido: ${String(status)}` }, { status: 400 });
+      }
       updates.status = status;
-      if (status === "aprovado") {
+      if (status === COUDELARIA_STATUS.ACTIVE) {
         updates.approved_at = new Date().toISOString();
         updates.approved_by = email;
       }

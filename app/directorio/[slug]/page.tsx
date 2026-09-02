@@ -16,6 +16,7 @@ import {
 } from "@/lib/coudelaria-ficha";
 import { fotosDaCoudelaria } from "@/lib/fotos-coudelarias";
 import type { Vizinha } from "@/components/directorio/ficha/Vizinhas";
+import { COUDELARIA_STATUS } from "@/lib/coudelaria-status";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://portal-lusitano.pt";
 
@@ -38,7 +39,7 @@ const obterCoudelaria = cache(async (slug: string): Promise<CoudelariaFicha | nu
       .from("coudelarias")
       .select(COLUNAS)
       .eq("slug", slug)
-      .eq("status", "active")
+      .eq("status", COUDELARIA_STATUS.ACTIVE)
       .single();
     if (!data) return null;
     /* O `as` é uma promessa, não uma verificação — e neste caso era falsa: a
@@ -73,7 +74,7 @@ const obterVizinhas = cache(async (): Promise<CoudelariaVizinhaBruta[]> => {
     const { data } = await supabase
       .from("coudelarias")
       .select("slug, nome, localizacao, regiao, coordenadas_lat, coordenadas_lng, foto_capa")
-      .eq("status", "active");
+      .eq("status", COUDELARIA_STATUS.ACTIVE);
     return (data as CoudelariaVizinhaBruta[] | null) || [];
   } catch {
     return [];
@@ -123,7 +124,10 @@ export const dynamicParams = false;
 
 export async function generateStaticParams() {
   try {
-    const { data } = await supabase.from("coudelarias").select("slug").eq("status", "active");
+    const { data } = await supabase
+      .from("coudelarias")
+      .select("slug")
+      .eq("status", COUDELARIA_STATUS.ACTIVE);
     return (data || []).map((c: { slug: string }) => ({ slug: c.slug }));
   } catch {
     return [];

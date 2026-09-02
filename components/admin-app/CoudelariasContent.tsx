@@ -4,6 +4,14 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Home, Search, Pencil, Trash2, Check, X, Star, Eye } from "lucide-react";
 import Seleccao from "@/components/ui/Seleccao";
+import {
+  COUDELARIA_ACCAO_LABEL,
+  COUDELARIA_STATUS,
+  COUDELARIA_STATUS_LABEL,
+  COUDELARIA_STATUS_VALUES,
+  etiquetaDoEstado,
+  transicoesDe,
+} from "@/lib/coudelaria-status";
 
 /**
  * Uma linha da tabela `coudelarias` como a base a tem.
@@ -139,10 +147,9 @@ export default function CoudelariasContent({ voltarHref }: CoudelariasContentPro
 
   const getStatusColor = (status: string | null) => {
     const colors: Record<string, string> = {
-      pendente: "text-yellow-400 bg-yellow-500/10",
-      aprovado: "text-green-400 bg-green-500/10",
-      rejeitado: "text-red-400 bg-red-500/10",
-      suspenso: "text-orange-400 bg-orange-500/10",
+      [COUDELARIA_STATUS.PENDING]: "text-yellow-400 bg-yellow-500/10",
+      [COUDELARIA_STATUS.ACTIVE]: "text-green-400 bg-green-500/10",
+      [COUDELARIA_STATUS.INACTIVE]: "text-red-400 bg-red-500/10",
     };
     return colors[status ?? ""] || "text-gray-400 bg-gray-500/10";
   };
@@ -222,11 +229,12 @@ export default function CoudelariasContent({ voltarHref }: CoudelariasContentPro
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-4 py-2 bg-[var(--background)] border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
           >
-            <option value="all">Todos os Status</option>
-            <option value="pendente">Pendente</option>
-            <option value="aprovado">Aprovado</option>
-            <option value="rejeitado">Rejeitado</option>
-            <option value="suspenso">Suspenso</option>
+            <option value="all">Todos os estados</option>
+            {COUDELARIA_STATUS_VALUES.map((estado) => (
+              <option key={estado} value={estado}>
+                {COUDELARIA_STATUS_LABEL[estado]}
+              </option>
+            ))}
           </Seleccao>
 
           {/* Plano Filter */}
@@ -301,31 +309,46 @@ export default function CoudelariasContent({ voltarHref }: CoudelariasContentPro
                       coudelaria.status
                     )}`}
                   >
-                    {coudelaria.status}
+                    {etiquetaDoEstado(coudelaria.status)}
                   </span>
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    {/* Aprovar */}
-                    {coudelaria.status === "pendente" && (
-                      <button
-                        onClick={() => updateCoudelaria(coudelaria.id, { status: "aprovado" })}
-                        className="p-2 hover:bg-green-500/20 rounded-lg transition-colors"
-                        title="Aprovar"
-                      >
-                        <Check className="text-green-500" size={16} />
-                      </button>
-                    )}
-
-                    {/* Rejeitar */}
-                    {coudelaria.status === "pendente" && (
-                      <button
-                        onClick={() => updateCoudelaria(coudelaria.id, { status: "rejeitado" })}
-                        className="p-2 hover:bg-red-500/20 rounded-lg transition-colors"
-                        title="Rejeitar"
-                      >
-                        <X className="text-red-500" size={16} />
-                      </button>
+                    {/*
+                      Publicar / despublicar. Os dois botões só apareciam em
+                      `status === "pendente"`, um valor que a base não escreve
+                      em linha nenhuma: nenhuma das 35 coudelarias tinha botão
+                      de estado. Agora as saídas saem do estado a sério — um
+                      registo novo (`pending`) tem duas, um já decidido tem uma.
+                    */}
+                    {transicoesDe(coudelaria.status).map((destino) =>
+                      destino === COUDELARIA_STATUS.ACTIVE ? (
+                        <button
+                          key={destino}
+                          onClick={() => updateCoudelaria(coudelaria.id, { status: destino })}
+                          className="p-2 hover:bg-green-500/20 rounded-lg transition-colors"
+                          title={
+                            coudelaria.status === COUDELARIA_STATUS.PENDING
+                              ? "Aprovar"
+                              : COUDELARIA_ACCAO_LABEL[destino]
+                          }
+                        >
+                          <Check className="text-green-500" size={16} />
+                        </button>
+                      ) : (
+                        <button
+                          key={destino}
+                          onClick={() => updateCoudelaria(coudelaria.id, { status: destino })}
+                          className="p-2 hover:bg-red-500/20 rounded-lg transition-colors"
+                          title={
+                            coudelaria.status === COUDELARIA_STATUS.PENDING
+                              ? "Rejeitar"
+                              : COUDELARIA_ACCAO_LABEL[destino]
+                          }
+                        >
+                          <X className="text-red-500" size={16} />
+                        </button>
+                      )
                     )}
 
                     {/* Toggle Destaque */}

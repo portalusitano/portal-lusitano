@@ -4,6 +4,7 @@ import { verifySession } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { sanitizeSearchInput } from "@/lib/sanitize";
 import { adminCoudelariaSchema, parseWithZod } from "@/lib/schemas";
+import { COUDELARIA_STATUS } from "@/lib/coudelaria-status";
 
 // GET - Listar coudelarias com filtros
 export async function GET(req: NextRequest) {
@@ -152,7 +153,7 @@ export async function POST(req: NextRequest) {
         proprietario_nome,
         proprietario_email,
         proprietario_telefone,
-        status: status || "pendente",
+        status: status || COUDELARIA_STATUS.PENDING,
         destaque: destaque || false,
       })
       .select()

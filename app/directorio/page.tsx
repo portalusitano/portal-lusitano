@@ -7,6 +7,7 @@ import { logger } from "@/lib/logger";
 import DirectorioContent from "@/components/directorio/DirectorioContent";
 import { generatePageMetadata } from "@/lib/seo";
 import { PASTA_CAPAS, mapaDeCapas } from "@/lib/directorio-capas";
+import { COUDELARIA_STATUS } from "@/lib/coudelaria-status";
 
 // ISR: Revalidate directory every hour (matches layout)
 export const revalidate = 3600;
@@ -63,7 +64,7 @@ export default async function DirectorioPage() {
     .select(
       "id, slug, nome, localizacao, regiao, foto_capa, destaque, ordem_destaque, ano_fundacao, num_cavalos, descricao, especialidades, linhagens, views_count, is_pro, coordenadas_lat, coordenadas_lng"
     )
-    .eq("status", "active")
+    .eq("status", COUDELARIA_STATUS.ACTIVE)
     .order("destaque", { ascending: false })
     .order("ordem_destaque", { ascending: true })
     .order("views_count", { ascending: false })
