@@ -14,11 +14,12 @@ import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
 import Seleccao from "@/components/ui/Seleccao";
 import Detalhes from "@/components/vender-cavalo/Detalhes";
+import { ErroDoCampo, classeCampo } from "@/components/vender-cavalo/campos-com-erro";
 import {
-  ErroDoCampo,
-  atributosErro,
-  classeCampo,
-} from "@/components/vender-cavalo/campos-com-erro";
+  ApontamentoDoCampo,
+  atributosCampo,
+  ligarCampo,
+} from "@/components/vender-cavalo/apontamentos";
 
 interface StepPrecoApresentacaoProps extends StepProps {
   imagens: File[];
@@ -27,15 +28,18 @@ interface StepPrecoApresentacaoProps extends StepProps {
   maxImages: number;
 }
 
-export default function StepPrecoApresentacao({
-  formData,
-  updateField,
-  imagens,
-  onImageUpload,
-  onRemoveImage,
-  maxImages,
-  erros,
-}: StepPrecoApresentacaoProps) {
+export default function StepPrecoApresentacao(props: StepPrecoApresentacaoProps) {
+  const {
+    formData,
+    updateField,
+    imagens,
+    onImageUpload,
+    onRemoveImage,
+    maxImages,
+    erros,
+    apontamentos,
+    campo,
+  } = props;
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
   const [isDragging, setIsDragging] = useState(false);
@@ -100,10 +104,15 @@ export default function StepPrecoApresentacao({
                 onChange={(e) => updateField("preco", e.target.value)}
                 className={classeCampo(erros, "preco", "pl-12")}
                 placeholder="25000"
-                {...atributosErro(erros, "preco")}
+                {...ligarCampo("preco", formData.preco, props)}
               />
             </div>
             <ErroDoCampo erros={erros} campo="preco" />
+            <ApontamentoDoCampo
+              apontamentos={apontamentos}
+              campo="preco"
+              aoAceitar={campo.aoAceitar}
+            />
           </div>
           <div>
             <label
@@ -117,7 +126,7 @@ export default function StepPrecoApresentacao({
               value={formData.regiao}
               onChange={(e) => updateField("regiao", e.target.value)}
               className={classeCampo(erros, "regiao")}
-              {...atributosErro(erros, "regiao")}
+              {...atributosCampo(erros, apontamentos, "regiao")}
             >
               <option value="">{t.vender_cavalo.select}</option>
               {regioesPT.map((r) => (
@@ -147,7 +156,7 @@ export default function StepPrecoApresentacao({
             onChange={(e) => updateField("localizacao", e.target.value)}
             className={classeCampo(erros, "localizacao")}
             placeholder={t.vender_cavalo.placeholder_location}
-            {...atributosErro(erros, "localizacao")}
+            {...ligarCampo("localizacao", formData.localizacao, props)}
           />
           <ErroDoCampo erros={erros} campo="localizacao" />
         </div>
@@ -611,7 +620,7 @@ export default function StepPrecoApresentacao({
             onChange={(e) => updateField("descricao", e.target.value)}
             className={classeCampo(erros, "descricao", "h-40 resize-none")}
             placeholder={t.vender_cavalo.placeholder_description}
-            {...atributosErro(erros, "descricao")}
+            {...ligarCampo("descricao", formData.descricao, props)}
           />
           <ErroDoCampo erros={erros} campo="descricao" />
           {/* Barra de progresso do texto */}
@@ -640,9 +649,12 @@ export default function StepPrecoApresentacao({
               type="url"
               value={formData.videos_url}
               onChange={(e) => updateField("videos_url", e.target.value)}
-              className="campo"
+              className={classeCampo(erros, "videos_url")}
               placeholder="https://youtube.com/watch?v=..."
+              {...ligarCampo("videos_url", formData.videos_url, props)}
             />
+            <ErroDoCampo erros={erros} campo="videos_url" />
+            <ApontamentoDoCampo apontamentos={apontamentos} campo="videos_url" />
           </div>
           <div>
             <label
@@ -657,9 +669,12 @@ export default function StepPrecoApresentacao({
               type="url"
               value={formData.videos_url_2}
               onChange={(e) => updateField("videos_url_2", e.target.value)}
-              className="campo"
+              className={classeCampo(erros, "videos_url_2")}
               placeholder="https://youtube.com/watch?v=..."
+              {...ligarCampo("videos_url_2", formData.videos_url_2, props)}
             />
+            <ErroDoCampo erros={erros} campo="videos_url_2" />
+            <ApontamentoDoCampo apontamentos={apontamentos} campo="videos_url_2" />
           </div>
         </div>
       </div>

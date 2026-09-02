@@ -23,14 +23,10 @@ export function classeCampo(erros: ErrosPorCampo, campo: string, extra = ""): st
   return ["campo", erros[campo] ? "campo-erro" : "", extra].filter(Boolean).join(" ");
 }
 
-/**
- * Os atributos que dizem a um leitor de ecrã que o campo está inválido e onde
- * está a explicação. Sem o `aria-describedby` a frase por baixo é texto que
- * ninguém que não veja o ecrã chega a ouvir.
- */
-export function atributosErro(erros: ErrosPorCampo, campo: string) {
-  return erros[campo] ? { "aria-invalid": true as const, "aria-describedby": `erro-${campo}` } : {};
-}
+/* Os atributos que dizem a um leitor de ecrã que o campo está inválido e onde
+   está a explicação vivem agora em `apontamentos.tsx`, no `atributosCampo`.
+   Esta função só conhecia o erro, e o `aria-describedby` é uma lista: num
+   campo com erro *e* com aviso, quem não vê o ecrã ouvia só metade. */
 
 /** A frase por baixo do campo. Não renderiza nada quando não há erro. */
 export function ErroDoCampo({ erros, campo }: { erros: ErrosPorCampo; campo: string }) {

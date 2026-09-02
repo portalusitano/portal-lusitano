@@ -17,6 +17,10 @@ import { jaRespondeuAosCookies } from "./visitante";
  * 3. Fechar o separador e voltar repunha o texto mas não as fotografias nem os
  *    documentos — e sem o dizer, porque o aviso só aparecia no passo 1 e o
  *    rascunho repunha o passo 3.
+ * 4. Cada campo só respondia ao que lhe tinham escrito quando alguém carregava
+ *    em «Continuar», seis passos depois de o ter escrito. Agora responde ao
+ *    sair do campo — e responde em três tons, que é a parte que estes casos
+ *    guardam: o que impede, o que pergunta e o que propõe.
  */
 
 /** Preenche o passo 1 com o mínimo que a validação exige. */
@@ -66,6 +70,59 @@ test.describe("Publicar anúncio", () => {
     // também no regresso que o caso do rascunho existe para exercer.
     await page.goto("/vender-cavalo");
     await page.waitForSelector("#proprietario_nome");
+  });
+
+  test("um campo cala-se enquanto se escreve e fala ao sair", async ({ page }) => {
+    // Marcar a vermelho quem ainda vai a meio de escrever é dizer-lhe que
+    // está errado antes de ele ter acabado.
+    await page.fill("#altura", "193");
+    await expect(page.locator("#apontamento-altura")).toHaveCount(0);
+
+    await page.locator("#altura").blur();
+    const apontamento = page.locator("#apontamento-altura .apontamento");
+    await expect(apontamento).toHaveCount(1);
+    await expect(apontamento).toContainText(/150.*170/);
+
+    // Um aviso não é um erro: não trava nada, e por isso não marca o campo
+    // como inválido nem abre o resumo do topo.
+    await expect(page.locator("#altura")).not.toHaveAttribute("aria-invalid", "true");
+    await expect(page.locator(".resumo-erros")).toHaveCount(0);
+    // Mas quem não vê o ecrã tem de lá chegar na mesma.
+    await expect(page.locator("#altura")).toHaveAttribute("aria-describedby", "apontamento-altura");
+  });
+
+  test("uma sugestão escreve-se no campo com um clique", async ({ page }) => {
+    // `16.2` são dezasseis mãos e duas polegadas — 168cm. Quem escreve mãos
+    // numa caixa que pede centímetros não se enganou: usou a unidade da casa
+    // dele.
+    await page.fill("#altura", "16.2");
+    await page.locator("#altura").blur();
+
+    const aceitar = page.locator("#apontamento-altura .apontamento__aceitar");
+    await expect(aceitar).toHaveText("168");
+    await aceitar.click();
+    await expect(page.locator("#altura")).toHaveValue("168");
+  });
+
+  test("um erro aparece ao sair do campo, sem abrir o resumo do topo", async ({ page }) => {
+    // O 95 não é prefixo móvel de ninguém. Isto impede — mas o resumo do topo
+    // é `aria-live="assertive"` e continua a ser só do «Continuar»: a cada
+    // `blur` interromperia quem escreve para lhe ler a lista inteira.
+    await page.fill("#proprietario_telefone", "952345678");
+    await page.locator("#proprietario_telefone").blur();
+
+    await expect(page.locator("#erro-proprietario_telefone")).toBeVisible();
+    await expect(page.locator("#proprietario_telefone")).toHaveAttribute("aria-invalid", "true");
+    await expect(page.locator(".resumo-erros")).toHaveCount(0);
+
+    // E trava mesmo: com ele por corrigir não se passa ao passo 2.
+    await preencherPasso1(page);
+    await page.fill("#proprietario_telefone", "952345678");
+    const continuar = page.getByRole("button", { name: /continuar/i }).first();
+    await continuar.scrollIntoViewIfNeeded();
+    await continuar.click();
+    await expect(page.locator(".resumo-erros")).toBeVisible();
+    expect(await passoActual(page)).toContain("1");
   });
 
   test("o resumo de erros aparece no ecrã e cada linha leva ao campo", async ({ page }) => {
