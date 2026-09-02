@@ -3406,3 +3406,351 @@ body {
     }
   }
 }
+
+/* ===== DIRECTÓRIO — A BARRA E A GAVETA DE FILTROS =====
+ * O bloco de controlo do directório eram catorze coisas empilhadas: uma caixa
+ * de pesquisa de 48px, uma caixa de ordenação por baixo dela em telemóvel, e
+ * duas filas rotuladas REGIÃO e ACTIVIDADE com todas as pastilhas acesas ao
+ * mesmo tempo. Media 526px num ecrã de 844 — mais do que a altura de um
+ * cartão —, e por isso quem abria o directório num telemóvel não via **uma
+ * única coudelaria** antes de rolar. Numa página cujo trabalho é mostrar
+ * coudelarias, isso não é densidade, é uma antecâmara.
+ *
+ * O que se cortou foi adorno, não informação:
+ *
+ *  - **Os dois rótulos REGIÃO e ACTIVIDADE saíram do ecrã por omissão e
+ *    foram para dentro da gaveta.** Não desapareceram: ali é onde se está a
+ *    escolher e onde a divisão entre os dois eixos conta. Fora dali gastavam
+ *    duas linhas inteiras — uma coluna de 6rem em computador, uma linha
+ *    própria em telemóvel — para dizer o que as próprias palavras já dizem:
+ *    ninguém confunde «Alentejo» com «Dressage».
+ *  - **As pastilhas passaram a abrir-se a pedido.** Doze filtros todos
+ *    apagados são doze botões que ninguém pediu. O botão que os abre traz o
+ *    número dos que estão acesos, e os que estão acesos aparecem por baixo,
+ *    na barra de resultados, com um × — o estado nunca fica escondido, só a
+ *    lista de hipóteses é que fica.
+ *  - **As contagens ficam.** São o que diz quanto vale carregar numa
+ *    pastilha, e foi trabalho anterior torná-las verdadeiras.
+ *
+ * A concha é uma só em computador — pesquisa, filtros e ordenação dentro do
+ * mesmo comprimido, separados por hairlines — e parte-se em duas em
+ * telemóvel, onde não cabem lado a lado. É a mesma peça a mudar de forma, e
+ * não duas peças diferentes.
+ * ------------------------------------------------------------------------ */
+@layer components {
+  .barra-dir {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .barra-dir__seccao {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    border: 1px solid var(--border-soft);
+    border-radius: 999px;
+    background: var(--background-elevated);
+    transition: border-color var(--d-fast) var(--ease-out);
+  }
+
+  .barra-dir__seccao--busca {
+    flex: 1;
+    padding-left: 0.875rem;
+  }
+
+  /* O realce do foco é uma camada à parte, e não a borda a mudar de cor:
+     opacidade corre no compositor, uma sombra a animar é repintura. Corre
+     uma vez ao focar e outra ao sair — não é ciclo nenhum. */
+  .barra-dir::after,
+  .barra-dir__seccao::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: 999px;
+    pointer-events: none;
+    opacity: 0;
+    box-shadow:
+      inset 0 0 0 1px var(--border),
+      0 0 0 3px var(--elevate-1);
+    transition: opacity var(--d-fast) var(--ease-out);
+  }
+
+  @media (max-width: 767px) {
+    .barra-dir__seccao:focus-within::after {
+      opacity: 1;
+    }
+  }
+
+  /* A partir de `md` a concha é uma só: a barra leva a borda e as secções
+     ficam nuas, separadas por uma hairline. */
+  @media (min-width: 768px) {
+    .barra-dir {
+      flex-direction: row;
+      gap: 0;
+      border: 1px solid var(--border-soft);
+      border-radius: 999px;
+      background: var(--background-elevated);
+      transition: border-color var(--d-fast) var(--ease-out);
+    }
+
+    .barra-dir:focus-within::after {
+      opacity: 1;
+    }
+
+    .barra-dir__seccao {
+      border: 0;
+      background: transparent;
+    }
+
+    .barra-dir__seccao + .barra-dir__seccao {
+      border-left: 1px solid var(--border-soft);
+    }
+  }
+
+  /* A caixa de texto. Sem borda própria — a borda é a da concha — e sem o
+     botão de limpar que o WebKit desenha por cima do nosso. */
+  .barra-dir__busca {
+    flex: 1;
+    min-width: 0;
+    padding: 0.5rem 0.5rem 0.5rem 0.625rem;
+    min-height: 2.375rem;
+    border: 0;
+    background: transparent;
+    color: var(--foreground);
+    /* 14px é o chão: abaixo disto o iOS faz zoom ao focar o campo. */
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+
+  .barra-dir__busca:focus {
+    outline: none;
+  }
+
+  .barra-dir__busca::placeholder {
+    color: var(--foreground-muted);
+  }
+
+  .barra-dir__busca::-webkit-search-cancel-button,
+  .barra-dir__busca::-webkit-search-decoration {
+    appearance: none;
+    display: none;
+  }
+
+  /* O mesmo chão de toque do `.campo`: num ecrã de dedo a barra é o controlo
+     principal, e mais fina não pode querer dizer mais difícil de acertar. */
+  @media (pointer: coarse) {
+    .barra-dir__busca {
+      min-height: 44px;
+    }
+  }
+
+  .barra-dir__lupa {
+    flex-shrink: 0;
+    color: var(--foreground-muted);
+    transition:
+      color var(--d-fast) var(--ease-out),
+      transform var(--d-fast) var(--ease-out);
+  }
+
+  .barra-dir__seccao--busca:focus-within .barra-dir__lupa {
+    color: var(--foreground-strong);
+    transform: scale(1.1);
+  }
+
+  .barra-dir__limpar {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-right: 0.3125rem;
+    border-radius: 999px;
+    color: var(--foreground-muted);
+    transition: color var(--d-fast) var(--ease-out);
+  }
+
+  .barra-dir__limpar:hover {
+    color: var(--foreground-strong);
+  }
+
+  /* Os dois botões da direita: abrir os filtros e escolher a ordenação. */
+  .barra-dir__accao {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.375rem;
+    padding: 0 0.875rem;
+    color: var(--foreground-secondary);
+    font-size: 0.8125rem;
+    line-height: 1.3;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color var(--d-fast) var(--ease-out);
+  }
+
+  .barra-dir__accao:hover,
+  .barra-dir__accao[aria-expanded="true"] {
+    color: var(--foreground-strong);
+  }
+
+  .barra-dir__seccao--accoes {
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 767px) {
+    /* Em telemóvel os dois partem a largura ao meio: assim a lista da
+       ordenação, que nasce com a largura do gatilho, tem onde escrever
+       «Recomendadas» sem cortar. */
+    .barra-dir__seccao--accoes {
+      flex: 1;
+    }
+
+    .barra-dir__accao {
+      flex: 1;
+      justify-content: center;
+    }
+
+    .barra-dir__ordenar {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .barra-dir__ordenar {
+      width: 10.5rem;
+    }
+  }
+
+  .barra-dir__risco {
+    flex-shrink: 0;
+    align-self: stretch;
+    width: 1px;
+    margin: 0.5rem 0;
+    background: var(--border-soft);
+  }
+
+  .barra-dir__seta {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: var(--foreground-muted);
+    transition: transform var(--d-fast) var(--ease-out);
+  }
+
+  .barra-dir__accao[aria-expanded="true"] .barra-dir__seta {
+    transform: rotate(180deg);
+    color: var(--foreground-strong);
+  }
+
+  /* Quantos filtros estão acesos. Branco, como tudo o que assinala escolha
+     neste site — o dourado fica para o que é raro. */
+  .barra-dir__conta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.125rem;
+    height: 1.125rem;
+    padding: 0 0.25rem;
+    border-radius: 999px;
+    background: var(--foreground-strong);
+    color: #000;
+    font-size: 0.625rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    animation: conta-entrar var(--d-fast) var(--ease-out) both;
+  }
+
+  html.light .barra-dir__conta {
+    background: #0a0a0a;
+    color: #fff;
+  }
+
+  @keyframes conta-entrar {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ── A gaveta ──────────────────────────────────────────────────────────
+   * Mesmo movimento da `.pilha` do painel de regiões do `/mapa`: a altura é
+   * medida do conteúdo e animada, com a curva e a duração de entrar num
+   * sítio. Abrir os filtros é entrar neles, e há caminho de volta.
+   *
+   * Fechada leva `inert` do lado do JSX: uma fila de pastilhas invisível a
+   * receber tabulações é pior do que não existir.
+   * -------------------------------------------------------------------- */
+  .gaveta {
+    overflow: hidden;
+    height: var(--altura-gaveta, 0px);
+    /* O conteúdo respira seis pixéis para dentro de todos os lados, para o
+       anel de foco de uma pastilha não ficar cortado pelo `overflow`. */
+    margin-inline: -0.375rem;
+    transition: height var(--d-drill) var(--ease-in-out-cubic);
+  }
+
+  .gaveta__conteudo {
+    display: grid;
+    gap: 0.875rem;
+    padding: 0.875rem 0.375rem 0.375rem;
+  }
+
+  /* As pastilhas compõem-se ao abrir, 30ms a 30ms, com tecto em dez: passados
+     dez, o atraso deixa de se ler como ordem. Corre uma vez por abertura e
+     pára — o gatilho é o `data-aberta` a aparecer. */
+  @keyframes chip-entrar {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .gaveta[data-aberta] .chip-cascata {
+    animation: chip-entrar var(--d-fast) var(--ease-out) both;
+    animation-delay: calc(min(var(--i, 0), 10) * 30ms);
+  }
+
+  /* A contagem dentro da pastilha. */
+  .chip__conta {
+    display: inline-flex;
+    align-items: center;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.6;
+  }
+
+  /* Um número que muda por causa de um filtro não é uma entrada de página: a
+     fita anda em `--d-menu` e sem escalonar as casas. Com os 1000ms da
+     entrada, mexer num filtro deixava as contagens ainda a rodar quando a
+     grelha já estava composta. Não altera a `.numero-assenta` — só lhe muda
+     o andamento onde esta classe estiver por cima. */
+  .js [data-revelar].dentro .numero-assenta-rapido .numero-assenta__fita {
+    transition-duration: var(--d-menu);
+    transition-delay: 0ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gaveta,
+  .gaveta[data-aberta] .chip-cascata,
+  .barra-dir__conta,
+  .barra-dir::after,
+  .barra-dir__seccao::after,
+  .barra-dir__lupa,
+  .barra-dir__seta {
+    animation: none !important;
+    transition: none !important;
+  }
+}

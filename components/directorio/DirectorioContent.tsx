@@ -1,13 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, Suspense } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  Suspense,
+} from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Map, MapPin, Search, X } from "lucide-react";
+import { ChevronDown, Map, MapPin, Search, X } from "lucide-react";
 import LocalizedLink from "@/components/LocalizedLink";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import Pagination from "@/components/ui/Pagination";
-import Revelar, { atrasoEmGrelha } from "@/components/Revelar";
+import Revelar from "@/components/Revelar";
 import Seleccao from "@/components/ui/Seleccao";
 import { useLanguage } from "@/context/LanguageContext";
 import { capaDoCartao, iniciaisDe } from "@/lib/directorio-capas";
@@ -71,6 +80,24 @@ type Dicionario = ReturnType<typeof useLanguage>["t"];
 /** `{n}` é o único marcador usado nestas frases. */
 function comN(modelo: string, n: number): string {
   return modelo.replace("{n}", String(n));
+}
+
+/**
+ * A mesma frase, mas com o número a assentar em vez de saltar.
+ *
+ * Parte-se o modelo no `{n}` e põe-se lá dentro a fita de algarismos que o
+ * painel do topo já usa — é o mesmo mecanismo, não um segundo. A frase
+ * continua a vir do dicionário inteira; o que muda é quem escreve o número.
+ */
+function FraseComNumero({ modelo, n }: { modelo: string; n: number }) {
+  const [antes, depois = ""] = modelo.split("{n}");
+  return (
+    <>
+      {antes}
+      <NumeroQueAssenta valor={String(n)} className="numero-assenta-rapido font-mono" />
+      {depois}
+    </>
+  );
 }
 
 // ─── O que fica no HTML estático ─────────────────────────────────────────────
@@ -224,6 +251,46 @@ function DirectorioInterior({
   const temFiltros = temFiltrosActivos(filtros);
   const limpar = useCallback(() => router.push(pathname, { scroll: false }), [router, pathname]);
 
+  // ── A gaveta de filtros ──────────────────────────────────────────────────
+  //
+  // As pastilhas deixaram de estar todas acesas no ecrã de partida. Quem as
+  // abre é este botão, que traz o número dos que estão a estreitar a lista;
+  // quais são, diz a barra de resultados logo abaixo, com um × em cada.
+  const idGaveta = useId();
+  const idBusca = useId();
+  const [gavetaAberta, setGavetaAberta] = useState(false);
+  const botaoGaveta = useRef<HTMLButtonElement>(null);
+  const conteudoGaveta = useRef<HTMLDivElement>(null);
+  const [alturaGaveta, setAlturaGaveta] = useState(0);
+
+  // A altura mede-se antes da pintura e volta a medir-se sozinha: o conteúdo
+  // do nível muda de altura quando as facetas mudam de número ou quando a
+  // janela estreita e as pastilhas passam a ocupar mais uma linha. Sem isto,
+  // abrir a gaveta depois de filtrar deixava-a com a altura de outra lista.
+  useLayoutEffect(() => {
+    const alvo = conteudoGaveta.current;
+    if (!alvo) return;
+    const medir = () => setAlturaGaveta(alvo.offsetHeight);
+    medir();
+    const observador = new ResizeObserver(medir);
+    observador.observe(alvo);
+    return () => observador.disconnect();
+  }, []);
+
+  const fecharGaveta = useCallback(() => {
+    setGavetaAberta(false);
+    botaoGaveta.current?.focus();
+  }, []);
+
+  // Só as duas facetas contam para o número no botão: a pesquisa está escrita
+  // na caixa ao lado e não se esconde atrás de nada.
+  const nFacetas = (filtros.regiao ? 1 : 0) + (filtros.actividade ? 1 : 0);
+
+  /* A assinatura do que está a ser mostrado. É ela a `key` da grelha, e é a
+     `key` que faz a animação de troca de vista voltar a correr: sem ela o
+     React reaproveita o nó e a animação, que já correu, não repete. */
+  const assinatura = `${filtros.search}|${filtros.regiao}|${filtros.actividade}|${filtros.ordenar}|${filtros.pagina}`;
+
   const [mapaAberto, setMapaAberto] = useState(false);
   const noMapa = useMemo(
     () =>
@@ -265,6 +332,22 @@ function DirectorioInterior({
   };
   const nomeDaActividade = (v: string) =>
     ACTIVIDADES.includes(v as Actividade) ? rotuloActividade[v as Actividade] : v;
+
+  // Os filtros acesos, para se poderem desfazer um a um. Substituem o «2
+  // filtros activos» que estava na barra de resultados: um número diz quantos
+  // são, estes dizem **quais** são — e desfazem-se onde se leem.
+  const acesos: { chave: string; nome: string; apagar: Partial<FiltrosDirectorio> }[] = [
+    ...(filtros.regiao ? [{ chave: "regiao", nome: filtros.regiao, apagar: { regiao: "" } }] : []),
+    ...(filtros.actividade
+      ? [
+          {
+            chave: "actividade",
+            nome: nomeDaActividade(filtros.actividade),
+            apagar: { actividade: "" },
+          },
+        ]
+      : []),
+  ];
 
   // O painel do topo só mostra o que se conta. O terceiro número era «1000+»,
   // escrito à mão; agora é o ano de fundação mais antigo, e desaparece quando
@@ -328,95 +411,162 @@ function DirectorioInterior({
       </section>
 
       <div className="mx-auto max-w-7xl px-4 pb-20 sm:px-6">
-        {/* ── Filtros ── */}
+        {/* ── A barra ──
+            Uma linha só: pesquisar, abrir os filtros, ordenar. Em computador
+            os três vivem dentro da mesma concha, separados por hairlines; em
+            telemóvel a concha parte-se em duas, porque não cabem lado a lado
+            sem esmagar a caixa de texto, que é o controlo principal. */}
         <Revelar atraso={150}>
-          <div
-            className="mb-8 space-y-4"
-            role="search"
-            aria-label={t.directorio.search_placeholder}
-          >
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <div className="relative min-w-0 flex-1">
-                <Search
-                  className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-[var(--foreground-muted)]"
-                  size={16}
-                  aria-hidden="true"
-                />
+          <div className="mb-6" role="search" aria-label={t.directorio.search_label}>
+            <div className="barra-dir">
+              <div className="barra-dir__seccao barra-dir__seccao--busca">
+                <Search className="barra-dir__lupa" size={15} aria-hidden="true" />
+                {/* Um rótulo a sério e não só um `aria-label`: assim carregar
+                    nele põe o cursor no campo, que é o que um rótulo faz. */}
+                <label htmlFor={idBusca} className="sr-only">
+                  {t.directorio.search_label}
+                </label>
                 <input
+                  id={idBusca}
                   type="search"
                   placeholder={t.directorio.search_placeholder}
                   value={rascunho}
                   onChange={(e) => setRascunho(e.target.value)}
-                  aria-label={t.directorio.search_placeholder}
-                  className="campo h-12 pr-10 pl-10 text-sm"
+                  className="barra-dir__busca"
                 />
                 {rascunho && (
                   <button
                     type="button"
                     onClick={() => setRascunho("")}
                     aria-label={t.directorio.search_clear}
-                    className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-1 text-[var(--foreground-muted)] transition-colors hover:text-[var(--foreground-strong)]"
+                    className="barra-dir__limpar"
                   >
                     <X size={14} aria-hidden="true" />
                   </button>
                 )}
               </div>
 
-              {/* O `<Seleccao>` põe a `className` no botão, não na sua raiz: a
-                  medida tem de vir de fora, senão um `w-full` no botão estica a
-                  raiz e esmaga a caixa de pesquisa ao lado. */}
-              <div className="w-full shrink-0 sm:w-56">
-                <Seleccao
-                  value={filtros.ordenar}
-                  onChange={(e) => navegar({ ordenar: e.target.value as Ordenacao })}
-                  aria-label={t.directorio.sort_label}
-                  className="campo h-12 w-full text-sm"
+              <div className="barra-dir__seccao barra-dir__seccao--accoes">
+                <button
+                  ref={botaoGaveta}
+                  type="button"
+                  onClick={() => setGavetaAberta((v) => !v)}
+                  aria-expanded={gavetaAberta}
+                  aria-controls={idGaveta}
+                  className="barra-dir__accao"
                 >
-                  {ORDENACOES.map((o) => (
-                    <option key={o} value={o}>
-                      {rotuloOrdenacao[o]}
-                    </option>
-                  ))}
-                </Seleccao>
+                  {t.directorio.filters_label}
+                  {nFacetas > 0 && (
+                    <span key={nFacetas} className="barra-dir__conta">
+                      {nFacetas}
+                    </span>
+                  )}
+                  <ChevronDown className="barra-dir__seta" aria-hidden="true" />
+                </button>
+
+                <span className="barra-dir__risco" aria-hidden="true" />
+
+                {/* O `<Seleccao>` põe a `className` no botão, não na sua raiz: a
+                    medida tem de vir de fora, senão um `w-full` no botão estica a
+                    raiz e esmaga a caixa de pesquisa ao lado. */}
+                <div className="barra-dir__ordenar">
+                  <Seleccao
+                    value={filtros.ordenar}
+                    onChange={(e) => navegar({ ordenar: e.target.value as Ordenacao })}
+                    aria-label={t.directorio.sort_label}
+                    className="barra-dir__accao w-full"
+                  >
+                    {ORDENACOES.map((o) => (
+                      <option key={o} value={o}>
+                        {rotuloOrdenacao[o]}
+                      </option>
+                    ))}
+                  </Seleccao>
+                </div>
               </div>
             </div>
 
-            <FaixaDeChips
-              rotulo={t.directorio.filter_region}
-              valor={filtros.regiao}
-              facetas={regioes}
-              aoEscolher={(v) => navegar({ regiao: v })}
-            />
+            {/* ── A gaveta ── */}
+            <div
+              id={idGaveta}
+              className="gaveta"
+              data-aberta={gavetaAberta || undefined}
+              style={
+                { "--altura-gaveta": `${gavetaAberta ? alturaGaveta : 0}px` } as React.CSSProperties
+              }
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  e.stopPropagation();
+                  fecharGaveta();
+                }
+              }}
+            >
+              <div ref={conteudoGaveta} className="gaveta__conteudo" inert={!gavetaAberta}>
+                <FaixaDeChips
+                  rotulo={t.directorio.filter_region}
+                  valor={filtros.regiao}
+                  facetas={regioes}
+                  aoEscolher={(v) => navegar({ regiao: v })}
+                />
 
-            <FaixaDeChips
-              rotulo={t.directorio.filter_activity}
-              valor={filtros.actividade}
-              facetas={actividades}
-              nomeDe={nomeDaActividade}
-              aoEscolher={(v) => navegar({ actividade: v })}
-            />
+                <FaixaDeChips
+                  rotulo={t.directorio.filter_activity}
+                  valor={filtros.actividade}
+                  facetas={actividades}
+                  nomeDe={nomeDaActividade}
+                  aoEscolher={(v) => navegar({ actividade: v })}
+                  deslocamento={regioes.length}
+                />
+              </div>
+            </div>
           </div>
         </Revelar>
 
         {/* ── Barra de resultados ── */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border-soft)] pt-4">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <h2 className="titulo-seccao">
+              {pagina.total === 1 ? (
+                t.directorio.results_count_one
+              ) : (
+                <FraseComNumero modelo={t.directorio.results_count_many} n={pagina.total} />
+              )}
+            </h2>
+
+            {/* Quem lê com um leitor de ecrã não vê a contagem mudar. O
+                `role="status"` diz-lha depois de o filtro assentar — e não a
+                cada tecla, porque o que vai para o URL já passa por um
+                temporizador de 300ms. */}
+            <p className="sr-only" role="status">
               {pagina.total === 1
                 ? t.directorio.results_count_one
                 : comN(t.directorio.results_count_many, pagina.total)}
-            </h2>
+              {nActivos > 0 &&
+                (nActivos === 1
+                  ? t.directorio.filters_active_one
+                  : comN(t.directorio.filters_active_many, nActivos))}
+            </p>
+
+            {/* Os filtros acesos, um a um e com o × onde se leem. Estava aqui
+                um «2 filtros activos»: dizia quantos eram e não dizia quais,
+                e para desfazer um só era preciso voltar às pastilhas. */}
+            {acesos.map((a) => (
+              <button
+                key={a.chave}
+                type="button"
+                onClick={() => navegar(a.apagar)}
+                aria-label={`${t.directorio.filters_remove}: ${a.nome}`}
+                className="chip chip-activo"
+              >
+                {a.nome}
+                <X size={12} aria-hidden="true" />
+              </button>
+            ))}
+
             {temFiltros && (
-              <>
-                <span className="meta">
-                  {nActivos === 1
-                    ? t.directorio.filters_active_one
-                    : comN(t.directorio.filters_active_many, nActivos)}
-                </span>
-                <button type="button" onClick={limpar} className="btn btn-subtil btn-sm">
-                  {t.directorio.clear_filters}
-                </button>
-              </>
+              <button type="button" onClick={limpar} className="btn btn-subtil btn-sm">
+                {t.directorio.clear_filters}
+              </button>
             )}
           </div>
 
@@ -456,11 +606,26 @@ function DirectorioInterior({
         {/* ── Grelha ── */}
         {pagina.itens.length > 0 ? (
           <section aria-label={t.directorio.results_aria}>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {/* A grelha recompõe-se com o mesmo movimento que o `/mapa` usa
+                para trocar de vista: filtrar é a mesma lista vista de outra
+                maneira, e o site já tem um idioma para isso. Substituiu o
+                `<Revelar>` por cartão, que dispara ao **entrar no ecrã** — o
+                gatilho errado para conteúdo que já lá está e que quem mexeu
+                no filtro está à espera de ver mudar. Uma ideia de entrada de
+                cada vez. A `key` é a assinatura do que se mostra: sem ela o
+                React reaproveita o nó e a animação não repete. */}
+            <div
+              key={assinatura}
+              className="vista-troca grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+            >
               {pagina.itens.map((c, i) => (
-                <Revelar key={c.id} atraso={atrasoEmGrelha(i)} className="h-full">
+                <div
+                  key={c.id}
+                  className="cartao-cascata h-full"
+                  style={{ "--i": i } as React.CSSProperties}
+                >
                   <Cartao coudelaria={c} capa={capaDoCartao(c.foto_capa, c.slug, capas)} t={t} />
-                </Revelar>
+                </div>
               ))}
             </div>
             <Pagination
@@ -514,19 +679,26 @@ function DirectorioInterior({
   );
 }
 
-// ─── Faixa de pastilhas ──────────────────────────────────────────────────────
+// ─── Faixa de pastilhas ─────────────────────────────────────────
 
 /**
- * Uma linha de filtros. As pastilhas trazem a contagem que as sustenta, o que
- * de caminho diz quanto vale carregar nelas — e o escolhido é branco
- * (`.chip-activo`), não dourado.
+ * Uma linha de filtros, dentro da gaveta. As pastilhas trazem a contagem que
+ * as sustenta, o que de caminho diz quanto vale carregar nelas — e o
+ * escolhido é branco (`.chip-activo`), não dourado.
+ *
+ * **O rótulo está aqui e não no ecrã de partida.** Vivia numa coluna de 6rem
+ * ao lado das pastilhas, e em telemóvel numa linha inteira só para ele. Fora
+ * da gaveta não ganhava o espaço que custava: ninguém confunde «Alentejo»
+ * com «Dressage». Cá dentro ganha — é aqui que se escolhe, e é a divisão
+ * entre os dois eixos que diz que são dois filtros e não catorze hipóteses
+ * da mesma coisa.
  *
  * **Não há pastilha «Todas».** Era a única acesa por omissão, o que fazia o
  * estado de partida parecer uma escolha; e era a terceira maneira de fazer a
  * mesma coisa, ao lado de voltar a carregar na pastilha acesa e do «limpar
  * filtros» na barra de resultados. Em vez dela, a pastilha activa troca a
- * contagem por um × — a contagem dela já está escrita na barra logo abaixo,
- * e o × diz o que carregar ali faz.
+ * contagem por um × — a contagem dela já está escrita na barra de
+ * resultados, e o × diz o que carregar ali faz.
  *
  * Uma faceta só não é um filtro: com menos de duas escolhas a linha não se
  * desenha, em vez de oferecer um botão que devolve o que já está no ecrã.
@@ -542,12 +714,15 @@ function FaixaDeChips({
   facetas,
   nomeDe,
   aoEscolher,
+  deslocamento = 0,
 }: {
   rotulo: string;
   valor: string;
   facetas: { valor: string; n: number }[];
   nomeDe?: (v: string) => string;
   aoEscolher: (v: string) => void;
+  /** Onde começa a cascata desta faixa, para as duas correrem seguidas. */
+  deslocamento?: number;
 }) {
   const lista =
     valor && !facetas.some((f) => f.valor === valor) ? [{ valor, n: 0 }, ...facetas] : facetas;
@@ -555,13 +730,10 @@ function FaixaDeChips({
   if (lista.length < 2 && !valor) return null;
 
   return (
-    // O rótulo em coluna própria a partir de `sm` alinha as pastilhas das duas
-    // linhas na mesma margem; em telemóvel fica por cima, porque uma coluna de
-    // rótulo tirava um terço da largura às pastilhas.
-    <div className="grid gap-1.5 sm:grid-cols-[6rem_1fr] sm:items-start sm:gap-x-4 sm:gap-y-2">
-      <span className="rotulo sm:pt-1.5">{rotulo}</span>
+    <div>
+      <span className="rotulo mb-2 block">{rotulo}</span>
       <div className="flex flex-wrap gap-2" role="group" aria-label={rotulo}>
-        {lista.map((f) => {
+        {lista.map((f, i) => {
           const activo = valor === f.valor;
           return (
             <button
@@ -569,14 +741,20 @@ function FaixaDeChips({
               type="button"
               onClick={() => aoEscolher(activo ? "" : f.valor)}
               aria-pressed={activo}
-              className={`chip ${activo ? "chip-activo" : ""}`}
+              style={{ "--i": i + deslocamento } as React.CSSProperties}
+              className={`chip chip-cascata ${activo ? "chip-activo" : ""}`}
             >
               {nomeDe ? nomeDe(f.valor) : f.valor}
-              {activo ? (
-                <X size={12} aria-hidden="true" />
-              ) : (
-                <span className="font-mono tabular-nums opacity-60">{f.n}</span>
-              )}
+              <span className="chip__conta font-mono">
+                {activo ? (
+                  <X size={12} aria-hidden="true" />
+                ) : (
+                  /* A mesma fita de algarismos do painel do topo, só que mais
+                     depressa: uma contagem que muda por causa de um filtro
+                     não é a entrada de uma página. */
+                  <NumeroQueAssenta valor={String(f.n)} className="numero-assenta-rapido" />
+                )}
+              </span>
             </button>
           );
         })}
