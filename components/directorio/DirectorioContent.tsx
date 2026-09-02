@@ -690,7 +690,7 @@ function DirectorioInterior({
   );
 }
 
-// ─── Faixa de pastilhas ─────────────────────────────────────────
+// ─── Faixa de pastilhas ──────────────────────────────────────────────────────
 
 /**
  * Uma linha de filtros, dentro da gaveta. As pastilhas trazem a contagem que
