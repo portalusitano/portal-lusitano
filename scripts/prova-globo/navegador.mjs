@@ -46,8 +46,50 @@ function INSTRUMENTOS() {
     quadros: [],
     /** Quantos quadros se guardam. Uma corrida longa não pode comer memória. */
     tecto: 20000,
+    /* ── Leituras que obrigam o browser a refazer o layout ────────────────
+       Com o WebGL por software os milissegundos não dizem nada, mas o
+       trabalho diz. Uma leitura de geometria enquanto o DOM está sujo — e
+       durante um arrasto está sempre, porque as etiquetas acabaram de ser
+       reescritas — força um layout síncrono antes de o browser poder
+       responder ao gesto. É a mesma armadilha que o `ObservadorRevelar`
+       tinha e que está escrita no CLAUDE.md; aqui passa a ser contada. */
+    caixas: 0,
+    deslocamentos: 0,
+    estilosLidos: 0,
   };
   window.__prova = p;
+
+  const contarCaixa = (ctor, nome) => {
+    const proto = window[ctor]?.prototype;
+    const original = proto && proto[nome];
+    if (typeof original !== "function") return;
+    proto[nome] = function (...args) {
+      p.caixas++;
+      return original.apply(this, args);
+    };
+  };
+  contarCaixa("Element", "getBoundingClientRect");
+  contarCaixa("Element", "getClientRects");
+
+  /* `offsetWidth` e companhia são a outra porta para a mesma coisa, e é por
+     ela que o motor de etiquetas mede os nomes. */
+  for (const nome of ["offsetWidth", "offsetHeight", "offsetTop", "offsetLeft"]) {
+    const d = Object.getOwnPropertyDescriptor(HTMLElement.prototype, nome);
+    if (!d || !d.get) continue;
+    Object.defineProperty(HTMLElement.prototype, nome, {
+      ...d,
+      get() {
+        p.deslocamentos++;
+        return d.get.call(this);
+      },
+    });
+  }
+
+  const estilo = window.getComputedStyle.bind(window);
+  window.getComputedStyle = function (...args) {
+    p.estilosLidos++;
+    return estilo(...args);
+  };
 
   const metodos = [
     "drawArrays",
@@ -222,6 +264,9 @@ export async function zerar(pagina) {
   await pagina.evaluate(() => {
     window.__prova.desenhos = 0;
     window.__prova.quadros = [];
+    window.__prova.caixas = 0;
+    window.__prova.deslocamentos = 0;
+    window.__prova.estilosLidos = 0;
   });
 }
 
@@ -230,5 +275,74 @@ export async function contadores(pagina) {
   return pagina.evaluate(() => ({
     desenhos: window.__prova.desenhos,
     quadros: window.__prova.quadros.slice(),
+    caixas: window.__prova.caixas,
+    deslocamentos: window.__prova.deslocamentos,
+    estilosLidos: window.__prova.estilosLidos,
   }));
+}
+
+/* ── O que o browser faz, contado pelo próprio browser ─────────────────────
+   As contagens acima são do lado do JavaScript: quantas vezes o globo pede
+   uma medida. Estas são do lado do motor: quantos layouts e quantos
+   recálculos de estilo é que ele acabou por fazer. As duas juntas separam
+   «pedi menos» de «custou menos» — um pedido que caia numa cache não muda a
+   primeira e muda a segunda.
+
+   Em swiftshader os tempos não valem, mas `LayoutCount` e `RecalcStyleCount`
+   são contagens de trabalho e valem por si. `JSHeapUsedSize` serve para
+   alocações: entre dois instantes de um gesto igual, quanto lixo é que se
+   fez. */
+export async function abrirMetricas(pagina) {
+  const cdp = await pagina.context().newCDPSession(pagina);
+  await cdp.send("Performance.enable");
+  const ler = async () => {
+    const { metrics } = await cdp.send("Performance.getMetrics");
+    const m = Object.fromEntries(metrics.map((x) => [x.name, x.value]));
+    return {
+      layouts: m.LayoutCount ?? 0,
+      estilos: m.RecalcStyleCount ?? 0,
+      montanha: m.JSHeapUsedSize ?? 0,
+    };
+  };
+  return { ler, fechar: () => cdp.detach().catch(() => {}) };
+}
+
+/* ── Quanto lixo é que um gesto faz ────────────────────────────────────────
+   A diferença de `JSHeapUsedSize` entre dois instantes não mede alocação:
+   mede alocação menos o que o colector levou pelo meio, e por isso sai
+   negativa metade das vezes — o que se viu na primeira corrida deste
+   instrumento, com −10MB num arrasto que só pode ter alocado.
+
+   O perfilador amostrado conta as alocações à medida que acontecem, e o
+   colector não lhe mexe. É essa a medida que serve para julgar se um laço
+   de render deixou de fazer objectos por quadro. */
+export async function abrirAlocacoes(pagina) {
+  const cdp = await pagina.context().newCDPSession(pagina);
+  await cdp.send("HeapProfiler.enable");
+  return {
+    async medir(gesto) {
+      await cdp.send("HeapProfiler.startSampling", { samplingInterval: 2048 });
+      const r = await gesto();
+      const { profile } = await cdp.send("HeapProfiler.stopSampling");
+      let bytes = 0;
+      const somar = (n) => {
+        bytes += n.selfSize || 0;
+        for (const f of n.children ?? []) somar(f);
+      };
+      somar(profile.head);
+      return { resultado: r, kb: Math.round(bytes / 1024) };
+    },
+    fechar: () => cdp.detach().catch(() => {}),
+  };
+}
+
+/** Diferença entre dois instantes das métricas do motor. */
+export function entreMetricas(antes, depois) {
+  return {
+    layouts: depois.layouts - antes.layouts,
+    estilos: depois.estilos - antes.estilos,
+    /* Em bytes, e pode vir negativo se o colector passou pelo meio — nesse
+       caso o número não diz nada e é honesto dizê-lo em vez de o mostrar. */
+    montanhaKb: Math.round((depois.montanha - antes.montanha) / 1024),
+  };
 }

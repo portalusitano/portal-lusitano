@@ -14,7 +14,15 @@
  * errado, chamadas de desenho em repouso — são absolutas e valem por si.
  */
 
-import { contadores, esperarRepouso, prepararGlobo, zerar } from "./navegador.mjs";
+import {
+  abrirAlocacoes,
+  abrirMetricas,
+  contadores,
+  entreMetricas,
+  esperarRepouso,
+  prepararGlobo,
+  zerar,
+} from "./navegador.mjs";
 import { DESCREVER_FOCO, LER_ETIQUETAS, LER_VISTA, VARRER } from "./sondas.mjs";
 import {
   aglomeracao,
@@ -323,15 +331,60 @@ export async function medirPercursos(ctx) {
     const erros = marcarErros(registo);
     const antes = await pagina.evaluate(LER_VISTA);
     let falha = null;
+    const arranque = Date.now();
     try {
       await accao();
     } catch (e) {
       falha = String(e?.message ?? e).slice(0, 200);
     }
-    await pagina.waitForTimeout(400);
-    const r = await consequencia(pagina, antes);
-    saida.push({ nome, esperado, ...r, falha, erros: erros() });
+    /* ── Espera-se pela consequência, não por um número de milissegundos ──
+       Eram 400ms fixos, e a navegação num servidor de desenvolvimento leva
+       entre 400 e 1500 — a primeira visita a uma rota compila-a. Resultado:
+       o mesmo gesto dizia «navegou» ou «NADA» conforme a máquina estivesse
+       mais ou menos carregada, e o instrumento marcava de GRAVE uma coisa
+       que funcionava. Medido à mão no browser: clique num nome, /mapa aos
+       400ms e /directorio/alter-real aos 1500.
+
+       Agora pergunta-se de 150 em 150ms até haver resposta, com tecto de
+       seis segundos. O que se relata a mais é **quanto tempo levou**, que é
+       informação que antes não existia: um gesto que responde em 1,4s
+       responde, mas não responde bem. */
+    let r = await consequencia(pagina, antes);
+    const mexeu = (x) =>
+      x.navegou ||
+      x.abriuJanela ||
+      x.fechouJanela ||
+      x.abriuPilha ||
+      x.abriuMancha ||
+      x.fechouLista;
+    for (let i = 0; i < 40 && !mexeu(r); i++) {
+      await pagina.waitForTimeout(150);
+      r = await consequencia(pagina, antes);
+    }
+    saida.push({ nome, esperado, ...r, ms: Date.now() - arranque, falha, erros: erros() });
   };
+
+  /* ── Aquecer o destino antes de medir ───────────────────────────────────
+     Todos os casos daqui para baixo esperam quatrocentos milissegundos e
+     depois perguntam onde é que a página ficou. Num servidor de
+     desenvolvimento, a **primeira** visita a uma rota compila-a — segundos,
+     não milissegundos —, e por isso o primeiro caso dizia sempre «NADA» e
+     era marcado como grave, enquanto o mesmo gesto repetido mais abaixo
+     navegava sem problema. Não era um defeito do globo: era o primeiro
+     pedido a pagar a compilação por todos os outros.
+
+     Pede-se o destino uma vez antes de começar, pelo `href` que o próprio
+     nome traz. O instrumento não precisa de saber que rotas existem. */
+  await reiniciar(ctx);
+  const aquecer = await pagina.evaluate(() => {
+    const a = document.querySelector(".globo-etiqueta a.globo-etiqueta__cabeca");
+    return a ? a.getAttribute("href") : null;
+  });
+  if (aquecer) {
+    await pagina
+      .evaluate((h) => fetch(h, { credentials: "same-origin" }).then(() => null), aquecer)
+      .catch(() => {});
+  }
 
   // 1 e 2. Um nome solto, com o rato e com o teclado.
   await reiniciar(ctx);
@@ -448,6 +501,7 @@ export async function medirFluidez(ctx) {
   // nada. É preciso que o ponto de partida seja sempre o mesmo.
   await reiniciar(ctx);
   const erros = marcarErros(registo);
+  const metricas = await abrirMetricas(pagina);
   const caixa = await caixaDoGlobo(pagina);
   const cx = caixa.x + caixa.l / 2;
   const cy = caixa.y + caixa.a / 2;
@@ -458,27 +512,62 @@ export async function medirFluidez(ctx) {
   await pagina.waitForTimeout(3000);
   const emRepouso = await contadores(pagina);
 
-  // Arrasto.
+  /* ── Arrasto ───────────────────────────────────────────────────────────
+     É o gesto caro: reescreve as etiquetas todas a cada quadro e, entre
+     quadros, recebe quarenta `pointermove`. O que se mede não são os
+     milissegundos — em swiftshader não valem nada — mas o trabalho: quantas
+     leituras de geometria o globo pede, e quantos layouts e recálculos de
+     estilo o motor acaba por fazer. */
   await zerar(pagina);
-  await pagina.mouse.move(cx, cy);
-  await pagina.mouse.down();
+  const alocacoes = await abrirAlocacoes(pagina);
+  const antesArrasto = await metricas.ler();
   const arranque = Date.now();
-  for (let i = 0; i < 40; i++) {
-    await pagina.mouse.move(cx + (i + 1) * 3, cy + Math.sin(i / 4) * 12);
-  }
-  await pagina.mouse.up();
+  const { kb: lixoArrasto } = await alocacoes.medir(async () => {
+    await pagina.mouse.move(cx, cy);
+    await pagina.mouse.down();
+    for (let i = 0; i < 40; i++) {
+      await pagina.mouse.move(cx + (i + 1) * 3, cy + Math.sin(i / 4) * 12);
+    }
+    await pagina.mouse.up();
+  });
   const msArrasto = Date.now() - arranque;
   const arrasto = await contadores(pagina);
+  const motorArrasto = entreMetricas(antesArrasto, await metricas.ler());
+  motorArrasto.lixoKb = lixoArrasto;
+  await esperarRepouso(pagina, { estaveis: 4 });
+
+  /* ── Passeio: o rato a atravessar o globo sem carregar ─────────────────
+     É o gesto mais comum de todos e o arrasto não o mede: com o botão em
+     baixo o motor não pergunta onde está a lona, e com o botão em cima
+     pergunta a cada movimento. É aqui que uma leitura de geometria por
+     `pointermove` aparece — e é a pior de todas, porque chega enquanto o
+     DOM está sujo das etiquetas que acabaram de ser reescritas e obriga o
+     browser a refazer o layout antes de poder responder ao rato. */
+  await zerar(pagina);
+  const antesPasseio = await metricas.ler();
+  const arranqueP = Date.now();
+  for (let i = 0; i < 40; i++) {
+    await pagina.mouse.move(
+      caixa.x + caixa.l * (0.15 + (0.7 * i) / 39),
+      caixa.y + caixa.a * (0.35 + 0.25 * Math.sin(i / 3))
+    );
+  }
+  const msPasseio = Date.now() - arranqueP;
+  const passeio = await contadores(pagina);
+  const motorPasseio = entreMetricas(antesPasseio, await metricas.ler());
+  await pagina.mouse.move(2, 2);
   await esperarRepouso(pagina, { estaveis: 4 });
 
   // Aproximação com a roda.
   await zerar(pagina);
+  const antesZoom = await metricas.ler();
   await pagina.mouse.move(cx, cy);
   const arranqueZ = Date.now();
   for (let i = 0; i < 20; i++) await pagina.mouse.wheel(0, -120);
   const msZoom = Date.now() - arranqueZ;
   await pagina.waitForTimeout(600);
   const zoom = await contadores(pagina);
+  const motorZoom = entreMetricas(antesZoom, await metricas.ler());
   await esperarRepouso(pagina, { estaveis: 4 });
 
   /* Fora do ecrã: o motor promete não desenhar. Rola-se a página até o globo
@@ -510,14 +599,38 @@ export async function medirFluidez(ctx) {
   await outra.close();
   await esperarRepouso(pagina, { estaveis: 4 });
 
-  const resumo = (c, ms) => ({
-    desenhos: c.desenhos,
-    quadros: c.quadros.length,
-    ms,
-    intervalos: estatistica(intervalos(c.quadros)),
-    quadrosPorSegundo: ms ? Number(((c.quadros.length * 1000) / ms).toFixed(1)) : null,
-    desenhosPorQuadro: c.quadros.length ? Number((c.desenhos / c.quadros.length).toFixed(1)) : null,
-  });
+  const resumo = (c, ms, motor) => {
+    const q = c.quadros.length;
+    const por = (n) => (q ? Number((n / q).toFixed(1)) : null);
+    return {
+      desenhos: c.desenhos,
+      quadros: q,
+      ms,
+      intervalos: estatistica(intervalos(c.quadros)),
+      quadrosPorSegundo: ms ? Number(((q * 1000) / ms).toFixed(1)) : null,
+      desenhosPorQuadro: q ? Number((c.desenhos / q).toFixed(1)) : null,
+      caixas: c.caixas,
+      deslocamentos: c.deslocamentos,
+      estilosLidos: c.estilosLidos,
+      caixasPorQuadro: por(c.caixas),
+      deslocamentosPorQuadro: por(c.deslocamentos),
+      ...(motor
+        ? {
+            layouts: motor.layouts,
+            estilos: motor.estilos,
+            layoutsPorQuadro: por(motor.layouts),
+            estilosPorQuadro: por(motor.estilos),
+            montanhaKb: motor.montanhaKb,
+            lixoKb: motor.lixoKb ?? null,
+            lixoPorQuadroKb:
+              motor.lixoKb != null && q ? Number((motor.lixoKb / q).toFixed(1)) : null,
+          }
+        : {}),
+    };
+  };
+
+  await metricas.fechar();
+  await alocacoes.fechar();
 
   return {
     nota: "swiftshader: os milissegundos só se comparam entre corridas na mesma máquina",
@@ -532,8 +645,9 @@ export async function medirFluidez(ctx) {
       quadros: escondido.quadros.length,
       janelaMs: 2500,
     },
-    arrasto: resumo(arrasto, msArrasto),
-    zoom: resumo(zoom, msZoom),
+    arrasto: resumo(arrasto, msArrasto, motorArrasto),
+    passeio: resumo(passeio, msPasseio, motorPasseio),
+    zoom: resumo(zoom, msZoom, motorZoom),
     erros: erros(),
   };
 }
@@ -985,4 +1099,163 @@ async function correrRobustez(ctx, casos) {
 
   await limpar();
   return { casos };
+}
+
+/* ── 8. A transição de escolher uma coudelaria ───────────────────────────
+ *
+ * Entre carregar num nome e a página mudar há um vazio. Esta medida diz o
+ * que se passa nesse vazio, e diz três coisas sobre ele:
+ *
+ * 1. **Se existe.** O globo tem de reconhecer a escolha antes de a página
+ *    mudar; se nada mudar no ecrã, não há transição nenhuma para julgar.
+ * 2. **Se é um movimento, não três.** Conta-se, quadro a quadro, quantas
+ *    animações distintas correm ao mesmo tempo dentro do globo. Duas
+ *    animações com nomes diferentes a correr juntas são duas ideias de
+ *    movimento na mesma escolha.
+ * 3. **Se acaba, e se acaba limpa.** A navegação é abortada de propósito —
+ *    a rota da ficha é bloqueada na rede — porque é o caso que importa: se
+ *    a página não chegar, o globo não pode ficar apagado nem preso a meio.
+ *    É a mesma regra da cortina de entrada, que sai do ecrã mesmo que o
+ *    script falhe.
+ *
+ * Com `prefers-reduced-motion` não pode correr movimento nenhum, e é por
+ * isso que a medida regista o que o browser diz sobre essa preferência: o
+ * mesmo relatório serve as duas corridas.
+ */
+
+/** Gravador de quadros, instalado antes do clique e desligado sozinho. */
+function GRAVAR_ESCOLHA({ ms }) {
+  const amostras = [];
+  window.__escolha = amostras;
+  const t0 = performance.now();
+  const camada = document.querySelector(".globo-etiquetas");
+  const raiz = camada?.parentElement;
+  const passo = () => {
+    const t = performance.now() - t0;
+    const etiquetas = [...document.querySelectorAll(".globo-etiqueta")];
+    const escolhidas = etiquetas.filter((n) => n.hasAttribute("data-escolhida"));
+    const outras = etiquetas.filter(
+      (n) => !n.hasAttribute("data-escolhida") && !n.hasAttribute("data-oculta")
+    );
+    /* Só as animações que estão mesmo a correr. Uma que já terminou continua
+       na lista com `playState` a «finished», e contá-la dava movimento onde
+       já não há nenhum. */
+    const nomes = new Set();
+    if (raiz && raiz.getAnimations) {
+      for (const a of raiz.getAnimations({ subtree: true })) {
+        if (a.playState !== "running") continue;
+        nomes.add(a.animationName || a.transitionProperty || "?");
+      }
+    }
+    amostras.push({
+      t: Math.round(t),
+      marca: camada?.dataset?.escolha ?? "",
+      escolhidas: escolhidas.length,
+      outras: outras.length,
+      somaOutras: Number(outras.reduce((s, n) => s + Number(n.style.opacity || 0), 0).toFixed(2)),
+      animacoes: [...nomes],
+    });
+    if (t < ms) requestAnimationFrame(passo);
+  };
+  requestAnimationFrame(passo);
+  return true;
+}
+
+export async function medirEscolha(ctx) {
+  const { pagina, registo } = ctx;
+  const erros = marcarErros(registo);
+  await reiniciar(ctx);
+
+  const parado = await pagina.evaluate(
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+
+  /* Um nome solto, se houver. Em telemóvel raramente há: quase todos os
+     pontos legíveis juntam mais do que uma coudelaria, e a cabeça deles é um
+     botão que abre a lista em vez de navegar. Nesse caso abre-se a pilha e
+     escolhe-se um nome de dentro — é esse o caminho que ali existe, e a
+     transição tem de o servir também. Sem esta segunda hipótese a medida
+     dizia «nenhum nome legível» e o telemóvel ficava por medir. */
+  let alvo = await primeiroSolto(pagina);
+  if (!alvo) {
+    const cabeca = pagina.locator(".globo-etiqueta[data-grupo]:not([data-oculta]) button").first();
+    if (await cabeca.count()) {
+      await cabeca.click({ timeout: 4000 }).catch(() => {});
+      await pagina.waitForTimeout(300);
+      alvo = await pagina.evaluate(() => {
+        const m = document.querySelector(".globo-etiqueta[data-aberto] .globo-etiqueta__membro");
+        if (!m) return null;
+        const r = m.getBoundingClientRect();
+        return {
+          nome: m.title || m.textContent,
+          x: r.left + r.width / 2,
+          y: r.top + r.height / 2,
+        };
+      });
+    }
+  }
+  if (!alvo) return { falhou: "nenhum nome legível", parado, erros: erros() };
+
+  /* A navegação é segurada na rede: o que interessa é o que o globo faz
+     enquanto espera, e o que lhe fica quando a página nunca chega.
+     **Segurada e não abortada**: com o pedido abortado, o Next não fica à
+     espera — desiste do payload e faz uma navegação de browser a sério, que
+     recarrega o documento e leva o gravador à frente. Media-se zero
+     amostras e concluía-se que não havia transição, quando o que não havia
+     era medida. Um pedido que nunca responde deixa a página onde está. */
+  await pagina.route("**/directorio/**", () => new Promise(() => {}));
+
+  await pagina.evaluate(GRAVAR_ESCOLHA, { ms: 1400 });
+  const antes = await contadores(pagina);
+  await pagina.mouse.click(alvo.x, alvo.y);
+  await pagina.waitForTimeout(1600);
+  const depois = await contadores(pagina);
+  const amostras = await pagina.evaluate(() => window.__escolha ?? null);
+
+  await pagina.unroute("**/directorio/**");
+
+  const comMarca = amostras ? amostras.filter((a) => a.marca) : [];
+  /* Só o que corre **durante** a escolha. Contar as animações do quadro
+     inteiro apanhava as transições do hover — a cor da borda, a largura
+     máxima do nome — que já estavam a correr antes do clique e que não são
+     parte nenhuma deste movimento. Com a preferência de movimento reduzido
+     isso dava sete animações numa transição que nem chega a existir. */
+  const maxAnimacoes = comMarca.length
+    ? Math.max(0, ...comMarca.map((a) => a.animacoes.length))
+    : 0;
+  const nomes = new Set();
+  for (const a of comMarca) for (const n of a.animacoes) nomes.add(n);
+  const ultima = amostras?.[amostras.length - 1];
+
+  /* Até onde é que o resto chegou a recuar. Sem isto a medida só dizia que
+     houve uma marca no elemento — e uma marca não é um movimento. O que
+     interessa é se os outros nomes chegaram mesmo a sair do quadro, e
+     quantos ficaram no pior instante.
+     Nota do aparato: com WebGL por software o globo desenha três quadros
+     em seiscentos milissegundos, por isso o mínimo é amostrado grosso. É a
+     mesma limitação de sempre — as contagens valem, os instantes não. */
+  const durante = comMarca.length ? comMarca : [];
+  const somaMinima = durante.length ? Math.min(...durante.map((a) => a.somaOutras)) : null;
+  const outrasMinimas = durante.length ? Math.min(...durante.map((a) => a.outras)) : null;
+
+  return {
+    parado,
+    alvo: alvo.nome,
+    amostras: amostras?.length ?? 0,
+    houveTransicao: comMarca.length > 0,
+    duracaoMs: comMarca.length ? comMarca[comMarca.length - 1].t - comMarca[0].t : 0,
+    maxAnimacoesJuntas: maxAnimacoes,
+    animacoes: [...nomes],
+    /* O estado em que fica quando a página nunca chega. `limpou` é a
+       pergunta que importa: um globo apagado para sempre é pior do que não
+       haver transição nenhuma. */
+    limpou: ultima ? !ultima.marca : null,
+    outrasNoFim: ultima?.outras ?? null,
+    somaOutrasNoFim: ultima?.somaOutras ?? null,
+    /** No pior instante da transição: quanto do resto ainda estava aceso. */
+    somaOutrasMinima: somaMinima,
+    outrasMinimas,
+    desenhos: depois.desenhos - antes.desenhos,
+    erros: erros(),
+  };
 }
