@@ -6,6 +6,7 @@ import { escapeHtml } from "@/lib/sanitize";
 import Stripe from "stripe";
 import { registerPayment, linkPaymentToSubmission } from "./utils";
 import { computeExpiry, computeFeaturedUntil } from "@/lib/marketplace-listings";
+import { montarCamposDoFormulario, montarAscendentes } from "@/lib/anuncio-campos";
 
 export async function handleCavaloAnuncio(
   session: Stripe.Checkout.Session,
@@ -99,6 +100,14 @@ export async function handleCavaloAnuncio(
       foto_principal: fotoPrincipal,
       fotos: imageUrls,
       status: "pending", // Pending admin approval
+      // Os outros 80 campos que o vendedor respondeu. Até aqui viajavam do
+      // browser até `contact_submissions.form_data` e ficavam por lá: o
+      // formulário pedia 99 respostas e o anúncio guardava 19. A conversão —
+      // objectos e não strings nos `jsonb`, `false` distinto de «não
+      // respondeu», datas só em `YYYY-MM-DD` — está em `lib/anuncio-campos.ts`,
+      // fora daqui de propósito: este handler corre depois de o dinheiro
+      // entrar e não há como reproduzir uma falha sua sem cobrar a alguém.
+      ...montarCamposDoFormulario(formData),
     })
     .select()
     .single();
@@ -106,6 +115,34 @@ export async function handleCavaloAnuncio(
   if (error) {
     logger.error("Error inserting cavalo:", error);
     throw new Error(`Failed to insert cavalo: ${error.message}`);
+  }
+
+  // A ascendência, numa tabela à parte: são seis antepassados com nome e
+  // registo, e oito colunas resolviam duas gerações e mais nenhuma.
+  //
+  // Falhar aqui **não** deita o webhook abaixo, e a razão é a ordem das
+  // escritas: o anúncio já está inserido, mas o pagamento ainda não está
+  // registado, e é `payments.stripe_session_id` que a rota consulta para
+  // reconhecer uma entrega repetida. Um `throw` a partir deste ponto faria o
+  // Stripe repetir a entrega e o anúncio nascer duas vezes. Um pedigree por
+  // escrever é um defeito; um anúncio duplicado numa conta paga é pior.
+  const ascendentes = montarAscendentes(formData);
+  if (ascendentes.length > 0) {
+    const { error: erroAscendentes } = await supabase.from("cavalos_venda_ascendentes").insert(
+      ascendentes.map((a) => ({
+        cavalo_id: data.id,
+        caminho: a.caminho,
+        geracao: a.geracao,
+        nome: a.nome,
+        registo: a.registo,
+      }))
+    );
+    if (erroAscendentes) {
+      logger.error("Erro ao guardar a ascendência do cavalo:", {
+        cavaloId: data.id,
+        erro: erroAscendentes.message,
+      });
+    }
   }
 
   // Registar pagamento (com NOVOS campos)
