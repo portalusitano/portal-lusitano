@@ -154,11 +154,23 @@ export async function POST(req: NextRequest) {
     // `slug` é `NOT NULL UNIQUE` e esta rota nunca o escrevia: toda a inserção
     // falhava, ainda antes de chegar às colunas inventadas. Deriva-se do nome,
     // como já se faz no registo público.
+    //
+    // Um nome sem uma única letra latina dá slug vazio, e dois desses
+    // colidiriam na chave única. Recusa-se com uma frase, em vez de deixar a
+    // base responder 23505 e a rota traduzir isso para um 500 mudo.
+    const slug = criarSlug(nome);
+    if (!slug) {
+      return NextResponse.json(
+        { error: "O nome não tem letras que sirvam para um endereço" },
+        { status: 400 }
+      );
+    }
+
     const { data: coudelaria, error } = await supabase
       .from("coudelarias")
       .insert({
         nome,
-        slug: criarSlug(nome),
+        slug,
         descricao,
         historia,
         especialidades,
