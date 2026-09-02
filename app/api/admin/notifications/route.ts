@@ -80,8 +80,9 @@ export async function GET(req: NextRequest) {
 
     // 3. Reviews Pendentes
     const { data: pendingReviews } = await supabase
-      .from("reviews_cavalos")
-      .select("id, nome_avaliador, rating, created_at")
+      // `reviews_cavalos` não existe; a tabela é `reviews`.
+      .from("reviews")
+      .select("id, autor_nome, avaliacao, created_at")
       .eq("status", "pending")
       .gte("created_at", last7days)
       .order("created_at", { ascending: false })
@@ -93,7 +94,7 @@ export async function GET(req: NextRequest) {
           id: `review_${review.id}`,
           type: "review",
           title: "Review Pendente",
-          description: `${review.nome_avaliador} deixou uma review (${review.rating}/5)`,
+          description: `${review.autor_nome} deixou uma review (${review.avaliacao}/5)`,
           timestamp: review.created_at,
           link: `/admin-app?tab=reviews`,
           icon: "⭐",

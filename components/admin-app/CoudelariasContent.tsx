@@ -2,57 +2,93 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Pencil, Trash2, Check, X, Star, Eye } from "lucide-react";
+import { Home, Search, Pencil, Trash2, Check, X, Star, Eye } from "lucide-react";
 import Seleccao from "@/components/ui/Seleccao";
+import {
+  COUDELARIA_ACCAO_LABEL,
+  COUDELARIA_STATUS,
+  COUDELARIA_STATUS_LABEL,
+  COUDELARIA_STATUS_VALUES,
+  etiquetaDoEstado,
+  transicoesDe,
+} from "@/lib/coudelaria-status";
 
+/**
+ * Uma linha da tabela `coudelarias` como a base a tem.
+ *
+ * O que aqui estava não era o esquema: `cidade`, `plano`, `plano_ativo` e
+ * `plano_fim` não existem em coluna nenhuma. A rota devolve `select("*")`, por
+ * isso o TypeScript não protegia nada e os quatro campos chegavam a
+ * `undefined` — a coluna «Localização» aparecia vazia e o
+ * `coudelaria.plano.toUpperCase()` rebentava com a página inteira à primeira
+ * linha. A morada real vive em `localizacao` e `regiao`, e o plano em `plan`.
+ *
+ * `distrito` existe mas está a `NULL` nas 35 linhas em produção, por isso não
+ * se mostra: uma coluna sempre vazia é ruído.
+ */
 interface Coudelaria {
   id: string;
   nome: string;
   slug: string;
-  cidade: string;
-  distrito: string;
-  telefone: string;
-  email: string;
-  website: string;
-  plano: string;
-  plano_ativo: boolean;
-  plano_fim: string | null;
-  status: string;
-  destaque: boolean;
+  localizacao: string | null;
+  regiao: string | null;
+  telefone: string | null;
+  email: string | null;
+  website: string | null;
+  plan: string | null;
+  is_pro: boolean | null;
+  status: string | null;
+  destaque: boolean | null;
   created_at: string;
-  proprietario_nome: string;
-  proprietario_email: string;
+  proprietario_nome: string | null;
+  proprietario_email: string | null;
 }
 
+/**
+ * Os contadores, como a rota os devolve.
+ *
+ * `bronze`, `prata` e `ouro` estavam aqui e a rota nunca os enviou: o cartão
+ * «Planos Pagos» somava três `undefined` e escrevia `NaN`. E `pendente`,
+ * `aprovado` e `rejeitado` contavam valores que a coluna `status` não tem em
+ * linha nenhuma — os três cartões mostravam sempre zero.
+ */
 interface Stats {
   total: number;
-  pendente: number;
-  aprovado: number;
-  rejeitado: number;
+  pending: number;
+  active: number;
+  inactive: number;
   destaque: number;
-  bronze: number;
-  prata: number;
-  ouro: number;
+  pro: number;
 }
 
-export default function CoudelariasContent() {
+interface CoudelariasContentProps {
+  /**
+   * Caminho de volta, mostrado como uma casa ao lado do título. Só a rota
+   * `/admin/coudelarias` o passa: dentro do `/admin-app` a navegação já está
+   * na barra lateral e uma segunda seria ruído.
+   */
+  voltarHref?: string;
+}
+
+export default function CoudelariasContent({ voltarHref }: CoudelariasContentProps = {}) {
   const [coudelarias, setCoudelarias] = useState<Coudelaria[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [planoFilter, setPlanoFilter] = useState("all");
+  const [regiaoFilter, setRegiaoFilter] = useState("all");
+  const [regioes, setRegioes] = useState<string[]>([]);
 
   useEffect(() => {
     loadCoudelarias();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, planoFilter, searchTerm]);
+  }, [statusFilter, regiaoFilter, searchTerm]);
 
   const loadCoudelarias = async () => {
     try {
       const params = new URLSearchParams();
       if (statusFilter !== "all") params.append("status", statusFilter);
-      if (planoFilter !== "all") params.append("plano", planoFilter);
+      if (regiaoFilter !== "all") params.append("regiao", regiaoFilter);
       if (searchTerm) params.append("search", searchTerm);
 
       const res = await fetch(`/api/admin/coudelarias?${params}`);
@@ -60,6 +96,7 @@ export default function CoudelariasContent() {
 
       setCoudelarias(data.coudelarias || []);
       setStats(data.stats);
+      setRegioes(data.regioes || []);
     } catch (error) {
       if (process.env.NODE_ENV === "development") console.error("[CoudelariasContent]", error);
     } finally {
@@ -99,24 +136,30 @@ export default function CoudelariasContent() {
     }
   };
 
-  const getPlanoColor = (plano: string) => {
+  /**
+   * Os planos que a coluna `plan` guarda de facto. O SQL declara
+   * `'gratuito','pro','pro_instagram'`, e em produção há ainda `free`, escrito
+   * por código mais antigo — duas grafias para a mesma coisa. Mostram-se as
+   * duas tal como estão; corrigir a grafia é uma escrita na base, e este
+   * painel não a faz por sua conta.
+   */
+  const getPlanoColor = (plano: string | null) => {
     const colors: Record<string, string> = {
-      gratis: "text-gray-400 bg-gray-500/10",
-      bronze: "text-orange-400 bg-orange-500/10",
-      prata: "text-gray-300 bg-gray-400/10",
-      ouro: "text-yellow-400 bg-yellow-500/10",
+      free: "text-gray-400 bg-gray-500/10",
+      gratuito: "text-gray-400 bg-gray-500/10",
+      pro: "text-yellow-400 bg-yellow-500/10",
+      pro_instagram: "text-yellow-400 bg-yellow-500/10",
     };
-    return colors[plano] || "text-gray-400 bg-gray-500/10";
+    return colors[plano ?? ""] || "text-gray-400 bg-gray-500/10";
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | null) => {
     const colors: Record<string, string> = {
-      pendente: "text-yellow-400 bg-yellow-500/10",
-      aprovado: "text-green-400 bg-green-500/10",
-      rejeitado: "text-red-400 bg-red-500/10",
-      suspenso: "text-orange-400 bg-orange-500/10",
+      [COUDELARIA_STATUS.PENDING]: "text-yellow-400 bg-yellow-500/10",
+      [COUDELARIA_STATUS.ACTIVE]: "text-green-400 bg-green-500/10",
+      [COUDELARIA_STATUS.INACTIVE]: "text-red-400 bg-red-500/10",
     };
-    return colors[status] || "text-gray-400 bg-gray-500/10";
+    return colors[status ?? ""] || "text-gray-400 bg-gray-500/10";
   };
 
   if (isLoading) {
@@ -135,6 +178,11 @@ export default function CoudelariasContent() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
+          {voltarHref && (
+            <Link href={voltarHref} className="p-2 hover:bg-white/5 rounded-lg transition-colors">
+              <Home className="text-gray-400" size={20} />
+            </Link>
+          )}
           <h1 className="text-3xl font-bold text-white">Gestão de Coudelarias</h1>
         </div>
         <p className="text-gray-400">Gerir coudelarias, planos e aprovações</p>
@@ -142,28 +190,30 @@ export default function CoudelariasContent() {
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
           <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-4">
             <div className="text-sm text-gray-400 mb-1">Total</div>
             <div className="text-2xl font-bold text-white">{stats.total}</div>
           </div>
           <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-4">
             <div className="text-sm text-gray-400 mb-1">Pendentes</div>
-            <div className="text-2xl font-bold text-yellow-400">{stats.pendente}</div>
+            <div className="text-2xl font-bold text-yellow-400">{stats.pending}</div>
           </div>
           <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-4">
-            <div className="text-sm text-gray-400 mb-1">Aprovadas</div>
-            <div className="text-2xl font-bold text-green-400">{stats.aprovado}</div>
+            <div className="text-sm text-gray-400 mb-1">Publicadas</div>
+            <div className="text-2xl font-bold text-green-400">{stats.active}</div>
+          </div>
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-4">
+            <div className="text-sm text-gray-400 mb-1">Não publicadas</div>
+            <div className="text-2xl font-bold text-red-400">{stats.inactive}</div>
           </div>
           <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-4">
             <div className="text-sm text-gray-400 mb-1">Destaque</div>
             <div className="text-2xl font-bold text-[var(--gold)]">{stats.destaque}</div>
           </div>
           <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-4">
-            <div className="text-sm text-gray-400 mb-1">Planos Pagos</div>
-            <div className="text-2xl font-bold text-blue-400">
-              {stats.bronze + stats.prata + stats.ouro}
-            </div>
+            <div className="text-sm text-gray-400 mb-1">Pro</div>
+            <div className="text-2xl font-bold text-blue-400">{stats.pro}</div>
           </div>
         </div>
       )}
@@ -189,24 +239,26 @@ export default function CoudelariasContent() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-4 py-2 bg-[var(--background)] border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
           >
-            <option value="all">Todos os Status</option>
-            <option value="pendente">Pendente</option>
-            <option value="aprovado">Aprovado</option>
-            <option value="rejeitado">Rejeitado</option>
-            <option value="suspenso">Suspenso</option>
+            <option value="all">Todos os estados</option>
+            {COUDELARIA_STATUS_VALUES.map((estado) => (
+              <option key={estado} value={estado}>
+                {COUDELARIA_STATUS_LABEL[estado]}
+              </option>
+            ))}
           </Seleccao>
 
-          {/* Plano Filter */}
+          {/* Filtro por região */}
           <Seleccao
-            value={planoFilter}
-            onChange={(e) => setPlanoFilter(e.target.value)}
+            value={regiaoFilter}
+            onChange={(e) => setRegiaoFilter(e.target.value)}
             className="px-4 py-2 bg-[var(--background)] border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
           >
-            <option value="all">Todos os Planos</option>
-            <option value="gratis">Grátis</option>
-            <option value="bronze">Bronze</option>
-            <option value="prata">Prata</option>
-            <option value="ouro">Ouro</option>
+            <option value="all">Todas as regiões</option>
+            {regioes.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
           </Seleccao>
         </div>
       </div>
@@ -249,17 +301,17 @@ export default function CoudelariasContent() {
                 </td>
                 <td className="px-4 py-3">
                   <div className="text-sm text-gray-300">
-                    {coudelaria.cidade}
-                    {coudelaria.distrito && `, ${coudelaria.distrito}`}
+                    {coudelaria.localizacao || "—"}
+                    {coudelaria.regiao && `, ${coudelaria.regiao}`}
                   </div>
                 </td>
                 <td className="px-4 py-3">
                   <span
                     className={`px-2 py-1 rounded text-xs font-medium ${getPlanoColor(
-                      coudelaria.plano
+                      coudelaria.plan
                     )}`}
                   >
-                    {coudelaria.plano.toUpperCase()}
+                    {coudelaria.plan ? coudelaria.plan.toUpperCase() : "—"}
                   </span>
                 </td>
                 <td className="px-4 py-3">
@@ -268,31 +320,46 @@ export default function CoudelariasContent() {
                       coudelaria.status
                     )}`}
                   >
-                    {coudelaria.status}
+                    {etiquetaDoEstado(coudelaria.status)}
                   </span>
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    {/* Aprovar */}
-                    {coudelaria.status === "pendente" && (
-                      <button
-                        onClick={() => updateCoudelaria(coudelaria.id, { status: "aprovado" })}
-                        className="p-2 hover:bg-green-500/20 rounded-lg transition-colors"
-                        title="Aprovar"
-                      >
-                        <Check className="text-green-500" size={16} />
-                      </button>
-                    )}
-
-                    {/* Rejeitar */}
-                    {coudelaria.status === "pendente" && (
-                      <button
-                        onClick={() => updateCoudelaria(coudelaria.id, { status: "rejeitado" })}
-                        className="p-2 hover:bg-red-500/20 rounded-lg transition-colors"
-                        title="Rejeitar"
-                      >
-                        <X className="text-red-500" size={16} />
-                      </button>
+                    {/*
+                      Publicar / despublicar. Os dois botões só apareciam em
+                      `status === "pendente"`, um valor que a base não escreve
+                      em linha nenhuma: nenhuma das 35 coudelarias tinha botão
+                      de estado. Agora as saídas saem do estado a sério — um
+                      registo novo (`pending`) tem duas, um já decidido tem uma.
+                    */}
+                    {transicoesDe(coudelaria.status).map((destino) =>
+                      destino === COUDELARIA_STATUS.ACTIVE ? (
+                        <button
+                          key={destino}
+                          onClick={() => updateCoudelaria(coudelaria.id, { status: destino })}
+                          className="p-2 hover:bg-green-500/20 rounded-lg transition-colors"
+                          title={
+                            coudelaria.status === COUDELARIA_STATUS.PENDING
+                              ? "Aprovar"
+                              : COUDELARIA_ACCAO_LABEL[destino]
+                          }
+                        >
+                          <Check className="text-green-500" size={16} />
+                        </button>
+                      ) : (
+                        <button
+                          key={destino}
+                          onClick={() => updateCoudelaria(coudelaria.id, { status: destino })}
+                          className="p-2 hover:bg-red-500/20 rounded-lg transition-colors"
+                          title={
+                            coudelaria.status === COUDELARIA_STATUS.PENDING
+                              ? "Rejeitar"
+                              : COUDELARIA_ACCAO_LABEL[destino]
+                          }
+                        >
+                          <X className="text-red-500" size={16} />
+                        </button>
+                      )
                     )}
 
                     {/* Toggle Destaque */}

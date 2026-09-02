@@ -110,73 +110,38 @@ export async function GET(req: NextRequest) {
       districtCounts[district] = 0;
     });
 
-    if (metric === "leads") {
-      // Contar leads por distrito
-      const { data: leads } = await supabase.from("leads").select("location, email");
+    // A tabela `leads` tem sete colunas — `id`, `email`, `nome`, os três
+    // `utm_*` e `created_at` — e nenhuma diz onde a pessoa está. As três
+    // métricas que dependiam disso (`leads`, `payments`, `customers`) pediam
+    // `leads.location`: o PostgREST devolve 42703, `data` fica a `null`, e a
+    // rota respondia um mapa com zeros em todos os distritos. Um mapa a zeros
+    // não é «não há dados», é «não há clientes em lado nenhum» — e isso é uma
+    // afirmação falsa sobre o negócio.
+    //
+    // Não se inventa a coluna por migração: não há de onde a encher. O que se
+    // pode responder com verdade é «esta métrica não tem fonte», e é o que se
+    // responde. A métrica `cavalos` fica, porque essa tem fonte a sério.
+    const SEM_FONTE = ["leads", "payments", "customers"];
+    if (SEM_FONTE.includes(metric)) {
+      return NextResponse.json({
+        metric,
+        data: [],
+        total: 0,
+        indisponivel: true,
+        motivo: "A tabela de leads não guarda localização.",
+      });
+    }
 
-      if (leads) {
-        leads.forEach((lead) => {
-          const district = extractDistrict(lead.location);
-          if (district && districtCounts[district] !== undefined) {
-            districtCounts[district]++;
-          }
-        });
-      }
-    } else if (metric === "payments") {
-      // Contar pagamentos por distrito (usar email para fazer join com leads)
-      const { data: payments } = await supabase
-        .from("payments")
-        .select("email, amount")
-        .eq("status", "succeeded");
-
-      if (payments) {
-        // Buscar localização dos leads correspondentes
-        const emails = payments.map((p) => p.email);
-        const { data: leads } = await supabase
-          .from("leads")
-          .select("email, location")
-          .in("email", emails);
-
-        const locationMap = new Map(leads?.map((l) => [l.email, l.location]) || []);
-
-        payments.forEach((payment) => {
-          const location = locationMap.get(payment.email);
-          const district = extractDistrict(location || null);
-          if (district && districtCounts[district] !== undefined) {
-            districtCounts[district]++;
-          }
-        });
-      }
-    } else if (metric === "customers") {
-      // Clientes únicos (emails únicos com pagamentos)
-      const { data: payments } = await supabase
-        .from("payments")
-        .select("email")
-        .eq("status", "succeeded");
-
-      if (payments) {
-        const uniqueEmails = Array.from(new Set(payments.map((p) => p.email)));
-        const { data: leads } = await supabase
-          .from("leads")
-          .select("email, location")
-          .in("email", uniqueEmails);
-
-        leads?.forEach((lead) => {
-          const district = extractDistrict(lead.location);
-          if (district && districtCounts[district] !== undefined) {
-            districtCounts[district]++;
-          }
-        });
-      }
-    } else if (metric === "cavalos") {
-      // Cavalos por distrito (proprietário)
-      const { data: cavalos } = await supabase
-        .from("cavalos_venda")
-        .select("proprietario_localizacao");
+    if (metric === "cavalos") {
+      // Cavalos por distrito. A coluna não é `proprietario_localizacao` — essa
+      // não existe —, é `localizacao`, que é onde o anúncio diz que o cavalo
+      // está. O `.select` de uma coluna inexistente devolvia `null` e a
+      // métrica ficava também ela a zeros.
+      const { data: cavalos } = await supabase.from("cavalos_venda").select("localizacao");
 
       if (cavalos) {
         cavalos.forEach((cavalo) => {
-          const district = extractDistrict(cavalo.proprietario_localizacao);
+          const district = extractDistrict(cavalo.localizacao);
           if (district && districtCounts[district] !== undefined) {
             districtCounts[district]++;
           }

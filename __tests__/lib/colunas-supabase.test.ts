@@ -57,47 +57,15 @@ const RAIZ = path.resolve(__dirname, "../..");
 
 /** Ficheiro → tabela → colunas inexistentes já apuradas e ainda por resolver. */
 const DIVIDA_CONHECIDA: Record<string, Record<string, string[]>> = {
-  // O `CREATE TABLE` de MIGRAÇÃO_COMPLETA_TUDO.sql não corre (a tabela já
-  // existia) e o bloco DO que se segue não acrescenta estas colunas. O GET
-  // desta rota faz `throw error`: o admin nunca abre a ficha de uma coudelaria,
-  // e o POST, que insere as mesmas colunas, nunca cria nenhuma.
-  "app/api/admin/coudelarias/[id]/route.ts": {
-    coudelarias: [
-      "morada",
-      "cidade",
-      "telemovel",
-      "certificacoes",
-      "plano",
-      "plano_valor",
-      "plano_inicio",
-      "plano_fim",
-      "plano_ativo",
-      "visibilidade",
-      "meta_title",
-      "meta_description",
-      "meta_keywords",
-    ],
-  },
-  // `eventos` tem `titulo`, não `nome`; `coudelarias` tem `plan`, não `plano`;
-  // `profissionais` tem `tipo` e `cidade`/`distrito`.
-  "app/api/admin/search/route.ts": {
-    eventos: ["nome"],
-    coudelarias: ["plano"],
-    profissionais: ["categoria", "localizacao"],
-  },
-  // `leads` não tem `location`; `cavalos_venda` não tem
-  // `proprietario_localizacao` (é `localizacao`/`regiao`).
-  "app/api/admin/geo/route.ts": {
-    leads: ["location"],
-    cavalos_venda: ["proprietario_localizacao"],
-  },
-  // Aqui as fontes divergem: `supabase/schema.sql` declara `leads.name` e
-  // `leads.sequence_step`, os tipos gerados declaram `leads.nome` e nem uma
-  // coisa nem outra. Fica registado como dívida em vez de correcção porque
-  // corrigir para o nome errado é pior do que deixar como está — é preciso
-  // olhar para a base.
+  // Olhou-se para a base: `leads` tem `id`, `email`, `nome`, `utm_source`,
+  // `utm_medium`, `utm_campaign` e `created_at`, e mais nada. `name` era
+  // inequivocamente `nome` e ficou corrigido; `sequence_step` fica em dívida
+  // porque acrescentá-la não é corrigir um nome, é desenhar a cadeia de
+  // emails — quem entra, o que marca a saída, como se conta o passo. Isso é
+  // uma decisão de produto e de esquema, e a rota já responde 500 a cada
+  // firing do cron desde sempre, por isso nada piora enquanto não se decide.
   "app/api/cron/email-drip/route.ts": {
-    leads: ["name", "sequence_step"],
+    leads: ["sequence_step"],
   },
 };
 

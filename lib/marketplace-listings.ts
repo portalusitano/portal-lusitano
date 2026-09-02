@@ -28,6 +28,25 @@ export const LISTING_STATUS = {
 
 export type ListingStatus = (typeof LISTING_STATUS)[keyof typeof LISTING_STATUS];
 
+/** Every value the column may legitimately hold, in the order the admin sees them. */
+export const LISTING_STATUS_VALUES: readonly ListingStatus[] = [
+  LISTING_STATUS.PENDING,
+  LISTING_STATUS.ACTIVE,
+  LISTING_STATUS.RESERVADO,
+  LISTING_STATUS.VENDIDO,
+  LISTING_STATUS.INATIVO,
+  LISTING_STATUS.REMOVIDO,
+];
+
+/**
+ * Is this one of the six? The admin PATCH accepted any string, which is how
+ * `aprovado` — a word from a vocabulary this table never used — reached the
+ * column and hid a paid listing from `/comprar`.
+ */
+export function isListingStatus(value: unknown): value is ListingStatus {
+  return typeof value === "string" && (LISTING_STATUS_VALUES as readonly string[]).includes(value);
+}
+
 /** Portuguese labels shown to the seller. */
 export const LISTING_STATUS_LABEL: Record<ListingStatus, string> = {
   pending: "Em aprovação",

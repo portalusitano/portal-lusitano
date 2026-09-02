@@ -6,6 +6,7 @@ import { PASTA_CAPAS, mapaDeCapas } from "@/lib/directorio-capas";
 import MapaClient from "@/components/MapaClient";
 import type { Coudelaria } from "@/components/MapaClient";
 import { lerEstadoDoMapa } from "@/lib/mapa-coudelarias";
+import { COUDELARIA_STATUS } from "@/lib/coudelaria-status";
 
 /**
  * Que fotografias existem mesmo em `public/images/coudelarias/`.
@@ -64,7 +65,7 @@ export default async function MapaPage({
     .select(
       "id, slug, nome, descricao, localizacao, regiao, foto_capa, destaque, is_pro, coordenadas_lat, coordenadas_lng, num_cavalos"
     )
-    .eq("status", "active")
+    .eq("status", COUDELARIA_STATUS.ACTIVE)
     .order("destaque", { ascending: false })
     .order("nome", { ascending: true });
 
