@@ -281,6 +281,18 @@ interface MapaClientProps {
  * `useLayoutEffect`, antes da pintura, senão vê-se um quadro com a altura
  * antiga; e observa-se com um `ResizeObserver` porque o conteúdo do nível
  * também muda de altura sozinho (a pesquisa esvazia linhas).
+ *
+ * ── O foco vai com quem entra ────────────────────────────────────────────
+ * Medido antes: escolher uma região pelo teclado deixava o foco no `<body>`
+ * — o botão em que se acabara de carregar passava a `inert` no mesmo quadro,
+ * e o browser não tem para onde o levar. A tabulação seguinte recomeçava em
+ * «Saltar para o conteúdo principal», ou seja, quem pediu o Alentejo tinha de
+ * atravessar outra vez o cabeçalho inteiro e as dezassete paragens do globo
+ * para chegar à lista que pediu. Acontecia nos dois sentidos.
+ *
+ * Agora o nível que entra diz onde é que o foco assenta (`data-foco`), e a
+ * pilha leva-o lá. Só depois da primeira pintura: quem chega por um link com
+ * `?regiao=Alentejo` não pode ver a página saltar sozinha para o painel.
  */
 function Pilha({
   nivel,
@@ -291,6 +303,7 @@ function Pilha({
 }) {
   const caixa = useRef<HTMLDivElement>(null);
   const niveis = useRef<(HTMLDivElement | null)[]>([]);
+  const montada = useRef(false);
 
   useLayoutEffect(() => {
     const activo = niveis.current[nivel];
@@ -304,6 +317,24 @@ function Pilha({
     observador.observe(activo);
     return () => observador.disconnect();
   }, [nivel, children]);
+
+  useEffect(() => {
+    if (!montada.current) {
+      montada.current = true;
+      return;
+    }
+    const activo = niveis.current[nivel];
+    if (!activo || activo.contains(document.activeElement)) return;
+    // Quem manda é o `data-foco` do nível — a linha da região de onde se veio.
+    // Sem ela, a primeira coisa focável serve: no nível de dentro é o botão de
+    // voltar, que é exactamente onde o foco deve assentar.
+    const destino =
+      activo.querySelector<HTMLElement>("[data-foco]") ??
+      activo.querySelector<HTMLElement>("button:not([disabled]), a[href]");
+    // `preventScroll`: o painel é `sticky` e já está no ecrã; deixar o browser
+    // rolar até ele arrancava a página de onde a pessoa a tinha deixado.
+    destino?.focus({ preventScroll: true });
+  }, [nivel]);
 
   return (
     <div ref={caixa} className="pilha">
@@ -353,6 +384,36 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
     setProcura("");
     setRegiao(null);
   }, []);
+
+  /* A região de onde se veio, para o foco voltar à linha certa quando se sai
+     do nível de dentro. É uma referência e não estado: só é lida no render
+     seguinte ao da saída, e guardá-la em estado obrigava a um render a mais
+     por cada região escolhida. */
+  const regiaoAnterior = useRef<string | null>(partida.regiao);
+  const entrarNaRegiao = useCallback((nome: string) => {
+    regiaoAnterior.current = nome;
+    setRegiao(nome);
+  }, []);
+
+  /* ── O nível de dentro não existe antes de se entrar nele ──────────────
+     Medido antes: chegar ao mapa pedia 29 imagens, 24 delas capas de
+     coudelaria. Nenhuma se via. O nível de dentro da pilha desenhava sempre
+     as vinte e nove linhas — com as vinte e cinco fotografias — mesmo com o
+     painel no nível das regiões: está `inert` e a `opacity: 0`, mas ocupa a
+     caixa toda, e um `<img loading="lazy">` dentro da janela é pedido na
+     mesma. Vinte e quatro transferências para pixéis que ninguém vê.
+
+     Agora as linhas só montam quando há uma região. `regiaoAnterior` é o que
+     as segura enquanto o nível sai de cena: sem isso, sair de uma região
+     esvaziava o painel a meio da animação de saída, e o que se via era a
+     lista a desaparecer antes de o nível deslizar. Não é um temporizador de
+     320ms a copiar o `--d-drill` para dentro do JavaScript: é o conteúdo
+     antigo a ficar até deixar de ser preciso. */
+  const regiaoDoPainel = regiao ?? regiaoAnterior.current;
+  const listaDoPainel = useMemo(
+    () => (regiaoDoPainel ? filtrar(coudelarias, { procura, regiao: regiaoDoPainel }) : []),
+    [coudelarias, procura, regiaoDoPainel]
+  );
 
   /* ── O endereço é a memória da página ──────────────────────────────────
      Quem encontrava as treze do Alentejo e mandava o link mandava a página em
@@ -549,17 +610,31 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
         </div>
 
         {/* ── Barra de resultados ──────────────────────────────────────
-            O único sítio onde o estado do funil se lê por extenso. Antes não
-            existia: dava-se por um filtro estar activo pelo que faltava no
-            ecrã, e por a pesquisa não ter dado nada por o globo estar vazio.
-            Aqui está sempre escrito quantas se vêem, de quantas, e com que
-            filtros — cada um removível onde está. */}
+            O único sítio onde o estado do funil se lê por extenso: quantas se
+            vêem, de quantas, e com que filtros — cada um removível onde está.
+
+            O `role="status"` estava na barra inteira, botões incluídos. Medido
+            com a região do Alentejo aberta, o que o leitor de ecrã tinha para
+            anunciar a cada tecla escrita era «12 results of 29AlentejoClearClear»
+            — a contagem, o nome do chip, e as duas etiquetas escondidas dos
+            botões de limpar. A região viva passa a ser só a frase que conta; os
+            botões ficam de fora, onde sempre foram controlos e não estado.
+
+            E a barra só aparece quando tem alguma coisa a dizer. Sem filtros,
+            «29 resultados» era o mesmo 29 que o painel ao lado já escreve na
+            sua cabeça — o mesmo número duas vezes no mesmo ecrã, a custar uma
+            linha em cima do mapa. Na vista de lista não há painel, por isso aí
+            fica sempre — e mesmo escondida continua no documento, porque uma
+            região viva que só nasce no instante da mudança é uma região viva
+            que os leitores de ecrã podem não chegar a anunciar. */}
         <div
-          className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 px-1"
-          role="status"
-          aria-live="polite"
+          className={
+            temFiltro || viewMode === "list"
+              ? "mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 px-1"
+              : "sr-only"
+          }
         >
-          <p className="meta">
+          <p className="meta" role="status" aria-live="polite">
             <span className="tabular-nums text-[var(--foreground-strong)]">{contagem}</span>
             {temFiltro && (
               <>
@@ -606,7 +681,14 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
             reaproveita o nó e a animação, que já correu, não se repete — a
             troca lia-se como um corte de montagem. */}
         {viewMode === "globo" ? (
-          <div key="globo" className="vista-troca grid gap-4 lg:grid-cols-12 lg:gap-6">
+          /* A altura da lona vive numa variável e não em três números
+             repetidos: o painel ao lado precisa da mesma medida para saber até
+             onde pode crescer, e tinha lá um `680px` escrito à mão que ninguém
+             obrigava a acompanhar o outro. */
+          <div
+            key="globo"
+            className="vista-troca grid gap-4 [--altura-globo:460px] sm:[--altura-globo:560px] lg:grid-cols-12 lg:gap-6 lg:[--altura-globo:680px]"
+          >
             <div className="min-w-0 lg:col-span-8">
               {/* Sem nada para acender, a moldura encolhe. Manter 680px de
                   preto à volta de uma frase de duas linhas é pedir a quem não
@@ -614,7 +696,7 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
                   nada. */}
               <div
                 className={`relative z-0 w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-black ${
-                  visiveis.length > 0 ? "h-[460px] sm:h-[560px] lg:h-[680px]" : "h-[260px]"
+                  visiveis.length > 0 ? "h-[var(--altura-globo)]" : "h-[260px]"
                 }`}
               >
                 <div className="cartao-seco__costura z-10" />
@@ -678,7 +760,10 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
                                   key={nome}
                                   type="button"
                                   disabled={vazia}
-                                  onClick={() => setRegiao(nome)}
+                                  onClick={() => entrarNaRegiao(nome)}
+                                  data-foco={
+                                    nome === regiaoAnterior.current && !vazia ? "" : undefined
+                                  }
                                   style={{ "--i": i } as React.CSSProperties}
                                   className="linha-cascata group flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-[var(--elevate-1)] disabled:pointer-events-none disabled:opacity-40"
                                 >
@@ -706,34 +791,47 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
 
                         /* Nível 1 — dentro de uma região */
                         <div key="dentro">
-                          <button
-                            type="button"
-                            onClick={() => setRegiao(null)}
-                            className="group flex w-full items-center gap-2 border-b border-[var(--border-soft)] px-4 py-3 text-left transition-colors hover:bg-[var(--elevate-1)]"
-                          >
-                            <ChevronLeft
-                              size={15}
-                              aria-hidden="true"
-                              className="shrink-0 text-[var(--foreground-muted)] transition-transform duration-200 group-hover:-translate-x-0.5 group-hover:text-[var(--foreground-strong)]"
-                            />
-                            <h2 className="titulo-seccao min-w-0 flex-1 truncate">
-                              {regiao ?? t.mapa.explore_regions}
-                            </h2>
-                            <span className="meta font-mono tabular-nums">{visiveis.length}</span>
-                          </button>
-                          <div className="no-scrollbar divide-y divide-[var(--border-soft)] lg:max-h-[calc(680px-11rem)] lg:overflow-y-auto">
-                            {visiveis.map((c, i) => (
-                              <div
-                                key={c.id}
-                                className="linha-cascata"
-                                style={{ "--i": i } as React.CSSProperties}
-                              >
-                                {linhaDaLista(c)}
+                          {regiaoDoPainel && (
+                            <>
+                              {/* O `<h2>` embrulha o botão em vez de estar lá
+                                  dentro: um título dentro de um controlo é uma
+                                  paragem da navegação por títulos que afinal é
+                                  um botão. Assim o leitor de ecrã anuncia
+                                  «título nível 2, Alentejo, botão», que é o que
+                                  isto é. */}
+                              <h2 className="titulo-seccao">
+                                <button
+                                  type="button"
+                                  onClick={() => setRegiao(null)}
+                                  aria-label={`${t.mapa.region_clear}: ${regiaoDoPainel}`}
+                                  className="group flex w-full items-center gap-2 border-b border-[var(--border-soft)] px-4 py-3 text-left transition-colors hover:bg-[var(--elevate-1)]"
+                                >
+                                  <ChevronLeft
+                                    size={15}
+                                    aria-hidden="true"
+                                    className="shrink-0 text-[var(--foreground-muted)] transition-transform duration-200 group-hover:-translate-x-0.5 group-hover:text-[var(--foreground-strong)]"
+                                  />
+                                  <span className="min-w-0 flex-1 truncate">{regiaoDoPainel}</span>
+                                  <span className="meta font-mono tabular-nums">
+                                    {listaDoPainel.length}
+                                  </span>
+                                </button>
+                              </h2>
+                              <div className="no-scrollbar divide-y divide-[var(--border-soft)] lg:max-h-[calc(var(--altura-globo)-11rem)] lg:overflow-y-auto">
+                                {listaDoPainel.map((c, i) => (
+                                  <div
+                                    key={c.id}
+                                    className="linha-cascata"
+                                    style={{ "--i": i } as React.CSSProperties}
+                                  >
+                                    {linhaDaLista(c)}
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                          </div>
-                          {visiveis.length === 0 && (
-                            <p className="meta px-4 py-6 text-center">{t.mapa.empty_region}</p>
+                              {listaDoPainel.length === 0 && (
+                                <p className="meta px-4 py-6 text-center">{t.mapa.empty_region}</p>
+                              )}
+                            </>
                           )}
                         </div>,
                       ]}
