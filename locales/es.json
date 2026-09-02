@@ -1528,7 +1528,11 @@
     "globe_empty": "Sin yeguadas que encender",
     "featured": "Destacada",
     "search_label": "Buscar yeguada, pueblo o región",
-    "view_switch": "Modo de vista"
+    "view_switch": "Modo de vista",
+    "offline_title": "El mapa no ha podido cargar las yeguadas",
+    "offline_hint": "No es su búsqueda: nuestra base de datos no ha respondido. Inténtelo dentro de un momento — el directorio sigue funcionando.",
+    "offline_retry": "Intentar de nuevo",
+    "skip_to_regions": "Saltar el globo e ir a las regiones"
   },
   "cavalos_favoritos": {
     "title": "Caballos Favoritos",
