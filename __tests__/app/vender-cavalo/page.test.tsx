@@ -116,15 +116,28 @@ vi.mock("@/components/vender-cavalo/StepProprietario", () => ({
   default: ({
     formData,
     updateField,
+    campo,
   }: {
     formData: Record<string, unknown>;
     updateField: (field: string, value: unknown) => void;
+    campo: { aoFocar: (c: string, v: string) => void; aoSair: (c: string) => void };
   }) => (
     <div data-testid="step-proprietario">
       <input
         placeholder="Nome do proprietario"
         value={formData.proprietario_nome as string}
         onChange={(e) => updateField("proprietario_nome", e.target.value)}
+      />
+      {/* O telefone entra no mock porque é o campo com que se exercita a
+          diferença entre o erro do campo e o resumo do topo. */}
+      <input
+        placeholder="Telefone"
+        value={formData.proprietario_telefone as string}
+        onChange={(e) => updateField("proprietario_telefone", e.target.value)}
+        onFocus={() =>
+          campo.aoFocar("proprietario_telefone", String(formData.proprietario_telefone))
+        }
+        onBlur={() => campo.aoSair("proprietario_telefone")}
       />
     </div>
   ),
@@ -255,6 +268,29 @@ describe("VenderCavaloPage", () => {
     render(<VenderCavaloPage />);
     fireEvent.click(screen.getByText("Proximo"));
     expect(screen.getByTestId("step-proprietario")).toBeInTheDocument();
+  });
+
+  it("sair de um campo com erro não abre o resumo do topo", () => {
+    // O resumo é `role="alert"` com `aria-live="assertive"`. Se aparecesse a
+    // cada `blur`, um leitor de ecrã interrompia quem escreve para lhe ler a
+    // lista inteira — e punha um bloco vermelho no topo por causa de um campo
+    // que a pessoa acabou de largar e já vê assinalado ao lado.
+    render(<VenderCavaloPage />);
+    const telefone = screen.getByPlaceholderText("Telefone");
+    fireEvent.focus(telefone);
+    fireEvent.change(telefone, { target: { value: "952345678" } });
+    fireEvent.blur(telefone);
+    expect(screen.queryByTestId("form-errors")).not.toBeInTheDocument();
+  });
+
+  it("mas carregar em Continuar abre-o", () => {
+    render(<VenderCavaloPage />);
+    const telefone = screen.getByPlaceholderText("Telefone");
+    fireEvent.focus(telefone);
+    fireEvent.change(telefone, { target: { value: "952345678" } });
+    fireEvent.blur(telefone);
+    fireEvent.click(screen.getByText("Proximo"));
+    expect(screen.getByTestId("form-errors")).toBeInTheDocument();
   });
 
   it("can navigate back to previous step", () => {

@@ -60,6 +60,22 @@ export default function VenderCavaloPage() {
   const [imagens, setImagens] = useState<File[]>([]);
   const [documentos, setDocumentos] = useState<Documentos>({});
   const [errors, setErrors] = useState<ErroCampo[]>([]);
+  /**
+   * O que o resumo do topo mostra.
+   *
+   * Vive à parte dos `errors` porque as duas coisas respondem a perguntas
+   * diferentes. O `errors` é «o que está errado agora», e é ele que acende o
+   * campo e escreve a frase por baixo — e passou a encher-se também ao sair de
+   * um campo, que é quando a pessoa ainda está a pensar naquilo.
+   *
+   * O resumo é «o que te impediu de avançar quando carregaste em Continuar»,
+   * e tem de continuar a ser só isso. Ele é `role="alert"` com
+   * `aria-live="assertive"`: pô-lo a aparecer a cada `blur` fazia um leitor de
+   * ecrã interromper quem escreve para lhe ler a lista inteira, e punha um
+   * bloco vermelho no topo da página por causa de um campo que a pessoa acabou
+   * de largar e já vê assinalado ao lado.
+   */
+  const [resumo, setResumo] = useState<ErroCampo[]>([]);
   const [selectedTier, setSelectedTier] = useState("standard");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -339,6 +355,7 @@ export default function VenderCavaloPage() {
     setDocumentos({});
     setTermsAccepted(false);
     setErrors([]);
+    setResumo([]);
     setRascunhoReposto(null);
   };
 
@@ -347,9 +364,10 @@ export default function VenderCavaloPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
     // Um erro que já foi corrigido não fica no ecrã à espera do próximo
     // «Continuar»: quem escreve no campo apaga a queixa sobre ele.
-    setErrors((prev) =>
-      prev.some((e) => e.campo === field) ? prev.filter((e) => e.campo !== field) : prev
-    );
+    const semEste = (lista: ErroCampo[]) =>
+      lista.some((e) => e.campo === field) ? lista.filter((e) => e.campo !== field) : lista;
+    setErrors(semEste);
+    setResumo(semEste);
     // E um campo que está a ser corrigido cala-se enquanto o está. Sem isto,
     // corrigir um email a partir do meio da palavra dá uma mensagem diferente
     // a cada tecla — que é exactamente o que não se quer fazer a quem escreve.
@@ -430,6 +448,7 @@ export default function VenderCavaloPage() {
     );
     const todos = [...encontrados, ...daInspeccao];
     setErrors(todos);
+    setResumo(todos);
     return todos;
   };
 
@@ -463,9 +482,9 @@ export default function VenderCavaloPage() {
   useEffect(() => {
     if (!levarAosErros.current) return;
     levarAosErros.current = false;
-    if (errors.length === 0) return;
+    if (resumo.length === 0) return;
     irPara(resumoDeErros.current, true);
-  }, [errors]);
+  }, [resumo]);
 
   const nextStep = () => {
     const falhas = validar(step);
@@ -479,6 +498,7 @@ export default function VenderCavaloPage() {
 
   const prevStep = () => {
     setErrors([]);
+    setResumo([]);
     setStep((prev) => Math.max(prev - 1, 1));
     irPara(topoDoFormulario.current);
   };
@@ -493,11 +513,14 @@ export default function VenderCavaloPage() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (tierData.maxPhotos !== -1 && imagens.length + files.length > maxImages) {
-      setErrors([{ campo: "fotografias", mensagem: t.vender_cavalo.error_max_images }]);
+      const excesso = [{ campo: "fotografias", mensagem: t.vender_cavalo.error_max_images }];
+      setErrors(excesso);
+      setResumo(excesso);
       return;
     }
     setImagens((prev) => [...prev, ...files]);
     setErrors((prev) => prev.filter((erro) => erro.campo !== "fotografias"));
+    setResumo((prev) => prev.filter((erro) => erro.campo !== "fotografias"));
   };
 
   const removeImage = (index: number) => {
@@ -506,7 +529,10 @@ export default function VenderCavaloPage() {
 
   const handleDocUpload = (type: DocumentType, file: File) => {
     setDocumentos((prev) => ({ ...prev, [type]: file }));
-    if (type === "livroAzul") setErrors((prev) => prev.filter((e) => e.campo !== "livro_azul"));
+    if (type === "livroAzul") {
+      setErrors((prev) => prev.filter((e) => e.campo !== "livro_azul"));
+      setResumo((prev) => prev.filter((e) => e.campo !== "livro_azul"));
+    }
   };
 
   const handleSubmit = async () => {
@@ -751,7 +777,7 @@ export default function VenderCavaloPage() {
           não era verificado por ninguém, e não havia marco de formulário para
           quem navega com leitor de ecrã. */}
       <form className="max-w-3xl mx-auto" onSubmit={aoSubmeter} noValidate>
-        <FormErrors ref={resumoDeErros} erros={errors} />
+        <FormErrors ref={resumoDeErros} erros={resumo} />
 
         {/* A troca de passo usa o movimento que o sistema já tem para trocar
             de vista, e a `key` é o que a faz voltar a correr. */}
@@ -831,7 +857,10 @@ export default function VenderCavaloPage() {
               termsAccepted={termsAccepted}
               onTermsChange={(aceite) => {
                 setTermsAccepted(aceite);
-                if (aceite) setErrors((prev) => prev.filter((e) => e.campo !== "termos_aceites"));
+                if (aceite) {
+                  setErrors((prev) => prev.filter((e) => e.campo !== "termos_aceites"));
+                  setResumo((prev) => prev.filter((e) => e.campo !== "termos_aceites"));
+                }
               }}
               loading={loading}
               erros={errosPorCampo}
