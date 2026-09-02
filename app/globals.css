@@ -3332,3 +3332,77 @@ body {
     transition: none !important;
   }
 }
+
+/* ==========================================================================
+ * Números que assentam
+ *
+ * Cada casa de um número é uma fita com os dez algarismos empilhados; o que
+ * se anima é a posição da fita, e por isso a entrada inteira corre no
+ * compositor sem uma única escrita no DOM.
+ *
+ * O gatilho é o mesmo dos previews em HTML — o `.dentro` que o observador põe
+ * no `[data-revelar]` que envolve o bloco. Corre uma vez e pára.
+ *
+ * A posição final é a do estado por omissão, e não a do estado animado: sem
+ * a classe `.js` — que o script em linha do `layout.tsx` põe antes da
+ * primeira pintura — a fita já está no sítio certo e lê-se o número. Se o
+ * script falhar, aparece 1648 e não 0000.
+ * ========================================================================= */
+
+@layer components {
+  .numero-assenta {
+    display: inline-flex;
+    /* `tabular-nums` mantém a largura da casa igual em todos os algarismos.
+       Sem isto a fita muda de largura enquanto roda e o cartão inteiro
+       estremece. */
+    font-variant-numeric: tabular-nums;
+  }
+
+  .numero-assenta__casa {
+    display: inline-block;
+    overflow: hidden;
+    /* A janela tem exactamente a altura de um algarismo. É `1em` e não uma
+       medida em pixels para acompanhar o `text-2xl` e o `sm:text-3xl` do
+       cartão sem os conhecer. */
+    height: 1em;
+    line-height: 1;
+  }
+
+  .numero-assenta__fita {
+    display: block;
+    transform: translateY(calc(var(--algarismo) * -1em));
+  }
+
+  .numero-assenta__algarismo {
+    display: block;
+    height: 1em;
+    line-height: 1;
+  }
+
+  /* Com JavaScript, e antes de o bloco entrar no ecrã, todas as fitas ficam
+     no zero. Cada casa percorre depois a distância que lhe compete: é essa
+     diferença de percurso que dá o andamento de um contador mecânico a
+     parar, sem ser preciso escalonar as velocidades à mão. */
+  .js [data-revelar] .numero-assenta__fita {
+    transform: translateY(0);
+  }
+
+  .js [data-revelar].dentro .numero-assenta__fita {
+    transform: translateY(calc(var(--algarismo) * -1em));
+    /* A duração é a da própria entrada do bloco: os algarismos assentam
+       enquanto o cartão acaba de subir, e não a seguir. Duas entradas
+       seguidas no mesmo elemento leem-se como hesitação. */
+    transition: transform var(--d-reveal) var(--ease-out);
+    /* As casas partem da esquerda. 60ms é o que chega para se ler a ordem
+       sem que a última pareça atrasada. */
+    transition-delay: calc(var(--ordem) * 60ms);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .js [data-revelar] .numero-assenta__fita,
+    .js [data-revelar].dentro .numero-assenta__fita {
+      transform: translateY(calc(var(--algarismo) * -1em));
+      transition: none;
+    }
+  }
+}

@@ -30,6 +30,7 @@ import {
   type Ordenacao,
 } from "@/lib/directorio-filtros";
 import { ACTIVIDADES, type Actividade } from "@/lib/especialidades";
+import NumeroQueAssenta from "@/components/ui/NumeroQueAssenta";
 
 const GloboMapa = dynamic(() => import("@/components/GloboMapa"), {
   ssr: false,
@@ -314,9 +315,10 @@ function DirectorioInterior({
             >
               {painel.map(({ valor, rotulo }) => (
                 <div key={rotulo} className="cartao px-3 py-4 text-center">
-                  <div className="font-mono text-2xl tabular-nums text-[var(--foreground-strong)] sm:text-3xl">
-                    {valor}
-                  </div>
+                  <NumeroQueAssenta
+                    valor={valor}
+                    className="block font-mono text-2xl tabular-nums text-[var(--foreground-strong)] sm:text-3xl"
+                  />
                   <div className="meta mt-1">{rotulo}</div>
                 </div>
               ))}
