@@ -331,14 +331,37 @@ export async function medirPercursos(ctx) {
     const erros = marcarErros(registo);
     const antes = await pagina.evaluate(LER_VISTA);
     let falha = null;
+    const arranque = Date.now();
     try {
       await accao();
     } catch (e) {
       falha = String(e?.message ?? e).slice(0, 200);
     }
-    await pagina.waitForTimeout(400);
-    const r = await consequencia(pagina, antes);
-    saida.push({ nome, esperado, ...r, falha, erros: erros() });
+    /* ── Espera-se pela consequência, não por um número de milissegundos ──
+       Eram 400ms fixos, e a navegação num servidor de desenvolvimento leva
+       entre 400 e 1500 — a primeira visita a uma rota compila-a. Resultado:
+       o mesmo gesto dizia «navegou» ou «NADA» conforme a máquina estivesse
+       mais ou menos carregada, e o instrumento marcava de GRAVE uma coisa
+       que funcionava. Medido à mão no browser: clique num nome, /mapa aos
+       400ms e /directorio/alter-real aos 1500.
+
+       Agora pergunta-se de 150 em 150ms até haver resposta, com tecto de
+       seis segundos. O que se relata a mais é **quanto tempo levou**, que é
+       informação que antes não existia: um gesto que responde em 1,4s
+       responde, mas não responde bem. */
+    let r = await consequencia(pagina, antes);
+    const mexeu = (x) =>
+      x.navegou ||
+      x.abriuJanela ||
+      x.fechouJanela ||
+      x.abriuPilha ||
+      x.abriuMancha ||
+      x.fechouLista;
+    for (let i = 0; i < 40 && !mexeu(r); i++) {
+      await pagina.waitForTimeout(150);
+      r = await consequencia(pagina, antes);
+    }
+    saida.push({ nome, esperado, ...r, ms: Date.now() - arranque, falha, erros: erros() });
   };
 
   /* ── Aquecer o destino antes de medir ───────────────────────────────────
@@ -1147,7 +1170,30 @@ export async function medirEscolha(ctx) {
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches
   );
 
-  const alvo = await primeiroSolto(pagina);
+  /* Um nome solto, se houver. Em telemóvel raramente há: quase todos os
+     pontos legíveis juntam mais do que uma coudelaria, e a cabeça deles é um
+     botão que abre a lista em vez de navegar. Nesse caso abre-se a pilha e
+     escolhe-se um nome de dentro — é esse o caminho que ali existe, e a
+     transição tem de o servir também. Sem esta segunda hipótese a medida
+     dizia «nenhum nome legível» e o telemóvel ficava por medir. */
+  let alvo = await primeiroSolto(pagina);
+  if (!alvo) {
+    const cabeca = pagina.locator(".globo-etiqueta[data-grupo]:not([data-oculta]) button").first();
+    if (await cabeca.count()) {
+      await cabeca.click({ timeout: 4000 }).catch(() => {});
+      await pagina.waitForTimeout(300);
+      alvo = await pagina.evaluate(() => {
+        const m = document.querySelector(".globo-etiqueta[data-aberto] .globo-etiqueta__membro");
+        if (!m) return null;
+        const r = m.getBoundingClientRect();
+        return {
+          nome: m.title || m.textContent,
+          x: r.left + r.width / 2,
+          y: r.top + r.height / 2,
+        };
+      });
+    }
+  }
   if (!alvo) return { falhou: "nenhum nome legível", parado, erros: erros() };
 
   /* A navegação é segurada na rede: o que interessa é o que o globo faz

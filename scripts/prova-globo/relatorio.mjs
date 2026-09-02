@@ -616,7 +616,7 @@ export function escreverRelatorio(corrida) {
       p(
         "    " +
           tabela([
-            ["caminho", "o que aconteceu", "ficou em", "esperado"],
+            ["caminho", "o que aconteceu", "levou", "ficou em", "esperado"],
             ...ecra.percursos.percursos.map((x) => [
               x.nome,
               x.falha
@@ -631,6 +631,7 @@ export function escreverRelatorio(corrida) {
                   ]
                     .filter(Boolean)
                     .join(", ") || "NADA",
+              x.ms == null ? "—" : `${x.ms}ms`,
               x.caminho,
               x.esperado,
             ]),
