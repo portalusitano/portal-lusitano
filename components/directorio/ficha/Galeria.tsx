@@ -390,6 +390,13 @@ export default function Galeria({
     if (ca.left < cf.left + margem) delta = ca.left - cf.left - margem;
     else if (ca.right > cf.right - margem) delta = ca.right - cf.right + margem;
     if (!delta) return;
+    // O `scrollBy` com opções não existe em todo o lado — e uma miniatura
+    // fora da vista é um contratempo, não uma razão para rebentar um efeito e
+    // levar a galeria inteira atrás. Sem ele, salta-se lá directamente.
+    if (typeof fita.scrollBy !== "function") {
+      fita.scrollLeft += delta;
+      return;
+    }
     const parado = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     fita.scrollBy({ left: delta, behavior: parado ? "auto" : "smooth" });
   }, [activa]);
@@ -690,11 +697,20 @@ export default function Galeria({
                       else ir(indice, indice > activa ? 1 : -1);
                     }}
                   >
+                    {/* `eager` de propósito, e só depois do `vista`. A
+                        preguiça horizontal do browser não manda buscar as
+                        miniaturas que estão fora da fita — e como são elas a
+                        sonda que descobre as ligações mortas, com preguiça a
+                        conta nunca fechava e o contador só aparecia pela rede
+                        de segurança, quatro segundos depois. Medido no
+                        telemóvel: 4 de 11 respondiam. São ~2,7 KB cada; é o
+                        preço de o contador não mentir nem hesitar. */}
                     {vista && (
                       <Image
                         src={fotos[indice]}
                         alt=""
                         fill
+                        loading="eager"
                         sizes={MEDIDAS_MINIATURA}
                         className="object-cover"
                         onLoad={() => aoCarregar(indice)}

@@ -3811,7 +3811,11 @@ body {
     z-index: 9998;
     display: flex;
     flex-direction: column;
-    background: color-mix(in srgb, var(--background) 94%, transparent);
+    /* 98% e não os 64% do menu de ecrã inteiro. O menu quer empurrar a
+       página para trás sem a esconder; aqui a página não é para se ver de
+       todo — o assunto é a fotografia. Medido: a 94% lia-se o fantasma do
+       «PORTAL LUSITANO» por cima do céu da fotografia. */
+    background: color-mix(in srgb, var(--background) 98%, transparent);
     backdrop-filter: blur(24px);
     animation: visor-nascer var(--d-menu) var(--ease-in-out-cubic) both;
   }
