@@ -52,14 +52,37 @@ export default async function MapaPage({
 }) {
   const supabase = await createSupabaseServerClient();
 
-  const { data } = await supabase
+  /* Quatro colunas saíram do pedido: `telefone`, `email`, `website` e
+     `especialidades`. Nenhuma delas era lida por ninguém — serviam a janela
+     de detalhe que já não existe —, e as quatro iam na carga do servidor para
+     o browser em cada uma das vinte e nove linhas. A `especialidades` é a
+     pior das quatro: é `jsonb` e nesta base guarda uma cadeia com JSON lá
+     dentro, mas a interface declarava-a `string[]`. Um tipo que mente é uma
+     armadilha à espera de quem lhe pegue. */
+  const { data, error } = await supabase
     .from("coudelarias")
     .select(
-      "id, slug, nome, descricao, localizacao, regiao, telefone, email, website, foto_capa, destaque, is_pro, coordenadas_lat, coordenadas_lng, num_cavalos, especialidades"
+      "id, slug, nome, descricao, localizacao, regiao, foto_capa, destaque, is_pro, coordenadas_lat, coordenadas_lng, num_cavalos"
     )
     .eq("status", "active")
     .order("destaque", { ascending: false })
     .order("nome", { ascending: true });
+
+  /* ── Não encontrar nada e não conseguir procurar não são o mesmo ────────
+     O erro era deitado fora com um `const { data }` e a página seguia com a
+     lista vazia. Medido com a base a devolver 500: a /mapa respondia HTTP 200
+     e escrevia «0 resultados · Nenhuma coudelaria corresponde · Experimente
+     outro nome, outra terra ou outra região» — a culpar uma pesquisa que
+     ninguém tinha feito por uma falha que era nossa. Quem lê isto tenta outra
+     palavra, e outra, e vai-se embora convencido de que o mapa está vazio.
+
+     Também não se lança para o `error.tsx`: essa é a página inteira trocada
+     por um ponto de exclamação, sem cabeçalho, sem navegação e sem saída para
+     o directório, que continua a funcionar. A falha diz-se onde o mapa
+     estaria, e o resto da página fica de pé. */
+  if (error) {
+    logger.error("[MapaPage] a base não devolveu as coudelarias:", error);
+  }
 
   const coudelarias: Coudelaria[] = (data ?? []).map((c) => ({
     id: c.id,
@@ -68,16 +91,12 @@ export default async function MapaPage({
     descricao: c.descricao ?? "",
     localizacao: c.localizacao ?? "",
     regiao: c.regiao ?? "",
-    telefone: c.telefone ?? undefined,
-    email: c.email ?? undefined,
-    website: c.website ?? undefined,
     foto_capa: c.foto_capa ?? undefined,
     is_pro: c.is_pro ?? false,
     destaque: c.destaque ?? false,
     coordenadas_lat: c.coordenadas_lat ?? undefined,
     coordenadas_lng: c.coordenadas_lng ?? undefined,
     num_cavalos: c.num_cavalos ?? undefined,
-    especialidades: c.especialidades ?? undefined,
   }));
 
   const params = await searchParams;
@@ -86,5 +105,12 @@ export default async function MapaPage({
     coudelarias.map((c) => c.regiao)
   );
 
-  return <MapaClient coudelarias={coudelarias} capas={lerCapasEmDisco()} inicial={inicial} />;
+  return (
+    <MapaClient
+      coudelarias={coudelarias}
+      capas={lerCapasEmDisco()}
+      inicial={inicial}
+      falhou={Boolean(error)}
+    />
+  );
 }

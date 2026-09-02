@@ -14,6 +14,7 @@ import {
   Search,
   Layers,
   SearchX,
+  CloudOff,
 } from "lucide-react";
 import LocalizedLink, { localizeHref } from "@/components/LocalizedLink";
 import Revelar from "@/components/Revelar";
@@ -39,6 +40,12 @@ const GloboTerra = dynamic(() => import("@/components/GloboTerra"), {
   loading: () => <div className="h-full w-full" />,
 });
 
+/* O que a página usa mesmo. `telefone`, `email`, `website` e
+   `especialidades` estavam aqui e não eram lidos por ninguém desde que a
+   janela de detalhe saiu — iam do servidor para o browser em cada uma das
+   vinte e nove linhas para nada. A `especialidades` ainda por cima estava
+   declarada `string[]` quando a coluna é `jsonb` e guarda uma cadeia com JSON
+   lá dentro; quem lhe pegasse a contar com um vector encontrava uma cadeia. */
 export interface Coudelaria {
   id: string;
   nome: string;
@@ -46,16 +53,12 @@ export interface Coudelaria {
   descricao: string;
   localizacao: string;
   regiao: string;
-  telefone?: string;
-  email?: string;
-  website?: string;
   foto_capa?: string;
   is_pro: boolean;
   destaque: boolean;
   coordenadas_lat?: number;
   coordenadas_lng?: number;
   num_cavalos?: number;
-  especialidades?: string[];
 }
 
 /* ── A capa ──────────────────────────────────────────────────────────────
@@ -262,12 +265,52 @@ const SemResultados = memo(function SemResultados({
   );
 });
 
+/* ── A base não respondeu ─────────────────────────────────────────────────
+   Uma lista vazia porque a pesquisa não deu nada e uma lista vazia porque a
+   base não respondeu leem-se igual no ecrã, e não são a mesma coisa: da
+   primeira a pessoa sai a escrever outra palavra, da segunda sai convencida
+   de que o mapa está vazio. Isto diz a segunda, e diz onde o mapa estaria —
+   com a saída que continua a funcionar, o directório, e a maneira de tentar
+   outra vez. */
+const NaoCarregou = memo(function NaoCarregou({
+  titulo,
+  dica,
+  tentarLabel,
+  directorioLabel,
+}: {
+  titulo: string;
+  dica: string;
+  tentarLabel: string;
+  directorioLabel: string;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 px-8 py-12 text-center">
+      <CloudOff size={22} className="text-[var(--foreground-muted)]" aria-hidden="true" />
+      <p className="titulo-seccao">{titulo}</p>
+      <p className="meta max-w-[42ch]">{dica}</p>
+      <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
+        {/* Recarregar a página é o que resolve isto, e é por isso que o botão
+            existe em vez de um `reset()` de fronteira de erro: a falha está no
+            servidor, não numa árvore de React que se possa voltar a montar. */}
+        <a href="/mapa" className="btn btn-secundario btn-sm">
+          {tentarLabel}
+        </a>
+        <LocalizedLink href="/directorio" className="btn btn-subtil btn-sm">
+          {directorioLabel}
+        </LocalizedLink>
+      </div>
+    </div>
+  );
+});
+
 interface MapaClientProps {
   coudelarias: Coudelaria[];
   /** slug → caminho da capa que existe em disco, escolhido no servidor. */
   capas?: Record<string, string>;
   /** Filtros vindos da query, já lidos e validados no servidor. */
   inicial?: EstadoDoMapa;
+  /** A base não respondeu. Lista vazia, mas por outra razão. */
+  falhou?: boolean;
 }
 
 /* ── A pilha de níveis ────────────────────────────────────────────────────
@@ -357,7 +400,12 @@ function Pilha({
   );
 }
 
-export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaClientProps) {
+export default function MapaClient({
+  coudelarias,
+  capas = {},
+  inicial,
+  falhou = false,
+}: MapaClientProps) {
   const { t, language } = useLanguage();
   const router = useRouter();
   const partida = inicial ?? ESTADO_LIMPO;
@@ -495,6 +543,27 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
     [t.mapa.title, t.mapa.title_highlight]
   );
 
+  /* O que se põe onde estariam as coudelarias quando não há nenhuma. São dois
+     ecrãs, não um: a pesquisa que não encontrou nada tem saída pelo botão de
+     limpar; a base que não respondeu não tem saída nenhuma dentro da página e
+     precisa de dizer que a culpa não é de quem procurou. */
+  const vazio = falhou ? (
+    <NaoCarregou
+      titulo={t.mapa.offline_title}
+      dica={t.mapa.offline_hint}
+      tentarLabel={t.mapa.offline_retry}
+      directorioLabel={t.mapa.all_studs}
+    />
+  ) : (
+    <SemResultados
+      titulo={t.mapa.empty_title}
+      dica={regiao ? t.mapa.empty_region : t.mapa.empty_hint}
+      termo={procura.trim()}
+      aoLimpar={limpar}
+      limparLabel={t.mapa.clear_filters}
+    />
+  );
+
   /* Uma linha da lista. A cascata de entrada é da pilha, que sabe qual é o
      nível que está a entrar; a linha só sabe desenhar-se. */
   const linhaDaLista = (c: Coudelaria) => (
@@ -534,17 +603,17 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
           baixo da dobra para dizer o que a página inteira diz a seguir; o
           contador de resultados, esse, fica ao pé da lista, que é onde
           alguém o procura. O subtítulo só aparece a partir de `sm`. */}
-      <section className="relative pb-4 pt-16 sm:pb-6 sm:pt-28">
+      <section className="relative pb-4 pt-16 sm:pb-4 sm:pt-24">
         <div className="mx-auto max-w-7xl px-4 text-center sm:px-6">
           {/* A palavra acesa vem do dicionário (`title_highlight`). Estava
               escrita à mão aqui dentro, num `split("Portugal")` que só
               funcionava enquanto as três traduções tivessem a palavra. */}
-          <h1 className="mb-3 text-2xl text-[var(--foreground)] sm:mb-4 sm:text-4xl md:text-6xl">
+          <h1 className="mb-3 text-2xl text-[var(--foreground)] sm:mb-4 sm:text-4xl md:text-5xl">
             {titulo.antes}
             {titulo.meio && <span className="text-[var(--foreground-strong)]">{titulo.meio}</span>}
             {titulo.depois}
           </h1>
-          <p className="mx-auto mb-6 hidden max-w-xl text-[var(--foreground-secondary)] sm:mb-8 sm:block">
+          <p className="mx-auto mb-6 hidden max-w-xl text-[var(--foreground-secondary)] sm:mb-6 sm:block">
             {t.mapa.subtitle}
           </p>
         </div>
@@ -627,11 +696,16 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
             fica sempre — e mesmo escondida continua no documento, porque uma
             região viva que só nasce no instante da mudança é uma região viva
             que os leitores de ecrã podem não chegar a anunciar. */}
+        {/* Com a base em baixo não há funil nenhum a relatar: «0 resultados»
+            é verdade e não ajuda, e dito por um leitor de ecrã é a mesma
+            confusão que o ecrã já não faz. */}
         <div
           className={
-            temFiltro || viewMode === "list"
-              ? "mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 px-1"
-              : "sr-only"
+            falhou
+              ? "hidden"
+              : temFiltro || viewMode === "list"
+                ? "mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 px-1"
+                : "sr-only"
           }
         >
           <p className="meta" role="status" aria-live="polite">
@@ -687,7 +761,7 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
              obrigava a acompanhar o outro. */
           <div
             key="globo"
-            className="vista-troca grid gap-4 [--altura-globo:460px] sm:[--altura-globo:560px] lg:grid-cols-12 lg:gap-6 lg:[--altura-globo:680px]"
+            className="vista-troca grid gap-4 [--altura-globo:460px] sm:[--altura-globo:560px] lg:grid-cols-12 lg:gap-6 lg:[--altura-globo:max(320px,min(680px,calc(100dvh-22rem)))]"
           >
             <div className="min-w-0 lg:col-span-8">
               {/* Sem nada para acender, a moldura encolhe. Manter 680px de
@@ -707,22 +781,23 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
                         globo: carregava-se em «Alentejo 13» e as vinte e nove
                         continuavam acesas. Agora recebe o que o funil deu. */}
                     <GloboTerra coudelarias={visiveis} aoEscolher={(c) => irParaFicha(c.slug)} />
-                    <p className="pointer-events-none absolute inset-x-0 bottom-4 z-10 px-6 text-center text-xs text-[var(--foreground-muted)]">
-                      {t.mapa.globe_hint}
-                    </p>
                   </>
                 ) : (
-                  <div className="flex h-full items-center justify-center">
-                    <SemResultados
-                      titulo={t.mapa.empty_title}
-                      dica={regiao ? t.mapa.empty_region : t.mapa.empty_hint}
-                      termo={procura.trim()}
-                      aoLimpar={limpar}
-                      limparLabel={t.mapa.clear_filters}
-                    />
-                  </div>
+                  <div className="flex h-full items-center justify-center">{vazio}</div>
                 )}
               </div>
+              {/* ── A dica sai de cima do terreno ──────────────────────────
+                  Estava dentro da lona, encostada ao fundo. Duas coisas
+                  medidas: em desktop a 1400×950 ficava abaixo da dobra, ou
+                  seja, a única frase que explica como se usa o globo só se
+                  lia a quem rolasse; e em telemóvel escrevia-se por cima do
+                  Algarve, a cinzento ténue sobre fotografia de terreno, que é
+                  o pior sítio possível para 12 pixéis de texto. Cá fora
+                  assenta no preto da página, lê-se sempre, e devolve à lona os
+                  pixéis que tapava. */}
+              {visiveis.length > 0 && (
+                <p className="meta mt-2 px-1 text-center">{t.mapa.globe_hint}</p>
+              )}
             </div>
 
             {/* ── Painel lateral ─────────────────────────────────────────
@@ -732,7 +807,12 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
                 a escolha deixou — com link directo à ficha. */}
             <div className="min-w-0 lg:col-span-4">
               <div className="lg:sticky lg:top-24">
-                <Revelar direccao="up" className="mb-3">
+                {/* Com a base em baixo o painel era uma caixa oca: a cabeça a
+                    dizer «Explorar Regiões 0» e nada por baixo dela. Um
+                    instrumento que não tem nada para operar não se mostra
+                    desligado, tira-se — a falha já está escrita ao lado, e o
+                    que fica é a saída que continua a funcionar. */}
+                <Revelar direccao="up" className={falhou ? "hidden" : "mb-3"}>
                   <div className="cartao overflow-hidden">
                     <Pilha nivel={regiao === null ? 0 : 1}>
                       {[
@@ -841,7 +921,7 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
 
                 <LocalizedLink
                   href="/directorio"
-                  className="btn btn-subtil btn-sm w-full rounded-xl"
+                  className={falhou ? "hidden" : "btn btn-subtil btn-sm w-full rounded-xl"}
                 >
                   {t.mapa.all_studs}
                 </LocalizedLink>
@@ -871,15 +951,7 @@ export default function MapaClient({ coudelarias, capas = {}, inicial }: MapaCli
                 ))}
               </div>
             ) : (
-              <div className="cartao">
-                <SemResultados
-                  titulo={t.mapa.empty_title}
-                  dica={regiao ? t.mapa.empty_region : t.mapa.empty_hint}
-                  termo={procura.trim()}
-                  aoLimpar={limpar}
-                  limparLabel={t.mapa.clear_filters}
-                />
-              </div>
+              <div className="cartao">{vazio}</div>
             )}
           </div>
         )}
