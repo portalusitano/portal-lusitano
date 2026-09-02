@@ -3477,12 +3477,21 @@ body {
     animation: folha-pousar var(--d-drill) var(--ease-in-out-cubic) both;
   }
 
+  /* A opacidade acaba a 45% e o movimento continua até ao fim. Medido a olho
+     nas capturas: com a opacidade a subir ao longo de toda a animação, o que
+     se via a meio eram duas fotografias sobrepostas — um cruzamento, não uma
+     folha. Assim a fotografia fica opaca cedo e o que resta a ler-se é ela a
+     acabar de encostar. O esbatimento deixa de ser o efeito e passa a ser só
+     o que evita o piscar. */
   @keyframes folha-pousar {
-    from {
+    0% {
       opacity: 0;
       transform: translate3d(calc(var(--sentido, 1) * 7%), 0, 0) scale(1.035);
     }
-    to {
+    45% {
+      opacity: 1;
+    }
+    100% {
       opacity: 1;
       transform: translate3d(0, 0, 0) scale(1);
     }
@@ -3518,12 +3527,35 @@ body {
     animation: folha-fio var(--d-drill) var(--ease-out) both;
   }
 
+  /* O fio sozinho é uma linha branca a passar; o que faz dele a **aresta de
+     uma folha** é a sombra que a folha lança sobre a que está por baixo. Sai
+     para fora da camada — o recorte é do `.galeria-pilha` — e por isso cai
+     mesmo em cima da fotografia de baixo. Sem ela, as duas camadas leem-se
+     como duas imagens no mesmo plano. */
+  .galeria-folha__fio::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2rem;
+    background: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.55) 100%);
+  }
+
   .galeria-folha--topo[data-sentido="1"] .galeria-folha__fio {
     left: 0;
   }
 
+  .galeria-folha--topo[data-sentido="1"] .galeria-folha__fio::before {
+    right: 0;
+  }
+
   .galeria-folha--topo[data-sentido="-1"] .galeria-folha__fio {
     right: 0;
+  }
+
+  .galeria-folha--topo[data-sentido="-1"] .galeria-folha__fio::before {
+    left: 0;
+    background: linear-gradient(270deg, transparent 0%, rgba(0, 0, 0, 0.55) 100%);
   }
 
   @keyframes folha-fio {

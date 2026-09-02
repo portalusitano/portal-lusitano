@@ -14,6 +14,7 @@ import { createPortal } from "react-dom";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Expand, X } from "lucide-react";
 import Revelar from "@/components/Revelar";
+import { duracaoDoToken } from "@/lib/curvas-css";
 import { useLanguage } from "@/context/LanguageContext";
 
 /**
@@ -58,8 +59,17 @@ import { useLanguage } from "@/context/LanguageContext";
  * escrita por quem a carregou.
  */
 
-/** A folha demora o mesmo que entrar num submenu. Espelha `--d-drill`. */
+/**
+ * A folha demora o mesmo que entrar num submenu — `--d-drill` —, e o recuo do
+ * arrasto o mesmo que um hover — `--d-fast`. Os números aqui são só o que
+ * vale enquanto o CSS não responde: quem manda é o token, lido à montagem
+ * pelo `duracaoDoToken`. Um número escrito à mão dentro de um componente é
+ * uma duração que ninguém encontra e que ninguém muda quando as outras mudam.
+ */
 const D_FOLHA = 320;
+const D_RECUO = 200;
+/** Folga entre o fim da animação e a retirada da camada de baixo. */
+const FOLGA_ASSENTAR = 40;
 /** Abaixo disto o ponteiro não está a arrastar, está a carregar. */
 const LIMIAR_PONTEIRO = 3;
 /** Fracção da largura que é preciso arrastar para a folha virar. */
@@ -68,8 +78,6 @@ const FRACCAO_VIRAR = 0.15;
 const FRACCAO_BATENTE = 0.1;
 /** Amortecimento: o dedo anda mais do que a folha, e por isso sente-se peso. */
 const AMORTECER = 0.55;
-/** Recuo da folha largada sem chegar ao limiar. Espelha `--d-fast`. */
-const D_RECUO = 220;
 /**
  * Rede de segurança do contador. Se uma miniatura nunca responder — nem
  * carrega nem falha —, ao fim disto o contador diz o que se sabe em vez de
@@ -272,13 +280,25 @@ export default function Galeria({
     ir(vivas[(posicao - 1 + total) % total], -1);
   }, [ir, vivas, posicao, total]);
 
+  /* As durações vêm dos tokens do `globals.css`, lidas uma vez à montagem —
+     duas consultas ao estilo do documento, não duas por quadro. Quem mudar o
+     `--d-drill` muda a folha com ele; um 320 escrito aqui à mão ficaria para
+     trás no dia em que os submenus mudassem de andamento. */
+  const tempos = useRef({ folha: D_FOLHA, recuo: D_RECUO });
+  useEffect(() => {
+    tempos.current = {
+      folha: duracaoDoToken("--d-drill", D_FOLHA),
+      recuo: duracaoDoToken("--d-fast", D_RECUO),
+    };
+  }, []);
+
   /* Quanto tempo a folha demora a assentar. É um temporizador e não um
      `animationend`: sem CSS — ou com `prefers-reduced-motion`, que anula as
      animações — o evento podia nunca chegar e a camada de baixo ficava lá
      para sempre. */
   useEffect(() => {
     if (assente) return;
-    const id = window.setTimeout(() => setAssente(true), D_FOLHA + 40);
+    const id = window.setTimeout(() => setAssente(true), tempos.current.folha + FOLGA_ASSENTAR);
     return () => window.clearTimeout(id);
   }, [assente, activa]);
 
@@ -289,7 +309,7 @@ export default function Galeria({
     const id = window.setTimeout(() => {
       setSolta(false);
       setAArrastar(false);
-    }, D_RECUO);
+    }, tempos.current.recuo + FOLGA_ASSENTAR);
     return () => window.clearTimeout(id);
   }, [solta]);
 
