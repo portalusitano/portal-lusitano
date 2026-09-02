@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, Pencil, Trash2, Check, X, Star, Eye } from "lucide-react";
+import { Home, Search, Pencil, Trash2, Check, X, Star, Eye } from "lucide-react";
 import Seleccao from "@/components/ui/Seleccao";
 
 interface Coudelaria {
@@ -35,7 +35,16 @@ interface Stats {
   ouro: number;
 }
 
-export default function CoudelariasContent() {
+interface CoudelariasContentProps {
+  /**
+   * Caminho de volta, mostrado como uma casa ao lado do título. Só a rota
+   * `/admin/coudelarias` o passa: dentro do `/admin-app` a navegação já está
+   * na barra lateral e uma segunda seria ruído.
+   */
+  voltarHref?: string;
+}
+
+export default function CoudelariasContent({ voltarHref }: CoudelariasContentProps = {}) {
   const [coudelarias, setCoudelarias] = useState<Coudelaria[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -135,6 +144,11 @@ export default function CoudelariasContent() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
+          {voltarHref && (
+            <Link href={voltarHref} className="p-2 hover:bg-white/5 rounded-lg transition-colors">
+              <Home className="text-gray-400" size={20} />
+            </Link>
+          )}
           <h1 className="text-3xl font-bold text-white">Gestão de Coudelarias</h1>
         </div>
         <p className="text-gray-400">Gerir coudelarias, planos e aprovações</p>
