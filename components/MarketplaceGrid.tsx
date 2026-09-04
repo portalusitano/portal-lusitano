@@ -499,11 +499,17 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
           {/* Quem lê com um leitor de ecrã não vê a contagem mudar. O
               `role="status"` di-la depois de o filtro assentar — e não a cada
               tecla, porque o que vai para o URL já passa por um temporizador de
-              350ms. */}
+              350ms.
+
+              A pesquisa é dita à parte e não somada aos filtros: o número no
+              botão «Filtros» conta só as facetas, porque o termo escrito está
+              na caixa ao lado e não se esconde atrás de nada. Somá-lo aqui
+              dizia «3 filtros activos» com um «2» escrito no botão. */}
           <p className="sr-only" role="status">
             {frase}
-            {nActivos > 0 &&
-              ` · ${nActivos === 1 ? "1 filtro activo" : `${nActivos} filtros activos`}`}
+            {filtros.search && ` · pesquisa «${filtros.search}»`}
+            {nFacetas > 0 &&
+              ` · ${nFacetas === 1 ? "1 filtro activo" : `${nFacetas} filtros activos`}`}
           </p>
 
           {acesos.map((a) => (
@@ -573,7 +579,19 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
       ) : (
         <SemResultados
           total={horses.length}
-          acesos={acesos}
+          /* Aqui a pesquisa **entra** na lista do que se pode desfazer, ao
+             contrário da barra de resultados. Lá está escrita na caixa a dois
+             centímetros e repeti-la era ruído; aqui é a suspeita principal —
+             um termo mal escrito esvazia o ecrã mais depressa do que qualquer
+             faceta, e a caixa que o contém ficou lá em cima. */
+          acesos={
+            filtros.search
+              ? [
+                  { chave: "search", nome: `«${filtros.search}»`, apagar: { search: "" } },
+                  ...acesos,
+                ]
+              : acesos
+          }
           aoDesfazer={navegar}
           aoLimpar={limpar}
           hrefAlerta={hrefAlerta}
