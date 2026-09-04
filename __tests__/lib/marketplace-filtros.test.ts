@@ -126,8 +126,24 @@ describe("disciplinasDe", () => {
     expect(disciplinasDe({ disciplinas: "Dressage, Lazer" })).toEqual(["Dressage", "Lazer"]);
   });
 
+  it("desembrulha a coluna jsonb codificada duas vezes", () => {
+    // A forma que fazia a grelha oferecer uma pastilha `["Dressage"]` ao lado
+    // da pastilha `Dressage`, com o anúncio dela inalcançável pela outra.
+    expect(disciplinasDe({ disciplinas: '["Dressage"]' })).toEqual(["Dressage"]);
+    expect(disciplinasDe({ disciplinas: '["Dressage", "Toureio"]' })).toEqual([
+      "Dressage",
+      "Toureio",
+    ]);
+  });
+
+  it("não repete a mesma disciplina", () => {
+    expect(disciplinasDe({ disciplinas: ["Lazer", "Lazer"] })).toEqual(["Lazer"]);
+  });
+
   it("devolve lista vazia quando não há disciplinas", () => {
     expect(disciplinasDe({ disciplinas: null })).toEqual([]);
+    expect(disciplinasDe({ disciplinas: "" })).toEqual([]);
+    expect(disciplinasDe({ disciplinas: "   " })).toEqual([]);
   });
 });
 
@@ -201,6 +217,20 @@ describe("ordenar", () => {
     const velho = anuncio({ created_at: "2020-01-01T00:00:00Z", nome_cavalo: "Velho" });
     const novo = anuncio({ created_at: "2026-08-20T00:00:00Z", nome_cavalo: "Novo" });
     expect(ordenar([velho, novo], "recentes")[0].nome_cavalo).toBe("Novo");
+  });
+
+  it("ordena por idade nos dois sentidos", () => {
+    const poldro = anuncio({ idade: 3, nome_cavalo: "Poldro" });
+    const feito = anuncio({ idade: 15, nome_cavalo: "Feito" });
+    expect(ordenar([feito, poldro], "idade_asc")[0].nome_cavalo).toBe("Poldro");
+    expect(ordenar([poldro, feito], "idade_desc")[0].nome_cavalo).toBe("Feito");
+  });
+
+  it("empurra quem não declara idade para o fim das duas ordenações por idade", () => {
+    const semIdade = anuncio({ idade: null, nome_cavalo: "Sem idade" });
+    const comIdade = anuncio({ idade: 8, nome_cavalo: "Com idade" });
+    expect(ordenar([semIdade, comIdade], "idade_asc")[1].nome_cavalo).toBe("Sem idade");
+    expect(ordenar([semIdade, comIdade], "idade_desc")[1].nome_cavalo).toBe("Sem idade");
   });
 
   it("não altera a lista original", () => {

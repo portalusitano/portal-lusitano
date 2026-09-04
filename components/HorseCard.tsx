@@ -72,10 +72,17 @@ export default memo(function HorseCard({
   const badgeLabel = horse.nivel || primaryDiscipline;
 
   return (
-    <article className="group relative touch-manipulation" aria-label={horse.nome_cavalo}>
+    <article
+      className="cartao-holofote group relative h-full touch-manipulation rounded-[var(--raio-lg)]"
+      aria-label={horse.nome_cavalo}
+    >
       <LocalizedLink
         href={href}
-        className="cartao cartao-interactivo block overflow-hidden active:scale-[0.99] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+        /* O anel de foco é branco e não dourado: o dourado é acento, e a folha
+           global já desenha um contorno branco a `!important` — o anel dourado
+           por cima dele dava duas linhas de duas cores à volta do mesmo cartão.
+           É o mesmo contorno que o cartão do directório usa. */
+        className="cartao cartao-interactivo block h-full overflow-hidden transition-transform active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground-strong)]"
       >
         {/* Fotografia. 4:3 em vez de 4:5: numa grelha de classificados o que
             conta é caberem mais anúncios no ecrã, e o retrato alto gastava
