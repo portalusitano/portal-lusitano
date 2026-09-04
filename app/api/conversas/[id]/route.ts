@@ -74,7 +74,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
     const { data: cavalo } = await supabaseAdmin
       .from("cavalos_venda")
-      .select("id, nome, nome_cavalo, foto_principal, image_url, preco, status, vendedor_nome")
+      .select("id, nome, foto_principal, preco, status, vendedor_nome")
       .eq("id", conversa.cavalo_id)
       .maybeSingle();
 
@@ -92,8 +92,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         cavaloId: conversa.cavalo_id,
         papel,
         outraParte: nomeOutraParte(papel, conversa.comprador_nome, cavalo?.vendedor_nome || null),
-        cavaloNome: cavalo?.nome || cavalo?.nome_cavalo || "Anúncio removido",
-        cavaloFoto: cavalo?.foto_principal || cavalo?.image_url || null,
+        cavaloNome: cavalo?.nome || "Anúncio removido",
+        cavaloFoto: cavalo?.foto_principal || null,
         cavaloPreco: typeof cavalo?.preco === "number" ? cavalo.preco : null,
         cavaloStatus: cavalo?.status || null,
       },
@@ -169,7 +169,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
       const { data: cavalo } = await supabaseAdmin
         .from("cavalos_venda")
-        .select("nome, nome_cavalo, vendedor_nome")
+        .select("nome, vendedor_nome")
         .eq("id", conversa.cavalo_id)
         .maybeSingle();
 
@@ -183,7 +183,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         remetenteNome: souComprador
           ? conversa.comprador_nome || "Comprador interessado"
           : cavalo?.vendedor_nome || "Vendedor",
-        cavaloNome: cavalo?.nome || cavalo?.nome_cavalo || "o anúncio",
+        cavaloNome: cavalo?.nome || "o anúncio",
         corpo: validada.corpo,
       });
     }

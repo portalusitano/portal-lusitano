@@ -58,7 +58,7 @@ export async function GET() {
     const [{ data: cavalos }, { data: mensagens }] = await Promise.all([
       supabaseAdmin
         .from("cavalos_venda")
-        .select("id, nome, nome_cavalo, foto_principal, image_url, preco, vendedor_nome")
+        .select("id, nome, foto_principal, preco, vendedor_nome")
         .in("id", cavaloIds),
       supabaseAdmin
         .from("marketplace_mensagens")
@@ -92,9 +92,8 @@ export async function GET() {
           c.comprador_nome,
           (cavalo?.vendedor_nome as string) || null
         ),
-        cavaloNome:
-          (cavalo?.nome as string) || (cavalo?.nome_cavalo as string) || "Anúncio removido",
-        cavaloFoto: (cavalo?.foto_principal as string) || (cavalo?.image_url as string) || null,
+        cavaloNome: (cavalo?.nome as string) || "Anúncio removido",
+        cavaloFoto: (cavalo?.foto_principal as string) || null,
         cavaloPreco: typeof cavalo?.preco === "number" ? cavalo.preco : null,
         ultimaMensagem: resumirMensagem(ultimaPorConversa.get(c.id)),
         ultimaMensagemAt: c.ultima_mensagem_at,

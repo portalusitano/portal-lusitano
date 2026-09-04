@@ -4,7 +4,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.1";
+    PostgrestVersion: "14.5";
   };
   public: {
     Tables: {
@@ -552,7 +552,7 @@ export type Database = {
       };
       cart_recovery_stats: {
         Row: {
-          avg_time_to_recovery: unknown;
+          avg_time_to_recovery: string | null;
           calculated_at: string | null;
           carts_recovered: number | null;
           emails_clicked: number | null;
@@ -568,7 +568,7 @@ export type Database = {
           total_abandoned_value: number | null;
         };
         Insert: {
-          avg_time_to_recovery?: unknown;
+          avg_time_to_recovery?: string | null;
           calculated_at?: string | null;
           carts_recovered?: number | null;
           emails_clicked?: number | null;
@@ -584,7 +584,7 @@ export type Database = {
           total_abandoned_value?: number | null;
         };
         Update: {
-          avg_time_to_recovery?: unknown;
+          avg_time_to_recovery?: string | null;
           calculated_at?: string | null;
           carts_recovered?: number | null;
           emails_clicked?: number | null;
@@ -605,151 +605,235 @@ export type Database = {
         Row: {
           aceita_troca: boolean | null;
           altura: number | null;
+          anos_treino: number | null;
+          aviso_expiracao_at: string | null;
+          aviso_expiracao_dias: number | null;
+          aviso_expiracao_prazo: string | null;
           caracteristicas: string[] | null;
-          contacto_email: string | null;
-          contacto_nome: string | null;
-          contacto_telefone: string | null;
+          comportamento: Json | null;
+          condicoes_venda: Json | null;
           cor: string | null;
           coudelaria_id: string | null;
+          coudelaria_origem: string | null;
           created_at: string | null;
           data_nascimento: string | null;
           descricao: string | null;
           destaque: boolean | null;
           disciplinas: string[] | null;
           documentos_em_dia: boolean | null;
+          featured_until: string | null;
           foto_principal: string | null;
           fotos: string[] | null;
           id: string;
           idade: number | null;
-          image_url: string | null;
           linhagem: string | null;
+          listing_expires_at: string | null;
+          listing_tier: string;
           localizacao: string | null;
           mae: string | null;
+          maneio: Json | null;
+          microchip: string | null;
           moeda: string | null;
-          nivel: string | null;
+          morfologia: Json | null;
+          nivel_apsl: string | null;
+          nivel_cavaleiro: string | null;
           nivel_treino: string | null;
           nome: string;
-          nome_cavalo: string;
+          nome_registo: string | null;
           pai: string | null;
-          pelagem: string | null;
-          pontuacao_apsl: string | null;
+          pais_nascimento: string | null;
+          passaporte_equino: string | null;
+          peso_kg: number | null;
           preco: number | null;
           preco_negociavel: boolean | null;
           preco_sob_consulta: boolean | null;
           premios: string[] | null;
+          prova_aptidao_apsl: boolean | null;
           raca: string | null;
+          rating_media: number | null;
           regiao: string | null;
           registro_apsl: string | null;
+          removido_at: string | null;
+          saude: Json | null;
           sexo: string;
           slug: string;
           status: string | null;
+          temperamento: string | null;
+          total_vendas: number | null;
           transporte_incluido: boolean | null;
+          treino: Json | null;
           updated_at: string | null;
+          user_id: string | null;
+          uso_atual: string[] | null;
           vendedor_email: string | null;
           vendedor_nome: string | null;
+          vendedor_pais: string | null;
           vendedor_telefone: string | null;
+          vendedor_tipo: string | null;
+          vendedor_website: string | null;
           vendedor_whatsapp: string | null;
+          vendido_at: string | null;
+          verificado: boolean | null;
+          verificado_at: string | null;
+          verificado_por: string | null;
           video_url: string | null;
+          video_url_2: string | null;
           views_count: number | null;
         };
         Insert: {
           aceita_troca?: boolean | null;
           altura?: number | null;
+          anos_treino?: number | null;
+          aviso_expiracao_at?: string | null;
+          aviso_expiracao_dias?: number | null;
+          aviso_expiracao_prazo?: string | null;
           caracteristicas?: string[] | null;
-          contacto_email?: string | null;
-          contacto_nome?: string | null;
-          contacto_telefone?: string | null;
+          comportamento?: Json | null;
+          condicoes_venda?: Json | null;
           cor?: string | null;
           coudelaria_id?: string | null;
+          coudelaria_origem?: string | null;
           created_at?: string | null;
           data_nascimento?: string | null;
           descricao?: string | null;
           destaque?: boolean | null;
           disciplinas?: string[] | null;
           documentos_em_dia?: boolean | null;
+          featured_until?: string | null;
           foto_principal?: string | null;
           fotos?: string[] | null;
           id?: string;
           idade?: number | null;
-          image_url?: string | null;
           linhagem?: string | null;
+          listing_expires_at?: string | null;
+          listing_tier?: string;
           localizacao?: string | null;
           mae?: string | null;
+          maneio?: Json | null;
+          microchip?: string | null;
           moeda?: string | null;
-          nivel?: string | null;
+          morfologia?: Json | null;
+          nivel_apsl?: string | null;
+          nivel_cavaleiro?: string | null;
           nivel_treino?: string | null;
           nome: string;
-          nome_cavalo?: string;
+          nome_registo?: string | null;
           pai?: string | null;
-          pelagem?: string | null;
-          pontuacao_apsl?: string | null;
+          pais_nascimento?: string | null;
+          passaporte_equino?: string | null;
+          peso_kg?: number | null;
           preco?: number | null;
           preco_negociavel?: boolean | null;
           preco_sob_consulta?: boolean | null;
           premios?: string[] | null;
+          prova_aptidao_apsl?: boolean | null;
           raca?: string | null;
+          rating_media?: number | null;
           regiao?: string | null;
           registro_apsl?: string | null;
+          removido_at?: string | null;
+          saude?: Json | null;
           sexo: string;
           slug: string;
           status?: string | null;
+          temperamento?: string | null;
+          total_vendas?: number | null;
           transporte_incluido?: boolean | null;
+          treino?: Json | null;
           updated_at?: string | null;
+          user_id?: string | null;
+          uso_atual?: string[] | null;
           vendedor_email?: string | null;
           vendedor_nome?: string | null;
+          vendedor_pais?: string | null;
           vendedor_telefone?: string | null;
+          vendedor_tipo?: string | null;
+          vendedor_website?: string | null;
           vendedor_whatsapp?: string | null;
+          vendido_at?: string | null;
+          verificado?: boolean | null;
+          verificado_at?: string | null;
+          verificado_por?: string | null;
           video_url?: string | null;
+          video_url_2?: string | null;
           views_count?: number | null;
         };
         Update: {
           aceita_troca?: boolean | null;
           altura?: number | null;
+          anos_treino?: number | null;
+          aviso_expiracao_at?: string | null;
+          aviso_expiracao_dias?: number | null;
+          aviso_expiracao_prazo?: string | null;
           caracteristicas?: string[] | null;
-          contacto_email?: string | null;
-          contacto_nome?: string | null;
-          contacto_telefone?: string | null;
+          comportamento?: Json | null;
+          condicoes_venda?: Json | null;
           cor?: string | null;
           coudelaria_id?: string | null;
+          coudelaria_origem?: string | null;
           created_at?: string | null;
           data_nascimento?: string | null;
           descricao?: string | null;
           destaque?: boolean | null;
           disciplinas?: string[] | null;
           documentos_em_dia?: boolean | null;
+          featured_until?: string | null;
           foto_principal?: string | null;
           fotos?: string[] | null;
           id?: string;
           idade?: number | null;
-          image_url?: string | null;
           linhagem?: string | null;
+          listing_expires_at?: string | null;
+          listing_tier?: string;
           localizacao?: string | null;
           mae?: string | null;
+          maneio?: Json | null;
+          microchip?: string | null;
           moeda?: string | null;
-          nivel?: string | null;
+          morfologia?: Json | null;
+          nivel_apsl?: string | null;
+          nivel_cavaleiro?: string | null;
           nivel_treino?: string | null;
           nome?: string;
-          nome_cavalo?: string;
+          nome_registo?: string | null;
           pai?: string | null;
-          pelagem?: string | null;
-          pontuacao_apsl?: string | null;
+          pais_nascimento?: string | null;
+          passaporte_equino?: string | null;
+          peso_kg?: number | null;
           preco?: number | null;
           preco_negociavel?: boolean | null;
           preco_sob_consulta?: boolean | null;
           premios?: string[] | null;
+          prova_aptidao_apsl?: boolean | null;
           raca?: string | null;
+          rating_media?: number | null;
           regiao?: string | null;
           registro_apsl?: string | null;
+          removido_at?: string | null;
+          saude?: Json | null;
           sexo?: string;
           slug?: string;
           status?: string | null;
+          temperamento?: string | null;
+          total_vendas?: number | null;
           transporte_incluido?: boolean | null;
+          treino?: Json | null;
           updated_at?: string | null;
+          user_id?: string | null;
+          uso_atual?: string[] | null;
           vendedor_email?: string | null;
           vendedor_nome?: string | null;
+          vendedor_pais?: string | null;
           vendedor_telefone?: string | null;
+          vendedor_tipo?: string | null;
+          vendedor_website?: string | null;
           vendedor_whatsapp?: string | null;
+          vendido_at?: string | null;
+          verificado?: boolean | null;
+          verificado_at?: string | null;
+          verificado_por?: string | null;
           video_url?: string | null;
+          video_url_2?: string | null;
           views_count?: number | null;
         };
         Relationships: [
@@ -758,6 +842,120 @@ export type Database = {
             columns: ["coudelaria_id"];
             isOneToOne: false;
             referencedRelation: "coudelarias";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      cavalos_venda_ascendentes: {
+        Row: {
+          caminho: string;
+          cavalo_id: string;
+          created_at: string;
+          geracao: number;
+          id: string;
+          nome: string | null;
+          registo: string | null;
+        };
+        Insert: {
+          caminho: string;
+          cavalo_id: string;
+          created_at?: string;
+          geracao: number;
+          id?: string;
+          nome?: string | null;
+          registo?: string | null;
+        };
+        Update: {
+          caminho?: string;
+          cavalo_id?: string;
+          created_at?: string;
+          geracao?: number;
+          id?: string;
+          nome?: string | null;
+          registo?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "cavalos_venda_ascendentes_cavalo_id_fkey";
+            columns: ["cavalo_id"];
+            isOneToOne: false;
+            referencedRelation: "cavalos_venda";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      cavalos_venda_denuncias: {
+        Row: {
+          cavalo_id: string;
+          created_at: string;
+          denunciante_id: string | null;
+          detalhe: string | null;
+          id: string;
+          motivo: string;
+          nota_interna: string | null;
+          resolvida_at: string | null;
+          resolvida_por: string | null;
+          status: string;
+        };
+        Insert: {
+          cavalo_id: string;
+          created_at?: string;
+          denunciante_id?: string | null;
+          detalhe?: string | null;
+          id?: string;
+          motivo: string;
+          nota_interna?: string | null;
+          resolvida_at?: string | null;
+          resolvida_por?: string | null;
+          status?: string;
+        };
+        Update: {
+          cavalo_id?: string;
+          created_at?: string;
+          denunciante_id?: string | null;
+          detalhe?: string | null;
+          id?: string;
+          motivo?: string;
+          nota_interna?: string | null;
+          resolvida_at?: string | null;
+          resolvida_por?: string | null;
+          status?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "cavalos_venda_denuncias_cavalo_id_fkey";
+            columns: ["cavalo_id"];
+            isOneToOne: false;
+            referencedRelation: "cavalos_venda";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      cavalos_venda_visualizacoes: {
+        Row: {
+          cavalo_id: string;
+          created_at: string;
+          dia: string;
+          visitante_hash: string;
+        };
+        Insert: {
+          cavalo_id: string;
+          created_at?: string;
+          dia?: string;
+          visitante_hash: string;
+        };
+        Update: {
+          cavalo_id?: string;
+          created_at?: string;
+          dia?: string;
+          visitante_hash?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "cavalos_venda_visualizacoes_cavalo_id_fkey";
+            columns: ["cavalo_id"];
+            isOneToOne: false;
+            referencedRelation: "cavalos_venda";
             referencedColumns: ["id"];
           },
         ];
@@ -1550,6 +1748,145 @@ export type Database = {
         };
         Relationships: [];
       };
+      marketplace_alertas: {
+        Row: {
+          ativo: boolean;
+          created_at: string;
+          desde: string;
+          disciplina: string | null;
+          frequencia: string;
+          id: string;
+          idade_max: number | null;
+          idade_min: number | null;
+          nivel: string | null;
+          nome: string | null;
+          preco_max: number | null;
+          preco_min: number | null;
+          regiao: string | null;
+          sexo: string | null;
+          termo: string | null;
+          ultimo_envio_at: string | null;
+          user_id: string;
+        };
+        Insert: {
+          ativo?: boolean;
+          created_at?: string;
+          desde?: string;
+          disciplina?: string | null;
+          frequencia?: string;
+          id?: string;
+          idade_max?: number | null;
+          idade_min?: number | null;
+          nivel?: string | null;
+          nome?: string | null;
+          preco_max?: number | null;
+          preco_min?: number | null;
+          regiao?: string | null;
+          sexo?: string | null;
+          termo?: string | null;
+          ultimo_envio_at?: string | null;
+          user_id: string;
+        };
+        Update: {
+          ativo?: boolean;
+          created_at?: string;
+          desde?: string;
+          disciplina?: string | null;
+          frequencia?: string;
+          id?: string;
+          idade_max?: number | null;
+          idade_min?: number | null;
+          nivel?: string | null;
+          nome?: string | null;
+          preco_max?: number | null;
+          preco_min?: number | null;
+          regiao?: string | null;
+          sexo?: string | null;
+          termo?: string | null;
+          ultimo_envio_at?: string | null;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      marketplace_conversas: {
+        Row: {
+          arquivada_comprador: boolean;
+          arquivada_vendedor: boolean;
+          cavalo_id: string;
+          comprador_id: string;
+          comprador_nome: string | null;
+          created_at: string;
+          id: string;
+          ultima_mensagem_at: string;
+          vendedor_id: string;
+        };
+        Insert: {
+          arquivada_comprador?: boolean;
+          arquivada_vendedor?: boolean;
+          cavalo_id: string;
+          comprador_id: string;
+          comprador_nome?: string | null;
+          created_at?: string;
+          id?: string;
+          ultima_mensagem_at?: string;
+          vendedor_id: string;
+        };
+        Update: {
+          arquivada_comprador?: boolean;
+          arquivada_vendedor?: boolean;
+          cavalo_id?: string;
+          comprador_id?: string;
+          comprador_nome?: string | null;
+          created_at?: string;
+          id?: string;
+          ultima_mensagem_at?: string;
+          vendedor_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_conversas_cavalo_id_fkey";
+            columns: ["cavalo_id"];
+            isOneToOne: false;
+            referencedRelation: "cavalos_venda";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      marketplace_mensagens: {
+        Row: {
+          conversa_id: string;
+          corpo: string;
+          created_at: string;
+          id: string;
+          lida_at: string | null;
+          remetente_id: string;
+        };
+        Insert: {
+          conversa_id: string;
+          corpo: string;
+          created_at?: string;
+          id?: string;
+          lida_at?: string | null;
+          remetente_id: string;
+        };
+        Update: {
+          conversa_id?: string;
+          corpo?: string;
+          created_at?: string;
+          id?: string;
+          lida_at?: string | null;
+          remetente_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_mensagens_conversa_id_fkey";
+            columns: ["conversa_id"];
+            isOneToOne: false;
+            referencedRelation: "marketplace_conversas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       payments: {
         Row: {
           amount: number;
@@ -2233,339 +2570,40 @@ export type Database = {
           },
         ];
       };
-      // ================================================================
-      // Manual stubs — tables not captured by `supabase gen types`
-      // (RLS policies or schema visibility). Remove if they appear in
-      // a future regeneration. Keep in sync with actual DB schema.
-      // ================================================================
-      admin_activity_log: {
+      seller_ratings: {
         Row: {
+          buyer_email: string;
+          cavalo_id: string;
+          comment: string | null;
+          created_at: string | null;
           id: string;
-          admin_email: string;
-          action_type: string;
-          entity_type: string;
-          entity_id: string | null;
-          changes: Json | null;
-          ip_address: string | null;
-          created_at: string;
+          rating: number;
         };
         Insert: {
+          buyer_email: string;
+          cavalo_id: string;
+          comment?: string | null;
+          created_at?: string | null;
           id?: string;
-          admin_email: string;
-          action_type: string;
-          entity_type: string;
-          entity_id?: string | null;
-          changes?: Json | null;
-          ip_address?: string | null;
-          created_at?: string;
+          rating: number;
         };
         Update: {
+          buyer_email?: string;
+          cavalo_id?: string;
+          comment?: string | null;
+          created_at?: string | null;
           id?: string;
-          admin_email?: string;
-          action_type?: string;
-          entity_type?: string;
-          entity_id?: string | null;
-          changes?: Json | null;
-          ip_address?: string | null;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
-      coudelarias_plano_historico: {
-        Row: {
-          id: string;
-          coudelaria_id: string;
-          plano: string;
-          valor: number;
-          inicio: string;
-          fim: string | null;
-          status: string;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          coudelaria_id: string;
-          plano: string;
-          valor: number;
-          inicio: string;
-          fim?: string | null;
-          status?: string;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          coudelaria_id?: string;
-          plano?: string;
-          valor?: number;
-          inicio?: string;
-          fim?: string | null;
-          status?: string;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
-      depoimentos_cavalos: {
-        Row: {
-          id: string;
-          cavalo_id: string | null;
-          autor: string | null;
-          autor_nome: string | null;
-          autor_cargo: string | null;
-          texto: string | null;
-          mensagem: string | null;
-          status: string;
-          created_at: string;
-          updated_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          cavalo_id?: string | null;
-          autor?: string | null;
-          autor_nome?: string | null;
-          autor_cargo?: string | null;
-          texto?: string | null;
-          mensagem?: string | null;
-          status?: string;
-          created_at?: string;
-          updated_at?: string | null;
-        };
-        Update: {
-          id?: string;
-          cavalo_id?: string | null;
-          autor?: string | null;
-          autor_nome?: string | null;
-          autor_cargo?: string | null;
-          texto?: string | null;
-          mensagem?: string | null;
-          status?: string;
-          created_at?: string;
-          updated_at?: string | null;
+          rating?: number;
         };
         Relationships: [
           {
-            foreignKeyName: "depoimentos_cavalos_cavalo_id_fkey";
+            foreignKeyName: "seller_ratings_cavalo_id_fkey";
             columns: ["cavalo_id"];
             isOneToOne: false;
             referencedRelation: "cavalos_venda";
             referencedColumns: ["id"];
           },
         ];
-      };
-      push_subscriptions: {
-        Row: {
-          endpoint: string;
-          keys_p256dh: string | null;
-          keys_auth: string | null;
-          expiration_time: number | null;
-          ip_address: string | null;
-          updated_at: string | null;
-        };
-        Insert: {
-          endpoint: string;
-          keys_p256dh?: string | null;
-          keys_auth?: string | null;
-          expiration_time?: number | null;
-          ip_address?: string | null;
-          updated_at?: string | null;
-        };
-        Update: {
-          endpoint?: string;
-          keys_p256dh?: string | null;
-          keys_auth?: string | null;
-          expiration_time?: number | null;
-          ip_address?: string | null;
-          updated_at?: string | null;
-        };
-        Relationships: [];
-      };
-      reviews_cavalos: {
-        Row: {
-          id: string;
-          cavalo_id: string;
-          nome_avaliador: string;
-          email: string;
-          rating: number;
-          comentario: string | null;
-          status: string;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          cavalo_id: string;
-          nome_avaliador: string;
-          email: string;
-          rating: number;
-          comentario?: string | null;
-          status?: string;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          cavalo_id?: string;
-          nome_avaliador?: string;
-          email?: string;
-          rating?: number;
-          comentario?: string | null;
-          status?: string;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
-      saved_results: {
-        Row: {
-          id: string;
-          user_id: string;
-          tool_name: string;
-          title: string | null;
-          form_data: Json | null;
-          result_data: Json | null;
-          share_id: string | null;
-          is_public: boolean;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          tool_name: string;
-          title?: string | null;
-          form_data?: Json | null;
-          result_data?: Json | null;
-          share_id?: string | null;
-          is_public?: boolean;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          tool_name?: string;
-          title?: string | null;
-          form_data?: Json | null;
-          result_data?: Json | null;
-          share_id?: string | null;
-          is_public?: boolean;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
-      seller_ratings: {
-        Row: {
-          id: string;
-          cavalo_id: string;
-          buyer_email: string;
-          rating: number;
-          comment: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          cavalo_id: string;
-          buyer_email: string;
-          rating: number;
-          comment?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          cavalo_id?: string;
-          buyer_email?: string;
-          rating?: number;
-          comment?: string | null;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
-      site_settings: {
-        Row: {
-          id: string;
-          key: string;
-          value: string;
-          category: string;
-          label: string;
-          description: string | null;
-          input_type: string;
-          options: Json | null;
-          is_required: boolean;
-          validation_regex: string | null;
-          updated_by: string | null;
-          updated_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          key: string;
-          value: string;
-          category: string;
-          label: string;
-          description?: string | null;
-          input_type?: string;
-          options?: Json | null;
-          is_required?: boolean;
-          validation_regex?: string | null;
-          updated_by?: string | null;
-          updated_at?: string | null;
-        };
-        Update: {
-          id?: string;
-          key?: string;
-          value?: string;
-          category?: string;
-          label?: string;
-          description?: string | null;
-          input_type?: string;
-          options?: Json | null;
-          is_required?: boolean;
-          validation_regex?: string | null;
-          updated_by?: string | null;
-          updated_at?: string | null;
-        };
-        Relationships: [];
-      };
-      tool_usage: {
-        Row: {
-          id: string;
-          user_id: string;
-          tool_name: string;
-          form_data: Json | null;
-          result_data: Json | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          tool_name: string;
-          form_data?: Json | null;
-          result_data?: Json | null;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          tool_name?: string;
-          form_data?: Json | null;
-          result_data?: Json | null;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
-      user_profiles: {
-        Row: {
-          id: string;
-          tools_subscription_status: string | null;
-          stripe_customer_id: string | null;
-          stripe_subscription_id: string | null;
-        };
-        Insert: {
-          id: string;
-          tools_subscription_status?: string | null;
-          stripe_customer_id?: string | null;
-          stripe_subscription_id?: string | null;
-        };
-        Update: {
-          id?: string;
-          tools_subscription_status?: string | null;
-          stripe_customer_id?: string | null;
-          stripe_subscription_id?: string | null;
-        };
-        Relationships: [];
       };
     };
     Views: {
@@ -2602,6 +2640,10 @@ export type Database = {
       };
       mark_cart_recovered: {
         Args: { p_order_id: string; p_recovery_token: string };
+        Returns: boolean;
+      };
+      registar_visualizacao_cavalo: {
+        Args: { p_cavalo_id: string; p_visitante_hash: string };
         Returns: boolean;
       };
       validar_cupao: {

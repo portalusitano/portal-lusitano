@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     const cavaloIds = [...new Set(denuncias.map((d) => d.cavalo_id))];
     const { data: cavalos } = await supabase
       .from("cavalos_venda")
-      .select("id, nome, nome_cavalo, slug, status, vendedor_email, vendedor_nome")
+      .select("id, nome, slug, status, vendedor_email, vendedor_nome")
       .in("id", cavaloIds);
 
     const porCavalo = new Map((cavalos || []).map((c) => [c.id, c]));
@@ -56,8 +56,7 @@ export async function GET(request: NextRequest) {
         return {
           id: d.id,
           cavaloId: d.cavalo_id,
-          cavaloNome:
-            (cavalo?.nome as string) || (cavalo?.nome_cavalo as string) || "Anúncio removido",
+          cavaloNome: (cavalo?.nome as string) || "Anúncio removido",
           cavaloStatus: (cavalo?.status as string) || null,
           vendedorNome: (cavalo?.vendedor_nome as string) || null,
           vendedorEmail: (cavalo?.vendedor_email as string) || null,

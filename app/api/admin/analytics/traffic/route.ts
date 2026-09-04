@@ -31,7 +31,7 @@ export const GET = createApiRoute(
       Promise.resolve(
         supabase
           .from("cavalos_venda")
-          .select("id, nome_cavalo, views_count")
+          .select("id, nome, views_count")
           .order("views_count", { ascending: false })
           .limit(10)
       ).catch(() => ({ data: null, error: null })),
@@ -66,9 +66,7 @@ export const GET = createApiRoute(
     const cavalos = (cavalosViewsResult.data as { views_count: number }[] | null) || [];
     const eventos = (eventosViewsResult.data as { views_count: number }[] | null) || [];
     const topCavalos =
-      (topCavalosResult.data as
-        | { id: string; nome_cavalo: string; views_count: number }[]
-        | null) || [];
+      (topCavalosResult.data as { id: string; nome: string; views_count: number }[] | null) || [];
     const topEventos =
       (topEventosResult.data as { id: string; titulo: string; views_count: number }[] | null) || [];
     const leads =
@@ -117,7 +115,7 @@ export const GET = createApiRoute(
       },
       topCavalos: topCavalos.map((c) => ({
         id: c.id,
-        name: c.nome_cavalo,
+        name: c.nome,
         views: c.views_count || 0,
       })),
       topEventos: topEventos.map((e) => ({

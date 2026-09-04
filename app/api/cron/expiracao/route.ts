@@ -13,10 +13,13 @@ const MAX_ANUNCIOS_POR_EXECUCAO = 200;
 interface LinhaAnuncio {
   id: string;
   nome: string | null;
-  nome_cavalo: string | null;
   status: string | null;
   user_id: string | null;
-  contacto_email: string | null;
+  // A coluna chama-se `vendedor_email`. Estava aqui como `contacto_email`, que
+  // a tabela não tem — e pedir uma coluna inexistente ao PostgREST faz a
+  // consulta INTEIRA devolver `null`, não a linha sem essa coluna. Logo este
+  // cron nunca enviou um único aviso de expiração.
+  vendedor_email: string | null;
   listing_expires_at: string | null;
   aviso_expiracao_dias: number | null;
   aviso_expiracao_prazo: string | null;
@@ -52,7 +55,7 @@ async function emailDoVendedor(linha: LinhaAnuncio): Promise<string | null> {
     const { data } = await supabaseAdmin.auth.admin.getUserById(linha.user_id);
     if (data?.user?.email) return data.user.email;
   }
-  return linha.contacto_email || null;
+  return linha.vendedor_email || null;
 }
 
 /**
@@ -97,7 +100,7 @@ export async function GET(request: NextRequest) {
     const { data: linhas, error } = await supabaseAdmin
       .from("cavalos_venda")
       .select(
-        "id, nome, nome_cavalo, status, user_id, contacto_email, listing_expires_at, aviso_expiracao_dias, aviso_expiracao_prazo"
+        "id, nome, status, user_id, vendedor_email, listing_expires_at, aviso_expiracao_dias, aviso_expiracao_prazo"
       )
       .in("status", [LISTING_STATUS.ACTIVE, LISTING_STATUS.RESERVADO])
       .not("listing_expires_at", "is", null)
@@ -132,7 +135,7 @@ export async function GET(request: NextRequest) {
           continue;
         }
 
-        const nome = linha.nome || linha.nome_cavalo || "o seu cavalo";
+        const nome = linha.nome || "o seu cavalo";
 
         await sendEmail({
           to: email,

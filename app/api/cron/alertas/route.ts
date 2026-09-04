@@ -23,10 +23,8 @@ const MAX_CAVALOS_POR_EMAIL = 6;
 interface CavaloAlerta {
   id: string;
   nome: string | null;
-  nome_cavalo: string | null;
   preco: number | null;
   foto_principal: string | null;
-  image_url: string | null;
   localizacao: string | null;
   idade: number | null;
   created_at: string;
@@ -40,8 +38,8 @@ function corpoEmail(
 ): string {
   const cartoes = cavalos
     .map((c) => {
-      const nome = escapeHtml(c.nome || c.nome_cavalo || "Cavalo Lusitano");
-      const foto = c.foto_principal || c.image_url;
+      const nome = escapeHtml(c.nome || "Cavalo Lusitano");
+      const foto = c.foto_principal;
       const preco =
         typeof c.preco === "number"
           ? new Intl.NumberFormat("pt-PT", {
@@ -163,9 +161,7 @@ export async function GET(request: NextRequest) {
       try {
         const base = supabaseAdmin
           .from("cavalos_venda")
-          .select(
-            "id, nome, nome_cavalo, preco, foto_principal, image_url, localizacao, idade, created_at"
-          )
+          .select("id, nome, preco, foto_principal, localizacao, idade, created_at")
           .eq("status", LISTING_STATUS.ACTIVE)
           .gt("created_at", fronteira)
           .order("created_at", { ascending: false })
@@ -193,7 +189,7 @@ export async function GET(request: NextRequest) {
           to: email,
           subject:
             cavalos.length === 1
-              ? `Novo cavalo para si: ${cavalos[0].nome || cavalos[0].nome_cavalo}`
+              ? `Novo cavalo para si: ${cavalos[0].nome}`
               : `${cavalos.length} novos cavalos para a sua pesquisa`,
           html: corpoEmail(alerta, cavalos, cavalos.length, baseUrl),
           template: "alerta-marketplace",

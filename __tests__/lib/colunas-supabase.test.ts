@@ -33,24 +33,27 @@ import path from "node:path";
  *   novo) não são verificadas: aí não há autoridade nenhuma para comparar, e
  *   acusar por comparação com o SQL daria falsos positivos.
  *
- * ─── O ponto cego, medido ───────────────────────────────────────────────────
+ * ─── O ponto cego, que fechou ──────────────────────────────────────────────
  *
- * `lib/database.types.ts` está velho, e isso abre um buraco nos dois sentidos.
- * Comparado com o esquema vivo de `cavalos_venda` (lido de `information_schema`
- * em 2026-09-02), o ficheiro gerado **declara oito colunas que a base não tem**
- * — `raca`, `nome_cavalo`, `image_url`, `nivel`, `pontuacao_apsl`,
- * `contacto_nome`, `contacto_email` e `contacto_telefone` — e **desconhece
- * quinze que ela tem**, entre elas `user_id`, `listing_tier` e `verificado`
- * (essas chegam pelas migrações).
+ * Houve aqui um buraco nos dois sentidos, e vale a pena ficar escrito porque
+ * foi ele que escondeu onze consultas partidas.
  *
- * As oito a mais são o buraco que interessa: uma consulta que peça `raca` passa
- * aqui e devolve 42703 em produção. Foi o que aconteceu com
- * `app/api/cavalos/route.ts`, que a pede no `.select(...)` desde sempre — o
- * teste «a listagem de cavalos pede colunas que existem» dava verde sobre uma
- * coluna que não existia. A migração `20260902000002` cria `raca`, porque ela é
- * também o destino do campo `raca_confirmada` do formulário, o que fecha esse
- * caso pelo lado certo. Os outros sete continuam por fechar até alguém regerar
- * os tipos, e é por isso que isto fica escrito aqui e não só no relatório.
+ * `lib/database.types.ts` estava velho e **declarava oito colunas que a base
+ * não tinha** — `raca`, `nome_cavalo`, `image_url`, `nivel`, `pontuacao_apsl`,
+ * `contacto_nome`, `contacto_email` e `contacto_telefone`. Como este ficheiro
+ * tira daí a sua autoridade, uma consulta que pedisse qualquer uma delas
+ * passava aqui e devolvia 42703 em produção. E 42703 não devolve a linha sem
+ * essa coluna: devolve `data: null` para a consulta inteira, o que faz um
+ * `c.nome || c.nome_cavalo` defensivo nunca chegar a correr.
+ *
+ * Os tipos foram regerados em 2026-09-04, depois de as duas migrações serem
+ * aplicadas, e as oito fantasmas desapareceram. Nesse instante este teste
+ * acusou as onze — o chat do marketplace, os dois crons de email, as denúncias
+ * e as estatísticas do admin —, e ficaram corrigidas.
+ *
+ * A lição, para quem regerar os tipos a seguir: **um teste de contrato não vale
+ * mais do que a fonte de onde tira a verdade.** Enquanto os tipos estiverem
+ * atrasados face à base, este ficheiro dá verde sobre código partido.
  */
 
 const RAIZ = path.resolve(__dirname, "../..");
@@ -202,17 +205,19 @@ describe("colunas pedidas ao Supabase", () => {
     expect(novas.filter((c) => !tabelas.cavalos_venda.has(c))).toEqual([]);
   });
 
-  it("a tabela dos ascendentes não é verificada, e é de propósito", () => {
-    // `cavalos_venda_ascendentes` nasce de um `CREATE TABLE IF NOT EXISTS`, e a
-    // regra deste ficheiro é não tirar autoridade daí: numa base onde a tabela
-    // já existisse com outra forma, o statement não corre e as colunas que
-    // declara podem nunca ter sido criadas. Sem autoridade não se acusa —
-    // acusar por comparação com o SQL dava falsos positivos.
+  it("a tabela dos ascendentes existe mesmo, e com as colunas que o webhook escreve", () => {
+    // Escrito quando a tabela só existia num `CREATE TABLE IF NOT EXISTS` por
+    // aplicar, e este teste afirmava o contrário: que ela **não** era
+    // verificável, porque não havia autoridade de onde a ler.
     //
-    // O contrato dela está garantido do outro lado: a migração foi validada
-    // contra um PostgreSQL local, e `__tests__/api/stripe-webhook-handlers.test.ts`
-    // prova que o webhook lhe escreve as cinco colunas com os nomes certos.
-    expect(lerEsquema().cavalos_venda_ascendentes).toBeUndefined();
+    // A migração foi aplicada a 2026-09-04 e os tipos regerados a partir da
+    // base, portanto a autoridade passou a existir. Passa a afirmar a forma —
+    // que é o que um teste de contrato deve fazer assim que tem de onde a ler.
+    const ascendentes = lerEsquema().cavalos_venda_ascendentes;
+    expect(ascendentes).toBeDefined();
+    for (const coluna of ["cavalo_id", "caminho", "geracao", "nome", "registo"]) {
+      expect(ascendentes!.has(coluna)).toBe(true);
+    }
   });
 
   it("não pede colunas que a base não tem, fora da dívida já apurada", () => {
