@@ -17,6 +17,7 @@ import Seleccao from "@/components/ui/Seleccao";
 import Seccao from "@/components/vender-cavalo/Seccao";
 import SimNao from "@/components/vender-cavalo/SimNao";
 import { ErroDoCampo, classeCampo } from "@/components/vender-cavalo/campos-com-erro";
+import EscolherFicheiro from "@/components/vender-cavalo/EscolherFicheiro";
 import {
   ApontamentoDoCampo,
   atributosCampo,
@@ -488,11 +489,21 @@ export default function StepPrecoApresentacao(props: StepPrecoApresentacaoProps)
 
           {/* Drag & drop area */}
           {imagens.length < maxImages && (
-            <label
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              className={`flex flex-col items-center justify-center gap-3 w-full py-8 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 touch-manipulation ${
+            <EscolherFicheiro
+              texto={t.vender_cavalo.drag_or_click}
+              aceita="image/*"
+              multiplo
+              aoEscolher={(ficheiros) =>
+                onImageUpload({
+                  target: { files: ficheiros },
+                } as React.ChangeEvent<HTMLInputElement>)
+              }
+              aoArrastar={{
+                onDragOver: handleDragOver,
+                onDragLeave: handleDragLeave,
+                onDrop: handleDrop,
+              }}
+              className={`flex flex-col items-center justify-center gap-3 w-full py-8 border-2 border-dashed rounded-lg transition-all duration-200 touch-manipulation ${
                 isDragging
                   ? "border-[var(--foreground-strong)] bg-[var(--elevate-1)]"
                   : "border-[var(--border)] hover:border-[var(--border-hover)] hover:bg-[var(--background-card)]/50"
@@ -500,9 +511,13 @@ export default function StepPrecoApresentacao(props: StepPrecoApresentacaoProps)
             >
               <div className="w-10 h-10 border border-[var(--border)] rounded-lg flex items-center justify-center">
                 {isDragging ? (
-                  <ImagePlus size={20} className="text-[var(--foreground-muted)]" />
+                  <ImagePlus
+                    size={20}
+                    className="text-[var(--foreground-muted)]"
+                    aria-hidden="true"
+                  />
                 ) : (
-                  <Upload size={18} className="text-[var(--foreground-muted)]" />
+                  <Upload size={18} className="text-[var(--foreground-muted)]" aria-hidden="true" />
                 )}
               </div>
               <div className="text-center">
@@ -514,14 +529,7 @@ export default function StepPrecoApresentacao(props: StepPrecoApresentacaoProps)
                   {t.vender_cavalo.max_images_hint.replace("{max}", String(maxImages))}
                 </p>
               </div>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={onImageUpload}
-              />
-            </label>
+            </EscolherFicheiro>
           )}
         </div>
 

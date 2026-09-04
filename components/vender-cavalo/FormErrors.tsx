@@ -56,12 +56,35 @@ const FormErrors = forwardRef<HTMLDivElement, FormErrorsProps>(function FormErro
       document.querySelector<HTMLElement>(`[data-campo="${campo}"]`);
     if (!alvo) return;
     alvo.scrollIntoView({ block: "center", behavior: "smooth" });
-    // Um `<Seleccao>` esconde um `<select>` verdadeiro e mostra um botão; é o
-    // botão que recebe o foco de quem navega, e é a ele que se chama.
+    // Onde é que o foco aterra, que quase nunca é no elemento que tem o `id`.
+    //
+    // Três casos, e os três medidos no browser:
+    //
+    // 1. Um `<Seleccao>` põe o `id` num `<select>` a sério que está escondido
+    //    (1×1 px, `opacity: 0`) e mostra um botão. É o botão que recebe o foco.
+    //    O `tabIndex >= 0` da primeira condição é o que exclui esse `<select>`,
+    //    e **tem de continuar a excluí-lo**: ele tem `tabindex="-1"` mas também
+    //    tem `offsetParent`, por isso qualquer teste mais permissivo o
+    //    apanharia e mandaria o foco para um pixel invisível.
+    // 2. Uma pergunta de sim ou não põe o `id` no texto da pergunta. O que se
+    //    quer focar é a primeira das duas respostas — é lá que as setas do
+    //    teclado servem para alguma coisa, e o leitor de ecrã lê a pergunta na
+    //    mesma, porque o grupo é `aria-labelledby` para ela.
+    // 3. As pastilhas e os anexos não têm `id` nenhum: são um bloco com
+    //    `data-campo`, e o que lá dentro se foca é a primeira pastilha.
+    //
+    // Os casos 2 e 3 procuram-se a partir do bloco com `data-campo`, e não a
+    // partir do elemento irmão. Medido: com a procura no irmão, carregar na
+    // linha de uma das vinte e sete perguntas de sim ou não deixava o foco no
+    // próprio botão do resumo — que num leitor de ecrã é não ter ido a lado
+    // nenhum.
+    const contentor = alvo.closest<HTMLElement>("[data-campo]") ?? alvo.parentElement;
     const focavel =
-      alvo instanceof HTMLElement && alvo.tabIndex >= 0 && alvo.offsetParent !== null
+      alvo.tabIndex >= 0 && alvo.offsetParent !== null
         ? alvo
-        : alvo.parentElement?.querySelector<HTMLElement>("button, input, textarea");
+        : contentor?.querySelector<HTMLElement>(
+            'input:not([type="hidden"]):not(.hidden), button, textarea'
+          );
     focavel?.focus({ preventScroll: true });
   };
 

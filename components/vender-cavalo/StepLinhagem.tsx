@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Upload, CheckCircle, FileText } from "lucide-react";
+import { CheckCircle, FileText } from "lucide-react";
 import type { StepProps, Documentos, DocumentType } from "@/components/vender-cavalo/types";
 import { linhagensPrincipais } from "@/components/vender-cavalo/data";
 import { useLanguage } from "@/context/LanguageContext";
@@ -10,6 +10,7 @@ import Seleccao from "@/components/ui/Seleccao";
 import Seccao from "@/components/vender-cavalo/Seccao";
 import { ErroDoCampo, classeCampo } from "@/components/vender-cavalo/campos-com-erro";
 import { atributosCampo, ligarCampo } from "@/components/vender-cavalo/apontamentos";
+import EscolherFicheiro from "@/components/vender-cavalo/EscolherFicheiro";
 
 interface StepLinhagemProps extends StepProps {
   documentos: Documentos;
@@ -285,27 +286,14 @@ export default function StepLinhagem(props: StepLinhagemProps) {
               <p className="text-xs text-[var(--foreground-muted)] mb-3">
                 {t.vender_cavalo.blue_book_desc}
               </p>
-              <label
-                className={`flex items-center justify-center gap-2 px-4 py-3 border border-dashed rounded-lg cursor-pointer transition-colors touch-manipulation ${
-                  erros.livro_azul
-                    ? "border-[var(--erro)]"
-                    : "border-[var(--border)] hover:border-[var(--border-hover)]"
-                }`}
-              >
-                <Upload size={18} className="text-[var(--foreground-muted)]" />
-                <span className="text-sm text-[var(--foreground-secondary)]">
-                  {documentos.livroAzul ? documentos.livroAzul.name : t.vender_cavalo.choose_file}
-                </span>
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  className="hidden"
-                  aria-describedby={erros.livro_azul ? "erro-livro_azul" : undefined}
-                  onChange={(e) =>
-                    e.target.files?.[0] && onDocUpload("livroAzul", e.target.files[0])
-                  }
-                />
-              </label>
+              <EscolherFicheiro
+                texto={
+                  documentos.livroAzul ? documentos.livroAzul.name : t.vender_cavalo.choose_file
+                }
+                comErro={Boolean(erros.livro_azul)}
+                descritoPor={erros.livro_azul ? "erro-livro_azul" : undefined}
+                aoEscolher={(f) => onDocUpload("livroAzul", f[0])}
+              />
               <ErroDoCampo erros={erros} campo="livro_azul" />
             </div>
 
@@ -321,22 +309,14 @@ export default function StepLinhagem(props: StepLinhagemProps) {
               <p className="text-xs text-[var(--foreground-muted)] mb-3">
                 {t.vender_cavalo.equine_passport_desc}
               </p>
-              <label className="flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-[var(--border)] rounded-lg cursor-pointer hover:border-[var(--border-hover)] transition-colors touch-manipulation">
-                <Upload size={18} className="text-[var(--foreground-muted)]" />
-                <span className="text-sm text-[var(--foreground-secondary)]">
-                  {documentos.passaporte
+              <EscolherFicheiro
+                texto={
+                  documentos.passaporte
                     ? documentos.passaporte.name
-                    : t.vender_cavalo.choose_file_short}
-                </span>
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  className="hidden"
-                  onChange={(e) =>
-                    e.target.files?.[0] && onDocUpload("passaporte", e.target.files[0])
-                  }
-                />
-              </label>
+                    : t.vender_cavalo.choose_file_short
+                }
+                aoEscolher={(f) => onDocUpload("passaporte", f[0])}
+              />
             </div>
           </div>
         </div>

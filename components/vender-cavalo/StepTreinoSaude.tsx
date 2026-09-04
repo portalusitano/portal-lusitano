@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Upload, CheckCircle, Shield } from "lucide-react";
+import { CheckCircle, Shield } from "lucide-react";
 import type {
   StepProps,
   Documentos,
@@ -23,6 +23,7 @@ import Seleccao from "@/components/ui/Seleccao";
 import Seccao from "@/components/vender-cavalo/Seccao";
 import SimNao from "@/components/vender-cavalo/SimNao";
 import { ErroDoCampo, classeCampo } from "@/components/vender-cavalo/campos-com-erro";
+import EscolherFicheiro from "@/components/vender-cavalo/EscolherFicheiro";
 import {
   ApontamentoDoCampo,
   atributosCampo,
@@ -825,20 +826,12 @@ export default function StepTreinoSaude(props: StepTreinoSaudeProps) {
                 <span className="text-sm font-medium">{t.vender_cavalo.vet_report}</span>
                 {documentos.exameVet && <CheckCircle size={18} className="text-[var(--ok)]" />}
               </div>
-              <label className="flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-[var(--border)] rounded-lg cursor-pointer hover:border-[var(--border-hover)] transition-colors touch-manipulation">
-                <Upload size={18} className="text-[var(--foreground-muted)]" />
-                <span className="text-sm text-[var(--foreground-secondary)]">
-                  {documentos.exameVet ? documentos.exameVet.name : t.vender_cavalo.attach_report}
-                </span>
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  className="hidden"
-                  onChange={(e) =>
-                    e.target.files?.[0] && onDocUpload("exameVet", e.target.files[0])
-                  }
-                />
-              </label>
+              <EscolherFicheiro
+                texto={
+                  documentos.exameVet ? documentos.exameVet.name : t.vender_cavalo.attach_report
+                }
+                aoEscolher={(f) => onDocUpload("exameVet", f[0])}
+              />
             </div>
           )}
         </div>
