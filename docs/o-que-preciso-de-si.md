@@ -9,7 +9,30 @@ Está por ordem: primeiro o que destrava mais, e o que bloqueia o resto.
 
 ---
 
-## 1. Os termos da APSL — bloqueia tudo o resto da consulta
+## 1. Os termos da APSL — **respondido a 4 de Setembro de 2026**
+
+> **O `robots.txt` está limpo.** Conteúdo integral, tal como o dono do site o
+> leu:
+>
+> ```
+> Sitemap: https://www.cavalo-lusitano.com/sitemap/sitemap.xml
+> User-Agent: *
+> Disallow: /admin
+> ```
+>
+> A única exclusão é `/admin`. **A página do acesso público ao stud-book não
+> está proibida**, e não há regra nenhuma contra consulta automática.
+>
+> O que isto **não** resolve: o `robots.txt` não são os termos de utilização —
+> são documentos diferentes, e o segundo é o que teria uma cláusula sobre uso
+> comercial dos dados. Fica por ver o rodapé do site («Termos», «Condições»,
+> «Aviso Legal»).
+>
+> Fica registado que **o sitemap é público e está declarado**. Pode revelar a
+> forma dos endereços da pesquisa, e é uma coisa a olhar antes de pedir as
+> páginas guardadas do ponto 3.
+
+O que abaixo se escreveu antes de haver resposta, e que continua a valer:
 
 **Antes de mais nada**, e é a única coisa aqui que é uma decisão e não uma
 recolha:
