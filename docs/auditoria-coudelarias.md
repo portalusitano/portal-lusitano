@@ -1174,3 +1174,56 @@ Há remédio já escrito no repositório: o `scripts/sync-galeria.ts` reescreve
 `foto_capa` e `galeria` a partir do que está mesmo em disco. É também ele que
 explica os três `Captura de ecrã 2026-02-23 …png` da `coudelaria-andrade` —
 aceita qualquer nome de ficheiro, sem perguntar o que é.
+
+---
+
+## O que foi aplicado, e o que ficou por aplicar
+
+Esta secção é posterior ao levantamento. Regista o que saiu do relatório para
+a base, e nada mais.
+
+### `scripts/correccoes-coudelarias.sql`
+
+**Quinze `UPDATE`**, um por ficha, só sobre `historia` e `descricao`. Cada um
+leva por cima o que se corrigiu e a fonte que o contradizia. A
+`coudelaria-andrade` fica de fora: foi corrigida à mão antes deste ficheiro.
+
+Fichas tocadas: `casa-cadaval`, `coudelaria-manuel-veiga`, `coudelaria-sa`,
+`dressage-plus`, `flor-do-lis`, `herdade-do-pinheiro`, `joao-lynce`,
+`joao-pedro-rodrigues`, `luis-folgado`, `mascarenhas-cardoso`,
+`ortigao-costa`, `quinta-lusitania`, `quinta-madre-de-agua`, `veiga-teixeira`
+e `vila-vicosa`.
+
+**Nada foi substituído por um facto plausível sem fonte.** Onde uma afirmação
+saiu e não havia com que a substituir, a ficha ficou mais curta — que é o
+resultado certo. As seis «por confirmar» que saíram são todas superlativos
+absolutos sem dono («a maior coudelaria privada», «o cavalo mais premiado do
+Mundo», «o grande embaixador», «uma das mais prestigiadas», «a mais prestigiada
+feira», «um símbolo e marco»): não são factos por confirmar, são publicidade
+sem sujeito.
+
+**Validado contra um PostgreSQL 16 local**, com um exemplar da tabela:
+
+- primeira passagem: 15 linhas, `UPDATE 1` em cada, e a consulta de
+  verificação do fim do ficheiro devolve **zero linhas**;
+- segunda passagem: **hash idêntico** do conteúdo dos dois campos —
+  `828472abb8f8dcb1bc26264428e16162` nas duas vezes. É idempotente;
+- as linhas fora da lista não são tocadas, e as três que só mudam de
+  `descricao` mantêm a `historia` intacta;
+- os apóstrofos dos nomes portugueses (`d'Andrade`, sete numa só ficha)
+  sobrevivem, e os `\r\n` das três fichas que os usavam mantêm-se `\r\n`;
+- cada variação de comprimento bate certo com a edição pretendida, ao
+  caractere. Nada foi truncado por acidente.
+
+### Contraditos que **não** se aplicaram, e porquê
+
+- **`santa-margarida`, o ano de fundação.** O registo diz 1983 e a
+  `rotanacional.pt` diz 1984. Este relatório já dizia que «o ano tem de vir
+  dela» — trocar 1983 por 1984 seria adoptar uma ficha de directório de
+  terceiros contra outra, e é exactamente a troca de uma falsidade por outra
+  mais difícil de apanhar. **Fica para a casa desempatar.**
+- **Tudo o que não é texto.** Coordenadas, fotografias, `ano_fundacao`,
+  `premios`, `localizacao`, `website`, `telefone` e `status` não se tocam
+  aqui: este ficheiro só mexe em `historia` e `descricao`. Os defeitos desses
+  campos continuam descritos nos pontos 1 a 12 do resumo, e são onde estão as
+  contradições que sobram.
