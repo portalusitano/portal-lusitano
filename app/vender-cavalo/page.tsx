@@ -31,6 +31,7 @@ import {
   type MensagensValidacao,
 } from "@/components/vender-cavalo/validacao";
 import { contarSeccao } from "@/components/vender-cavalo/campos";
+import { enviarAnexos, type Progresso } from "@/lib/enviar-anexos";
 import { porCampo } from "@/components/vender-cavalo/campos-com-erro";
 import { errosDeInspeccao, type MensagensInspeccao } from "@/components/vender-cavalo/inspeccao";
 import { useInspeccao } from "@/components/vender-cavalo/usar-inspeccao";
@@ -93,6 +94,8 @@ export default function VenderCavaloPage() {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [imagens, setImagens] = useState<File[]>([]);
   const [documentos, setDocumentos] = useState<Documentos>({});
+  /** O que está a acontecer enquanto os anexos sobem, para o botão o dizer. */
+  const [progressoAnexos, setProgressoAnexos] = useState<Progresso | null>(null);
   const [errors, setErrors] = useState<ErroCampo[]>([]);
   /**
    * O que o resumo do topo mostra.
@@ -650,32 +653,36 @@ export default function VenderCavaloPage() {
     setLoading(true);
 
     try {
-      // 1. Upload images to Supabase Storage first
-      let imageUrls: string[] = [];
-      if (imagens.length > 0) {
-        const uploadFormData = new FormData();
-        imagens.forEach((img) => uploadFormData.append("images", img));
-
-        const uploadRes = await fetch("/api/vender-cavalo/upload", {
-          method: "POST",
-          body: uploadFormData,
-        });
-
-        if (!uploadRes.ok) {
-          const uploadErr = await uploadRes.json();
-          throw new Error(
-            uploadErr.error ||
-              tr(
-                "Erro ao fazer upload das imagens",
-                "Error uploading images",
-                "Error al subir las imágenes"
-              )
-          );
-        }
-
-        const { urls } = await uploadRes.json();
-        imageUrls = urls as string[];
-      }
+      // 1. As fotografias e os documentos, antes do pagamento.
+      //
+      // Era um `FormData` com todas as fotografias numa volta só, e o Livro
+      // Azul não seguia de todo — ficava no `useState` e desaparecia com a
+      // página, depois de o formulário o ter exigido e de ter mostrado um
+      // visto verde. As duas coisas estão em `lib/enviar-anexos.ts`, com a
+      // razão de cada uma escrita lá: as fotografias encolhem no browser e
+      // sobem em voltas que cabem no tecto da plataforma, e cada documento
+      // vai no seu próprio pedido.
+      const { imageUrls, referencia } = await enviarAnexos(
+        { imagens, documentos },
+        {
+          fotografias: tr(
+            "Erro ao enviar as fotografias",
+            "Error uploading photos",
+            "Error al subir las fotografías"
+          ),
+          documentos: tr(
+            "Erro ao enviar os documentos",
+            "Error uploading documents",
+            "Error al subir los documentos"
+          ),
+          grandeDemais: tr(
+            "O ficheiro é demasiado grande para ser enviado.",
+            "The file is too large to upload.",
+            "El archivo es demasiado grande para enviarlo."
+          ),
+        },
+        { aoProgredir: setProgressoAnexos }
+      );
 
       // 2. Create Stripe checkout session with image URLs
       const response = await fetch("/api/vender-cavalo/checkout", {
@@ -794,6 +801,10 @@ export default function VenderCavaloPage() {
             documentosEmDia:
               sim(formData.vacinacao_atualizada) && sim(formData.desparasitacao_atualizada),
             imageUrls,
+            // Por onde o webhook do Stripe encontra os documentos desta
+            // submissão: antes do pagamento o anúncio não existe, e portanto
+            // não há `cavalo_id` a que os prender.
+            referenciaDocumentos: referencia,
           },
         }),
       });
@@ -818,6 +829,7 @@ export default function VenderCavaloPage() {
       if (process.env.NODE_ENV === "development") console.error("[VenderCavalo]", error);
       const message = error instanceof Error ? error.message : "Unknown error";
       showToast("error", t.vender_cavalo.error_payment.replace("{message}", message));
+      setProgressoAnexos(null);
       setLoading(false);
     }
   };
@@ -993,6 +1005,7 @@ export default function VenderCavaloPage() {
                 }
               }}
               loading={loading}
+              progresso={progressoAnexos}
               erros={errosPorCampo}
             />
           )}

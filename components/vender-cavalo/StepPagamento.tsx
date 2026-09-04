@@ -20,7 +20,33 @@ interface StepPagamentoProps {
   termsAccepted: boolean;
   onTermsChange: (checked: boolean) => void;
   loading: boolean;
+  /**
+   * O que está a acontecer enquanto os anexos sobem.
+   *
+   * Sem isto o botão dizia «a processar» durante todo o tempo em que seis
+   * fotografias eram encolhidas e subidas em três voltas — dez, quinze
+   * segundos numa rede de cavalariça, com um anel a rodar e nada a mudar. Um
+   * ecrã que não muda durante quinze segundos lê-se como avaria, e quem o lê
+   * assim carrega outra vez ou fecha o separador.
+   */
+  progresso?: { fase: string; feitos: number; total: number } | null;
   erros: ErrosPorCampo;
+}
+
+/**
+ * A frase que o botão mostra em cada fase. Diz **em que vai** e não só que
+ * está a trabalhar: «Fotografia 4 de 6» é uma promessa que se vê a cumprir,
+ * «a processar» não é nada.
+ */
+function textoDoProgresso(
+  p: { fase: string; feitos: number; total: number },
+  tr: (pt: string, en: string, es: string) => string
+): string {
+  const de = (o: string) => `${o} ${p.feitos}/${p.total}`;
+  if (p.fase === "a-encolher") return de(tr("A preparar", "Preparing", "Preparando"));
+  if (p.fase === "a-subir-documentos")
+    return de(tr("A enviar documentos", "Uploading documents", "Enviando documentos"));
+  return de(tr("A enviar fotografias", "Uploading photos", "Enviando fotografías"));
 }
 
 export default function StepPagamento({
@@ -30,6 +56,7 @@ export default function StepPagamento({
   termsAccepted,
   onTermsChange,
   loading,
+  progresso,
   erros: errosCrus,
 }: StepPagamentoProps) {
   const { t, language } = useLanguage();
@@ -203,7 +230,7 @@ export default function StepPagamento({
         {loading ? (
           <>
             <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-            {t.vender_cavalo.processing}
+            {progresso ? textoDoProgresso(progresso, tr) : t.vender_cavalo.processing}
           </>
         ) : (
           <>

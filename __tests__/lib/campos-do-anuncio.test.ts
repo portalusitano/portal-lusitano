@@ -129,12 +129,14 @@ describe("campos do anúncio: o que o formulário envia e o que o webhook lê", 
   it("as contagens são as medidas, e não encolhem em silêncio", () => {
     // 99 campos no formulário; 103 chaves no pedido (as 99 mais `idade`
     // calculada, `documentosEmDia` derivada e os dois duplicados) mais
-    // `imageUrls`, que não é campo do formulário.
+    // `imageUrls` e `referenciaDocumentos`, que não são campos do formulário:
+    // a primeira é o resultado da subida das fotografias, a segunda é por onde
+    // o webhook encontra os documentos desta submissão.
     const fonte = ler("components/vender-cavalo/types.ts");
     const corpo = bloco(fonte, fonte.indexOf("export interface FormData"));
     const campos = [...corpo.matchAll(/^ {2}([a-z_0-9]+): /gm)].map((m) => m[1]);
     expect(campos.length, "campos do formulário").toBe(99);
-    expect(chavesEnviadas().size, "chaves no pedido de checkout").toBe(104);
+    expect(chavesEnviadas().size, "chaves no pedido de checkout").toBe(105);
     expect(Object.keys(NAO_LIDAS_DE_PROPOSITO).length, "chaves sem destino").toBe(6);
   });
 

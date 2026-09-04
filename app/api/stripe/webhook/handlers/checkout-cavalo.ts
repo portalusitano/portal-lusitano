@@ -145,6 +145,38 @@ export async function handleCavaloAnuncio(
     }
   }
 
+  // Prender os documentos ao anúncio que acabou de nascer.
+  //
+  // Eles subiram antes do pagamento, quando ainda não havia `cavalo_id` a que
+  // os ligar, e ficaram com a `referencia` que o browser gerou. É aqui — o
+  // primeiro instante em que o anúncio existe — que a ligação se faz.
+  //
+  // Só se prendem os que ainda estão soltos (`cavalo_id is null`): se esta
+  // entrega for repetida pelo Stripe, a segunda passagem não rouba documentos
+  // a um anúncio que já os tem.
+  //
+  // Falhar aqui **não** deita o webhook abaixo, pela mesma razão escrita acima
+  // para a ascendência: a partir deste ponto um `throw` faz o Stripe repetir a
+  // entrega e o anúncio nascer duas vezes. Um documento por prender vê-se na
+  // fila de revisão pela referência; um anúncio duplicado numa conta paga é
+  // pior, e não se desfaz.
+  const referenciaDocumentos = formData.referenciaDocumentos;
+  if (typeof referenciaDocumentos === "string" && referenciaDocumentos) {
+    const { error: erroDocumentos } = await supabase
+      .from("documentos_cavalo")
+      .update({ cavalo_id: data.id })
+      .eq("referencia", referenciaDocumentos)
+      .is("cavalo_id", null);
+
+    if (erroDocumentos) {
+      logger.error("Erro ao ligar os documentos ao cavalo:", {
+        cavaloId: data.id,
+        referencia: referenciaDocumentos,
+        erro: erroDocumentos.message,
+      });
+    }
+  }
+
   // Registar pagamento (com NOVOS campos)
   const { data: payment } = await registerPayment(
     session,
