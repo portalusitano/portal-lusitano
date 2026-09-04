@@ -71,12 +71,23 @@ export {
   avaliarRitmo,
   deveConsultar,
   diaUtc,
+  ESPERA_APOS_DESCONHECIDO_MS,
   ESPERA_ENTRE_TENTATIVAS_MS,
+  ESPERA_MAXIMA_ENTRE_TENTATIVAS_MS,
+  esperaDaTentativa,
+  MAX_RESPOSTAS_DESCONHECIDO,
   MAX_TENTATIVAS,
   registarPedido,
   RITMO_VAZIO,
 } from "./ritmo";
-export type { DecisaoDeConsultar, DecisaoDoRitmo, EstadoDoRitmo } from "./ritmo";
+export type {
+  ConsultaAnterior,
+  DecisaoDeConsultar,
+  DecisaoDoRitmo,
+  EstadoDoRitmo,
+  RazaoDeConsultar,
+  RazaoDeNaoConsultar,
+} from "./ritmo";
 
 export { analisarRespostaApsl, normalizarData } from "./analisador";
 export type { Analisador, RespostaAnalisada } from "./analisador";
@@ -93,6 +104,23 @@ export type { EscolhaDeIdentificador, OpcoesDaConsulta } from "./consulta";
 
 export { CAMPOS_DE_DIVERGENCIA, cruzarComStudBook } from "./cruzar";
 export type { AnuncioParaStudBook, DivergenciaComStudBook } from "./cruzar";
+
+export {
+  assentarResultado,
+  consultaDaLinha,
+  guardarConsultaDoCavalo,
+  lerConsultaDoCavalo,
+  lerMemoriaDaChave,
+  linhaDaConsulta,
+  registarConsultaDoAnuncio,
+  TABELA_CONSULTAS,
+} from "./registo";
+export type {
+  ClienteDoRegisto,
+  OpcoesDoRegisto,
+  PedidoDeRegisto,
+  ResumoDoRegisto,
+} from "./registo";
 
 export { factosDoAnuncio, reunirFactosDoStudBook, TIPOS_DE_FACTO } from "./factos";
 export type { EntradaDoStudBook, FactoDoStudBook, TipoDeFacto } from "./factos";

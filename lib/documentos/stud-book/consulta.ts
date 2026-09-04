@@ -37,10 +37,8 @@
  * uma coisa que nós não sabemos e ele vai saber.
  */
 
-import { chaveRegistoApsl } from "@/components/vender-cavalo/registo-apsl";
-import { limparPassaporte } from "@/components/vender-cavalo/passaporte-ueln";
-import { normalizarMicrochip } from "@/lib/microchip-iso";
 import { logger } from "@/lib/logger";
+import { chaveDoIdentificador } from "@/lib/documentos/indice-conhecido";
 
 import { analisarRespostaApsl, type Analisador } from "./analisador";
 import {
@@ -72,13 +70,6 @@ export const TIMEOUT_MS = 3_000;
  * fica para depois.
  */
 export const ORCAMENTO_MS = 4_000;
-
-/** A forma comparável de cada identificador. Cada um usa a do módulo que manda nele. */
-const CHAVE: Readonly<Record<IdentificadorDeConsulta, (valor: string) => string>> = {
-  numero_registo: chaveRegistoApsl,
-  ueln: limparPassaporte,
-  microchip: normalizarMicrochip,
-};
 
 const CAMPO_DO_PEDIDO: Readonly<Record<IdentificadorDeConsulta, keyof PedidoDeConsulta>> = {
   numero_registo: "numeroRegisto",
@@ -113,9 +104,13 @@ export function escolherIdentificador(pedido: PedidoDeConsulta): EscolhaDeIdenti
     if (typeof bruto !== "string") continue;
     const valor = bruto.trim();
     if (valor === "") continue;
-    const chave = CHAVE[identificador](valor);
-    if (!chave) continue;
-    return { identificador, valor, chave: `${identificador}:${chave}` };
+    // A chave — e o prefixo com o nome do identificador — vêm do
+    // `indice-conhecido`, que é onde vive a ideia de «é o mesmo número» em todo
+    // o site. Duas ideias de igualdade seriam duas, e uma delas acabaria por
+    // não ver a repetição que a outra vê.
+    const chave = chaveDoIdentificador(identificador, valor);
+    if (chave === null) continue;
+    return { identificador, valor, chave };
   }
   return null;
 }

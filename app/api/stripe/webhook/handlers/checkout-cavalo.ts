@@ -7,6 +7,7 @@ import Stripe from "stripe";
 import { registerPayment, linkPaymentToSubmission } from "./utils";
 import { computeExpiry, computeFeaturedUntil } from "@/lib/marketplace-listings";
 import { montarCamposDoFormulario, montarAscendentes } from "@/lib/anuncio-campos";
+import { registarConsultaDoAnuncio } from "@/lib/documentos/stud-book/registo";
 
 export async function handleCavaloAnuncio(
   session: Stripe.Checkout.Session,
@@ -229,4 +230,59 @@ export async function handleCavaloAnuncio(
       <p><a href="${process.env.NEXT_PUBLIC_APP_URL ?? "https://portal-lusitano.pt"}/admin">Ir para Admin Panel</a></p>
     `,
   });
+
+  // A consulta ao stud-book da APSL: **uma**, por este cavalo, e é a última
+  // coisa que este handler faz.
+  //
+  // ## Porquê aqui, e não no formulário
+  //
+  // Porque no formulário está um vendedor a pagar. Um servidor de terceiros no
+  // caminho do checkout é uma barra a rodar entre alguém e o botão de pagar, e
+  // no dia em que a APSL estiver lenta é o nosso negócio que pára por causa do
+  // servidor de outra pessoa. Aqui o dinheiro já entrou, o anúncio já existe e
+  // já tem `id` — que é justamente o que a linha da consulta precisa.
+  //
+  // ## Porquê no fim de tudo
+  //
+  // Pela mesma razão que está escrita acima para a ascendência e para os
+  // documentos, e que vale a pena repetir porque é a que custa dinheiro: a
+  // partir do `registerPayment` um `throw` faz o Stripe repetir a entrega, e o
+  // anúncio nasce duas vezes. Por isso isto vem **depois** de tudo o que tem de
+  // acontecer, e por isso o `registarConsultaDoAnuncio` **nunca lança** — nem
+  // por falha de rede, nem por falha da base. O `catch` aqui é a segunda rede,
+  // não a primeira.
+  //
+  // Com o interruptor em baixo — que é o estado de hoje — isto não toca no
+  // `fetch` e não escreve linha nenhuma. Ver `lib/documentos/stud-book/`.
+  try {
+    await registarConsultaDoAnuncio(
+      {
+        cavaloId: data.id,
+        pedido: {
+          numeroRegisto: textoDoFormulario(formData.registoAPSL),
+          ueln: textoDoFormulario(formData.passaporteEquino),
+          microchip: textoDoFormulario(formData.microchip),
+        },
+      },
+      { supabase }
+    );
+  } catch (erro) {
+    logger.error("Erro ao registar a consulta ao stud-book:", {
+      cavaloId: data.id,
+      erro: erro instanceof Error ? erro.message : String(erro),
+    });
+  }
+}
+
+/**
+ * Um campo do formulário como texto, ou `null`.
+ *
+ * O `form_data` é um mapa de valores de tipos vários — o vendedor respondeu a
+ * noventa e nove perguntas, e nem todas são texto. Um `String(true)` na caixa
+ * do microchip seria um número inventado a caminho de uma consulta.
+ */
+function textoDoFormulario(valor: unknown): string | null {
+  if (typeof valor !== "string") return null;
+  const limpo = valor.trim();
+  return limpo === "" ? null : limpo;
 }

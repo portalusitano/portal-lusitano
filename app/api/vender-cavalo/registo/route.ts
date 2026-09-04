@@ -3,6 +3,11 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import { logger } from "@/lib/logger";
 import { strictLimiter } from "@/lib/rate-limit";
 import { chaveRegistoApsl } from "@/components/vender-cavalo/registo-apsl";
+// A chave canónica com `%` entre cada caractere, para o `ilike` do Postgres.
+// Estava escrita aqui e passou a viver no `indice-conhecido`, que é o módulo de
+// «já vimos este número antes» — o mesmo truque escrito duas vezes acabaria por
+// ser duas ideias de igualdade, e uma delas deixaria de ver o que a outra vê.
+import { padraoDeProcura } from "@/lib/documentos/indice-conhecido";
 
 /**
  * «Este número de registo já está noutro anúncio?»
@@ -28,19 +33,6 @@ import { chaveRegistoApsl } from "@/components/vender-cavalo/registo-apsl";
 
 /** O `registro_apsl` é um `VARCHAR(100)`: nada maior do que isso pode existir lá. */
 const MAX_CARACTERES = 100;
-
-/**
- * A chave canónica com `%` entre cada caractere, para o `ilike` do Postgres.
- * O `%` e o `_` do próprio texto vão escapados — a chave já só tem letras e
- * algarismos, mas escapa-se na mesma: o dia em que a canonização mudar, esta
- * linha não passa a ser uma injecção de padrão.
- */
-function padraoDeProcura(chave: string): string {
-  return chave
-    .split("")
-    .map((c) => c.replace(/[%_\\]/g, "\\$&"))
-    .join("%");
-}
 
 export async function GET(request: NextRequest) {
   try {

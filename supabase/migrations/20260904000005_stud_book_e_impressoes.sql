@@ -110,3 +110,23 @@ alter table public.documentos_cavalo
 
 comment on column public.documentos_cavalo.aviso_recusa_em is
   'Quando o vendedor foi avisado da recusa. Nulo = por avisar.';
+
+-- ---------------------------------------------------------------------------
+-- O registo lido por número, e não por anúncio
+-- ---------------------------------------------------------------------------
+--
+-- A chave primária da `consultas_stud_book` é o `cavalo_id`, e por isso «um
+-- `confirmado` não se volta a perguntar» valia só **dentro do mesmo anúncio**:
+-- o mesmo cavalo republicado no ano seguinte custava um segundo pedido ao
+-- servidor da APSL. Com este índice custa zero, e é o que faz a diferença
+-- entre um registo que cresce com o uso e uma cache que se esquece.
+--
+-- Composto e parcial de propósito: a consulta é
+-- `where chave = $1 order by consultado_em desc nulls last limit 1`, e
+-- `chave = $1` implica `not null`, por isso o planeador pode usar o parcial.
+-- Validado contra um PostgreSQL local com 20 000 linhas: `Index Scan`, sem
+-- `Sort`, e corre duas vezes sem erro.
+
+create index if not exists consultas_stud_book_chave_idx
+  on public.consultas_stud_book (chave, consultado_em desc nulls last)
+  where chave is not null;

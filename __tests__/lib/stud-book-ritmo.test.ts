@@ -4,7 +4,11 @@ import {
   avaliarRitmo,
   deveConsultar,
   diaUtc,
+  ESPERA_APOS_DESCONHECIDO_MS,
   ESPERA_ENTRE_TENTATIVAS_MS,
+  ESPERA_MAXIMA_ENTRE_TENTATIVAS_MS,
+  esperaDaTentativa,
+  MAX_RESPOSTAS_DESCONHECIDO,
   MAX_TENTATIVAS,
   registarPedido,
   RITMO_VAZIO,
@@ -120,14 +124,72 @@ describe("voltar a perguntar, ou não", () => {
     });
   });
 
-  it("já respondeu, confirmado ou desconhecido — nunca mais se pergunta", () => {
-    // É a regra central: uma consulta por anúncio, e nunca mais. Um anúncio
-    // editado dez vezes não são dez pedidos ao servidor da APSL.
-    for (const estado of ["confirmado", "desconhecido"]) {
+  it("confirmado é para sempre — nunca mais se pergunta", () => {
+    // É a regra central: uma consulta por cavalo, e nunca mais. Um anúncio
+    // editado dez vezes não são dez pedidos ao servidor da APSL. E aqui não há
+    // sequer prazo: a inscrição no Livro Genealógico é um facto de nascimento,
+    // não um estado que caduque. Um cavalo que está no livro não sai de lá.
+    for (const daquiA of [10 ** 9, 10 * ESPERA_APOS_DESCONHECIDO_MS]) {
       expect(
-        deveConsultar(anterior({ estado }), "numero_registo:LUS201900421", T0 + 10 ** 9)
+        deveConsultar(
+          anterior({ estado: "confirmado" }),
+          "numero_registo:LUS201900421",
+          T0 + daquiA
+        )
       ).toEqual({ consultar: false, razao: "ja_respondida" });
     }
+  });
+
+  it("desconhecido não se repete nos primeiros seis meses", () => {
+    // A razão para repetir é uma inscrição que ainda não estava feita, e esse
+    // ciclo é de meses. Repetir ao fim de onze dias é repetir pela mesma razão
+    // por que a primeira falhou.
+    const onzeDias = 10 ** 9;
+    expect(
+      deveConsultar(
+        anterior({ estado: "desconhecido" }),
+        "numero_registo:LUS201900421",
+        T0 + onzeDias
+      )
+    ).toEqual({ consultar: false, razao: "desconhecido_recente" });
+  });
+
+  it("passados os seis meses, pergunta-se outra vez — um poldro pode ter sido inscrito", () => {
+    expect(
+      deveConsultar(
+        anterior({ estado: "desconhecido" }),
+        "numero_registo:LUS201900421",
+        T0 + ESPERA_APOS_DESCONHECIDO_MS + 1000
+      )
+    ).toEqual({ consultar: true, razao: "pode_ter_sido_inscrito" });
+  });
+
+  it("mas só uma vez: à segunda resposta de «não conheço», fica-se por ela", () => {
+    // Um ano volvido, duas respostas dizem que o número não está no livro. A
+    // explicação provável já não é uma inscrição a caminho — é um número mal
+    // copiado, e esse não se corrige com o tempo a passar. Continua a ser
+    // `desconhecido`, que é um facto para quem revê e não uma acusação.
+    expect(
+      deveConsultar(
+        anterior({ estado: "desconhecido", tentativas: MAX_RESPOSTAS_DESCONHECIDO }),
+        "numero_registo:LUS201900421",
+        T0 + 10 * ESPERA_APOS_DESCONHECIDO_MS
+      )
+    ).toEqual({ consultar: false, razao: "desconhecido_assente" });
+  });
+
+  it("sem data legível, um desconhecido fica-se pela resposta que tem", () => {
+    // Ao contrário do `indisponivel`, aqui há uma resposta na mão, e o tempo
+    // passado é a única razão para repetir. Sem data não há tempo passado a
+    // invocar — e uma coluna de datas estragada não pode virar um pedido a mais
+    // por cada anúncio que a APSL não conhece.
+    expect(
+      deveConsultar(
+        anterior({ estado: "desconhecido", consultadoEm: "ontem" }),
+        "numero_registo:LUS201900421",
+        T0
+      )
+    ).toEqual({ consultar: false, razao: "desconhecido_recente" });
   });
 
   it("o vendedor mudou o número — é outra pergunta, e faz-se", () => {
@@ -150,6 +212,38 @@ describe("voltar a perguntar, ou não", () => {
         anterior(),
         "numero_registo:LUS201900421",
         T0 + ESPERA_ENTRE_TENTATIVAS_MS + 1000
+      )
+    ).toEqual({ consultar: true, razao: "tentar_outra_vez" });
+  });
+
+  it("a espera dobra a cada tentativa, com tecto em dois dias", () => {
+    // Falhar duas vezes seguidas já não parece um soluço; insistir ao mesmo
+    // ritmo num servidor que continua a falhar é a maneira mais rápida de
+    // deixar de ser bem-vindo.
+    expect(esperaDaTentativa(1)).toBe(ESPERA_ENTRE_TENTATIVAS_MS);
+    expect(esperaDaTentativa(2)).toBe(2 * ESPERA_ENTRE_TENTATIVAS_MS);
+    expect(esperaDaTentativa(3)).toBe(4 * ESPERA_ENTRE_TENTATIVAS_MS);
+    expect(esperaDaTentativa(4)).toBe(ESPERA_MAXIMA_ENTRE_TENTATIVAS_MS);
+    expect(esperaDaTentativa(9)).toBe(ESPERA_MAXIMA_ENTRE_TENTATIVAS_MS);
+    // Um valor que não se percebe não produz uma espera absurda.
+    expect(esperaDaTentativa(0)).toBe(ESPERA_ENTRE_TENTATIVAS_MS);
+    expect(esperaDaTentativa(Number.NaN)).toBe(ESPERA_ENTRE_TENTATIVAS_MS);
+  });
+
+  it("à terceira tentativa, seis horas já não chegam", () => {
+    const passadas = { estado: "indisponivel", tentativas: 3 };
+    expect(
+      deveConsultar(
+        anterior(passadas),
+        "numero_registo:LUS201900421",
+        T0 + ESPERA_ENTRE_TENTATIVAS_MS + 1000
+      )
+    ).toEqual({ consultar: false, razao: "ainda_cedo" });
+    expect(
+      deveConsultar(
+        anterior(passadas),
+        "numero_registo:LUS201900421",
+        T0 + esperaDaTentativa(3) + 1000
       )
     ).toEqual({ consultar: true, razao: "tentar_outra_vez" });
   });
