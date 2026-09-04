@@ -14,6 +14,7 @@ import {
   Tag,
   MessagesSquare,
   BellRing,
+  FileText,
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { logout } from "@/app/minha-conta/actions";
@@ -369,6 +370,20 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
               </span>
               <span className="text-[var(--foreground-muted)] group-hover:text-[var(--foreground-strong)] transition-colors text-sm">
                 →
+              </span>
+            </LocalizedLink>
+
+            {/* Documentos shortcut */}
+            <LocalizedLink
+              href="/minha-conta/documentos"
+              className="flex items-center justify-between border border-[var(--border)] bg-[var(--background-secondary)]/10 px-5 py-4 hover:border-[var(--border-hover)] hover:bg-[var(--elevate-1)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(var(--gold-rgb) / 0.1)] transition-all duration-200 group"
+            >
+              <span className="flex items-center gap-3 text-[11px] uppercase tracking-wider text-[var(--foreground-secondary)] group-hover:text-[var(--foreground)]">
+                <FileText size={13} className="text-[var(--foreground-muted)]" />
+                Os meus Documentos
+              </span>
+              <span className="text-[var(--foreground-muted)] group-hover:text-[var(--foreground-strong)] transition-colors text-sm">
+                &rarr;
               </span>
             </LocalizedLink>
 

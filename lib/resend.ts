@@ -32,6 +32,7 @@ export const EMAIL_TEMPLATES = {
   NEWSLETTER_WELCOME: "newsletter-welcome",
   REGISTRATION_WELCOME: "registration-welcome",
   TOOL_LIMIT_REACHED: "tool-limit-reached",
+  DOCUMENTO_RECUSADO: "documento-recusado",
 } as const;
 
 // Helper function to send emails
@@ -337,10 +338,10 @@ export function getCavaloAnuncioConfirmEmail(
   const content = `
     <div class="body">
       <p class="lead">Anúncio recebido com sucesso.</p>
-      <p>O seu anúncio do cavalo <strong>${safeName}</strong> foi recebido e está em análise. Estará visível no marketplace após verificação dos documentos (máximo 24 horas).</p>
+      <p>O seu anúncio do cavalo <strong>${safeName}</strong> foi recebido. Os documentos que enviou ficaram guardados e vão ser revistos por uma pessoa da equipa antes de o anúncio ficar visível no marketplace.</p>
 
       <div class="highlight-box">
-        <p>Receberá um email assim que o anúncio for aprovado e publicado.</p>
+        <p>Pode acompanhar o estado de cada documento em <a href="${baseUrl}/minha-conta/documentos" style="color: #C5A059; text-decoration: none;">A minha conta &rsaquo; Documentos</a>. Se algum for recusado, dizemos-lhe porquê e pode enviar outro por lá.</p>
       </div>
 
       <hr class="divider">
@@ -372,6 +373,64 @@ export function getCavaloAnuncioConfirmEmail(
 
       <p style="font-size: 14px; color: #666666; font-family: Arial, sans-serif;">
         Qualquer dúvida, responda a este email.<br>
+        <em>Equipa Portal Lusitano</em>
+      </p>
+    </div>`;
+
+  return baseEmailTemplate(content, email, baseUrl);
+}
+
+// ─── TEMPLATE: DOCUMENTO RECUSADO ─────────────────────────────────────────────
+
+/**
+ * O aviso que faltava.
+ *
+ * Um vendedor enviava o Livro Azul, pagava, e se o documento fosse recusado
+ * **não acontecia nada**: o motivo ficava gravado na base e ele ficava à espera
+ * para sempre. Recusar em silêncio é pior do que não rever — quem não sabe que
+ * foi recusado não corrige, e o anúncio dele morre sem ninguém lhe dizer porquê.
+ *
+ * O corpo é o motivo que quem reviu escreveu, tal como o escreveu. Não se
+ * resume, não se suaviza e não se traduz para uma frase da casa: o vendedor
+ * precisa de saber o que reenviar, e é aquele texto que lho diz. Vai escapado
+ * porque é texto livre que entra em HTML, e as quebras de linha ficam quebras
+ * de linha — quem revê escreve em parágrafos e um parágrafo colado numa linha
+ * só lê-se pior.
+ *
+ * Não há aqui prazo nenhum, e não pode haver: não existe fila com prazo nem
+ * nada que a percorra sozinha.
+ */
+export function getDocumentoRecusadoEmail(
+  nomeCavalo: string,
+  nomeDoTipo: string,
+  motivo: string,
+  email: string
+): string {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://portal-lusitano.pt";
+  const safeCavalo = escapeHtml(nomeCavalo);
+  const safeTipo = escapeHtml(nomeDoTipo);
+  const safeMotivo = escapeHtml(motivo).replace(/\r?\n/g, "<br>");
+
+  const content = `
+    <div class="body">
+      <p class="lead">O ${safeTipo} que enviou não foi aceite.</p>
+      <p>Revimos o documento que anexou ao anúncio do cavalo <strong>${safeCavalo}</strong> e não pudemos aceitá-lo. O motivo, escrito por quem o reviu:</p>
+
+      <div class="highlight-box">
+        <p>${safeMotivo}</p>
+      </div>
+
+      <p>Pode enviar outro ficheiro para o mesmo documento sem refazer o anúncio. O anúncio fica como está — não perde nada do que já preencheu.</p>
+
+      <div class="cta-box">
+        <p>Ver o estado dos documentos deste anúncio e enviar outro ficheiro</p>
+        <a href="${baseUrl}/minha-conta/documentos" class="btn">Os meus documentos</a>
+      </div>
+
+      <hr class="divider">
+
+      <p style="font-size: 14px; color: #666666; font-family: Arial, sans-serif;">
+        Se acha que houve engano, responda a este email.<br>
         <em>Equipa Portal Lusitano</em>
       </p>
     </div>`;
@@ -518,6 +577,26 @@ export const EmailWorkflows = {
       subject: "A tua conta no Portal Lusitano esta criada",
       html: getRegistrationWelcomeEmail(name, email, baseUrl),
       template: EMAIL_TEMPLATES.REGISTRATION_WELCOME,
+    });
+  },
+
+  /**
+   * Documento recusado — imediatamente a seguir à decisão de quem revê.
+   *
+   * O assunto nomeia o documento e o cavalo porque é o que se lê antes de abrir
+   * e é o que distingue este email de outro igual sobre outro anúncio.
+   */
+  async sendDocumentoRecusado(
+    email: string,
+    nomeCavalo: string,
+    nomeDoTipo: string,
+    motivo: string
+  ) {
+    return sendEmail({
+      to: email,
+      subject: `${nomeDoTipo} recusado — anúncio de ${nomeCavalo}`,
+      html: getDocumentoRecusadoEmail(nomeCavalo, nomeDoTipo, motivo, email),
+      template: EMAIL_TEMPLATES.DOCUMENTO_RECUSADO,
     });
   },
 

@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   Check,
   Eye,
+  FileText,
   Heart,
   ImageIcon,
   Loader2,
@@ -198,6 +199,15 @@ export default function MeusAnunciosContent() {
           <p className="text-sm text-[var(--foreground-muted)] mt-3 max-w-xl">
             Faça a gestão dos cavalos que colocou à venda no Portal Lusitano.
           </p>
+          {/* Os documentos têm ecrã próprio: o estado de cada um, o motivo de
+              uma recusa tal como foi escrito, e por onde se envia outro. */}
+          <LocalizedLink
+            href="/minha-conta/documentos"
+            className="inline-flex items-center gap-2 mt-4 rotulo-forte hover:text-[var(--foreground)] transition-colors"
+          >
+            <FileText size={12} />
+            Estado dos documentos
+          </LocalizedLink>
         </header>
 
         {resumo && resumo.total > 0 && (

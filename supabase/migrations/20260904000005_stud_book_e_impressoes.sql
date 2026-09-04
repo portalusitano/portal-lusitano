@@ -92,3 +92,21 @@ alter table public.fotos_impressoes enable row level security;
 
 comment on table public.fotos_impressoes is
   'Impressoes perceptuais das fotografias. RLS sem politicas: a lista de quem se parece com quem e material de revisao, nao e publica.';
+
+-- ---------------------------------------------------------------------------
+-- Quando o vendedor foi avisado de uma recusa
+-- ---------------------------------------------------------------------------
+--
+-- Sem esta coluna, um aviso que falhe — o serviço de email em baixo — nunca é
+-- retentado e ninguém fica a saber que não saiu. Um vendedor que pagou e cujo
+-- Livro Azul foi recusado ficaria à espera para sempre, que é o defeito que
+-- todo este trabalho existe para acabar.
+--
+-- Nulo quer dizer «por avisar», e é o que permite a uma varredura apanhar o
+-- que ficou para trás sem correr o risco de avisar duas vezes.
+
+alter table public.documentos_cavalo
+  add column if not exists aviso_recusa_em timestamptz;
+
+comment on column public.documentos_cavalo.aviso_recusa_em is
+  'Quando o vendedor foi avisado da recusa. Nulo = por avisar.';
