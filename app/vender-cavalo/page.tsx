@@ -2,7 +2,12 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useToast } from "@/context/ToastContext";
-import type { FormData, Documentos, DocumentType } from "@/components/vender-cavalo/types";
+import type {
+  FormData,
+  Documentos,
+  DocumentType,
+  Resposta,
+} from "@/components/vender-cavalo/types";
 import { initialFormData, TOTAL_STEPS } from "@/components/vender-cavalo/data";
 import { LISTING_TIERS } from "@/lib/listing-tiers";
 import PageHeader from "@/components/vender-cavalo/PageHeader";
@@ -19,9 +24,13 @@ import StepPrecoApresentacao from "@/components/vender-cavalo/StepPrecoApresenta
 import StepPagamento from "@/components/vender-cavalo/StepPagamento";
 import {
   validarPasso,
+  faltamPorPasso,
+  feitosPorPasso,
+  totalPorPasso,
   type ErroCampo,
   type MensagensValidacao,
 } from "@/components/vender-cavalo/validacao";
+import { contarSeccao } from "@/components/vender-cavalo/campos";
 import { porCampo } from "@/components/vender-cavalo/campos-com-erro";
 import { errosDeInspeccao, type MensagensInspeccao } from "@/components/vender-cavalo/inspeccao";
 import { useInspeccao } from "@/components/vender-cavalo/usar-inspeccao";
@@ -34,6 +43,28 @@ import {
 } from "@/components/vender-cavalo/rascunho";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
+
+/**
+ * A fronteira entre as três respostas do formulário e os dois valores que o
+ * webhook lê.
+ *
+ * Dentro do formulário, uma pergunta de sim ou não tem **três** estados: sim,
+ * não, e ainda não respondi (ver o tipo `Resposta`). Fora dele nada mudou — o
+ * `checkout-cavalo.ts` e o `lib/anuncio-campos.ts` continuam a ler booleanos,
+ * e é para eles que estas chaves viajam.
+ *
+ * A conversão faz-se aqui, no único sítio onde o pedido é montado, e não em
+ * cada campo: se estivesse espalhada por vinte e sete sítios, o vigésimo
+ * oitavo campo que alguém acrescentasse ficava a enviar a palavra `"sim"` onde
+ * o outro lado espera `true`, e isso não dá erro nenhum — dá uma coluna
+ * errada, que é o defeito que a `campos-do-anuncio.test.ts` existe para
+ * perseguir.
+ *
+ * Uma pergunta sem resposta é `false`, e não `null`: nenhum dos dois lados
+ * sabe o que fazer com um booleano vazio, e a validação já garante que isto
+ * nunca acontece — nenhuma destas perguntas chega aqui por responder.
+ */
+const sim = (r: Resposta): boolean => r === "sim";
 
 function calcularIdade(dataNascimento: string): number {
   if (!dataNascimento) return 0;
@@ -54,6 +85,9 @@ function calcularIdade(dataNascimento: string): number {
 export default function VenderCavaloPage() {
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
+  /** A mesma ordem do `createTranslator`: é com ela que a validação escolhe
+   *  em que língua escreve o nome do campo na frase genérica. */
+  const indiceDaLingua = language === "en" ? 1 : language === "es" ? 2 : 0;
   const { showToast } = useToast();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(initialFormData);
@@ -90,6 +124,26 @@ export default function VenderCavaloPage() {
 
   const mensagens: MensagensValidacao = useMemo(
     () => ({
+      // As quatro formas genéricas. Recebem o nome do campo — o mesmo que está
+      // no rótulo ao lado dele — e montam a frase com o verbo do tipo. É o que
+      // permite ter noventa e oito mensagens sem escrever noventa e oito
+      // frases em três línguas, que é prosa que ninguém reveria.
+      porPreencher: (nome: string) =>
+        tr(`Falta preencher: ${nome}.`, `Still to fill in: ${nome}.`, `Falta rellenar: ${nome}.`),
+      porEscolher: (nome: string) =>
+        tr(`Falta escolher: ${nome}.`, `Still to choose: ${nome}.`, `Falta elegir: ${nome}.`),
+      porResponder: (nome: string) =>
+        tr(
+          `Falta responder sim ou não: ${nome}.`,
+          `Still to answer yes or no: ${nome}.`,
+          `Falta responder sí o no: ${nome}.`
+        ),
+      porEscolherLista: (nome: string) =>
+        tr(
+          `Escolha pelo menos uma opção em ${nome}.`,
+          `Choose at least one option in ${nome}.`,
+          `Elija al menos una opción en ${nome}.`
+        ),
       nomeProprietario: t.form_validation.required_owner_name,
       email: t.form_validation.required_email,
       emailInvalido: tr(
@@ -436,7 +490,8 @@ export default function VenderCavaloPage() {
     const encontrados = validarPasso(
       passo,
       { formData, documentos, imagens, termosAceites: termsAccepted },
-      mensagens
+      mensagens,
+      indiceDaLingua
     );
     // Um apontamento de nível `erro` trava o passo onde o campo vive. Sem
     // isto, bastava não sair do campo para publicar um microchip de catorze
@@ -624,7 +679,7 @@ export default function VenderCavaloPage() {
             temperamento: formData.temperamento,
             marcasDistintivas: formData.marcas_distintivas,
             corCasco: formData.cor_casco,
-            provaAptidaoApsl: formData.prova_aptidao_apsl,
+            provaAptidaoApsl: sim(formData.prova_aptidao_apsl),
             nivelTreino: formData.nivel_treino,
             anosTreino: formData.anos_treino,
             nivelCavaleiro: formData.nivel_cavaleiro,
@@ -634,48 +689,48 @@ export default function VenderCavaloPage() {
             disciplinas: formData.disciplinas,
             competicoes: formData.competicoes,
             premios: formData.premios,
-            habituadoTransporte: formData.habituado_transporte,
-            habituadoFerrador: formData.habituado_ferrador,
-            habituadoVeterinario: formData.habituado_veterinario,
-            trabalhaEmGrupo: formData.trabalha_em_grupo,
-            trabalhaSolto: formData.trabalha_solto,
-            trabalhaAMao: formData.trabalha_a_mao,
-            habituadoCampo: formData.habituado_campo,
-            aptoCriancas: formData.apto_criancas,
+            habituadoTransporte: sim(formData.habituado_transporte),
+            habituadoFerrador: sim(formData.habituado_ferrador),
+            habituadoVeterinario: sim(formData.habituado_veterinario),
+            trabalhaEmGrupo: sim(formData.trabalha_em_grupo),
+            trabalhaSolto: sim(formData.trabalha_solto),
+            trabalhaAMao: sim(formData.trabalha_a_mao),
+            habituadoCampo: sim(formData.habituado_campo),
+            aptoCriancas: sim(formData.apto_criancas),
             regimeEstabulacao: formData.regime_estabulacao,
             tipoAlimentacao: formData.tipo_alimentacao,
             horasTrabalhoSemana: formData.horas_trabalho_semana,
-            testeDnaRealizado: formData.teste_dna_realizado,
-            seguroEquino: formData.seguro_equino,
+            testeDnaRealizado: sim(formData.teste_dna_realizado),
+            seguroEquino: sim(formData.seguro_equino),
             estadoSaude: formData.estado_saude,
-            vacinacaoAtualizada: formData.vacinacao_atualizada,
+            vacinacaoAtualizada: sim(formData.vacinacao_atualizada),
             dataUltimaVacinacao: formData.data_ultima_vacinacao,
-            desparasitacaoAtualizada: formData.desparasitacao_atualizada,
+            desparasitacaoAtualizada: sim(formData.desparasitacao_atualizada),
             dataUltimaDesparasitacao: formData.data_ultima_desparasitacao,
-            exameVeterinario: formData.exame_veterinario,
-            radiografiasDisponivel: formData.radiografias_disponivel,
-            piroplasmoseTestado: formData.piroplasmose_testado,
+            exameVeterinario: sim(formData.exame_veterinario),
+            radiografiasDisponivel: sim(formData.radiografias_disponivel),
+            piroplasmoseTestado: sim(formData.piroplasmose_testado),
             dataUltimaFerragem: formData.data_ultima_ferragem,
             tipoFerragem: formData.tipo_ferragem,
             nomeVeterinario: formData.nome_veterinario,
             historicoLesoes: formData.historico_lesoes,
             observacoesSaude: formData.observacoes_saude,
             preco: formData.preco,
-            precoNegociavel: formData.negociavel,
-            aceitaTroca: formData.aceita_troca,
-            transporteIncluido: formData.transporte_incluido,
-            trialPossivel: formData.trial_possivel,
+            precoNegociavel: sim(formData.negociavel),
+            aceitaTroca: sim(formData.aceita_troca),
+            transporteIncluido: sim(formData.transporte_incluido),
+            trialPossivel: sim(formData.trial_possivel),
             duracaoTrial: formData.duracao_trial,
-            financiamentoPossivel: formData.financiamento_possivel,
-            exportacaoPossivel: formData.exportacao_possivel,
-            acompanhamentoPosVenda: formData.acompanhamento_pos_venda,
-            internatoPossivel: formData.internato_possivel,
-            aulasIncluidas: formData.aulas_incluidas,
-            disponivelCobricao: formData.disponivel_cobricao,
+            financiamentoPossivel: sim(formData.financiamento_possivel),
+            exportacaoPossivel: sim(formData.exportacao_possivel),
+            acompanhamentoPosVenda: sim(formData.acompanhamento_pos_venda),
+            internatoPossivel: sim(formData.internato_possivel),
+            aulasIncluidas: sim(formData.aulas_incluidas),
+            disponivelCobricao: sim(formData.disponivel_cobricao),
             precoCobricao: formData.preco_cobricao,
             disponibilidadeVisita: formData.disponibilidade_visita,
             motivoVenda: formData.motivo_venda,
-            aceitaVisitaVeterinario: formData.aceita_visita_veterinario,
+            aceitaVisitaVeterinario: sim(formData.aceita_visita_veterinario),
             equipamentoIncluido: formData.equipamento_incluido,
             regiao: formData.regiao,
             localizacao: formData.localizacao,
@@ -685,7 +740,8 @@ export default function VenderCavaloPage() {
             videosUrl: formData.videos_url,
             videosUrl2: formData.videos_url_2,
             registoAPSL: formData.numero_registo,
-            documentosEmDia: formData.vacinacao_atualizada && formData.desparasitacao_atualizada,
+            documentosEmDia:
+              sim(formData.vacinacao_atualizada) && sim(formData.desparasitacao_atualizada),
             imageUrls,
           },
         }),
@@ -720,6 +776,24 @@ export default function VenderCavaloPage() {
   const errosPorCampo = useMemo(() => porCampo(errors), [errors]);
   const apontamentos = inspeccao.visiveis;
 
+  /**
+   * As contas do progresso.
+   *
+   * São calculadas do mesmo estado e pelas mesmas funções que a validação usa
+   * para travar o botão. Isso não é economia de código: é a garantia de que o
+   * «faltam 7» do botão, o «12 / 19» do cabeçalho da secção e o resumo de
+   * erros no topo **nunca discordam**. Duas contas feitas em sítios
+   * diferentes divergem, e a que diverge é sempre a que a pessoa está a ler.
+   */
+  const estadoActual = useMemo(
+    () => ({ formData, documentos, imagens, termosAceites: termsAccepted }),
+    [formData, documentos, imagens, termsAccepted]
+  );
+  const faltam = useMemo(() => faltamPorPasso(estadoActual, mensagens), [estadoActual, mensagens]);
+  const feitos = useMemo(() => feitosPorPasso(estadoActual, mensagens), [estadoActual, mensagens]);
+  const totais = useMemo(() => totalPorPasso(estadoActual), [estadoActual]);
+  const conta = useCallback((seccao: string) => contarSeccao(seccao, formData), [formData]);
+
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-24 md:pt-32 pb-32 px-4 sm:px-6 md:px-12">
       <div data-revelar="" suppressHydrationWarning>
@@ -741,7 +815,7 @@ export default function VenderCavaloPage() {
       </div>
 
       <div ref={topoDoFormulario} className="max-w-3xl mx-auto scroll-mt-24">
-        <StepIndicator currentStep={step} />
+        <StepIndicator currentStep={step} feitos={feitos} totais={totais} />
       </div>
 
       {/* O rascunho que voltou. Aparecia só no passo 1 — e como o rascunho
@@ -791,6 +865,7 @@ export default function VenderCavaloPage() {
                 erros={errosPorCampo}
                 apontamentos={apontamentos}
                 campo={accoesDeCampo}
+                conta={conta}
               />
               <div className="mt-8 pt-8 border-t border-[var(--border)]">
                 <StepIdentificacao
@@ -799,6 +874,7 @@ export default function VenderCavaloPage() {
                   erros={errosPorCampo}
                   apontamentos={apontamentos}
                   campo={accoesDeCampo}
+                  conta={conta}
                   registoApsl={registoApsl.estado}
                 />
               </div>
@@ -816,6 +892,7 @@ export default function VenderCavaloPage() {
                 erros={errosPorCampo}
                 apontamentos={apontamentos}
                 campo={accoesDeCampo}
+                conta={conta}
               />
               <div className="mt-8 pt-8 border-t border-[var(--border)]">
                 <StepTreinoSaude
@@ -828,6 +905,7 @@ export default function VenderCavaloPage() {
                   erros={errosPorCampo}
                   apontamentos={apontamentos}
                   campo={accoesDeCampo}
+                  conta={conta}
                 />
               </div>
             </>
@@ -845,6 +923,7 @@ export default function VenderCavaloPage() {
               erros={errosPorCampo}
               apontamentos={apontamentos}
               campo={accoesDeCampo}
+              conta={conta}
             />
           )}
 
@@ -868,7 +947,7 @@ export default function VenderCavaloPage() {
           )}
         </div>
 
-        <FormNavigation step={step} onPrev={prevStep} />
+        <FormNavigation step={step} onPrev={prevStep} faltam={faltam[step - 1] ?? 0} />
       </form>
     </div>
   );

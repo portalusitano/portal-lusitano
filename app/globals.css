@@ -3323,52 +3323,115 @@ body {
     color: var(--foreground-muted);
   }
 
-  /* --- Detalhes opcionais --------------------------------------------------
-   * Um passo com quarenta e sete campos à entrada não se lê: percorre-se. O
-   * que é preciso para publicar fica à vista; o resto fica aqui dentro,
-   * fechado, com a conta do que lá está — quem quiser um anúncio mais
-   * completo abre, quem quiser publicar hoje passa ao lado. */
-  .detalhes {
-    border: 1px solid var(--border-soft);
-    border-radius: var(--raio);
-    background: var(--elevate-1);
+  /* --- Secções do formulário de anúncio -------------------------------------
+   * Estiveram aqui as regras do `<Detalhes>`, que era uma gaveta fechada com a
+   * palavra «Opcional» na cabeça. Saíram com o componente: deixou de haver
+   * opcional, e uma gaveta é a promessa de que o que lá está dentro se pode
+   * saltar. O que fica é o cabeçalho — um assunto e a conta de onde vai —,
+   * porque com noventa e oito campos obrigatórios o que assusta não é o total,
+   * é não se saber quanto falta.
+   *
+   * A hairline fica à esquerda e não à volta: uma caixa por secção, oito por
+   * passo, empilhava oito molduras dentro do cartão que já é uma moldura. Um
+   * risco vertical arruma a coluna sem acrescentar caixa nenhuma. */
+  .seccao-campos {
+    border-left: 1px solid var(--border-soft);
+    padding-left: 1rem;
+    margin-left: 0.125rem;
   }
 
-  .detalhes__cabeca {
+  /* A secção completa apaga o risco em vez de o acender. Acender oito riscos à
+     medida que se responde é encher o passo de sinais no fim, que é quando já
+     não são precisos; apagá-los deixa acesos só os que ainda pedem alguma
+     coisa. */
+  .seccao-campos[data-completa="sim"] {
+    border-left-color: transparent;
+  }
+
+  .seccao-campos__cabeca {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     justify-content: space-between;
     gap: 0.75rem;
-    width: 100%;
-    padding: 0.75rem 1rem;
-    text-align: left;
-    color: var(--foreground-secondary);
-    cursor: pointer;
-    transition: color var(--d-fast) var(--ease-out);
+    margin-bottom: 0.875rem;
   }
 
-  .detalhes__cabeca:hover {
-    color: var(--foreground-strong);
-  }
-
-  .detalhes__seta {
+  .seccao-campos__conta {
     flex: none;
-    transition: transform var(--d-fast) var(--ease-out);
+    font-size: 0.75rem;
+    line-height: 1.3;
+    color: var(--foreground-muted);
+    font-variant-numeric: tabular-nums;
   }
 
-  .detalhes[data-aberto="sim"] .detalhes__seta {
-    transform: rotate(90deg);
+  .seccao-campos__conta[data-completa="sim"] {
+    color: var(--ok);
   }
 
-  .detalhes__corpo {
-    padding: 0 1rem 1rem;
+  .seccao-campos__corpo {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
   }
 
-  /* O mesmo movimento dos dropdowns: 200ms, origem no topo. Corre uma vez, ao
-     abrir, e pára. */
-  .detalhes[data-aberto="sim"] .detalhes__corpo {
-    animation: crescer var(--d-fast) var(--ease-out) both;
-    transform-origin: top;
+  /* --- Uma pergunta de sim ou não ------------------------------------------
+   * Duas pastilhas, e a escolhida é a `.chip-activo` — branca, como todo o
+   * estado escolhido do site. O `<input type="radio">` continua lá dentro,
+   * escondido mas focável: é dele que vêm as setas do teclado, o salto da
+   * tabulação por cima do grupo inteiro e o «2 de 2» do leitor de ecrã. */
+  .sim-nao {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+  }
+
+  .sim-nao__pergunta {
+    min-width: 0;
+    flex: 1 1 12rem;
+  }
+
+  .sim-nao__texto {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--foreground-secondary);
+  }
+
+  /* O `id` está no texto da pergunta para que o resumo de erros lhe possa dar
+     o foco; sem `outline` próprio, o anel do browser desenhava-se à volta de
+     uma linha de texto e lia-se como se o texto fosse clicável. */
+  .sim-nao__texto:focus-visible {
+    outline: 1px solid var(--border-hover);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+
+  .sim-nao__opcoes {
+    display: inline-flex;
+    flex: none;
+    gap: 0.5rem;
+  }
+
+  .sim-nao__opcao {
+    position: relative;
+    min-width: 3.5rem;
+    justify-content: center;
+  }
+
+  /* Escondido, não removido: `display: none` tira-o da ordem de tabulação e
+     leva com ele o grupo de rádio inteiro. */
+  .sim-nao__radio {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .sim-nao__opcao:has(.sim-nao__radio:focus-visible) {
+    outline: 1px solid var(--border-hover);
+    outline-offset: 2px;
   }
 
   /* --- Guarda do rascunho -------------------------------------------------- */
@@ -3382,14 +3445,6 @@ body {
     background: var(--elevate-1);
     border-radius: var(--raio);
     padding: 0.75rem 1rem;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .detalhes[data-aberto="sim"] .detalhes__corpo,
-  .detalhes__seta {
-    animation: none !important;
-    transition: none !important;
   }
 }
 
