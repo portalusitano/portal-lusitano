@@ -425,6 +425,52 @@ exemplar na mão — outra vez, o Livro Azul digitalizado.
 
 ---
 
+## 7-b. O que se viu no formulário, a 4 de Setembro de 2026 — e muda a recomendação
+
+O dono do site abriu a página do acesso público e mostrou-a. Duas coisas que
+nenhuma pesquisa tinha dado, e que decidem o assunto:
+
+### Há um reCAPTCHA
+
+O selo do reCAPTCHA está no canto inferior direito da página da consulta.
+
+**Isto fecha a porta à consulta automática, e fecha-a bem.** O `robots.txt` não
+proibia nada — mas um CAPTCHA não é uma omissão nem uma opinião: é o operador a
+dizer, na linguagem técnica mais clara que existe, que aquele formulário é para
+pessoas. Contorná-lo seria hostil, quase de certeza contrário aos termos, e não
+se faz.
+
+**O interruptor `STUD_BOOK_APSL_ACTIVO` fica em baixo, e não é para subir.** O
+cliente que está escrito continua a valer — o ritmo, o registo, o analisador de
+três saídas — mas o que o vai alimentar não é um pedido nosso: é uma pessoa a
+consultar e a registar o que viu. Ver a secção 8.
+
+### O stud-book corre em software de terceiros: **Genpro, da Ruralbit**
+
+Ao fundo da página: «Powered by Genpro - Ruralbit». O stud-book não é software
+feito em casa pela APSL — é um produto de uma empresa portuguesa de software
+para pecuária.
+
+**É o melhor caminho que apareceu até agora**, e muda a quem se pede: não é só
+à APSL, é à APSL **e** à Ruralbit. Quem faz software de genealogia pecuária tem
+quase sempre uma via de integração, porque outros clientes já a pediram.
+
+### Os campos do formulário
+
+`Nome` · `Criador` · **`NIN / Chip / UELN`** · `Sexo` · `Idade` (intervalo, de
+… a … anos) · `Pelagem` · `Pontuação` · `Título de Reprodutor`.
+
+**`NIN / Chip / UELN` é um campo só.** Os três identificadores entram no mesmo
+sítio, e não em três pesquisas diferentes — o que simplifica o desenho e
+confirma que a ordem de preferência entre eles (número de registo, UELN,
+microchip) é uma escolha nossa e não uma imposição do formulário.
+
+Que existam `Pontuação` e `Título de Reprodutor` como critérios de pesquisa diz
+também que esses dados estão no livro e são públicos — o que é relevante para o
+que se pode confrontar com um anúncio.
+
+---
+
 ## 8. Recomendação
 
 ### O que fazer, por ordem, e porquê essa ordem

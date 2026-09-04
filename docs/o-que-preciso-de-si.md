@@ -58,7 +58,33 @@ uma porta que eles possam fechar.
 
 ---
 
-## 2. Como o formulário de pesquisa funciona — destrava a consulta
+## 2. ~~Como o formulário funciona~~ — **respondido, e a resposta é «não se automatiza»**
+
+> A 4 de Setembro de 2026 o dono do site abriu a página e mostrou-a. **Há um
+> reCAPTCHA no formulário da consulta.**
+>
+> O `robots.txt` não proibia nada, mas um CAPTCHA não é uma omissão nem uma
+> opinião: é o operador a dizer, na linguagem técnica mais clara que existe,
+> que aquele formulário é para pessoas. **Não se contorna**, e o interruptor
+> `STUD_BOOK_APSL_ACTIVO` fica em baixo — até haver um acordo, não por falta
+> de código.
+>
+> **E apareceu um caminho melhor:** ao fundo da página lê-se «Powered by Genpro
+>
+> - Ruralbit». O stud-book corre em software de uma empresa portuguesa de
+>   pecuária, não é feito em casa pela APSL. **É a eles e à APSL que se pede**, e
+>   quem faz software de genealogia costuma ter uma via de integração porque
+>   outros clientes já a pediram.
+>
+> **Os campos, para registo:** `Nome` · `Criador` · **`NIN / Chip / UELN`** ·
+> `Sexo` · `Idade` (intervalo) · `Pelagem` · `Pontuação` · `Título de
+Reprodutor`. O `NIN / Chip / UELN` é **um campo só** para os três
+> identificadores.
+>
+> **O que se faz entretanto:** consulta assistida. O registo continua a
+> encher-se, mas quem consulta é uma pessoa — um administrador a usar um
+> formulário público como qualquer cidadão — e o painel guarda o que ela viu.
+> Inteiramente legítimo, e o registo cresce na mesma.
 
 Em <https://www.cavalo-lusitano.com/pt/stud-book/acesso-publico-ao-stud-book>:
 
@@ -74,7 +100,14 @@ se for POST, muda uma função.
 
 ---
 
-## 3. Páginas de resultado guardadas — destrava o leitor da resposta
+## 3. Páginas de resultado guardadas — **já não urgente**
+
+> Com a consulta automática fora de questão, o analisador de HTML deixou de
+> estar no caminho crítico: quem lê a página passa a ser uma pessoa. As páginas
+> guardadas só voltam a ser precisas se houver acordo com a APSL/Ruralbit e a
+> integração for por HTML em vez de por API.
+>
+> O que segue fica escrito para esse dia.
 
 **O analisador está escrito contra um formato que nunca ninguém observou.** É a
 maior suposição de todo o sistema.
