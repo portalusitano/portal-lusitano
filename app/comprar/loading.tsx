@@ -31,6 +31,7 @@ function ChapaCartao() {
 export default function ComprarLoading() {
   return (
     <section
+      data-carregando
       className="min-h-screen bg-[var(--background)] px-4 pt-16 pb-24 sm:px-6 sm:pt-20 sm:pb-32 md:px-12 lg:px-20"
       aria-busy="true"
       aria-label="A carregar os anúncios"

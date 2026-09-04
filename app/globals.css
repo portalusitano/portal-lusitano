@@ -4657,3 +4657,48 @@ html.light .barra-dir__seccao[data-busca]::after {
     transition: color var(--d-fast) var(--ease-out);
   }
 }
+
+/* ==========================================================================
+ * Sem JavaScript, o conteúdo está no HTML — só está escondido
+ *
+ * Um `loading.tsx` do App Router é o fallback de um `<Suspense>`, e numa rota
+ * pré-renderizada vão os dois para o HTML: primeiro o fallback, e a seguir o
+ * conteúdo verdadeiro dentro de um `<div hidden id="S:n">`. Quem os troca é um
+ * `$RC(...)` que o React corre no cliente.
+ *
+ * Com o JavaScript desligado esse `$RC` nunca corre. O resultado, medido: a
+ * página fica para sempre nos dois anéis a rodar e no «A carregar...», com a
+ * página inteira escrita por baixo, invisível. Não é um caso de canto — é o
+ * que um rastreador que não execute JavaScript vê de um classificados.
+ *
+ * A troca faz-se em CSS, e sem uma linha de JavaScript nova: a classe `js`
+ * vive no `<html>` e é posta por um script em linha antes da primeira pintura.
+ * Se o script não correu, a classe não existe, e é esse o sinal de que o `$RC`
+ * também nunca virá.
+ *
+ * O `!important` é preciso porque o atributo `hidden` traz `display: none` do
+ * agente do utilizador, e a folha de reposição repete-o.
+ * ========================================================================= */
+
+/* Dentro de `@layer base`, e não fora dela — e a razão é uma inversão do
+ * cascade que é fácil de apanhar ao contrário.
+ *
+ * A regra do projecto, escrita no `CLAUDE.md`, é que **CSS sem camada ganha a
+ * qualquer `@layer`**. Isso é verdade para declarações normais. Para
+ * declarações `!important` a ordem inverte-se: aí uma camada anterior ganha às
+ * seguintes, e todas ganham ao que está fora de camada.
+ *
+ * O Tailwind tem `[hidden]:where(:not([hidden="until-found"])) { display: none
+ * !important }` na camada `base`. Escrito fora de camada, o `display: block
+ * !important` daqui perdia — medido: o conteúdo continuava invisível com o
+ * `S:0` a 4881 caracteres. Na mesma camada decide a especificidade, e a daqui
+ * é maior. */
+@layer base {
+  html:not(.js) [data-carregando] {
+    display: none !important;
+  }
+
+  html:not(.js) div[hidden][id^="S:"] {
+    display: block !important;
+  }
+}

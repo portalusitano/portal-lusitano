@@ -1,6 +1,9 @@
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center">
+    <div
+      data-carregando
+      className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center"
+    >
       {/* Logo Animation */}
       <div className="relative opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
         {/* Outer Ring */}

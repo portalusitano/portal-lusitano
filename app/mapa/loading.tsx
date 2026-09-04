@@ -35,7 +35,7 @@
  */
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-[var(--background)]">
+    <div data-carregando className="min-h-screen bg-[var(--background)]">
       <section className="relative pb-4 pt-16 sm:pb-6 sm:pt-28">
         <div className="mx-auto max-w-7xl animate-pulse px-4 text-center sm:px-6">
           <div className="mx-auto mb-3 h-9 w-64 rounded bg-[var(--background-elevated)] sm:mb-4 sm:h-14 sm:w-96" />
