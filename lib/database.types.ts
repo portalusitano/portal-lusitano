@@ -1439,6 +1439,71 @@ export type Database = {
           },
         ];
       };
+      documentos_cavalo: {
+        Row: {
+          bytes: number;
+          caminho: string;
+          cavalo_id: string | null;
+          conflitos: Json | null;
+          criado_em: string;
+          estado: string;
+          id: string;
+          leitura: Json | null;
+          mime: string;
+          motivo_recusa: string | null;
+          nome_original: string;
+          referencia: string;
+          sha256: string;
+          tipo: string;
+          verificado_em: string | null;
+          verificado_por: string | null;
+        };
+        Insert: {
+          bytes: number;
+          caminho: string;
+          cavalo_id?: string | null;
+          conflitos?: Json | null;
+          criado_em?: string;
+          estado?: string;
+          id?: string;
+          leitura?: Json | null;
+          mime: string;
+          motivo_recusa?: string | null;
+          nome_original: string;
+          referencia: string;
+          sha256: string;
+          tipo: string;
+          verificado_em?: string | null;
+          verificado_por?: string | null;
+        };
+        Update: {
+          bytes?: number;
+          caminho?: string;
+          cavalo_id?: string | null;
+          conflitos?: Json | null;
+          criado_em?: string;
+          estado?: string;
+          id?: string;
+          leitura?: Json | null;
+          mime?: string;
+          motivo_recusa?: string | null;
+          nome_original?: string;
+          referencia?: string;
+          sha256?: string;
+          tipo?: string;
+          verificado_em?: string | null;
+          verificado_por?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "documentos_cavalo_cavalo_id_fkey";
+            columns: ["cavalo_id"];
+            isOneToOne: false;
+            referencedRelation: "cavalos_venda";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       email_campaigns: {
         Row: {
           clicked_count: number | null;
