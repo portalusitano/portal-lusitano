@@ -566,15 +566,22 @@ export default function MarketplaceGrid({ horses }: MarketplaceGridProps) {
             ))}
           </GrelhaHolofote>
 
-          <Pagination
-            currentPage={pagina.pagina}
-            totalPages={pagina.totalPaginas}
-            onPageChange={(p) => {
-              navegar({ pagina: p });
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-            className="mt-10"
-          />
+          {/* O `<Pagination>` partilhado desenha um `<div>`. O marco de
+              navegação tem de vir de fora, senão quem salta de marco em marco
+              com um leitor de ecrã não encontra as páginas — e este idioma
+              (setas, números, página actual a branco) é o mesmo do directório,
+              que era a razão para deixar de o ter escrito à mão aqui. */}
+          <nav aria-label="Paginação de resultados">
+            <Pagination
+              currentPage={pagina.pagina}
+              totalPages={pagina.totalPaginas}
+              onPageChange={(p) => {
+                navegar({ pagina: p });
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="mt-10"
+            />
+          </nav>
         </>
       ) : (
         <SemResultados
