@@ -2,7 +2,7 @@ import { cache } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
-import { supabase } from "@/lib/supabase-admin";
+import { supabase, supabaseAdmin } from "@/lib/supabase-admin";
 import FichaCoudelaria from "@/components/directorio/ficha/FichaCoudelaria";
 import type { Avaliacao } from "@/components/directorio/ficha/Avaliacoes";
 import {
@@ -17,6 +17,7 @@ import {
 import { fotosDaCoudelaria } from "@/lib/fotos-coudelarias";
 import type { Vizinha } from "@/components/directorio/ficha/Vizinhas";
 import { COUDELARIA_STATUS } from "@/lib/coudelaria-status";
+import { serializarJsonLd } from "@/lib/json-ld";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://portal-lusitano.pt";
 
@@ -251,9 +252,15 @@ export default async function PaginaCoudelaria({ params }: { params: Promise<{ s
   });
 
   // Contagem de visitas depois da resposta seguir; nunca atrasa a página.
+  //
+  // Escreve-se com o service role, não com a chave anónima: as leituras desta
+  // página são conteúdo público e podem ser anónimas, mas deixar a tabela
+  // aceitar UPDATE de qualquer visitante para somar uma visita abre-a inteira
+  // — o RLS autoriza a linha, não a coluna, e quem somasse uma visita podia
+  // reescrever o nome e a descrição da coudelaria (que vão parar ao JSON-LD).
   after(async () => {
     try {
-      await supabase
+      await supabaseAdmin
         .from("coudelarias")
         .update({ views_count: (coudelaria.views_count || 0) + 1 })
         .eq("id", coudelaria.id);
@@ -266,7 +273,7 @@ export default async function PaginaCoudelaria({ params }: { params: Promise<{ s
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(esquema) }}
+        dangerouslySetInnerHTML={{ __html: serializarJsonLd(esquema) }}
       />
       <FichaCoudelaria
         coudelaria={coudelaria}
