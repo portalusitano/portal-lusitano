@@ -184,6 +184,80 @@ export async function guardarDocumento(pedido: PedidoDeGuardar): Promise<Resulta
 }
 
 /**
+ * Guardar o que a análise automática leu, numa linha que já existe.
+ *
+ * ## Porque é que isto é uma segunda escrita e não parte da primeira
+ *
+ * O documento tem de entrar **antes** de se saber o que ele é. A análise é CPU
+ * medida em segundos (ver a nota na rota) e corre depois de a resposta seguir;
+ * se ela fizesse parte do `insert`, o vendedor esperava por ela para poder
+ * pagar, e um analisador que rebentasse levava consigo o Livro Azul. Primeiro
+ * guarda-se, depois analisa-se, e o que a análise souber vem por cima.
+ *
+ * ## O que esta função nunca escreve
+ *
+ * **O `estado`.** Não está no `update` e não pode vir a estar: nenhuma leitura
+ * automática promove um documento, e o único sítio onde `verificado` se escreve
+ * é a rota que uma pessoa aciona com o documento aberto à frente. O `where`
+ * também não filtra por estado — se alguém já reviu o documento entretanto, a
+ * análise entra à mesma nas colunas dela e não toca na decisão dessa pessoa.
+ *
+ * ## A coluna `forense` pode ainda não existir
+ *
+ * Ela vem de uma migração à parte, e este código pode correr contra uma base
+ * que ainda não a tem. Nesse caso a escrita inteira falharia e perdia-se também
+ * a `leitura` — que é a que os sinais entre anúncios leem e a que não se pode
+ * recalcular sem voltar a descarregar o ficheiro. Por isso tenta-se com as três
+ * colunas e, se a base disser que não conhece a coluna, repete-se com as duas
+ * que ela de certeza tem. Fica escrito no registo, para que a migração em falta
+ * se veja em vez de se adivinhar.
+ */
+export async function guardarAnalise(
+  id: string,
+  analise: { leitura: unknown; conflitos: unknown; forense: unknown }
+): Promise<boolean> {
+  const comExame = {
+    leitura: analise.leitura,
+    conflitos: analise.conflitos,
+    forense: analise.forense,
+  };
+
+  const { error } = await supabaseAdmin.from(TABELA_DOCUMENTOS).update(comExame).eq("id", id);
+  if (!error) return true;
+
+  // `PGRST204` é o que o PostgREST devolve quando a coluna não está no esquema
+  // que ele conhece. Compara-se também pela mensagem porque o código mudou de
+  // valor entre versões e uma verificação só pelo código já falhou por menos.
+  const colunaEmFalta =
+    error.code === "PGRST204" || /forense/i.test(`${error.message} ${error.details ?? ""}`);
+
+  if (!colunaEmFalta) {
+    logger.error("Documento: a análise não ficou guardada", { id, erro: error.message });
+    return false;
+  }
+
+  logger.warn("Documento: a coluna `forense` não existe; guardada só a leitura", {
+    id,
+    erro: error.message,
+  });
+
+  const { error: erroSemExame } = await supabaseAdmin
+    .from(TABELA_DOCUMENTOS)
+    .update({ leitura: analise.leitura, conflitos: analise.conflitos })
+    .eq("id", id);
+
+  if (erroSemExame) {
+    logger.error("Documento: a análise não ficou guardada", {
+      id,
+      erro: erroSemExame.message,
+    });
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Quantos documentos esta referência já tem.
  *
  * Devolve `null` quando a pergunta não pôde ser feita — e quem chama trata o

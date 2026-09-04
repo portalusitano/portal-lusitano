@@ -90,22 +90,25 @@
  * contrato, e o contrato tem três agentes a construir contra ele.
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import { strictLimiter } from "@/lib/rate-limit";
 import { anfitrioesPermitidos, origemPermitida } from "@/lib/origem-permitida";
 import {
   MAX_BYTES_DOCUMENTO,
+  type MimeDeDocumento,
   TIPOS_DE_DOCUMENTO,
   type TipoDeDocumento,
 } from "@/lib/documentos/contrato";
 import { avaliarTipo, FORMATOS_ACEITES } from "@/lib/documentos/tipo-real";
 import {
   contarDocumentosDaReferencia,
+  guardarAnalise,
   guardarDocumento,
   MAX_DOCUMENTOS_POR_REFERENCIA,
   type DocumentoNovo,
 } from "@/lib/documentos/guardar";
+import { analisarDocumento, leituraParaGuardar } from "@/lib/documentos/verificacao";
 
 // `createHash` e `randomUUID` do Node vivem em `lib/documentos/guardar`; a
 // runtime tem de ser a de Node e não a de edge por causa deles.
@@ -159,6 +162,69 @@ function paraOCliente(documento: DocumentoNovo) {
     bytes: documento.bytes,
     nomeOriginal: documento.nome_original,
   };
+}
+
+/** Um documento que já entrou, à espera do exame. */
+interface PorAnalisar {
+  id: string;
+  mime: MimeDeDocumento;
+  conteudo: Uint8Array;
+}
+
+/**
+ * Pôr o exame a correr **depois** de a resposta seguir.
+ *
+ * ## Porque não corre dentro do pedido
+ *
+ * Medido neste ambiente, num PDF com camada de texto: o `lerDocumento` leva
+ * cerca de 1000ms num ficheiro de 2,1 MB (227ms a 0,2 MB) e o `reunirForense`
+ * mais 485ms (57ms a 0,2 MB). São perto de 1,5s de CPU **síncrona** por
+ * documento — o ficheiro inteiro em memória, o event loop preso — e o
+ * formulário envia três de uma vez. Seriam uns 4,5s acrescentados a um pedido
+ * que o vendedor está a fazer para poder seguir para o Stripe, e numa função
+ * serverless isso conta para o tempo limite da invocação.
+ *
+ * O `after` do Next corre isto depois de a resposta ir para o browser, na mesma
+ * invocação. Não é uma fila de trabalho e não finge ser: se a invocação for
+ * morta a meio, o que ficar por escrever fica por escrever — e a linha diz
+ * isso, por ter a análise por correr em vez de a ter vazia.
+ *
+ * ## O que nunca acontece
+ *
+ * O documento **já está guardado** antes de isto começar, e o `guardarAnalise`
+ * não toca no `estado`. Um analisador que rebente perde o exame, nunca o Livro
+ * Azul — e por isso cada documento é analisado dentro do seu próprio `try`: um
+ * ficheiro que estrague o exame não pode levar consigo o exame dos outros dois
+ * que vieram no mesmo envio.
+ */
+function agendarAnalise(referencia: string, porAnalisar: readonly PorAnalisar[]) {
+  after(async () => {
+    for (const { id, mime, conteudo } of porAnalisar) {
+      try {
+        // O anúncio ainda não existe — o documento sobe antes do pagamento —,
+        // por isso não há formulário contra o que cruzar e os `conflitos` saem
+        // vazios. As contradições verdadeiras nascem quando o anúncio nascer, e
+        // quem revê recalcula-as a partir desta leitura.
+        const analise = analisarDocumento(conteudo, mime);
+
+        await guardarAnalise(id, {
+          // Sem o texto: num passaporte são páginas com o nome e a morada do
+          // proprietário, e o que serve para confrontar são os quatro
+          // identificadores. Ver `leituraParaGuardar`.
+          leitura: leituraParaGuardar(analise.leitura),
+          conflitos: analise.conflitos,
+          forense: analise.forense,
+        });
+      } catch (e) {
+        logger.error("Documento: a análise não correu", {
+          id,
+          erro: e instanceof Error ? e.message : String(e),
+        });
+      }
+    }
+
+    logger.info("Documentos analisados", { referencia, quantos: porAnalisar.length });
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -221,6 +287,8 @@ export async function POST(req: NextRequest) {
     // Ler, decidir o tipo pelos bytes, guardar
     // ------------------------------------------------------------------
     const guardados: ReturnType<typeof paraOCliente>[] = [];
+    /* Os que entraram, à espera do exame que corre depois da resposta. */
+    const porAnalisar: { id: string; mime: MimeDeDocumento; conteudo: Uint8Array }[] = [];
 
     for (const { tipo, ficheiro } of anexados) {
       if (ficheiro.size > MAX_BYTES_DOCUMENTO) {
@@ -283,6 +351,32 @@ export async function POST(req: NextRequest) {
       }
 
       guardados.push(paraOCliente(resultado.documento));
+      porAnalisar.push({ id: resultado.documento.id, mime: veredicto.real, conteudo });
+    }
+
+    // ------------------------------------------------------------------
+    // O exame, depois da resposta
+    // ------------------------------------------------------------------
+    //
+    // A razão de correr fora do pedido está escrita no `agendarAnalise`. Aqui
+    // fica só a razão do `try`, que não é zelo: o `after` lança se for chamado
+    // fora do contexto de um pedido, e o que **não** pode acontecer é o
+    // vendedor levar com um 500 e dar o envio por falhado quando o Livro Azul
+    // já está guardado. A subida não falha por causa do exame; um exame por
+    // agendar vê-se na ficha, escrito, e não se confunde com um que não achou
+    // nada.
+    if (porAnalisar.length > 0) {
+      try {
+        agendarAnalise(referencia, porAnalisar);
+      } catch (e) {
+        // `error` e não `warn`: isto quer dizer que estes documentos não vão
+        // ser analisados de todo, o que é uma falha operacional e não uma nota
+        // de rodapé. O vendedor não dá por nada — e é isso que está certo.
+        logger.error("Documentos: a análise não ficou agendada", {
+          referencia,
+          erro: e instanceof Error ? e.message : String(e),
+        });
+      }
     }
 
     logger.info("Documentos recebidos", {

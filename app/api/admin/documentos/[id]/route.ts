@@ -28,6 +28,7 @@ import {
   idValido,
   leituraDaLinha,
   mesmaSubmissao,
+  recolherVerificacao,
   respostaIdInvalido,
   sessaoDeAdmin,
   valorDoAnuncio,
@@ -176,6 +177,35 @@ export async function GET(_pedido: NextRequest, { params }: { params: Promise<{ 
       }
     }
 
+    // ── O que os cinco motores sabem ────────────────────────────────────────
+    //
+    // Num sítio só. Se cada ecrã os chamasse à mão, o sexto ecrã ia chamar
+    // quatro — e um achado que falta não se vê: a página continua a parecer
+    // completa. Nada disto decide nada; é a matéria que quem revê lê antes de
+    // decidir, e a decisão continua a ser um clique noutra rota.
+    //
+    // Se falhar, a ficha continua a abrir — a comparação entre o documento e o
+    // que o vendedor escreveu é o trabalho, e não pode ficar refém de uma
+    // consulta acessória. Mas **diz que falhou**: devolver uma lista vazia com
+    // «por correr» seria afirmar uma coisa que não se sabe, e quem revê via um
+    // painel calmo em vez de um painel avariado. O aviso de duplicado por SHA
+    // continua a falhar alto, com 500, mais acima — esse é o sinal mais forte
+    // que este sistema tem e não se degrada.
+    let verificacao: FichaDeDocumento["verificacao"] = { notas: [], analise: "por_correr" };
+    try {
+      verificacao = await recolherVerificacao({
+        documentoId: id,
+        cavaloId,
+        referencia,
+        sha256: sha,
+        linha,
+        anuncio,
+      });
+    } catch (e) {
+      logger.error("[admin/documentos/id] falha a reunir a verificação", e);
+      verificacao = { notas: [], analise: "por_correr", recolhaFalhou: true };
+    }
+
     const ficha: FichaDeDocumento = {
       id,
       tipo: linha.tipo as FichaDeDocumento["tipo"],
@@ -197,6 +227,7 @@ export async function GET(_pedido: NextRequest, { params }: { params: Promise<{ 
       campos,
       conflitos,
       duplicados,
+      verificacao,
       motivoRecusa: (linha.motivo_recusa as string | null) ?? null,
       verificadoPor: (linha.verificado_por as string | null) ?? null,
       verificadoEm: (linha.verificado_em as string | null) ?? null,

@@ -30,7 +30,12 @@ import {
   X,
 } from "lucide-react";
 import type { EstadoDeDocumento } from "@/lib/documentos/contrato";
-import { ROTULO_DO_ESTADO, ROTULO_DO_TIPO, type FichaDeDocumento } from "../tipos";
+import {
+  ROTULO_DA_ORIGEM,
+  ROTULO_DO_ESTADO,
+  ROTULO_DO_TIPO,
+  type FichaDeDocumento,
+} from "../tipos";
 
 /** Lê o erro de qualquer das duas convenções em jogo — a da API e a do middleware. */
 function mensagemDeErro(corpo: unknown, alternativa: string): string {
@@ -499,6 +504,8 @@ export default function Ficha({ id }: { id: string }) {
         </section>
       </div>
 
+      <Verificacao vista={ficha.verificacao} />
+
       {ficha.textoLido && (
         <section className="mt-10">
           <h2 className="rotulo-forte mb-3">Texto extraído do ficheiro</h2>
@@ -512,6 +519,107 @@ export default function Ficha({ id }: { id: string }) {
         </section>
       )}
     </div>
+  );
+}
+
+/**
+ * O que se sabe sobre este documento, e o que isso não quer dizer.
+ *
+ * ## As três regras que esta secção cumpre à letra
+ *
+ * 1. **Nenhum facto aparece sem a sua explicação inocente.** Não há aqui nenhum
+ *    caminho que mostre a `observacao` e cale a `explicacaoInocente` — vêm no
+ *    mesmo `<li>`, uma debaixo da outra, e a segunda não é mais pequena do que
+ *    a primeira por acaso: é o texto que fica no olho depois de o primeiro ser
+ *    lido.
+ * 2. **Nada disto é um veredicto.** Não há nota, não há percentagem, não há
+ *    semáforo e não há contagem por gravidade. Nem sequer há cor: pintar três
+ *    notas de vermelho e duas de amarelo é uma pontuação desenhada, e o preço
+ *    de estar errado é acusar de falsificação um criador que digitalizou o
+ *    Livro Azul com o software que o multifunções dele trazia.
+ * 3. **Uma lista vazia diz porque está vazia.** «Examinou-se e não há nada» e
+ *    «não se examinou» mandam quem revê fazer coisas opostas, e um painel que
+ *    as confunda dá por examinado o único documento que ninguém abriu.
+ *
+ * A ordem vem do servidor e não se mexe aqui — é a ordem de leitura do
+ * `lib/documentos/verificacao.ts`, do mais raro e específico para o mais comum.
+ */
+function Verificacao({ vista }: { vista: FichaDeDocumento["verificacao"] }) {
+  const { notas, analise } = vista;
+
+  // A recolha avariou. Não se diz mais nada — dizer «não há nada a assinalar»
+  // seria afirmar o que não se sabe, e é numa página de decisão que isso custa
+  // mais caro.
+  if (vista.recolhaFalhou) {
+    return (
+      <section className="mt-10">
+        <h2 className="rotulo-forte mb-3">O que se sabe sobre este documento</h2>
+        <p
+          role="alert"
+          className="cartao p-4 text-sm"
+          style={{ borderColor: "var(--erro)", background: "rgb(var(--erro-rgb) / 0.06)" }}
+        >
+          Não foi possível reunir o que se sabe sobre este documento. Isto <strong>não</strong> quer
+          dizer que não haja nada a assinalar — quer dizer que não se conseguiu perguntar.
+          Recarregue a página; se voltar a acontecer, decida com o documento e a comparação acima,
+          que essas estão inteiras.
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="mt-10">
+      <h2 className="rotulo-forte mb-3">O que se sabe sobre este documento</h2>
+
+      <p className="meta mb-4 max-w-3xl">
+        Factos observados por máquina, do mais raro para o mais comum, cada um com a razão pela qual
+        um documento honesto dá o mesmo resultado. Não são acusações e não decidem nada — nenhuma
+        destas linhas verifica ou recusa o que quer que seja. Quem decide é quem está a ler.
+      </p>
+
+      {analise === "por_correr" && (
+        <p className="meta mb-4">
+          O exame automático do ficheiro <strong>não chegou a correr</strong> — não é o mesmo que
+          ter corrido e não ter encontrado nada. O que estiver em baixo veio do que o vendedor
+          escreveu e dos outros anúncios, não dos bytes deste ficheiro.
+        </p>
+      )}
+
+      {analise === "falhou" && (
+        <p className="meta mb-4">
+          O exame automático do ficheiro <strong>foi tentado e falhou</strong>. Um ficheiro que não
+          se soube abrir não é um ficheiro suspeito; é um ficheiro por olhar, e continua a precisar
+          dos mesmos olhos que todos os outros.
+        </p>
+      )}
+
+      {notas.length === 0 ? (
+        <p className="meta">
+          {analise === "correu"
+            ? "Examinou-se, e não há nada a assinalar. Isto não quer dizer que o documento seja verdadeiro — quer dizer que nada do que se sabe medir por máquina deu sinal."
+            : "Não há nada a mostrar."}
+        </p>
+      ) : (
+        <ul className="space-y-3">
+          {notas.map((nota, i) => (
+            <li key={`${nota.chave}-${i}`} className="cartao p-4">
+              <p className="rotulo mb-1.5">{ROTULO_DA_ORIGEM[nota.origem]}</p>
+              <p className="text-sm text-[var(--foreground-strong)]">{nota.observacao}</p>
+              <p className="meta mt-2 max-w-3xl">{nota.explicacaoInocente}</p>
+              {/* Os anúncios em causa, como identificadores e não como
+                  ligações: a fila ainda não sabe filtrar por anúncio, e um link
+                  que abre a fila inteira promete um filtro que não existe. */}
+              {nota.cavalos.length > 0 && (
+                <p className="meta mt-2 font-mono">
+                  Anúncios: {nota.cavalos.map((cavaloId) => cavaloId.slice(0, 8)).join(" · ")}
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 

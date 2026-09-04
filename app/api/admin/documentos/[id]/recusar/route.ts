@@ -16,6 +16,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import { TABELA, baseDeDados, idValido, respostaIdInvalido, sessaoDeAdmin } from "../../comum";
+import { avisarDocumentoRecusado } from "@/lib/aviso-documento-recusado";
 
 // Literal por exigência do Next — ver a nota em `../../route.ts`.
 export const dynamic = "force-dynamic";
@@ -107,7 +108,30 @@ export async function POST(pedido: NextRequest, { params }: { params: Promise<{ 
 
     logger.info("[admin/documentos] documento recusado", { id, por: sessao.email });
 
-    return NextResponse.json({ estado: "recusado", motivoRecusa: motivo });
+    /* Avisar o vendedor.
+     *
+     * Sem isto, uma recusa era uma decisão que só existia do lado de dentro: o
+     * motivo ficava gravado na base, o vendedor tinha pago, e ficava à espera
+     * para sempre de um anúncio que nunca ia sair. Prometer uma revisão e não
+     * a mostrar a quem depende dela é a mesma falsidade que este trabalho todo
+     * existe para acabar.
+     *
+     * **Uma falha aqui não deita a recusa abaixo.** A decisão já está gravada,
+     * e devolver um erro a quem acabou de a tomar porque o serviço de email
+     * não respondeu é trocar um problema por outro maior — quem revê ficaria
+     * sem saber se recusou ou não. Fica no registo, e a coluna
+     * `aviso_recusa_em` existe para uma varredura poder apanhar o que ficou
+     * por avisar sem avisar duas vezes.
+     *
+     * `avisarDocumentoRecusado` relê o estado da base antes de enviar, por
+     * isso é seguro chamá-la daqui e mais do que uma vez: um documento que
+     * entretanto tenha sido reaberto não gera aviso nenhum. */
+    const aviso = await avisarDocumentoRecusado(id);
+    if (!aviso.enviado) {
+      logger.warn("[admin/documentos/recusar] vendedor não avisado", { id, razao: aviso.razao });
+    }
+
+    return NextResponse.json({ estado: "recusado", motivoRecusa: motivo, avisado: aviso.enviado });
   } catch (e) {
     logger.error("[admin/documentos/recusar] erro inesperado", e);
     return NextResponse.json({ erro: "Erro interno" }, { status: 500 });

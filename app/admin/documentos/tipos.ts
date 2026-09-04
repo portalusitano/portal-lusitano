@@ -19,6 +19,9 @@ import type {
   MimeDeDocumento,
   TipoDeDocumento,
 } from "@/lib/documentos/contrato";
+import type { Nota, OrigemDaNota, VistaDeVerificacao } from "@/lib/documentos/verificacao";
+
+export type { Nota, OrigemDaNota, VistaDeVerificacao };
 
 /** Os quatro campos que se confrontam, e como se escrevem em português. */
 export const ROTULO_DO_CAMPO: Readonly<Record<Conflito["campo"], string>> = {
@@ -32,6 +35,22 @@ export const ROTULO_DO_TIPO: Readonly<Record<TipoDeDocumento, string>> = {
   livro_azul: "Livro Azul",
   passaporte: "Passaporte equino",
   exame_vet: "Exame veterinário",
+};
+
+/**
+ * De onde é que cada nota veio, por extenso.
+ *
+ * **Não é uma escala**, e o painel não as pinta com cores diferentes por isso:
+ * são quatro espécies de pergunta, e nenhuma delas vale mais do que outra. O
+ * rótulo está lá para quem lê saber o que é que foi perguntado — «o ficheiro» é
+ * uma pergunta sobre bytes e «entre anúncios» é uma pergunta sobre a tabela, e
+ * as duas enganam-se de maneiras diferentes.
+ */
+export const ROTULO_DA_ORIGEM: Readonly<Record<OrigemDaNota, string>> = {
+  ficheiro: "O ficheiro",
+  cavalo: "O cavalo",
+  entre_anuncios: "Entre anúncios",
+  formulario: "Contra o formulário",
 };
 
 export const ROTULO_DO_ESTADO: Readonly<Record<EstadoDeDocumento, string>> = {
@@ -149,6 +168,15 @@ export interface FichaDeDocumento {
   campos: CampoConfrontado[];
   conflitos: Conflito[];
   duplicados: DuplicadoVizinho[];
+  /**
+   * Tudo o que os cinco motores sabem sobre este documento, já reunido e com a
+   * explicação inocente ao lado de cada facto.
+   *
+   * Vem de `lib/documentos/verificacao.ts` e **não** decide nada: é a matéria
+   * que quem revê lê antes de decidir. O tipo é importado de lá e não copiado —
+   * duas ideias da mesma coisa acabam sempre com uma delas desactualizada.
+   */
+  verificacao: VistaDeVerificacao;
   motivoRecusa: string | null;
   verificadoPor: string | null;
   verificadoEm: string | null;
