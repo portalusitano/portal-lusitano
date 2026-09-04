@@ -5,6 +5,7 @@ import { lerNif, lerTelefonePT, pareceTelefoneInternacional } from "@/lib/identi
 import { sugerirDominioEmail } from "@/lib/dominios-email";
 import { identificarVideo } from "@/lib/video-partilhado";
 import { lerRegistoApsl } from "@/components/vender-cavalo/registo-apsl";
+import { lerPassaporte } from "@/components/vender-cavalo/passaporte-ueln";
 
 /**
  * O que cada campo sabe sobre si próprio.
@@ -77,6 +78,14 @@ export interface MensagensInspeccao {
   treinoCedoDemais: (idade: number) => string;
   treinoAltaEscolaCedo: (idade: number) => string;
   treinoPotroTarde: (idade: number) => string;
+  passaporteComprimento: (faltam: number) => string;
+  passaportePaisNaoNumerico: string;
+  dataNoFuturo: string;
+  dataAntesDeNascer: string;
+  vacinacaoDesactualizada: (meses: number) => string;
+  desparasitacaoDesactualizada: (meses: number) => string;
+  ferragemAntiga: (meses: number) => string;
+  treinoMaisAnosDoQueIdade: (anos: number, idade: number) => string;
 }
 
 // ---------------------------------------------------------------------------
@@ -115,6 +124,34 @@ const MAOS_PLAUSIVEIS = { min: 12, max: 19 } as const;
  */
 const PONTUACAO_ESCALA = { min: 0, max: 100 } as const;
 const PONTUACAO_HABITUAL = { min: 60, max: 80 } as const;
+
+/**
+ * Quanto tempo pode passar entre um cuidado e a data que se escreve ao lado
+ * de «está em dia».
+ *
+ * Estes três números não são de gosto — são os intervalos correntes da prática
+ * veterinária equina, e servem só para apanhar a **contradição dentro do
+ * próprio formulário**: alguém que respondeu «sim, está em dia» e escreveu uma
+ * data de há três anos disse duas coisas que não podem ser ambas verdade, e
+ * uma delas está errada.
+ *
+ * - **Vacinação: 12 meses.** O reforço da gripe equina e do tétano é anual. A
+ *   FEI é ainda mais apertada para competir — reforço nos 6 meses e 21 dias
+ *   anteriores —, e por isso doze meses é o limite generoso, não o exigente.
+ * - **Desparasitação: 12 meses.** O intervalo corrente anda entre os 3 e os 6
+ *   meses, conforme o programa e o resultado das contagens de ovos; aos doze
+ *   já não há programa nenhum que o justifique.
+ * - **Ferragem ou aparo: 6 meses.** O ciclo do casco é de 6 a 8 semanas, e
+ *   vale tanto para o cavalo ferrado como para o descalço, que é aparado na
+ *   mesma. Seis meses são quatro ciclos falhados.
+ *
+ * Nenhum destes recusa nada: são todos avisos. Um cavalo pode ter estado
+ * parado, doente ou no estrangeiro — o que não pode é a resposta e a data
+ * dizerem coisas diferentes sem que ninguém repare.
+ */
+const MESES_VACINACAO = 12;
+const MESES_DESPARASITACAO = 12;
+const MESES_FERRAGEM = 6;
 
 /**
  * Preços. Um PSL registado, com Livro Azul e linhagem, não muda de mãos por
@@ -198,6 +235,20 @@ export function idadeEmAnos(dataNascimento: string, hoje = new Date()): number |
   const mes = hoje.getMonth() - nascimento.getMonth();
   if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) anos--;
   return anos;
+}
+
+/** Uma data do formulário, ou `null` se não houver ou não for uma data. */
+export function lerData(valor: string): Date | null {
+  if (!valor) return null;
+  const d = new Date(valor);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/** Quantos meses completos passaram entre duas datas. Negativo se for futuro. */
+export function mesesEntre(desde: Date, ate: Date): number {
+  let meses = (ate.getFullYear() - desde.getFullYear()) * 12 + (ate.getMonth() - desde.getMonth());
+  if (ate.getDate() < desde.getDate()) meses--;
+  return meses;
 }
 
 /**
@@ -361,6 +412,78 @@ export function inspeccionar(
   for (const campo of ["videos_url", "videos_url_2"] as const) {
     const valor = texto(formData, campo).trim();
     if (valor && !identificarVideo(valor)) apontar(campo, "aviso", m.videoNaoReconhecido);
+  }
+
+  // --- Passaporte equino: UELN ----------------------------------------------
+  // Nunca recusa. Um cavalo nascido antes de o UELN ser exigido tem um
+  // passaporte com outro número, e recusá-lo seria impedir de publicar
+  // precisamente os cavalos mais velhos. Ver `passaporte-ueln.ts`.
+  const passaporteEscrito = texto(formData, "passaporte_equino");
+  if (passaporteEscrito.trim()) {
+    const passaporte = lerPassaporte(passaporteEscrito);
+    if (passaporte.problema === "comprimento")
+      apontar("passaporte_equino", "aviso", m.passaporteComprimento(passaporte.diferenca ?? 0));
+    else if (passaporte.problema === "pais-nao-numerico")
+      apontar("passaporte_equino", "aviso", m.passaportePaisNaoNumerico);
+  }
+
+  // --- As datas de saúde, contra o calendário e contra si próprias ----------
+  // Três verificações, e nenhuma delas inventa nada: usa-se o que o próprio
+  // formulário já sabe. Uma data no futuro é impossível; uma data anterior ao
+  // nascimento do cavalo é impossível; e uma data que contradiz o «está em
+  // dia» que se respondeu duas linhas acima é uma das duas respostas errada.
+  const agora = contexto.hoje ?? new Date();
+  const nascimento = lerData(texto(formData, "data_nascimento"));
+
+  const datasDeSaude = [
+    {
+      campo: "data_ultima_vacinacao" as const,
+      emDia: texto(formData, "vacinacao_atualizada") === "sim",
+      limite: MESES_VACINACAO,
+      frase: m.vacinacaoDesactualizada,
+    },
+    {
+      campo: "data_ultima_desparasitacao" as const,
+      emDia: texto(formData, "desparasitacao_atualizada") === "sim",
+      limite: MESES_DESPARASITACAO,
+      frase: m.desparasitacaoDesactualizada,
+    },
+    {
+      // A ferragem não tem um «está em dia» ao lado: o que se compara é só
+      // com o ciclo do casco, que corre quer o cavalo esteja ferrado quer
+      // esteja descalço — o descalço é aparado na mesma.
+      campo: "data_ultima_ferragem" as const,
+      emDia: true,
+      limite: MESES_FERRAGEM,
+      frase: m.ferragemAntiga,
+    },
+  ];
+
+  for (const { campo, emDia, limite, frase } of datasDeSaude) {
+    const data = lerData(texto(formData, campo));
+    if (!data) continue;
+    if (data > agora) {
+      apontar(campo, "aviso", m.dataNoFuturo);
+      continue;
+    }
+    if (nascimento && data < nascimento) {
+      apontar(campo, "aviso", m.dataAntesDeNascer);
+      continue;
+    }
+    const meses = mesesEntre(data, agora);
+    if (emDia && meses > limite) apontar(campo, "aviso", frase(meses));
+  }
+
+  // --- Anos de treino contra a idade ---------------------------------------
+  // Um cavalo não pode ter treinado mais anos do que os que viveu. Fica em
+  // aviso e não em erro pela mesma razão que a incoerência do nível de treino:
+  // quem se enganou pode ter-se enganado **na data de nascimento**, e travar o
+  // passo no campo errado manda a pessoa corrigir o que estava certo.
+  const anosTreino = numero(texto(formData, "anos_treino"));
+  const idadeParaTreino = idadeEmAnos(texto(formData, "data_nascimento"), contexto.hoje);
+  if (anosTreino !== null && idadeParaTreino !== null && idadeParaTreino >= 0) {
+    if (anosTreino > idadeParaTreino)
+      apontar("anos_treino", "aviso", m.treinoMaisAnosDoQueIdade(anosTreino, idadeParaTreino));
   }
 
   // --- Idade contra nível de treino ----------------------------------------

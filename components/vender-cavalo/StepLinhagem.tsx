@@ -1,36 +1,97 @@
 "use client";
 
 import { useMemo } from "react";
-import { Upload, CheckCircle, FileText } from "lucide-react";
+import { CheckCircle, FileText } from "lucide-react";
 import type { StepProps, Documentos, DocumentType } from "@/components/vender-cavalo/types";
 import { linhagensPrincipais } from "@/components/vender-cavalo/data";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
 import Seleccao from "@/components/ui/Seleccao";
-import Detalhes from "@/components/vender-cavalo/Detalhes";
+import Seccao from "@/components/vender-cavalo/Seccao";
 import { ErroDoCampo, classeCampo } from "@/components/vender-cavalo/campos-com-erro";
-import { ligarCampo } from "@/components/vender-cavalo/apontamentos";
+import { atributosCampo, ligarCampo } from "@/components/vender-cavalo/apontamentos";
+import EscolherFicheiro from "@/components/vender-cavalo/EscolherFicheiro";
 
 interface StepLinhagemProps extends StepProps {
   documentos: Documentos;
   onDocUpload: (type: DocumentType, file: File) => void;
 }
 
+/**
+ * A ascendência.
+ *
+ * Catorze campos, e os doze da terceira geração estavam atrás de uma gaveta
+ * com a nota «Opcional. Enriquece o pedigree que aparece no anúncio». Saiu a
+ * gaveta e saiu a nota; o que fica no lugar é onde ir buscar o que se pede,
+ * que é a informação que a nota devia ter dado desde sempre: **está tudo no
+ * Livro Azul que se anexa no fim desta mesma página**, e por isso a ordem em
+ * que as coisas aparecem no ecrã é a ordem em que se lêem no documento.
+ *
+ * Os campos dos avós ganharam `<label>` a sério. Eram doze `<input>` com um
+ * `placeholder` a fazer de rótulo — «Nome», «Nº Registo» — debaixo de um
+ * parágrafo solto: um `placeholder` desaparece quando se escreve, não é lido
+ * como rótulo por um leitor de ecrã, e num campo obrigatório isso quer dizer
+ * que quem lá chegar pelo resumo de erros não sabe onde está.
+ */
 export default function StepLinhagem(props: StepLinhagemProps) {
-  const { formData, updateField, documentos, onDocUpload, erros } = props;
+  const { formData, updateField, documentos, onDocUpload, erros, apontamentos, conta } = props;
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
+
+  /** Os oito campos dos avós: quatro pares de nome e registo. */
+  const avos = [
+    {
+      grupo: tr(
+        "Avô Paterno (pai do pai)",
+        "Paternal Grandfather (father's father)",
+        "Abuelo Paterno (padre del padre)"
+      ),
+      nome: "avo_paterno_nome",
+      registo: "avo_paterno_registo",
+    },
+    {
+      grupo: tr(
+        "Avó Paterna (mãe do pai)",
+        "Paternal Grandmother (father's mother)",
+        "Abuela Paterna (madre del padre)"
+      ),
+      nome: "avo_paterno_mae_nome",
+      registo: "avo_paterno_mae_registo",
+    },
+    {
+      grupo: tr(
+        "Avô Materno (pai da mãe)",
+        "Maternal Grandfather (mother's father)",
+        "Abuelo Materno (padre de la madre)"
+      ),
+      nome: "avo_materno_nome",
+      registo: "avo_materno_registo",
+    },
+    {
+      grupo: tr(
+        "Avó Materna (mãe da mãe)",
+        "Maternal Grandmother (mother's mother)",
+        "Abuela Materna (madre de la madre)"
+      ),
+      nome: "avo_materno_mae_nome",
+      registo: "avo_materno_mae_registo",
+    },
+  ] as const;
 
   return (
     <div className="bg-[var(--background-secondary)]/50 cartao p-6">
       <h2 className="text-xl mb-6">{t.vender_cavalo.step_lineage_title}</h2>
 
-      <div className="space-y-6">
-        {/* Pai */}
-        <div>
-          <h3 className="text-sm font-medium text-[var(--foreground-muted)] mb-3">
-            {t.vender_cavalo.sire}
-          </h3>
+      <div className="space-y-8">
+        <Seccao
+          titulo={tr("Pai e mãe", "Sire and dam", "Padre y madre")}
+          nota={tr(
+            "Nome e número de registo dos dois, como estão no Livro Azul.",
+            "Name and registration number of both, as on the Blue Book.",
+            "Nombre y número de registro de ambos, como en el Libro Azul."
+          )}
+          {...conta("pais")}
+        >
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label
@@ -54,24 +115,20 @@ export default function StepLinhagem(props: StepLinhagemProps) {
                 htmlFor="pai_registo"
                 className="block text-sm text-[var(--foreground-secondary)] mb-1"
               >
-                {t.vender_cavalo.sire_registration}
+                {t.vender_cavalo.sire_registration} *
               </label>
               <input
                 id="pai_registo"
                 type="text"
                 value={formData.pai_registo}
                 onChange={(e) => updateField("pai_registo", e.target.value)}
-                className="campo"
+                className={classeCampo(erros, "pai_registo")}
+                {...ligarCampo("pai_registo", formData.pai_registo, props)}
               />
+              <ErroDoCampo erros={erros} campo="pai_registo" />
             </div>
           </div>
-        </div>
 
-        {/* Mãe */}
-        <div>
-          <h3 className="text-sm font-medium text-[var(--foreground-muted)] mb-3">
-            {t.vender_cavalo.dam}
-          </h3>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label
@@ -95,204 +152,120 @@ export default function StepLinhagem(props: StepLinhagemProps) {
                 htmlFor="mae_registo"
                 className="block text-sm text-[var(--foreground-secondary)] mb-1"
               >
-                {t.vender_cavalo.dam_registration}
+                {t.vender_cavalo.dam_registration} *
               </label>
               <input
                 id="mae_registo"
                 type="text"
                 value={formData.mae_registo}
                 onChange={(e) => updateField("mae_registo", e.target.value)}
-                className="campo"
+                className={classeCampo(erros, "mae_registo")}
+                {...ligarCampo("mae_registo", formData.mae_registo, props)}
               />
+              <ErroDoCampo erros={erros} campo="mae_registo" />
             </div>
           </div>
-        </div>
+        </Seccao>
 
-        {/* Terceira geração e origem. Dez campos que estão todos no Livro Azul
-            anexado aqui ao lado — quem quiser o pedigree escrito no anúncio
-            abre-os; quem quiser publicar hoje passa ao lado. */}
-        <Detalhes
+        <Seccao
           titulo={tr(
             "Avós, linhagem e coudelaria de origem",
             "Grandparents, lineage and stud of origin",
             "Abuelos, linaje y criadero de origen"
           )}
-          campos={10}
           nota={tr(
-            "Opcional. Enriquece o pedigree que aparece no anúncio.",
-            "Optional. Enriches the pedigree shown on the listing.",
-            "Opcional. Enriquece el pedigrí que aparece en el anuncio."
+            "A terceira geração está na mesma página do Livro Azul.",
+            "The third generation is on the same page of the Blue Book.",
+            "La tercera generación está en la misma página del Libro Azul."
           )}
+          {...conta("avos")}
         >
-          <div className="space-y-6">
-            {/* Avós Paternos (3ª geração — lado do pai) */}
-            <div>
-              <h3 className="text-sm font-medium text-[var(--foreground-muted)] mb-3">
-                {tr(
-                  "Avós Paternos (3ª geração — lado do pai)",
-                  "Paternal Grandparents (3rd generation — father's side)",
-                  "Abuelos Paternos (3ª generación — lado del padre)"
-                )}
-              </h3>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <p className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider">
-                    {tr(
-                      "Avô Paterno (pai do pai)",
-                      "Paternal Grandfather (father's father)",
-                      "Abuelo Paterno (padre del padre)"
-                    )}
-                  </p>
+          <div className="grid sm:grid-cols-2 gap-x-4 gap-y-6">
+            {avos.map((avo) => (
+              <div key={avo.nome} className="space-y-3">
+                <p className="rotulo">{avo.grupo}</p>
+                <div>
+                  <label
+                    htmlFor={avo.nome}
+                    className="block text-sm text-[var(--foreground-secondary)] mb-1"
+                  >
+                    {tr("Nome", "Name", "Nombre")} *
+                  </label>
                   <input
-                    id="avo_paterno_nome"
+                    id={avo.nome}
                     type="text"
-                    value={formData.avo_paterno_nome}
-                    onChange={(e) => updateField("avo_paterno_nome", e.target.value)}
-                    className="campo"
-                    placeholder="Nome"
+                    value={formData[avo.nome]}
+                    onChange={(e) => updateField(avo.nome, e.target.value)}
+                    className={classeCampo(erros, avo.nome)}
+                    {...ligarCampo(avo.nome, formData[avo.nome], props)}
                   />
-                  <input
-                    id="avo_paterno_registo"
-                    type="text"
-                    value={formData.avo_paterno_registo}
-                    onChange={(e) => updateField("avo_paterno_registo", e.target.value)}
-                    className="campo"
-                    placeholder="Nº Registo"
-                  />
+                  <ErroDoCampo erros={erros} campo={avo.nome} />
                 </div>
-                <div className="space-y-3">
-                  <p className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider">
-                    {tr(
-                      "Avó Paterna (mãe do pai)",
-                      "Paternal Grandmother (father's mother)",
-                      "Abuela Paterna (madre del padre)"
-                    )}
-                  </p>
+                <div>
+                  <label
+                    htmlFor={avo.registo}
+                    className="block text-sm text-[var(--foreground-secondary)] mb-1"
+                  >
+                    {tr("Nº de Registo", "Registration No.", "Nº de Registro")} *
+                  </label>
                   <input
-                    id="avo_paterno_mae_nome"
+                    id={avo.registo}
                     type="text"
-                    value={formData.avo_paterno_mae_nome}
-                    onChange={(e) => updateField("avo_paterno_mae_nome", e.target.value)}
-                    className="campo"
-                    placeholder="Nome"
+                    value={formData[avo.registo]}
+                    onChange={(e) => updateField(avo.registo, e.target.value)}
+                    className={classeCampo(erros, avo.registo)}
+                    {...ligarCampo(avo.registo, formData[avo.registo], props)}
                   />
-                  <input
-                    id="avo_paterno_mae_registo"
-                    type="text"
-                    value={formData.avo_paterno_mae_registo}
-                    onChange={(e) => updateField("avo_paterno_mae_registo", e.target.value)}
-                    className="campo"
-                    placeholder="Nº Registo"
-                  />
+                  <ErroDoCampo erros={erros} campo={avo.registo} />
                 </div>
               </div>
-            </div>
+            ))}
+          </div>
 
-            {/* Avós Maternos (3ª geração — lado da mãe) */}
+          <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <h3 className="text-sm font-medium text-[var(--foreground-muted)] mb-3">
-                {tr(
-                  "Avós Maternos (3ª geração — lado da mãe)",
-                  "Maternal Grandparents (3rd generation — mother's side)",
-                  "Abuelos Maternos (3ª generación — lado de la madre)"
-                )}
-              </h3>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-3">
-                  <p className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider">
-                    {tr(
-                      "Avô Materno (pai da mãe)",
-                      "Maternal Grandfather (mother's father)",
-                      "Abuelo Materno (padre de la madre)"
-                    )}
-                  </p>
-                  <input
-                    id="avo_materno_nome"
-                    type="text"
-                    value={formData.avo_materno_nome}
-                    onChange={(e) => updateField("avo_materno_nome", e.target.value)}
-                    className="campo"
-                    placeholder="Nome"
-                  />
-                  <input
-                    id="avo_materno_registo"
-                    type="text"
-                    value={formData.avo_materno_registo}
-                    onChange={(e) => updateField("avo_materno_registo", e.target.value)}
-                    className="campo"
-                    placeholder="Nº Registo"
-                  />
-                </div>
-                <div className="space-y-3">
-                  <p className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider">
-                    {tr(
-                      "Avó Materna (mãe da mãe)",
-                      "Maternal Grandmother (mother's mother)",
-                      "Abuela Materna (madre de la madre)"
-                    )}
-                  </p>
-                  <input
-                    id="avo_materno_mae_nome"
-                    type="text"
-                    value={formData.avo_materno_mae_nome}
-                    onChange={(e) => updateField("avo_materno_mae_nome", e.target.value)}
-                    className="campo"
-                    placeholder="Nome"
-                  />
-                  <input
-                    id="avo_materno_mae_registo"
-                    type="text"
-                    value={formData.avo_materno_mae_registo}
-                    onChange={(e) => updateField("avo_materno_mae_registo", e.target.value)}
-                    className="campo"
-                    placeholder="Nº Registo"
-                  />
-                </div>
-              </div>
+              <label
+                htmlFor="linhagem_principal"
+                className="block text-sm text-[var(--foreground-secondary)] mb-1"
+              >
+                {tr("Linhagem Principal", "Main Lineage", "Linaje Principal")} *
+              </label>
+              <Seleccao
+                id="linhagem_principal"
+                value={formData.linhagem_principal}
+                onChange={(e) => updateField("linhagem_principal", e.target.value)}
+                className={classeCampo(erros, "linhagem_principal")}
+                {...atributosCampo(erros, apontamentos, "linhagem_principal")}
+              >
+                <option value="">{t.vender_cavalo.select}</option>
+                {linhagensPrincipais.map((l) => (
+                  <option key={l} value={l}>
+                    {l}
+                  </option>
+                ))}
+              </Seleccao>
+              <ErroDoCampo erros={erros} campo="linhagem_principal" />
             </div>
-
-            {/* Linhagem + Coudelaria */}
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label
-                  htmlFor="linhagem_principal"
-                  className="block text-sm text-[var(--foreground-secondary)] mb-1"
-                >
-                  {tr("Linhagem Principal", "Main Lineage", "Linaje Principal")}
-                </label>
-                <Seleccao
-                  id="linhagem_principal"
-                  value={formData.linhagem_principal}
-                  onChange={(e) => updateField("linhagem_principal", e.target.value)}
-                  className="campo"
-                >
-                  <option value="">{t.vender_cavalo.select}</option>
-                  {linhagensPrincipais.map((l) => (
-                    <option key={l} value={l}>
-                      {l}
-                    </option>
-                  ))}
-                </Seleccao>
-              </div>
-              <div>
-                <label
-                  htmlFor="coudelaria_origem"
-                  className="block text-sm text-[var(--foreground-secondary)] mb-1"
-                >
-                  {t.vender_cavalo.stud_origin}
-                </label>
-                <input
-                  id="coudelaria_origem"
-                  type="text"
-                  value={formData.coudelaria_origem}
-                  onChange={(e) => updateField("coudelaria_origem", e.target.value)}
-                  className="campo"
-                  placeholder={t.vender_cavalo.placeholder_stud_origin}
-                />
-              </div>
+            <div>
+              <label
+                htmlFor="coudelaria_origem"
+                className="block text-sm text-[var(--foreground-secondary)] mb-1"
+              >
+                {t.vender_cavalo.stud_origin} *
+              </label>
+              <input
+                id="coudelaria_origem"
+                type="text"
+                value={formData.coudelaria_origem}
+                onChange={(e) => updateField("coudelaria_origem", e.target.value)}
+                className={classeCampo(erros, "coudelaria_origem")}
+                placeholder={t.vender_cavalo.placeholder_stud_origin}
+                {...ligarCampo("coudelaria_origem", formData.coudelaria_origem, props)}
+              />
+              <ErroDoCampo erros={erros} campo="coudelaria_origem" />
             </div>
           </div>
-        </Detalhes>
+        </Seccao>
 
         {/* Upload Documentos */}
         <div className="border-t border-[var(--border)] pt-6">
@@ -313,31 +286,21 @@ export default function StepLinhagem(props: StepLinhagemProps) {
               <p className="text-xs text-[var(--foreground-muted)] mb-3">
                 {t.vender_cavalo.blue_book_desc}
               </p>
-              <label
-                className={`flex items-center justify-center gap-2 px-4 py-3 border border-dashed rounded-lg cursor-pointer transition-colors touch-manipulation ${
-                  erros.livro_azul
-                    ? "border-[var(--erro)]"
-                    : "border-[var(--border)] hover:border-[var(--border-hover)]"
-                }`}
-              >
-                <Upload size={18} className="text-[var(--foreground-muted)]" />
-                <span className="text-sm text-[var(--foreground-secondary)]">
-                  {documentos.livroAzul ? documentos.livroAzul.name : t.vender_cavalo.choose_file}
-                </span>
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  className="hidden"
-                  aria-describedby={erros.livro_azul ? "erro-livro_azul" : undefined}
-                  onChange={(e) =>
-                    e.target.files?.[0] && onDocUpload("livroAzul", e.target.files[0])
-                  }
-                />
-              </label>
+              <EscolherFicheiro
+                texto={
+                  documentos.livroAzul ? documentos.livroAzul.name : t.vender_cavalo.choose_file
+                }
+                comErro={Boolean(erros.livro_azul)}
+                descritoPor={erros.livro_azul ? "erro-livro_azul" : undefined}
+                aoEscolher={(f) => onDocUpload("livroAzul", f[0])}
+              />
               <ErroDoCampo erros={erros} campo="livro_azul" />
             </div>
 
-            {/* Passaporte */}
+            {/* O passaporte continua a não travar o passo, e a razão é a mesma
+                que já cá estava: quem publica um cavalo com Livro Azul tem o
+                documento que prova a identidade. Não é um campo do formulário
+                — é um segundo anexo do mesmo facto. */}
             <div className="bg-[var(--background-card)]/50 cartao p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">{t.vender_cavalo.equine_passport}</span>
@@ -346,22 +309,14 @@ export default function StepLinhagem(props: StepLinhagemProps) {
               <p className="text-xs text-[var(--foreground-muted)] mb-3">
                 {t.vender_cavalo.equine_passport_desc}
               </p>
-              <label className="flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-[var(--border)] rounded-lg cursor-pointer hover:border-[var(--border-hover)] transition-colors touch-manipulation">
-                <Upload size={18} className="text-[var(--foreground-muted)]" />
-                <span className="text-sm text-[var(--foreground-secondary)]">
-                  {documentos.passaporte
+              <EscolherFicheiro
+                texto={
+                  documentos.passaporte
                     ? documentos.passaporte.name
-                    : t.vender_cavalo.choose_file_short}
-                </span>
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  className="hidden"
-                  onChange={(e) =>
-                    e.target.files?.[0] && onDocUpload("passaporte", e.target.files[0])
-                  }
-                />
-              </label>
+                    : t.vender_cavalo.choose_file_short
+                }
+                aoEscolher={(f) => onDocUpload("passaporte", f[0])}
+              />
             </div>
           </div>
         </div>

@@ -1,11 +1,15 @@
 "use client";
 
+import { useMemo } from "react";
 import { TOTAL_STEPS } from "@/components/vender-cavalo/data";
 import { useLanguage } from "@/context/LanguageContext";
+import { createTranslator } from "@/lib/tr";
 
 interface FormNavigationProps {
   step: number;
   onPrev: () => void;
+  /** Quantas respostas faltam neste passo. Zero quer dizer que ele passa. */
+  faltam: number;
 }
 
 /**
@@ -18,9 +22,29 @@ interface FormNavigationProps {
  *
  * O «Anterior» leva `type="button"` de propósito: dentro de um formulário, um
  * botão sem `type` é um botão de submissão, e voltar atrás submetia.
+ *
+ * **O rótulo diz quantas faltam, e o botão continua a carregar.** São duas
+ * decisões, e as duas são sobre a mesma coisa:
+ *
+ * - «Faltam 7 campos» é uma informação; «corrija os erros» é uma repreensão. A
+ *   segunda só se pode dizer depois de alguém tentar; a primeira pode dizer-se
+ *   antes, e é a que evita a tentativa falhada. Num formulário de vinte campos
+ *   a diferença era de estilo; num de noventa e oito, saber que faltam sete e
+ *   não trinta é a diferença entre continuar e desistir.
+ * - **Não se desactiva.** Um botão apagado não diz porquê, não recebe foco e
+ *   não é clicável — quem lá chegasse ficava sem nada a fazer e sem saber o
+ *   que falta. Carregar continua a levar ao resumo, que leva ao campo.
  */
-export default function FormNavigation({ step, onPrev }: FormNavigationProps) {
-  const { t } = useLanguage();
+export default function FormNavigation({ step, onPrev, faltam }: FormNavigationProps) {
+  const { t, language } = useLanguage();
+  const tr = useMemo(() => createTranslator(language), [language]);
+
+  const rotulo =
+    faltam === 0
+      ? t.vender_cavalo.continue
+      : faltam === 1
+        ? tr("Falta 1 campo", "1 field left", "Falta 1 campo")
+        : tr(`Faltam ${faltam} campos`, `${faltam} fields left`, `Faltan ${faltam} campos`);
 
   return (
     <>
@@ -35,8 +59,12 @@ export default function FormNavigation({ step, onPrev }: FormNavigationProps) {
         )}
 
         {step < TOTAL_STEPS && (
-          <button type="submit" className="btn btn-primario rounded-full px-6">
-            {t.vender_cavalo.continue}
+          <button
+            type="submit"
+            className="btn btn-primario rounded-full px-6 tabular-nums"
+            data-faltam={faltam}
+          >
+            {rotulo}
           </button>
         )}
       </div>
@@ -66,9 +94,10 @@ export default function FormNavigation({ step, onPrev }: FormNavigationProps) {
         {step < TOTAL_STEPS && (
           <button
             type="submit"
-            className="btn btn-primario btn-sm flex-none px-6 touch-manipulation active:scale-95"
+            className="btn btn-primario btn-sm flex-none px-4 touch-manipulation active:scale-95 tabular-nums"
+            data-faltam={faltam}
           >
-            {t.vender_cavalo.continue}
+            {rotulo}
           </button>
         )}
       </div>

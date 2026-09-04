@@ -134,11 +134,57 @@ describe("um formulário em que ninguém tocou não é um rascunho", () => {
     expect(temConteudo({ ...initialFormData, nome: "   " }, 0, 0)).toBe(false);
   });
 
-  it("uma caixa marcada, uma disciplina escolhida ou uma foto já são conteúdo", () => {
-    expect(temConteudo({ ...initialFormData, negociavel: true }, 0, 0)).toBe(true);
+  it("uma pergunta respondida, uma disciplina escolhida ou uma foto já são conteúdo", () => {
+    // As perguntas de sim ou não deixaram de ser `boolean`: um `boolean` não
+    // sabia dizer «ainda não respondi», e por isso «não» e «por responder»
+    // eram o mesmo `false`. Aqui isso lê-se bem — **responder «não» também é
+    // ter começado o rascunho**, e antes não era, porque `false` era o valor
+    // de partida de toda a gente.
+    expect(temConteudo({ ...initialFormData, negociavel: "sim" }, 0, 0)).toBe(true);
+    expect(temConteudo({ ...initialFormData, negociavel: "nao" }, 0, 0)).toBe(true);
+    expect(temConteudo(initialFormData, 0, 0)).toBe(false);
     expect(temConteudo({ ...initialFormData, disciplinas: ["Dressage"] }, 0, 0)).toBe(true);
     expect(temConteudo(initialFormData, 1, 0)).toBe(true);
     expect(temConteudo(initialFormData, 0, 1)).toBe(true);
+  });
+
+  it("guarda as três respostas de uma pergunta de sim ou não, e devolve-as tal e qual", () => {
+    // Com noventa e oito campos obrigatórios, o rascunho passou a ser o que
+    // separa uma sessão longa de uma sessão perdida. Uma resposta «não» que
+    // voltasse como «por responder» seria uma pergunta a repetir a quem já a
+    // respondeu — e, pior, indistinguível de nunca lá ter chegado.
+    guardar({
+      formData: {
+        ...initialFormData,
+        nome: "Zíngaro",
+        apto_criancas: "nao",
+        habituado_ferrador: "sim",
+      },
+    });
+    const { rascunho } = lerRascunho();
+    expect(rascunho?.formData.apto_criancas).toBe("nao");
+    expect(rascunho?.formData.habituado_ferrador).toBe("sim");
+    expect(rascunho?.formData.trabalha_solto).toBe("");
+  });
+
+  it("guarda os noventa e nove campos, e não uma escolha deles", () => {
+    // O rascunho é um `JSON.stringify` do `formData` inteiro, e é assim que
+    // tem de continuar a ser: uma lista de campos a guardar, escrita à mão,
+    // esquecia o campo seguinte que alguém acrescentasse — e o sintoma seria
+    // uma resposta que desaparece ao recarregar a página, que é o pior sítio
+    // para se perder alguma coisa.
+    const cheio = Object.fromEntries(
+      Object.entries(initialFormData).map(([chave, valor]) => [
+        chave,
+        Array.isArray(valor) ? ["Dressage"] : "x",
+      ])
+    ) as unknown as typeof initialFormData;
+    guardar({ formData: cheio });
+    const { rascunho } = lerRascunho();
+    expect(Object.keys(rascunho?.formData ?? {})).toHaveLength(99);
+    for (const chave of Object.keys(initialFormData)) {
+      expect(rascunho?.formData[chave as keyof typeof initialFormData], chave).toBeTruthy();
+    }
   });
 });
 
