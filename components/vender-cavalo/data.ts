@@ -1,3 +1,5 @@
+import { paisesParaEscolha } from "@/lib/paises";
+
 import type { FormData } from "@/components/vender-cavalo/types";
 
 export const initialFormData: FormData = {
@@ -124,19 +126,29 @@ export const tiposProprietario = {
   es: ["Particular", "Criadero", "Club / Escuela de equitación", "Comerciante / Agente"],
 };
 
-export const paisesOpcoes = [
-  "Portugal",
-  "Espanha",
-  "Brasil",
-  "França",
-  "Alemanha",
-  "Reino Unido",
-  "Holanda",
-  "Bélgica",
-  "Itália",
-  "EUA",
-  "Outro",
-];
+/**
+ * Os países, para as duas caixas que os pedem: onde reside o vendedor e onde
+ * nasceu o cavalo.
+ *
+ * Eram onze escritos à mão, e o décimo segundo chamava-se «Outro» — que é o
+ * que uma lista curta produz: uma gaveta onde o dado se perde. Num site que
+ * vende Lusitanos para fora, «Outro» era a resposta certa para meio mundo.
+ *
+ * São 251, e vêm de `lib/paises`: os nomes não estão escritos em lado nenhum,
+ * é o `Intl.DisplayNames` que os traduz a partir do código ISO. Os dez onde o
+ * Lusitano está ficam em cima, pela ordem em que lá estavam; o resto vem por
+ * ordem alfabética das regras do português — que sabe que o Á ordena com o A,
+ * coisa que um `sort()` não sabe.
+ *
+ * Fica em português porque é a forma que estas duas caixas já consomem — uma
+ * lista de nomes. **A versão certa guarda o código e não o nome** («Alemanha»,
+ * «Germany» e «Alemania» são o mesmo país; `DE` é o mesmo em qualquer língua),
+ * e `paisesParaEscolha(lingua)` já a serve. Trocar exige mexer nos dois
+ * `Step*.tsx` que desenham as caixas, e esses estão neste momento com outro
+ * trabalho em cima.
+ */
+const { frequentes, restantes } = paisesParaEscolha("pt-PT");
+export const paisesOpcoes = [...frequentes, ...restantes].map((p) => p.nome);
 
 export const usosAtuais = {
   pt: [

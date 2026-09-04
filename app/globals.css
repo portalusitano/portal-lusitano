@@ -233,6 +233,29 @@ html.light :focus-visible {
   outline: none;
 }
 
+/* Um painel que recebe o foco por código não desenha anel.
+ *
+ * Quando um diálogo abre, o foco vai para o painel — é isso que faz um leitor
+ * de ecrã anunciar o nome do diálogo e lê-lo do princípio, em vez de aterrar a
+ * meio, numa ligação. Mas o painel não é um comando: ninguém lá chega com o
+ * Tab (tem `tabindex="-1"`), e por isso um anel à volta dele não assinala nada
+ * — só desenha um rectângulo em volta de tudo o que se está a ler.
+ *
+ * O alvo é apertado de propósito: só o elemento que o `useFocusTrap` marcou
+ * como tendo recebido o foco por código. Qualquer comando lá dentro continua a
+ * ter o anel, que é o que um utilizador de teclado precisa de ver. A marca vem
+ * do hook e não de um selector adivinhado, porque o painel que recebe o foco
+ * nem sempre é o mesmo nó que tem o `role="dialog"` — no aviso de cookies é o
+ * de dentro.
+ *
+ * Sem camada, como a regra que tem de bater — para declarações `!important`,
+ * uma camada anterior ganharia a esta. Aqui decide a especificidade: (0,3,0)
+ * contra (0,1,0). */
+[data-painel-focado]:focus,
+[data-painel-focado]:focus-visible {
+  outline: none !important;
+}
+
 /* Skip links - visíveis apenas com foco */
 .sr-only {
   position: absolute;

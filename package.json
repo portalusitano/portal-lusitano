@@ -29,7 +29,8 @@
     "sync-images": "node scripts/sync-coudelaria-images.js",
     "sync-cavalos": "npx tsx scripts/sync-cavalos-images.ts",
     "optimize-images": "npx tsx scripts/optimize-images.ts",
-    "mapa:geometria": "node scripts/mapa/montar-geometria.mjs"
+    "mapa:geometria": "node scripts/mapa/montar-geometria.mjs",
+    "paises:gerar": "node scripts/paises/gerar.mjs"
   },
   "lint-staged": {
     "*.{js,cjs,mjs,jsx,ts,tsx}": [
