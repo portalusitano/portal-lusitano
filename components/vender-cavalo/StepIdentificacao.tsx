@@ -11,6 +11,7 @@ import {
   coresCrina,
   paisesOpcoes,
 } from "@/components/vender-cavalo/data";
+import { idadeEmAnos } from "@/components/vender-cavalo/inspeccao";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
 import Seleccao from "@/components/ui/Seleccao";
@@ -47,6 +48,17 @@ export default function StepIdentificacao(props: StepIdentificacaoProps) {
   const { formData, updateField, erros, apontamentos, campo, registoApsl, conta } = props;
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
+
+  /**
+   * A idade não é um campo: é uma conta sobre a data de nascimento.
+   *
+   * Já era calculada — vai no pedido do checkout desde sempre — mas nunca era
+   * mostrada, e é a mostrá-la que ela serve para alguma coisa: quem escreve
+   * `2109` em vez de `2019` não vê o engano na data, vê-o no «−83 anos» que
+   * aparece ao lado. Um valor que se pode inferir de outro não se pergunta
+   * duas vezes; escreve-se.
+   */
+  const idade = useMemo(() => idadeEmAnos(formData.data_nascimento), [formData.data_nascimento]);
 
   return (
     <div className="bg-[var(--background-secondary)]/50 cartao p-6">
@@ -133,6 +145,13 @@ export default function StepIdentificacao(props: StepIdentificacaoProps) {
                 {...ligarCampo("data_nascimento", formData.data_nascimento, props)}
               />
               <ErroDoCampo erros={erros} campo="data_nascimento" />
+              {idade !== null && idade >= 0 && (
+                <p className="meta mt-1 tabular-nums">
+                  {idade === 1
+                    ? tr("1 ano", "1 year old", "1 año")
+                    : tr(`${idade} anos`, `${idade} years old`, `${idade} años`)}
+                </p>
+              )}
             </div>
             <div>
               <label
@@ -305,6 +324,13 @@ export default function StepIdentificacao(props: StepIdentificacaoProps) {
                 className="block text-sm text-[var(--foreground-secondary)] mb-1"
               >
                 {t.vender_cavalo.passport_number} *
+                <span className="text-[var(--foreground-muted)] text-xs ml-1">
+                  {tr(
+                    "(UELN: 15 caracteres, 620 em Portugal)",
+                    "(UELN: 15 characters, 620 for Portugal)",
+                    "(UELN: 15 caracteres, 620 en Portugal)"
+                  )}
+                </span>
               </label>
               <input
                 id="passaporte_equino"
@@ -316,6 +342,7 @@ export default function StepIdentificacao(props: StepIdentificacaoProps) {
                 {...ligarCampo("passaporte_equino", formData.passaporte_equino, props)}
               />
               <ErroDoCampo erros={erros} campo="passaporte_equino" />
+              <ApontamentoDoCampo apontamentos={apontamentos} campo="passaporte_equino" />
             </div>
             <div>
               <label

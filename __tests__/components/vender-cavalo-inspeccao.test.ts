@@ -12,13 +12,32 @@ import {
 import { initialFormData } from "@/components/vender-cavalo/data";
 import type { FormData } from "@/components/vender-cavalo/types";
 
-/** As frases não interessam: interessa o nível e o campo. */
+/**
+ * As frases não interessam: interessa o nível e o campo.
+ *
+ * Cada chave devolve **a mesma** função de cada vez que é lida, e é isso que
+ * permite comparar uma frase que a inspecção usou como valor — `m.dataNoFuturo`
+ * — com a chave que a produziu. Sem a cache, cada leitura dava uma função nova
+ * e a comparação nunca podia bater certo.
+ */
+const cacheDeFrases = new Map<string, unknown>();
 const m = new Proxy({} as MensagensInspeccao, {
   get: (_alvo, chave) => {
     const nome = String(chave);
-    return (arg?: unknown) => (arg === undefined ? nome : `${nome}:${String(arg)}`);
+    if (!cacheDeFrases.has(nome)) {
+      cacheDeFrases.set(nome, (arg?: unknown) =>
+        arg === undefined ? nome : `${nome}:${String(arg)}`
+      );
+    }
+    return cacheDeFrases.get(nome);
   },
 }) as unknown as MensagensInspeccao;
+
+/** A chave que produziu esta frase, seja ela usada como valor ou chamada. */
+const chaveDaFrase = (mensagem: unknown): string => {
+  for (const [nome, fn] of cacheDeFrases) if (fn === mensagem) return nome;
+  return String(mensagem);
+};
 
 const forma = (parcial: Partial<FormData>): FormData => ({ ...initialFormData, ...parcial });
 
@@ -346,5 +365,167 @@ describe("agrupamento por campo", () => {
     ]);
     expect(agrupado.a.map((x) => x.mensagem)).toEqual(["1", "3"]);
     expect(agrupado.b).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// As regras que chegaram com «tudo obrigatório»
+//
+// Não são enfeite. Um campo que passa a obrigatório passa a ser preenchido por
+// toda a gente, incluindo por quem não tem a resposta à mão — e o campo que
+// dantes ficava em branco passa a receber um palpite. Estas regras são o que
+// apanha o palpite, e todas usam ou uma fonte a sério ou aquilo que o próprio
+// formulário já sabe.
+// ---------------------------------------------------------------------------
+
+describe("o passaporte equino, pelo UELN", () => {
+  // UELN: 15 caracteres em três blocos — 3 do país (ISO 3166-1 numérico), 3 da
+  // base de dados e 9 do animal. Ver `passaporte-ueln.ts` para a fonte.
+  it("um UELN bem formado não é apontado", () => {
+    expect(de(ver({ passaporte_equino: "620015004471234" }), "passaporte_equino")).toEqual([]);
+  });
+
+  it("aceita o número tal como está impresso, com espaços e traços", () => {
+    expect(de(ver({ passaporte_equino: "620 015 004471234" }), "passaporte_equino")).toEqual([]);
+    expect(de(ver({ passaporte_equino: "620-015-004471234" }), "passaporte_equino")).toEqual([]);
+  });
+
+  it("um número curto ou longo leva um aviso, e diz quantos faltam", () => {
+    const curto = de(ver({ passaporte_equino: "620015" }), "passaporte_equino");
+    expect(curto[0].nivel).toBe("aviso");
+    expect(curto[0].mensagem).toBe("passaporteComprimento:9");
+    const longo = de(ver({ passaporte_equino: "6200150044712345678" }), "passaporte_equino");
+    expect(longo[0].mensagem).toBe("passaporteComprimento:-4");
+  });
+
+  it("um bloco de país que não são algarismos leva um aviso", () => {
+    const a = de(ver({ passaporte_equino: "PTA015004471234" }), "passaporte_equino");
+    expect(a[0].nivel).toBe("aviso");
+    expect(chaveDaFrase(a[0].mensagem)).toBe("passaportePaisNaoNumerico");
+  });
+
+  it("nunca é erro, e por isso nunca trava o passo", () => {
+    // Um cavalo nascido antes de o UELN ser exigido tem um passaporte com
+    // outro número, e recusá-lo era impedir de publicar os cavalos mais
+    // velhos — que são precisamente os que já têm carreira feita.
+    for (const valor of ["620015", "PTA015004471234", "qualquer coisa"]) {
+      expect(nivel(ver({ passaporte_equino: valor }), "passaporte_equino")).not.toBe("erro");
+    }
+    expect(errosDeInspeccao(1, ver({ passaporte_equino: "620015" }))).toEqual([]);
+  });
+});
+
+describe("as datas de saúde contra o calendário", () => {
+  const hoje = new Date("2026-09-04T12:00:00Z");
+  const vejo = (parcial: Partial<FormData>) => ver(parcial, { hoje });
+
+  it("uma data que ainda não chegou é apontada", () => {
+    for (const campo of [
+      "data_ultima_vacinacao",
+      "data_ultima_desparasitacao",
+      "data_ultima_ferragem",
+    ] as const) {
+      const a = de(vejo({ [campo]: "2027-01-01" }), campo);
+      expect(chaveDaFrase(a[0]?.mensagem), campo).toBe("dataNoFuturo");
+      expect(a[0]?.nivel, campo).toBe("aviso");
+    }
+  });
+
+  it("uma data anterior ao nascimento do cavalo é apontada", () => {
+    // Não se vacina um cavalo antes de ele existir. É o formulário a
+    // contradizer-se a si próprio, com dois campos que já lá estavam.
+    const a = de(
+      vejo({ data_nascimento: "2019-04-12", data_ultima_vacinacao: "2015-06-01" }),
+      "data_ultima_vacinacao"
+    );
+    expect(chaveDaFrase(a[0].mensagem)).toBe("dataAntesDeNascer");
+  });
+
+  it("«a vacinação está em dia» com a última há três anos é uma das duas respostas errada", () => {
+    // O reforço da gripe equina e do tétano é anual.
+    const a = de(
+      vejo({ vacinacao_atualizada: "sim", data_ultima_vacinacao: "2023-06-01" }),
+      "data_ultima_vacinacao"
+    );
+    expect(a[0].nivel).toBe("aviso");
+    expect(a[0].mensagem).toMatch(/^vacinacaoDesactualizada:/);
+  });
+
+  it("mas com a última há três meses não diz nada", () => {
+    expect(
+      de(
+        vejo({ vacinacao_atualizada: "sim", data_ultima_vacinacao: "2026-06-01" }),
+        "data_ultima_vacinacao"
+      )
+    ).toEqual([]);
+  });
+
+  it("quem respondeu «não está em dia» não é contrariado pela data", () => {
+    // Não há contradição nenhuma: a resposta e a data dizem a mesma coisa.
+    expect(
+      de(
+        vejo({ vacinacao_atualizada: "nao", data_ultima_vacinacao: "2022-06-01" }),
+        "data_ultima_vacinacao"
+      )
+    ).toEqual([]);
+  });
+
+  it("a desparasitação segue a mesma regra", () => {
+    expect(
+      de(
+        vejo({ desparasitacao_atualizada: "sim", data_ultima_desparasitacao: "2024-01-01" }),
+        "data_ultima_desparasitacao"
+      )[0].mensagem
+    ).toMatch(/^desparasitacaoDesactualizada:/);
+  });
+
+  it("a ferragem não precisa de um «está em dia» ao lado — o ciclo do casco corre na mesma", () => {
+    // Seis a oito semanas, e vale também para o cavalo descalço, que é
+    // aparado. Não há campo de sim/não para a ferragem: a data sozinha chega.
+    const a = de(vejo({ data_ultima_ferragem: "2025-06-01" }), "data_ultima_ferragem");
+    expect(a[0].mensagem).toMatch(/^ferragemAntiga:/);
+    expect(de(vejo({ data_ultima_ferragem: "2026-08-01" }), "data_ultima_ferragem")).toEqual([]);
+  });
+
+  it("nenhuma destas trava um passo", () => {
+    const tudo = vejo({
+      data_nascimento: "2019-04-12",
+      vacinacao_atualizada: "sim",
+      data_ultima_vacinacao: "2021-01-01",
+      data_ultima_ferragem: "2027-01-01",
+    });
+    expect(tudo.every((a) => a.nivel !== "erro")).toBe(true);
+    expect(errosDeInspeccao(2, tudo)).toEqual([]);
+  });
+});
+
+describe("os anos de treino contra a idade", () => {
+  const hoje = new Date("2026-09-04T12:00:00Z");
+
+  it("um cavalo não pode ter treinado mais anos do que viveu", () => {
+    const a = de(
+      ver({ data_nascimento: "2021-04-12", anos_treino: "12" }, { hoje }),
+      "anos_treino"
+    );
+    expect(a[0].nivel).toBe("aviso");
+    expect(a[0].mensagem).toBe("treinoMaisAnosDoQueIdade:12");
+  });
+
+  it("cinco anos de treino num cavalo de doze não diz nada", () => {
+    expect(
+      de(ver({ data_nascimento: "2014-04-12", anos_treino: "5" }, { hoje }), "anos_treino")
+    ).toEqual([]);
+  });
+
+  it("sem data de nascimento não se inventa a comparação", () => {
+    expect(de(ver({ anos_treino: "30" }, { hoje }), "anos_treino")).toEqual([]);
+  });
+
+  it("fica em aviso e não em erro, porque o engano pode estar na data", () => {
+    // Travar o passo em «anos de treino» quando quem se enganou foi no ano de
+    // nascimento manda a pessoa corrigir o campo que estava certo.
+    expect(
+      errosDeInspeccao(2, ver({ data_nascimento: "2021-04-12", anos_treino: "12" }, { hoje }))
+    ).toEqual([]);
   });
 });

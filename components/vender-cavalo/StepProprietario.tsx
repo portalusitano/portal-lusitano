@@ -226,13 +226,24 @@ export default function StepProprietario(props: StepProps) {
                 className="block text-sm text-[var(--foreground-secondary)] mb-1"
               >
                 WhatsApp *
-                <span className="text-[var(--foreground-muted)] text-xs ml-1">
-                  {tr(
-                    "(repita o telefone se for o mesmo)",
-                    "(repeat the phone if it is the same)",
-                    "(repita el teléfono si es el mismo)"
+                {/* Um campo obrigatório cuja resposta o formulário já tem
+                    escrita duas linhas acima não se pede outra vez: oferece-se.
+                    O botão só aparece quando há telefone para copiar e quando
+                    o WhatsApp ainda não é igual a ele. */}
+                {formData.proprietario_telefone.trim() &&
+                  formData.proprietario_whatsapp.trim() !==
+                    formData.proprietario_telefone.trim() && (
+                    <button
+                      type="button"
+                      className="btn btn-subtil btn-sm ml-2 align-baseline"
+                      onClick={() => {
+                        updateField("proprietario_whatsapp", formData.proprietario_telefone);
+                        campo.aoEscolher("proprietario_whatsapp");
+                      }}
+                    >
+                      {tr("usar o mesmo número", "use the same number", "usar el mismo número")}
+                    </button>
                   )}
-                </span>
               </label>
               <input
                 id="proprietario_whatsapp"

@@ -255,6 +255,7 @@ export default function StepTreinoSaude(props: StepTreinoSaudeProps) {
               {...ligarCampo("anos_treino", formData.anos_treino, props)}
             />
             <ErroDoCampo erros={erros} campo="anos_treino" />
+            <ApontamentoDoCampo apontamentos={apontamentos} campo="anos_treino" />
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
@@ -644,6 +645,7 @@ export default function StepTreinoSaude(props: StepTreinoSaudeProps) {
                     {...ligarCampo("data_ultima_vacinacao", formData.data_ultima_vacinacao, props)}
                   />
                   <ErroDoCampo erros={erros} campo="data_ultima_vacinacao" />
+                  <ApontamentoDoCampo apontamentos={apontamentos} campo="data_ultima_vacinacao" />
                 </div>
               )}
               {formData.desparasitacao_atualizada === "sim" && (
@@ -672,6 +674,10 @@ export default function StepTreinoSaude(props: StepTreinoSaudeProps) {
                     )}
                   />
                   <ErroDoCampo erros={erros} campo="data_ultima_desparasitacao" />
+                  <ApontamentoDoCampo
+                    apontamentos={apontamentos}
+                    campo="data_ultima_desparasitacao"
+                  />
                 </div>
               )}
             </div>
@@ -705,6 +711,7 @@ export default function StepTreinoSaude(props: StepTreinoSaudeProps) {
                   {...ligarCampo("data_ultima_ferragem", formData.data_ultima_ferragem, props)}
                 />
                 <ErroDoCampo erros={erros} campo="data_ultima_ferragem" />
+                <ApontamentoDoCampo apontamentos={apontamentos} campo="data_ultima_ferragem" />
               </div>
               <div>
                 <label

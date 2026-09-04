@@ -355,6 +355,57 @@ export default function VenderCavaloPage() {
           `A ${idade}-year-old still unbroken is rare. Please confirm.`,
           `Un caballo de ${idade} años aún sin domar es raro. Confirme.`
         ),
+      passaporteComprimento: (faltam) =>
+        faltam > 0
+          ? tr(
+              `Um UELN tem 15 caracteres — 3 do país, 3 do stud-book e 9 do animal. Faltam ${faltam}. Se o passaporte é anterior ao UELN, siga em frente.`,
+              `A UELN has 15 characters — 3 for the country, 3 for the studbook and 9 for the animal. ${faltam} missing. If the passport predates the UELN, carry on.`,
+              `Un UELN tiene 15 caracteres — 3 del país, 3 del stud-book y 9 del animal. Faltan ${faltam}. Si el pasaporte es anterior al UELN, siga adelante.`
+            )
+          : tr(
+              `Um UELN tem 15 caracteres — há ${-faltam} a mais. Se o passaporte é anterior ao UELN, siga em frente.`,
+              `A UELN has 15 characters — ${-faltam} too many. If the passport predates the UELN, carry on.`,
+              `Un UELN tiene 15 caracteres — hay ${-faltam} de más. Si el pasaporte es anterior al UELN, siga adelante.`
+            ),
+      passaportePaisNaoNumerico: tr(
+        "Os três primeiros caracteres de um UELN são o código numérico do país — 620 em Portugal, 724 em Espanha.",
+        "The first three characters of a UELN are the numeric country code — 620 for Portugal, 724 for Spain.",
+        "Los tres primeros caracteres de un UELN son el código numérico del país — 620 en Portugal, 724 en España."
+      ),
+      dataNoFuturo: tr(
+        "Esta data ainda não chegou.",
+        "That date has not happened yet.",
+        "Esa fecha aún no ha llegado."
+      ),
+      dataAntesDeNascer: tr(
+        "Esta data é anterior ao nascimento do cavalo.",
+        "That date is before the horse was born.",
+        "Esa fecha es anterior al nacimiento del caballo."
+      ),
+      vacinacaoDesactualizada: (meses) =>
+        tr(
+          `Respondeu que a vacinação está em dia, mas a última foi há ${meses} meses — o reforço é anual. Confirme a data ou a resposta.`,
+          `You answered that vaccination is up to date, but the last one was ${meses} months ago — the booster is annual. Check the date or the answer.`,
+          `Respondió que la vacunación está al día, pero la última fue hace ${meses} meses — el refuerzo es anual. Compruebe la fecha o la respuesta.`
+        ),
+      desparasitacaoDesactualizada: (meses) =>
+        tr(
+          `Respondeu que a desparasitação está em dia, mas a última foi há ${meses} meses. Confirme a data ou a resposta.`,
+          `You answered that deworming is up to date, but the last one was ${meses} months ago. Check the date or the answer.`,
+          `Respondió que la desparasitación está al día, pero la última fue hace ${meses} meses. Compruebe la fecha o la respuesta.`
+        ),
+      ferragemAntiga: (meses) =>
+        tr(
+          `Há ${meses} meses sem ferragem nem aparo — o ciclo do casco é de 6 a 8 semanas, também no cavalo descalço.`,
+          `${meses} months with no shoeing or trim — the hoof cycle is 6 to 8 weeks, barefoot horses included.`,
+          `Hace ${meses} meses sin herraje ni recorte — el ciclo del casco es de 6 a 8 semanas, también descalzo.`
+        ),
+      treinoMaisAnosDoQueIdade: (anos, idade) =>
+        tr(
+          `${anos} anos de treino num cavalo de ${idade}. Confirme a data de nascimento ou os anos.`,
+          `${anos} years in training for a ${idade}-year-old. Check the date of birth or the years.`,
+          `${anos} años de entrenamiento en un caballo de ${idade}. Compruebe la fecha o los años.`
+        ),
     }),
     [tr]
   );
