@@ -12,7 +12,7 @@ import { BotaoIdioma } from "./BotaoIdioma";
 interface MobileMenuProps {
   isOpen: boolean;
   language: string;
-  onLanguageToggle: () => void;
+  onLanguageChoose: (codigo: "pt" | "en" | "es") => void;
   onClose: () => void;
 }
 
@@ -60,7 +60,7 @@ const REDES = [
 export const MobileMenu = memo(function MobileMenu({
   isOpen,
   language,
-  onLanguageToggle,
+  onLanguageChoose,
   onClose,
 }: MobileMenuProps) {
   const pathname = usePathname();
@@ -259,8 +259,8 @@ export const MobileMenu = memo(function MobileMenu({
             <BotaoIdioma
               language={language}
               rotulo={t.nav.change_language}
-              onToggle={onLanguageToggle}
-              className="-ml-2.5 inline-flex min-h-[44px] items-center"
+              onEscolher={onLanguageChoose}
+              className="max-w-[13rem]"
             />
 
             <div className="mt-3 flex items-center gap-5">

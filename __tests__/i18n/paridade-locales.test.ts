@@ -94,6 +94,8 @@ const CHAVES_DO_CROMADO = [
   "nav.studs_desc",
   "nav.map",
   "nav.map_desc",
+  "nav.map_studs",
+  "nav.map_studs_desc",
   "nav.database",
   "nav.my_account",
   "nav.horse_favorites",

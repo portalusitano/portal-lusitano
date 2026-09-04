@@ -43,6 +43,7 @@ async function loadTranslations(lang: Language): Promise<Translations> {
 interface LanguageContextType {
   language: Language;
   toggleLanguage: () => void;
+  escolherIdioma: (codigo: Language) => void;
   t: Translations;
 }
 
@@ -98,29 +99,48 @@ export function LanguageProvider({
   // Always a valid Translations object — never null.
   const resolvedT = translationsCache[language] ?? t;
 
-  const toggleLanguage = useCallback(() => {
+  /**
+   * Passa para uma língua nomeada.
+   *
+   * É esta que a barra usa. O `toggleLanguage` — que roda pt → en → es →
+   * pt — fica por baixo dela, porque a rotação é só um caso particular de
+   * escolher a seguinte, e não vale a pena manter duas cópias da troca de
+   * URL e do pré-carregamento.
+   */
+  const escolherIdioma = useCallback((codigo: Language) => {
     setLanguage((prev) => {
-      const next = prev === "pt" ? "en" : prev === "en" ? "es" : "pt";
-      // Pre-fetch the NEXT language so toggle feels instant
-      const afterNext = next === "pt" ? "en" : next === "en" ? "es" : "pt";
-      if (!translationsCache[afterNext]) loadTranslations(afterNext);
+      if (prev === codigo) return prev;
 
-      // Navigate to the localized URL
+      // Pré-carrega a seguinte, para a escolha a seguir a esta ser instantânea.
+      const aSeguir = codigo === "pt" ? "en" : codigo === "en" ? "es" : "pt";
+      if (!translationsCache[aSeguir]) loadTranslations(aSeguir);
+
       const pathname = window.location.pathname;
       const cleanPath = pathname.replace(/^\/(en|es)/, "") || "/";
-      const newPath = next === "pt" ? cleanPath : `/${next}${cleanPath === "/" ? "" : cleanPath}`;
+      const newPath =
+        codigo === "pt" ? cleanPath : `/${codigo}${cleanPath === "/" ? "" : cleanPath}`;
       if (newPath !== pathname) {
         window.history.replaceState(null, "", newPath);
       }
 
-      return next;
+      return codigo;
     });
   }, []);
+
+  const toggleLanguage = useCallback(() => {
+    setLanguage((prev) => {
+      const seguinte = prev === "pt" ? "en" : prev === "en" ? "es" : "pt";
+      // Fora do `setLanguage` para não repetir a troca de URL; o `escolherIdioma`
+      // faz o trabalho e devolve o estado novo por si.
+      queueMicrotask(() => escolherIdioma(seguinte));
+      return prev;
+    });
+  }, [escolherIdioma]);
 
   // Memoize the context value object so consumers only re-render when
   // language or translations actually change — not on every provider render.
   const contextValue = useMemo(
-    () => ({ language, toggleLanguage, t: resolvedT }),
+    () => ({ language, toggleLanguage, escolherIdioma, t: resolvedT }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [language, resolvedT]
     // toggleLanguage is stable (useCallback with no deps), excluded intentionally

@@ -18,7 +18,7 @@ const SearchModal = dynamic(
 );
 
 export default memo(function Navbar() {
-  const { language, toggleLanguage, t } = useLanguage();
+  const { language, escolherIdioma, t } = useLanguage();
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -161,7 +161,7 @@ export default memo(function Navbar() {
           t={t}
           isMobileOpen={isMobileOpen}
           onSearchClick={handleSearchClick}
-          onLanguageToggle={toggleLanguage}
+          onLanguageChoose={escolherIdioma}
           onMobileToggle={handleMobileToggle}
         />
       </div>
@@ -170,7 +170,7 @@ export default memo(function Navbar() {
       <MobileMenu
         isOpen={isMobileOpen}
         language={language}
-        onLanguageToggle={toggleLanguage}
+        onLanguageChoose={escolherIdioma}
         onClose={handleMobileClose}
       />
 

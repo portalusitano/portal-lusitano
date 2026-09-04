@@ -4347,3 +4347,80 @@ html.light .barra-dir__seccao[data-busca]::after {
     position: static;
   }
 }
+
+/* ==========================================================================
+ * Escolha de língua
+ *
+ * Três siglas, três botões, e uma pastilha que desliza entre eles.
+ *
+ * O que se move é a pastilha e não o texto. É ela que diz «foi para ali» —
+ * um simples acender de cor diz «este está aceso» e deixa por contar o
+ * caminho. E é um `translateX` e mais nada, que é a propriedade que o browser
+ * anima no compositor sem tocar no layout.
+ *
+ * As três casas têm largura igual, e é isso que dispensa medir seja o que
+ * for: a pastilha desloca-se em múltiplos exactos de 100% da sua própria
+ * largura, escritos numa variável que o componente põe em linha. Sem grelha
+ * igual, «PT», «EN» e «ES» teriam larguras diferentes e a posição da pastilha
+ * teria de sair de um `getBoundingClientRect` — uma leitura de layout por
+ * cada troca de língua, para não ganhar nada.
+ * ========================================================================= */
+
+@layer components {
+  .idiomas {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    align-items: stretch;
+    border: 1px solid var(--border-soft);
+    border-radius: 999px;
+    padding: 2px;
+    /* Impede a pastilha de assomar por fora do canto redondo enquanto desliza. */
+    overflow: hidden;
+  }
+
+  .idiomas__pastilha {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    left: 2px;
+    width: calc((100% - 4px) / 3);
+    border-radius: 999px;
+    background: var(--elevate-1);
+    transform: translateX(calc(var(--idioma, 0) * 100%));
+    transition: transform var(--d-fast) var(--ease-out);
+  }
+
+  .idiomas__opcao {
+    position: relative;
+    z-index: 1;
+    padding: 0.25rem 0.5rem;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    color: var(--foreground-muted);
+    transition: color var(--d-fast) var(--ease-out);
+  }
+
+  .idiomas__opcao:hover {
+    color: var(--foreground-secondary);
+  }
+
+  /* A escolhida é branca, e mais nada. Sobre preto, quem assinala uma escolha
+     é o contraste — e o acento é do tamanho de um ícone. */
+  .idiomas__opcao[aria-pressed="true"] {
+    color: var(--foreground-strong);
+  }
+
+  .idiomas__opcao:focus-visible {
+    outline: 1px solid var(--foreground-strong);
+    outline-offset: -1px;
+    border-radius: 999px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .idiomas__pastilha {
+      transition: none;
+    }
+  }
+}

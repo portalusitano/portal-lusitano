@@ -486,7 +486,7 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
           </Revelar>
 
           <Revelar duracao={600} atraso={100}>
-            <p className="mx-auto mb-10 max-w-2xl px-2 text-base leading-relaxed text-[var(--foreground-secondary)] sm:text-lg md:mb-16 md:text-xl">
+            <p className="mx-auto mb-10 max-w-xl px-2 text-sm leading-relaxed text-[var(--foreground-secondary)] sm:text-base md:mb-16 md:text-lg">
               Cavalos de criadores verificados, com genealogia, fotografia e contacto directo.
               <br className="hidden sm:block" /> Sem intermediários, sem comissões.
             </p>

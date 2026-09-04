@@ -65,9 +65,13 @@ export function LusitanoDropdown() {
           <div className="anim-crescer w-[90vw] rounded-3xl border border-[var(--border-soft)] bg-[var(--background-elevated)] p-2 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] sm:w-[480px] md:w-[560px]">
             {/* Só palavras. Quatro ícones dourados lado a lado gastavam o
                 acento e não diziam nada que o nome do destino não dissesse —
-                a descrição por baixo faz esse trabalho melhor. */}
-            <span className="rotulo mb-3 block px-3 pt-2">{t.nav.database}</span>
-            <div className="grupo-nav grid grid-cols-1 gap-x-4 gap-y-1 sm:grid-cols-2">
+                a descrição por baixo faz esse trabalho melhor.
+
+                E não há rótulo por cima. Dizia «Base de Dados» sobre quatro
+                entradas que já se nomeiam a si próprias, e um cabeçalho que
+                classifica uma lista de quatro é uma linha a mais: quem abriu
+                este menu já sabe onde carregou. */}
+            <div className="grupo-nav grid grid-cols-1 gap-x-4 gap-y-1 px-0 pt-1 sm:grid-cols-2">
               {dbItems.map((item) => (
                 <LocalizedLink
                   key={item.href}

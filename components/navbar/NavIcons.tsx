@@ -23,7 +23,7 @@ interface NavIconsProps {
   };
   isMobileOpen: boolean;
   onSearchClick: () => void;
-  onLanguageToggle: () => void;
+  onLanguageChoose: (codigo: "pt" | "en" | "es") => void;
   onMobileToggle: () => void;
 }
 
@@ -32,7 +32,7 @@ export const NavIcons = memo(function NavIcons({
   t,
   isMobileOpen,
   onSearchClick,
-  onLanguageToggle,
+  onLanguageChoose,
   onMobileToggle,
 }: NavIconsProps) {
   const { favoritesCount } = useHorseFavorites();
@@ -53,8 +53,8 @@ export const NavIcons = memo(function NavIcons({
       <BotaoIdioma
         language={language}
         rotulo={t.nav.change_language}
-        onToggle={onLanguageToggle}
-        className="hidden lg:flex"
+        onEscolher={onLanguageChoose}
+        className="hidden lg:grid"
       />
 
       {/* Favoritos — escondido em telemóvel; lá vive no menu de ecrã inteiro. */}
