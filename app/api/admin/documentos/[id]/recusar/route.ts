@@ -126,12 +126,23 @@ export async function POST(pedido: NextRequest, { params }: { params: Promise<{ 
      * `avisarDocumentoRecusado` relê o estado da base antes de enviar, por
      * isso é seguro chamá-la daqui e mais do que uma vez: um documento que
      * entretanto tenha sido reaberto não gera aviso nenhum. */
-    const aviso = await avisarDocumentoRecusado(id);
-    if (!aviso.enviado) {
-      logger.warn("[admin/documentos/recusar] vendedor não avisado", { id, razao: aviso.razao });
+    let avisado = false;
+    try {
+      const aviso = await avisarDocumentoRecusado(id);
+      avisado = aviso.enviado;
+      if (!aviso.enviado) {
+        logger.warn("[admin/documentos/recusar] vendedor não avisado", { id, razao: aviso.razao });
+      }
+    } catch (erroDoAviso) {
+      // O `try` próprio não é cerimónia: sem ele, uma excepção aqui subia ao
+      // `catch` de baixo e a recusa — que já está gravada — respondia 500.
+      // Quem acabou de recusar ficava sem saber se tinha recusado, e a
+      // resposta contradizia a base. Foi assim que apareceu, num teste que
+      // apanhou o 500 antes de isto chegar a produção.
+      logger.error("[admin/documentos/recusar] aviso ao vendedor falhou", erroDoAviso);
     }
 
-    return NextResponse.json({ estado: "recusado", motivoRecusa: motivo, avisado: aviso.enviado });
+    return NextResponse.json({ estado: "recusado", motivoRecusa: motivo, avisado });
   } catch (e) {
     logger.error("[admin/documentos/recusar] erro inesperado", e);
     return NextResponse.json({ erro: "Erro interno" }, { status: 500 });
