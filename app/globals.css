@@ -3384,6 +3384,49 @@ body {
     margin-bottom: 0.5rem;
   }
 
+  /* Quando os nomes não cabem, o cabeçalho da secção é que leva lá. É um
+     botão a sério, com o alvo de toque do site, e a seta di-lo. */
+  .resumo-faltas__cabeca--ir {
+    width: 100%;
+    /* O título fica à esquerda e a conta encosta-se à seta, do outro lado.
+       Com o `space-between` que o cabeçalho de leitura usa, os três ficavam
+       espalhados por igual e a conta perdia o par. */
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0;
+    text-align: left;
+    cursor: pointer;
+    border-radius: var(--raio-sm);
+    padding: 0.25rem 0.375rem;
+    margin-left: -0.375rem;
+    transition: background var(--d-fast) var(--ease-out);
+  }
+
+  .resumo-faltas__cabeca--ir .resumo-faltas__saldo {
+    margin-left: auto;
+  }
+
+  .resumo-faltas__cabeca--ir > svg {
+    color: var(--foreground-muted);
+    transition:
+      color var(--d-fast) var(--ease-out),
+      transform var(--d-fast) var(--ease-out);
+  }
+
+  .resumo-faltas__cabeca--ir:hover {
+    background: var(--elevate-1);
+  }
+
+  .resumo-faltas__cabeca--ir:hover .rotulo,
+  .resumo-faltas__cabeca--ir:hover > svg {
+    color: var(--foreground-strong);
+  }
+
+  .resumo-faltas__cabeca--ir:hover > svg {
+    transform: translateX(2px);
+  }
+
   .resumo-faltas__saldo {
     flex: none;
     font-family: var(--font-geist-mono), ui-monospace, monospace;
@@ -3396,6 +3439,15 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 0.375rem;
+  }
+
+  /* A forma curta: os nomes soltos, sem cabeçalho de secção. Com sete faltas
+     não se pergunta «onde» a uma lista que se lê inteira de uma vez, e um
+     cabeçalho por cada uma fazia o painel crescer ao responder-se. */
+  .resumo-faltas__campos--soltos {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-soft);
   }
 
   /* Uma pastilha por campo. Era uma linha sublinhada a vermelho, e vinte e

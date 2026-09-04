@@ -93,11 +93,41 @@ const FormErrors = forwardRef<HTMLDivElement, FormErrorsProps>(function FormErro
     }));
   }, [erros, lingua]);
 
+  /** As mesmas faltas em fila, na ordem do formulário. É o que a forma curta
+   *  escreve, e sai do mesmo sítio para não haver duas ordens. */
+  const todas = useMemo(() => grupos.flatMap((g) => g.campos), [grupos]);
+
   if (erros.length === 0) return null;
 
   const n = erros.length;
   const primeiro = erros[0];
   const nomeDoPrimeiro = nomeDoCampo(primeiro.campo, lingua) ?? primeiro.mensagem;
+
+  /**
+   * Duas formas, e a que se usa depende de quantas faltam.
+   *
+   * **Muitas — o mapa.** Uma secção por linha, com a conta de cada uma, e o
+   * cabeçalho leva à primeira falta dela. Com vinte e sete nomes escritos um a
+   * um, a lista deixa de ser uma lista e volta a ser a parede que este painel
+   * existe para desfazer: medido em telemóvel, as vinte e sete pastilhas, cada
+   * uma com os 44px de alvo de toque que o site exige, davam **938px de painel
+   * num ecrã de 844** — mais do que um ecrã inteiro só de índice. E ninguém
+   * escolhe o décimo nono nome de vinte e sete: carrega no botão de cima e
+   * desce pelo formulário, que é onde os campos estão marcados um por um.
+   *
+   * **Poucas — a lista.** Aí os nomes valem ouro, porque são a resposta à
+   * pergunta que sobra: «faltam três, onde estão?». Sete pastilhas são sete
+   * destinos a um toque, e a secção deixa de fazer falta — não se pergunta
+   * «onde» a uma lista que se lê inteira de uma vez. Agrupá-las por secção
+   * custava um cabeçalho por cada, e o painel **crescia** ao responder-se: 326
+   * para 433px de vinte e sete faltas para sete, que é o contrário do que um
+   * painel destes deve fazer.
+   *
+   * O limiar é dez, que é o que ainda se percorre com os olhos sem contar. O
+   * painel passa de mapa a lista e encolhe sozinho, sem que ninguém carregue
+   * em nada.
+   */
+  const porNome = n <= 10;
 
   return (
     <div
@@ -150,32 +180,40 @@ const FormErrors = forwardRef<HTMLDivElement, FormErrorsProps>(function FormErro
         <ArrowRight size={14} className="flex-none" aria-hidden="true" />
       </button>
 
-      <ul className="resumo-faltas__seccoes">
-        {grupos.map((grupo) => (
-          <li key={grupo.chave} className="resumo-faltas__seccao">
-            <p className="resumo-faltas__cabeca">
-              <span className="rotulo">{grupo.titulo}</span>
-              {/* A conta da secção vai em mono e alinhada à direita, como as
-                  outras contas do formulário: são números a comparar entre
-                  linhas, e é isso que os põe em coluna. */}
-              <span className="resumo-faltas__saldo">{grupo.campos.length}</span>
-            </p>
-            <ul className="resumo-faltas__campos">
-              {grupo.campos.map((c) => (
-                <li key={c.campo}>
-                  <button
-                    type="button"
-                    className="resumo-faltas__ir"
-                    onClick={() => irAoCampo(c.campo)}
-                  >
-                    {c.nome}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </li>
-        ))}
-      </ul>
+      {porNome ? (
+        <ul className="resumo-faltas__campos resumo-faltas__campos--soltos">
+          {todas.map((c) => (
+            <li key={c.campo}>
+              <button
+                type="button"
+                className="resumo-faltas__ir"
+                onClick={() => irAoCampo(c.campo)}
+              >
+                {c.nome}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <ul className="resumo-faltas__seccoes">
+          {grupos.map((grupo) => (
+            <li key={grupo.chave} className="resumo-faltas__seccao">
+              <button
+                type="button"
+                className="resumo-faltas__cabeca resumo-faltas__cabeca--ir"
+                onClick={() => irAoCampo(grupo.campos[0].campo)}
+              >
+                <span className="rotulo">{grupo.titulo}</span>
+                {/* A conta da secção vai em mono, como as outras contas do
+                    formulário: são números a comparar entre linhas, e é isso
+                    que os põe em coluna. */}
+                <span className="resumo-faltas__saldo">{grupo.campos.length}</span>
+                <ArrowRight size={13} className="flex-none" aria-hidden="true" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 });
