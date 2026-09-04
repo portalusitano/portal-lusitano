@@ -47,7 +47,7 @@
  * numa acusação de fraude.
  */
 
-import { lerData, mesesEntre } from "@/components/vender-cavalo/inspeccao";
+import { lerData, mesesEntre } from "@/lib/datas-do-cavalo";
 import { chaveRegistoApsl } from "@/components/vender-cavalo/registo-apsl";
 import { chaveDeNome } from "@/lib/documentos/leitura/normalizar";
 import type { Conflito } from "@/lib/documentos/contrato";

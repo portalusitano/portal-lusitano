@@ -409,6 +409,67 @@ export default function VenderCavaloPage() {
           `${anos} years in training for a ${idade}-year-old. Check the date of birth or the years.`,
           `${anos} años de entrenamiento en un caballo de ${idade}. Compruebe la fecha o los años.`
         ),
+
+      /**
+       * As frases da coerência: as que olham para o conjunto e não para um
+       * campo. Falam de uma árvore que não fecha — um pai mais novo do que o
+       * filho, um cavalo que é seu próprio antepassado.
+       *
+       * Todas perguntam em vez de acusar, mesmo as que travam o passo. Quem
+       * está a preencher isto quase sempre enganou-se a copiar do Livro Azul,
+       * e a frase tem de o levar a olhar outra vez, não a sentir-se apanhado.
+       */
+      coerencia: {
+        nascimentoNoFuturo: tr(
+          "Esta data ainda não chegou. Confirme o ano.",
+          "That date is in the future. Check the year.",
+          "Esa fecha aún no ha llegado. Compruebe el año."
+        ),
+        nascimentoDepoisDoHistorial: tr(
+          "As datas de saúde que indicou são todas anteriores ao nascimento. Confirme a data de nascimento.",
+          "The health dates you gave all come before the date of birth. Check the date of birth.",
+          "Las fechas de salud indicadas son todas anteriores al nacimiento. Compruebe la fecha de nacimiento."
+        ),
+        longevidadeInvulgar: (anos) =>
+          tr(
+            `${anos} anos é uma idade invulgar. Se está certa, siga em frente.`,
+            `${anos} years old is unusual. If that is right, carry on.`,
+            `${anos} años es una edad poco común. Si es correcta, continúe.`
+          ),
+        alturaParaAIdade: (adulta) =>
+          tr(
+            `Para a idade, esta altura dá um adulto de cerca de ${adulta} cm. Confirme a altura ou a data de nascimento.`,
+            `For that age, this height implies an adult of about ${adulta} cm. Check the height or the date of birth.`,
+            `Para esa edad, esta altura implica un adulto de unos ${adulta} cm. Compruebe la altura o la fecha.`
+          ),
+        progenitorNovoDemais: (meses) =>
+          tr(
+            `Este antepassado nasceu ${meses} meses depois do cavalo. Confirme as datas ou o nome.`,
+            `This ancestor was born ${meses} months after the horse. Check the dates or the name.`,
+            `Este antepasado nació ${meses} meses después del caballo. Compruebe las fechas o el nombre.`
+          ),
+        progenitorPoucoHabitual: (meses) =>
+          tr(
+            `Este antepassado tinha ${meses} meses quando o cavalo nasceu, o que é pouco habitual.`,
+            `This ancestor was ${meses} months old when the horse was born, which is unusual.`,
+            `Este antepasado tenía ${meses} meses cuando nació el caballo, lo que es poco habitual.`
+          ),
+        antepassadoDeSiProprio: tr(
+          "Este antepassado tem o mesmo registo do cavalo. Confirme o número.",
+          "This ancestor has the same registration number as the horse. Check the number.",
+          "Este antepasado tiene el mismo registro que el caballo. Compruebe el número."
+        ),
+        papelContraditorio: tr(
+          "O mesmo antepassado aparece como pai e como mãe. Confirme os nomes.",
+          "The same ancestor appears as both sire and dam. Check the names.",
+          "El mismo antepasado aparece como padre y como madre. Compruebe los nombres."
+        ),
+        sexoContraPapel: tr(
+          "O sexo indicado não corresponde ao lugar na árvore. Confirme.",
+          "The sex given does not match the place in the tree. Please check.",
+          "El sexo indicado no corresponde al lugar en el árbol. Compruébelo."
+        ),
+      },
     }),
     [tr]
   );

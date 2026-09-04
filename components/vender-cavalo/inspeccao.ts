@@ -6,6 +6,13 @@ import { sugerirDominioEmail } from "@/lib/dominios-email";
 import { identificarVideo } from "@/lib/video-partilhado";
 import { lerRegistoApsl } from "@/components/vender-cavalo/registo-apsl";
 import { lerPassaporte } from "@/components/vender-cavalo/passaporte-ueln";
+import { lerData, mesesEntre } from "@/lib/datas-do-cavalo";
+import {
+  reunirCoerencia,
+  campoDoAchado,
+  NIVEL_DA_NATUREZA,
+  type Achado,
+} from "@/lib/documentos/coerencia";
 
 /**
  * O que cada campo sabe sobre si próprio.
@@ -47,7 +54,30 @@ export interface Apontamento {
 }
 
 /** As frases, já traduzidas. Esta camada não sabe de línguas, tal como a validação. */
+/**
+ * As frases dos achados de coerência que aterram num campo do formulário.
+ *
+ * São sete — as outras seis nascem do cruzamento de mais do que um anúncio e
+ * o `campoDoAchado` devolve-lhes `null`, porque o que estiver errado pode
+ * estar do outro lado e quem está à frente do ecrã não tem como o corrigir.
+ *
+ * Recebem os números crus por argumento em vez de virem já escritas: quem
+ * traduz precisa de os poder pôr onde a língua os quer.
+ */
+export interface MensagensCoerencia {
+  nascimentoNoFuturo: string;
+  nascimentoDepoisDoHistorial: string;
+  longevidadeInvulgar: (anos: number) => string;
+  alturaParaAIdade: (alturaAdultaImplicita: number) => string;
+  progenitorNovoDemais: (meses: number) => string;
+  progenitorPoucoHabitual: (meses: number) => string;
+  antepassadoDeSiProprio: string;
+  papelContraditorio: string;
+  sexoContraPapel: string;
+}
+
 export interface MensagensInspeccao {
+  coerencia: MensagensCoerencia;
   microchipComprimento: (faltam: number) => string;
   microchipNaoNumerico: string;
   microchipPrefixo: string;
@@ -237,19 +267,11 @@ export function idadeEmAnos(dataNascimento: string, hoje = new Date()): number |
   return anos;
 }
 
-/** Uma data do formulário, ou `null` se não houver ou não for uma data. */
-export function lerData(valor: string): Date | null {
-  if (!valor) return null;
-  const d = new Date(valor);
-  return Number.isNaN(d.getTime()) ? null : d;
-}
-
-/** Quantos meses completos passaram entre duas datas. Negativo se for futuro. */
-export function mesesEntre(desde: Date, ate: Date): number {
-  let meses = (ate.getFullYear() - desde.getFullYear()) * 12 + (ate.getMonth() - desde.getMonth());
-  if (ate.getDate() < desde.getDate()) meses--;
-  return meses;
-}
+/* `lerData` e `mesesEntre` mudaram-se para `lib/datas-do-cavalo.ts`, e a razão
+   está escrita lá: a coerência importava-as daqui, esta passou a importar a
+   coerência, e um ciclo em ESM não dá erro — dá uma constante `undefined`.
+   Continuam a sair por aqui para quem já as importava deste sítio. */
+export { lerData, mesesEntre };
 
 /**
  * `16.2` são dezasseis mãos e duas polegadas, não dezasseis vírgula dois. A
@@ -498,6 +520,8 @@ export function inspeccionar(
       apontar("nivel_treino", "aviso", m.treinoPotroTarde(idade));
   }
 
+  saida.push(...apontamentosDeCoerencia(formData, m.coerencia, contexto.hoje));
+
   return saida;
 }
 
@@ -518,6 +542,132 @@ function ehVendedorColectivo(tipo: string): boolean {
 }
 
 // ---------------------------------------------------------------------------
+// A coerência, vinda de `lib/documentos/coerencia`
+// ---------------------------------------------------------------------------
+
+/**
+ * O que o vendedor escreveu **fecha**?
+ *
+ * O resto deste ficheiro olha para um campo de cada vez. Isto olha para o
+ * conjunto: um pai nascido depois do filho, um cavalo que é seu próprio
+ * antepassado, uma altura que implica um adulto de dois metros. É a
+ * verificação de maior alcance que o site tem, porque um pedigree inventado
+ * quase nunca fecha — e não depende de perguntar nada a ninguém.
+ *
+ * Duas coisas que esta função **não** faz, e são a razão de ela poder existir
+ * dentro de um formulário:
+ *
+ * - **Não julga.** O `NIVEL_DA_NATUREZA` traduz `impossivel` para `erro` e
+ *   `improvavel` para `aviso`, e essa tradução é a única no sistema. Um
+ *   improvável — um cavalo de 32 anos, uma égua com dois filhos próximos — não
+ *   trava nada: pergunta.
+ * - **Não fala do que não é daqui.** Um achado que nasceu do cruzamento de
+ *   dois anúncios não tem campo (`campoDoAchado` devolve `null`) e por isso
+ *   nunca chega ao ecrã de quem está a preencher. Esse é assunto do painel de
+ *   revisão, que vê os dois lados.
+ *
+ * O `id` é fixo porque só há um cavalo aqui — as regras de cruzamento precisam
+ * de mais do que um e por isso não disparam, que é exactamente o que se quer.
+ */
+const ARVORE: ReadonlyArray<
+  readonly [caminho: string, nome: keyof FormData, registo: keyof FormData]
+> = [
+  ["pai", "pai_nome", "pai_registo"],
+  ["mae", "mae_nome", "mae_registo"],
+  ["pai.pai", "avo_paterno_nome", "avo_paterno_registo"],
+  ["pai.mae", "avo_paterno_mae_nome", "avo_paterno_mae_registo"],
+  ["mae.pai", "avo_materno_nome", "avo_materno_registo"],
+  ["mae.mae", "avo_materno_mae_nome", "avo_materno_mae_registo"],
+];
+
+const NESTE_FORMULARIO = "formulario";
+
+function textoOuNulo(v: unknown): string | null {
+  return typeof v === "string" && v.trim() !== "" ? v.trim() : null;
+}
+
+function numeroOuNulo(v: unknown): number | null {
+  const n = typeof v === "number" ? v : Number(String(v ?? "").replace(",", "."));
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function fraseDoAchado(a: Achado, m: MensagensCoerencia): string | null {
+  switch (a.tipo) {
+    case "nascimento_no_futuro":
+      return m.nascimentoNoFuturo;
+    case "nascimento_depois_do_historial":
+      return m.nascimentoDepoisDoHistorial;
+    case "longevidade_invulgar":
+      return m.longevidadeInvulgar(Math.round(a.anos));
+    case "altura_para_a_idade":
+      return m.alturaParaAIdade(Math.round(a.alturaAdultaImplicita));
+    case "progenitor_mais_novo":
+      // O tipo é um só; quem separa «não pode ser» de «é fora do corrente» é a
+      // natureza, e é ela que escolhe a frase. Os meses vêm negativos quando o
+      // antepassado nasceu depois — mostra-se o valor absoluto, porque «−7
+      // meses mais velho» não se lê.
+      return a.natureza === "impossivel"
+        ? m.progenitorNovoDemais(Math.abs(Math.round(a.mesesEntreOsNascimentos)))
+        : m.progenitorPoucoHabitual(Math.round(a.mesesEntreOsNascimentos));
+    case "antepassado_de_si_proprio":
+      return m.antepassadoDeSiProprio;
+    case "papel_contraditorio":
+      return m.papelContraditorio;
+    case "sexo_contra_papel":
+      return m.sexoContraPapel;
+    default:
+      // Um tipo sem frase não fala. É melhor calar-se do que dizer o nome
+      // interno do achado a quem está a vender um cavalo.
+      return null;
+  }
+}
+
+export function apontamentosDeCoerencia(
+  formData: FormData,
+  m: MensagensCoerencia,
+  hoje?: Date
+): Apontamento[] {
+  const cavalo = {
+    id: NESTE_FORMULARIO,
+    data_nascimento: textoOuNulo(formData.data_nascimento),
+    idade: null,
+    sexo: textoOuNulo(formData.sexo),
+    altura: numeroOuNulo(formData.altura),
+    nome: textoOuNulo(formData.nome),
+    nome_registo: textoOuNulo(formData.nome_registo),
+    registro_apsl: textoOuNulo(formData.numero_registo),
+    status: null,
+  };
+
+  const ascendentes = ARVORE.flatMap(([caminho, campoNome, campoRegisto]) => {
+    const nome = textoOuNulo(formData[campoNome]);
+    const registo = textoOuNulo(formData[campoRegisto]);
+    // Um antepassado sem nome e sem registo não é uma caixa vazia a preencher:
+    // é uma geração que o vendedor não sabe, e não há nada a verificar nela.
+    if (!nome && !registo) return [];
+    return [
+      {
+        cavalo_id: NESTE_FORMULARIO,
+        caminho,
+        geracao: caminho.includes(".") ? 2 : 1,
+        nome,
+        registo,
+      },
+    ];
+  });
+
+  const saida: Apontamento[] = [];
+  for (const achado of reunirCoerencia({ cavalos: [cavalo], ascendentes, hoje })) {
+    const campo = campoDoAchado(achado);
+    if (!campo) continue;
+    const mensagem = fraseDoAchado(achado, m);
+    if (!mensagem) continue;
+    saida.push({ campo, nivel: NIVEL_DA_NATUREZA[achado.natureza], mensagem });
+  }
+  return saida;
+}
+
+// ---------------------------------------------------------------------------
 // De que passo é cada campo
 // ---------------------------------------------------------------------------
 
@@ -535,6 +685,16 @@ export const PASSO_DE_CADA_CAMPO: Readonly<Record<string, number>> = {
   numero_registo: 1,
   altura: 1,
   peso: 1,
+  // A data de nascimento e a árvore entraram com a coerência: sem estarem
+  // aqui, um `erro` de coerência aparecia no campo e não travava o passo — e
+  // bastava não sair do campo para o contornar.
+  data_nascimento: 1,
+  pai_nome: 2,
+  mae_nome: 2,
+  avo_paterno_nome: 2,
+  avo_paterno_mae_nome: 2,
+  avo_materno_nome: 2,
+  avo_materno_mae_nome: 2,
   nivel_apsl: 1,
   nivel_treino: 2,
   preco: 3,
