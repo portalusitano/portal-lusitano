@@ -72,10 +72,17 @@ export default memo(function HorseCard({
   const badgeLabel = horse.nivel || primaryDiscipline;
 
   return (
-    <article className="group relative touch-manipulation" aria-label={horse.nome_cavalo}>
+    <article
+      className="cartao-holofote group relative h-full touch-manipulation rounded-[var(--raio-lg)]"
+      aria-label={horse.nome_cavalo}
+    >
       <LocalizedLink
         href={href}
-        className="cartao cartao-interactivo block overflow-hidden active:scale-[0.99] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+        /* O anel de foco é branco e não dourado: o dourado é acento, e a folha
+           global já desenha um contorno branco a `!important` — o anel dourado
+           por cima dele dava duas linhas de duas cores à volta do mesmo cartão.
+           É o mesmo contorno que o cartão do directório usa. */
+        className="cartao cartao-interactivo block h-full overflow-hidden transition-transform active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground-strong)]"
       >
         {/* Fotografia. 4:3 em vez de 4:5: numa grelha de classificados o que
             conta é caberem mais anúncios no ecrã, e o retrato alto gastava
@@ -115,8 +122,15 @@ export default memo(function HorseCard({
           )}
 
           {/* Distintivos. Ficam sobre a foto porque em baixo roubariam a linha
-              que o preço e o nome precisam num cartão compacto. */}
-          <div className="absolute top-2 left-2 z-10 flex flex-wrap gap-1">
+              que o preço e o nome precisam num cartão compacto.
+
+              A fila tem de ter um limite à direita. Um bloco absoluto só com
+              `left` mede-se pelo conteúdo e nunca chega ao ponto de mudar de
+              linha, por muito `flex-wrap` que leve: num cartão de 170px em
+              telemóvel, «Destaque Novo Grand Prix» saía pela borda e o cartão,
+              que tem `overflow-hidden`, cortava-o a meio da palavra. O limite
+              pára às dez unidades da direita, que é onde o coração está. */}
+          <div className="absolute top-2 right-10 left-2 z-10 flex flex-wrap gap-1">
             {horse.destaque && (
               <span className="selo selo-destaque">
                 <Flame size={9} aria-hidden="true" />

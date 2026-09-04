@@ -7,16 +7,27 @@
  * cannot deliver.
  */
 
+import { desembrulharJson } from "@/lib/cavalos-destaque";
+
 /** Listings per page. */
 export const POR_PAGINA = 24;
 
-export type Ordenacao = "recentes" | "preco_asc" | "preco_desc" | "idade_asc";
+export type Ordenacao = "recentes" | "preco_asc" | "preco_desc" | "idade_asc" | "idade_desc";
 
+/**
+ * As ordenações que se oferecem.
+ *
+ * `idade_desc` é a quinta e a razão é que faltava metade de um eixo: havia
+ * «mais novos» e não havia «mais velhos», quando quem procura um cavalo já
+ * feito — ensinado, com anos de trabalho — é um comprador tão comum como quem
+ * procura um poldro. As duas pontas do preço já lá estavam ambas.
+ */
 export const ORDENACOES: { id: Ordenacao; label: string }[] = [
   { id: "recentes", label: "Mais recentes" },
   { id: "preco_asc", label: "Preço: mais baixo" },
   { id: "preco_desc", label: "Preço: mais alto" },
   { id: "idade_asc", label: "Mais novos" },
+  { id: "idade_desc", label: "Mais velhos" },
 ];
 
 export interface FiltrosMarketplace {
@@ -173,17 +184,41 @@ export interface AnuncioFiltravel {
   created_at?: string | null;
 }
 
-/** Normalises the disciplines column, which is an array in some rows and a string in others. */
+/**
+ * Normalises the disciplines column.
+ *
+ * `disciplinas` is `jsonb`, and this database holds it in three shapes: the
+ * array (the good one), a comma-separated string typed by hand, and a string
+ * with **JSON inside it** — a row imported through a client that encoded the
+ * column twice. The third one used to come out of here whole, so the
+ * marketplace grew filter chips reading `["Dressage"]`, square brackets and
+ * quotes included, next to a `Dressage` chip that matched the other rows. Two
+ * chips for one discipline, and the listing behind the ugly one was
+ * unreachable through the pretty one.
+ *
+ * Who unwraps is `desembrulharJson`, the same function the coudelaria columns
+ * use, and for the reason written there: the defect is not this column's, it
+ * is this shape's, so there is one rule and it is tested once. What that
+ * function cannot know is the comma convention, which is this column's own —
+ * a plain string comes back as a single element and is split here.
+ */
 export function disciplinasDe(a: AnuncioFiltravel): string[] {
-  if (!a.disciplinas) return [];
-  if (Array.isArray(a.disciplinas)) return a.disciplinas;
-  if (typeof a.disciplinas === "string") {
-    return a.disciplinas
-      .split(",")
-      .map((d) => d.trim())
-      .filter(Boolean);
+  const bruto = desembrulharJson(a.disciplinas);
+  if (!Array.isArray(bruto)) return [];
+
+  const saida: string[] = [];
+  for (const item of bruto) {
+    if (typeof item !== "string") continue;
+    // Uma entrada só, escrita à mão, pode trazer várias disciplinas separadas
+    // por vírgula. Um array a sério traz uma por posição e não perde nada com
+    // passar por aqui.
+    for (const parte of item.split(",")) {
+      const texto = parte.trim();
+      if (!texto || saida.includes(texto)) continue;
+      saida.push(texto);
+    }
   }
-  return [];
+  return saida;
 }
 
 /** Case- and accent-insensitive containment, so "golega" finds "Golegã". */
@@ -251,6 +286,10 @@ export function ordenar<T extends AnuncioFiltravel>(anuncios: T[], ordem: Ordena
         return (b.preco ?? -Infinity) - (a.preco ?? -Infinity);
       case "idade_asc":
         return (a.idade ?? Infinity) - (b.idade ?? Infinity);
+      // Sem idade não é «velho»: quem não a declara vai para o fim das duas
+      // ordenações por idade, e não para o topo desta.
+      case "idade_desc":
+        return (b.idade ?? -Infinity) - (a.idade ?? -Infinity);
       case "recentes":
       default: {
         const da = a.created_at ? new Date(a.created_at).getTime() : 0;
