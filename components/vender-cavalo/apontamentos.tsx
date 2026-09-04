@@ -2,7 +2,7 @@
 
 import { AlertTriangle, Lightbulb } from "lucide-react";
 import type { Apontamento, ApontamentosPorCampo } from "@/components/vender-cavalo/inspeccao";
-import type { ErrosPorCampo } from "@/components/vender-cavalo/campos-com-erro";
+import type { FaltasPorCampo } from "@/components/vender-cavalo/campos-com-erro";
 import type { AccoesCampo } from "@/components/vender-cavalo/types";
 
 /**
@@ -69,9 +69,20 @@ export function ApontamentoDoCampo({
  * `aria-invalid` fica reservado ao erro. Um aviso não é uma invalidade — o
  * valor passa, o formulário avança —, e marcá-lo como inválido faria o leitor
  * de ecrã anunciar como erro aquilo que é uma pergunta.
+ *
+ * **Uma falta por responder continua a ser `aria-invalid`, e é de propósito.**
+ * O que este atributo responde não é «isto está errado?», é «isto satisfaz a
+ * regra do formulário neste momento?» — e um campo exigido e vazio, depois de
+ * alguém carregar em Continuar, é literalmente o que está a travar o botão.
+ * Calá-lo seria deixar quem não vê o ecrã sem saber onde o formulário parou.
+ *
+ * A distinção que o resto deste trabalho faz — por responder contra respondido
+ * e mal — chega a quem ouve pelo `aria-describedby`, que é onde ela cabe: um
+ * diz «Por responder», o outro diz o que está errado. Não é uma distinção só
+ * para quem vê o vermelho.
  */
 export function atributosCampo(
-  erros: ErrosPorCampo,
+  erros: FaltasPorCampo,
   apontamentos: ApontamentosPorCampo,
   campo: string
 ): { "aria-invalid"?: true; "aria-describedby"?: string } {
@@ -102,7 +113,7 @@ export function apontamentosDe(apontamentos: ApontamentosPorCampo, campo: string
 export function ligarCampo(
   nome: string,
   valor: string,
-  props: { erros: ErrosPorCampo; apontamentos: ApontamentosPorCampo; campo: AccoesCampo }
+  props: { erros: FaltasPorCampo; apontamentos: ApontamentosPorCampo; campo: AccoesCampo }
 ) {
   return {
     ...atributosCampo(props.erros, props.apontamentos, nome),

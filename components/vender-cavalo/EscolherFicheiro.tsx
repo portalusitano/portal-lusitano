@@ -2,12 +2,21 @@
 
 import { useId, useRef } from "react";
 import { Upload } from "lucide-react";
+import type { NivelFalta } from "@/components/vender-cavalo/campos-com-erro";
 
 interface EscolherFicheiroProps {
   /** O que se lê no botão: o nome do ficheiro escolhido, ou o convite. */
   texto: string;
-  /** Marca o alvo a vermelho quando é este anexo que está a travar o passo. */
-  comErro?: boolean;
+  /**
+   * O estado do anexo, quando ele está a travar o passo.
+   *
+   * Era um `comErro` de sim ou não, e pintava de vermelho um Livro Azul que
+   * ainda não tinha sido escolhido — um documento por anexar não é um
+   * documento errado. Agora são os dois níveis do formulário: `por-responder`
+   * acende a hairline, `erro` — o anexo que não serve, uma fotografia a mais
+   * do que o plano permite — é que fica vermelho.
+   */
+  falta?: NivelFalta;
   /** Onde está a explicação do erro, para o leitor de ecrã. */
   descritoPor?: string;
   aceita?: string;
@@ -48,7 +57,7 @@ interface EscolherFicheiroProps {
  */
 export default function EscolherFicheiro({
   texto,
-  comErro = false,
+  falta,
   descritoPor,
   aceita = ".pdf,.jpg,.jpeg,.png",
   multiplo = false,
@@ -63,9 +72,11 @@ export default function EscolherFicheiro({
   const base = className
     ? className
     : `flex items-center justify-center gap-2 px-4 py-3 border border-dashed rounded-lg transition-colors touch-manipulation w-full ${
-        comErro
+        falta === "erro"
           ? "border-[var(--erro)]"
-          : "border-[var(--border)] hover:border-[var(--border-hover)]"
+          : falta === "por-responder"
+            ? "border-[var(--border)]"
+            : "border-[var(--border-soft)] hover:border-[var(--border-hover)]"
       }`;
 
   return (

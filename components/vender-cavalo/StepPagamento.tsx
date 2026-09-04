@@ -7,7 +7,11 @@ import type { FormData } from "@/components/vender-cavalo/types";
 import { LISTING_TIERS } from "@/lib/listing-tiers";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
-import { ErroDoCampo, type ErrosPorCampo } from "@/components/vender-cavalo/campos-com-erro";
+import {
+  ErroDoCampo,
+  useFaltas,
+  type ErrosPorCampo,
+} from "@/components/vender-cavalo/campos-com-erro";
 
 interface StepPagamentoProps {
   formData: FormData;
@@ -26,12 +30,19 @@ export default function StepPagamento({
   termsAccepted,
   onTermsChange,
   loading,
-  erros,
+  erros: errosCrus,
 }: StepPagamentoProps) {
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
   const tier = LISTING_TIERS[selectedTier] || LISTING_TIERS.standard;
   const precoTotal = tier.priceInCents / 100;
+
+  /**
+   * A caixa dos termos não é um campo do catálogo: quem sabe se ela está
+   * marcada é este passo. Por marcar é uma resposta que falta, não um erro —
+   * ninguém marca a caixa errada.
+   */
+  const erros = useFaltas(errosCrus, formData, { termos_aceites: termsAccepted });
 
   const durationLabel =
     tier.durationDays === 15

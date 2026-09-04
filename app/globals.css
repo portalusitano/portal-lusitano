@@ -3245,6 +3245,254 @@ body {
     text-decoration-color: var(--erro);
   }
 
+  /* --- O que falta, e o que está errado -------------------------------------
+   * Duas coisas que eram uma só, e essa foi a mudança que arrumou o
+   * formulário inteiro.
+   *
+   * Com noventa e nove campos obrigatórios, carregar em «Continuar» com o
+   * passo por preencher acendia vinte e sete campos a vermelho e escrevia
+   * vinte e sete frases vermelhas por baixo deles — duas páginas de vermelho
+   * antes de a pessoa ter escrito uma letra. Medido: 29 elementos vermelhos
+   * no primeiro ecrã, 82 na página.
+   *
+   * Nada ali estava errado. Estava por fazer, que é outra coisa: um campo por
+   * tocar não é um campo com um valor mau. E a consequência de os pintar da
+   * mesma cor não é só o susto — é que **nenhum se distingue de nenhum**.
+   * Vinte e sete alarmes ao mesmo tempo são zero alarmes, e no dia em que um
+   * email vier sem arroba o vermelho já não vale nada.
+   *
+   * Por isso são agora dois desenhos:
+   *
+   *  - `.campo-por-responder` — a hairline acesa e um halo de luz fria, que é
+   *    o mesmo idioma do `.campo-erro` um tom abaixo. Sobre preto quem
+   *    assinala é o contraste, e é o que o site já faz em todo o lado (o
+   *    filtro activo, o dia de hoje, a página actual).
+   *  - `.campo-erro` — vermelho, e agora só para quem respondeu e respondeu
+   *    mal. Ficou como estava; o que mudou foi passar a ser raro. */
+  .campo-por-responder,
+  .campo-por-responder:hover {
+    border-color: var(--border);
+    box-shadow: 0 0 0 3px rgba(214, 235, 253, 0.06);
+  }
+
+  /* A linha por baixo do campo por responder. Duas palavras, no secundário:
+     não é uma frase, é um estado. A frase que aqui estava — «Falta preencher:
+     NIF.» — dizia o nome do campo que o rótulo, logo acima, já diz. */
+  .falta-campo {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.375rem;
+    margin-top: 0.375rem;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--foreground-secondary);
+  }
+
+  /* --- O resumo do topo -----------------------------------------------------
+   * O `.resumo-erros` fica no elemento por compatibilidade — é o selector por
+   * onde os casos de Playwright encontram o painel, e renomeá-lo era partir
+   * uma garantia por uma questão de nome. Quem manda no desenho é o
+   * `.resumo-faltas`, e as regras vão escritas com as duas classes para
+   * ganharem sem depender da ordem do ficheiro.
+   *
+   * O painel deixou de ser vermelho. O que ele diz não é «errou», é «faltam
+   * estas» — e uma conta não se pinta com a cor de alarme. Fica a superfície
+   * elevada com a hairline activa, que é como o site desenha um painel que
+   * pede atenção sem gritar. */
+  .resumo-erros.resumo-faltas {
+    border: 1px solid var(--border);
+    background: var(--elevate-1);
+    border-radius: var(--raio-lg);
+    padding: 1rem 1.125rem 1.125rem;
+  }
+
+  /* A conta. É o que a pessoa procura primeiro, e por isso é o maior e o mais
+     claro do painel — a hierarquia faz-se com peso e tamanho, não com cor. */
+  .resumo-faltas__conta {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    color: var(--foreground-strong);
+  }
+
+  .resumo-faltas__conta > svg {
+    align-self: center;
+    color: var(--foreground-secondary);
+  }
+
+  .resumo-faltas__numero {
+    font-size: 1.5rem;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* A fita dos algarismos anda em `--d-menu`.
+     Sem isto o número saltava: a `.numero-assenta` só transita dentro de um
+     `[data-revelar].dentro`, que é a entrada de um bloco ao entrar no ecrã, e
+     este número não entra — muda, a cada campo que se responde. É a mesma
+     razão pela qual a contagem dos filtros do directório tem o seu andamento
+     próprio, e é a mesma duração. Não altera a `.numero-assenta`: só lhe põe
+     a transição onde ela não tinha nenhuma. */
+  .resumo-faltas__numero .numero-assenta__fita {
+    transition: transform var(--d-menu) var(--ease-out);
+  }
+
+  .resumo-faltas__unidade {
+    font-size: 0.8125rem;
+    color: var(--foreground-secondary);
+  }
+
+  .resumo-faltas__nota {
+    margin-top: 0.25rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--foreground-secondary);
+  }
+
+  /* O caminho para a primeira falta. É o botão branco do sistema: o dourado
+     nesta página é do CTA de publicar anúncio, e um segundo dourado no mesmo
+     ecrã deixaria de assinalar o primeiro. */
+  .resumo-faltas__primeira {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    max-width: 100%;
+  }
+
+  .resumo-faltas__seccoes {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  /* Cada secção é um degrau da hierarquia que faltava: o cabeçalho diz onde,
+     a conta diz quanto, e as pastilhas dizem quais. Com as vinte e sete
+     linhas todas do mesmo peso não havia nenhuma primeira — e sem uma
+     primeira não há por onde começar. */
+  .resumo-faltas__seccao {
+    border-top: 1px solid var(--border-soft);
+    padding-top: 0.625rem;
+  }
+
+  .resumo-faltas__cabeca {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .resumo-faltas__saldo {
+    flex: none;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.75rem;
+    color: var(--foreground-muted);
+  }
+
+  .resumo-faltas__campos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  /* Uma pastilha por campo. Era uma linha sublinhada a vermelho, e vinte e
+     sete dessas empilhadas são uma parede de 765px; em pastilha as mesmas
+     vinte e sete cabem em nove linhas e continuam todas a um toque. */
+  .resumo-faltas__ir {
+    display: inline-block;
+    max-width: 100%;
+    padding: 0.25rem 0.625rem;
+    border: 1px solid var(--border-soft);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--foreground-secondary);
+    font-size: 0.75rem;
+    line-height: 1.4;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      border-color var(--d-fast) var(--ease-out),
+      color var(--d-fast) var(--ease-out),
+      background var(--d-fast) var(--ease-out);
+  }
+
+  .resumo-faltas__ir:hover {
+    border-color: var(--border-hover);
+    background: var(--elevate-1);
+    color: var(--foreground-strong);
+  }
+
+  /* --- O painel a aparecer, e o campo a receber quem vem dele ---------------
+   * Uma ideia só, e é a mesma nos dois sítios: **o que é preciso responder
+   * assenta**. O painel sobe e assenta, os algarismos rolam e assentam, e o
+   * campo onde se chega abre um anel que se fecha e assenta.
+   *
+   * Corre uma vez e pára. Não há aqui ciclo nenhum — o site conta três em
+   * tudo o que tem, e um quarto custava uma razão escrita que não há. */
+  .resumo-faltas {
+    animation: resumo-faltas-entrar var(--d-menu) var(--ease-out) both;
+  }
+
+  @keyframes resumo-faltas-entrar {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* O campo que acabou de receber o foco a partir do resumo.
+     Entre carregar num nome e a página parar não acontecia nada que dissesse
+     *qual* dos quarenta campos à vista tinha sido escolhido. É o mesmo
+     movimento com que o globo assinala a coudelaria escolhida, e o mesmo
+     token: `--d-drill` é o tempo de entrar num sítio, e ir do resumo ao campo
+     é entrar nele. O anel é um `box-shadow` e uma opacidade — nada que obrigue
+     o browser a refazer layout — e vive num `::after` para não disputar o
+     `box-shadow` que o próprio campo usa para o estado dele. */
+  [data-chegada] {
+    position: relative;
+  }
+
+  [data-chegada]::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: calc(var(--raio) + 4px);
+    border: 1px solid var(--foreground-strong);
+    pointer-events: none;
+    animation: chegada-anel calc(var(--d-drill) * 2) var(--ease-out) both;
+  }
+
+  @keyframes chegada-anel {
+    from {
+      opacity: 0.9;
+      transform: scale(1.03);
+    }
+    to {
+      opacity: 0;
+      transform: scale(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .resumo-faltas {
+      animation: none;
+    }
+    .resumo-faltas__numero .numero-assenta__fita {
+      transition: none;
+    }
+    [data-chegada]::after {
+      animation: none;
+      content: none;
+    }
+  }
+
   /* Painel de nota — o aviso da APSL, o da verificação de documentos. Eram
      `bg-blue-500/10` com texto `text-blue-300`: uma quarta cor no site, que
      não está em token nenhum. Sobre preto, quem diz «isto é uma nota» é a
@@ -3432,6 +3680,28 @@ body {
   .sim-nao__opcao:has(.sim-nao__radio:focus-visible) {
     outline: 1px solid var(--border-hover);
     outline-offset: 2px;
+  }
+
+  /* A pergunta que ainda espera resposta.
+     Numa pergunta de sim ou não **não há resposta errada** — as duas servem —,
+     por isso o que aqui pode faltar é só a escolha, e o que a assinala é o
+     texto da pergunta subir do secundário para o corrente. Sem cor nova e sem
+     mexer no sítio de nada: um risco ou um recuo empurrariam as duas pastilhas
+     e vinte e sete perguntas seguidas a saltar de sítio é pior do que o
+     problema. O `erro` fica reservado ao que a inspecção apanha. */
+  .sim-nao[data-falta="por-responder"] .sim-nao__texto {
+    color: var(--foreground);
+  }
+
+  .sim-nao[data-falta="erro"] .sim-nao__texto {
+    color: var(--erro);
+  }
+
+  /* A linha de estado ocupa a largura toda: sem isto entrava como terceiro
+     item da fila e ficava encostada às pastilhas. */
+  .sim-nao .falta-campo {
+    flex: 1 0 100%;
+    margin-top: 0;
   }
 
   /* --- Guarda do rascunho -------------------------------------------------- */
