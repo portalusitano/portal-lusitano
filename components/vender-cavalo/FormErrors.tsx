@@ -170,10 +170,20 @@ const FormErrors = forwardRef<HTMLDivElement, FormErrorsProps>(function FormErro
 
       {/* O primeiro botão do painel é o caminho para a primeira falta. É o
           primeiro no DOM e não só na página: quem navega por tabulação chega
-          ao painel e a tecla seguinte já está no sítio onde é preciso ir. */}
+          ao painel e a tecla seguinte já está no sítio onde é preciso ir.
+
+          O nome do campo sozinho anunciava-se como «Nome completo, botão», que
+          num leitor de ecrã é indistinguível do próprio campo. O verbo tem de
+          estar no nome acessível: o «Comece por aqui:» que se lê acima é prosa
+          solta, e não está ligado a este botão por nada. */}
       <button
         type="button"
         className="btn btn-primario btn-sm resumo-faltas__primeira"
+        aria-label={tr(
+          `Ir ao primeiro campo por responder: ${nomeDoPrimeiro}`,
+          `Go to the first unanswered field: ${nomeDoPrimeiro}`,
+          `Ir al primer campo sin responder: ${nomeDoPrimeiro}`
+        )}
         onClick={() => irAoCampo(primeiro.campo)}
       >
         <span className="truncate">{nomeDoPrimeiro}</span>
@@ -187,6 +197,7 @@ const FormErrors = forwardRef<HTMLDivElement, FormErrorsProps>(function FormErro
               <button
                 type="button"
                 className="resumo-faltas__ir"
+                aria-label={tr(`Ir a: ${c.nome}`, `Go to: ${c.nome}`, `Ir a: ${c.nome}`)}
                 onClick={() => irAoCampo(c.campo)}
               >
                 {c.nome}
@@ -198,9 +209,16 @@ const FormErrors = forwardRef<HTMLDivElement, FormErrorsProps>(function FormErro
         <ul className="resumo-faltas__seccoes">
           {grupos.map((grupo) => (
             <li key={grupo.chave} className="resumo-faltas__seccao">
+              {/* «Como o contactam, 3» não diz o que o 3 é nem o que o botão
+                  faz. O nome acessível diz as duas coisas. */}
               <button
                 type="button"
                 className="resumo-faltas__cabeca resumo-faltas__cabeca--ir"
+                aria-label={tr(
+                  `${grupo.titulo}: ${grupo.campos.length} por responder`,
+                  `${grupo.titulo}: ${grupo.campos.length} unanswered`,
+                  `${grupo.titulo}: ${grupo.campos.length} sin responder`
+                )}
                 onClick={() => irAoCampo(grupo.campos[0].campo)}
               >
                 <span className="rotulo">{grupo.titulo}</span>
