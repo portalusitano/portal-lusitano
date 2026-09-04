@@ -62,7 +62,7 @@ export function LusitanoDropdown() {
           style={{ zIndex: 9999 }}
           role="menu"
         >
-          <div className="anim-crescer w-[90vw] rounded-3xl border border-[var(--border-soft)] bg-[var(--background-elevated)] p-2 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] sm:w-[480px] md:w-[560px]">
+          <div className="anim-crescer w-[90vw] rounded-3xl border border-[var(--border-soft)] bg-[var(--background-elevated)] p-2 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.8)] sm:w-[22rem]">
             {/* Só palavras. Quatro ícones dourados lado a lado gastavam o
                 acento e não diziam nada que o nome do destino não dissesse —
                 a descrição por baixo faz esse trabalho melhor.
@@ -71,7 +71,12 @@ export function LusitanoDropdown() {
                 entradas que já se nomeiam a si próprias, e um cabeçalho que
                 classifica uma lista de quatro é uma linha a mais: quem abriu
                 este menu já sabe onde carregou. */}
-            <div className="grupo-nav grid grid-cols-1 gap-x-4 gap-y-1 px-0 pt-1 sm:grid-cols-2">
+            <div // Uma coluna. Eram duas, e faziam sentido com quatro entradas; com três
+              // deixavam um buraco no canto e uma descrição a partir-se em duas
+              // linhas enquanto as vizinhas cabiam numa. Três itens em coluna leem-se
+              // como um menu, que é o que isto é.
+              className="grupo-nav flex flex-col gap-1 pt-1"
+            >
               {dbItems.map((item) => (
                 <LocalizedLink
                   key={item.href}

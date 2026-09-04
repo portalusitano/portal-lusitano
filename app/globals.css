@@ -4424,3 +4424,181 @@ html.light .barra-dir__seccao[data-busca]::after {
     }
   }
 }
+
+/* ==========================================================================
+ * Pesquisa do site
+ *
+ * O painel é o idioma de modal que o site já tem — o mesmo pano do pedido de
+ * cookies, os mesmos 28px de canto, a mesma hairline. Não se inventa aqui um
+ * segundo modal.
+ * ========================================================================= */
+
+@layer components {
+  .busca-pano {
+    background: rgba(0, 0, 0, 0.64);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    animation: nascer-pano var(--d-fast) var(--ease-out);
+  }
+
+  @keyframes nascer-pano {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Os dois botões de ícone da barra: limpar e fechar. */
+  .busca-icone {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    color: var(--foreground-muted);
+    transition:
+      color var(--d-fast) var(--ease-out),
+      background-color var(--d-fast) var(--ease-out);
+  }
+
+  .busca-icone:hover {
+    color: var(--foreground-strong);
+    background: var(--elevate-1);
+  }
+
+  /* --- Uma linha de resultado ---------------------------------------------
+   * Serve os resultados, o histórico e os atalhos: são três listas com o
+   * mesmo desenho, e ter três desenhos parecidos numa caixa de 600px é o que
+   * faz uma caixa parecer remendada.
+   * ---------------------------------------------------------------------- */
+  .linha-busca {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.625rem 1.25rem;
+    text-align: left;
+    transition: background-color var(--d-fast) var(--ease-out);
+  }
+
+  .linha-busca:hover {
+    background: var(--elevate-1);
+  }
+
+  /* A escolhida pelo teclado. Fundo e texto a branco, sem risco à esquerda:
+     uma aresta direita dentro de um painel de cantos redondos lê-se mal, e
+     ainda empurrava o conteúdo dois pixéis a cada seta. */
+  .linha-busca--activa {
+    background: var(--elevate-1);
+  }
+
+  .linha-busca--activa .linha-busca__titulo {
+    color: var(--foreground-strong);
+  }
+
+  .linha-busca__selo {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 1.5rem;
+    padding: 0 0.5rem;
+    border: 1px solid var(--border-soft);
+    border-radius: 999px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--foreground-muted);
+  }
+
+  /* As linhas entram em cascata, com tecto em dez — passados dez, o atraso
+     deixa de se ler como ordem e passa a leitura a conta-gotas. */
+  .js .linha-busca {
+    animation: nascer-linha-busca var(--d-fast) var(--ease-out) both;
+    animation-delay: calc(var(--ordem, 0) * 24ms);
+  }
+
+  @keyframes nascer-linha-busca {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .tecla {
+    padding: 0.125rem 0.375rem;
+    border: 1px solid var(--border-soft);
+    border-radius: 6px;
+    background: var(--elevate-1);
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--foreground-muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .busca-pano,
+    .js .linha-busca {
+      animation: none;
+    }
+  }
+}
+
+/* ==========================================================================
+ * Pesquisa — a moldura e o foco
+ *
+ * A regra global `:focus-visible` desenha um anel de 2px com 8px de canto e
+ * `!important`, e é ela que dá o alvo de teclado a todo o site. Numa caixa de
+ * texto que ocupa uma linha inteira dentro de um painel de 28px de canto, esse
+ * anel lê-se como um oval encaixado à força — e como a caixa recebe o foco no
+ * instante em que o painel abre, ele aparece sempre, mesmo a quem chegou com
+ * o rato.
+ *
+ * O indicador não se tira: tira-se do sítio errado. Quem acende passa a ser a
+ * **moldura do painel**, que é o que de facto tem o foco enquanto se escreve —
+ * um alvo maior, com a forma certa, e visível na mesma. Bater um `!important`
+ * com outro é feio e aqui é a única saída, porque a regra global o usa.
+ * ========================================================================= */
+
+@layer components {
+  .busca-painel {
+    overflow: hidden;
+    border: 1px solid var(--border-soft);
+    border-radius: 28px;
+    background: var(--background-elevated);
+    box-shadow: 0 12px 60px rgba(0, 0, 0, 0.8);
+    transition: border-color var(--d-fast) var(--ease-out);
+  }
+
+  .busca-painel:focus-within {
+    border-color: var(--border-hover);
+  }
+
+  .busca-campo {
+    background: transparent;
+    color: var(--foreground);
+  }
+
+  .busca-campo::placeholder {
+    color: var(--foreground-muted);
+  }
+
+  .busca-campo:focus,
+  .busca-campo:focus-visible {
+    outline: none !important;
+  }
+
+  /* O título de uma linha, seja ela um resultado, um histórico ou um atalho. */
+  .linha-busca__titulo {
+    color: var(--foreground);
+    transition: color var(--d-fast) var(--ease-out);
+  }
+}
