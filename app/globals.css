@@ -3272,7 +3272,10 @@ body {
   .campo-por-responder,
   .campo-por-responder:hover {
     border-color: var(--border);
-    box-shadow: 0 0 0 3px rgba(214, 235, 253, 0.06);
+    /* O halo é a hairline do sistema e não um branco literal: em tema claro
+       um `rgba(255,255,255,·)` sobre fundo branco não é um halo mais fraco, é
+       nenhum. O token vira com o tema. */
+    box-shadow: 0 0 0 3px var(--border-soft);
   }
 
   /* A linha por baixo do campo por responder. Duas palavras, no secundário:
@@ -3508,27 +3511,27 @@ body {
      o browser a refazer layout — e vive num `::after` para não disputar o
      `box-shadow` que o próprio campo usa para o estado dele. */
   [data-chegada] {
-    position: relative;
-  }
-
-  [data-chegada]::after {
-    content: "";
-    position: absolute;
-    inset: -6px;
-    border-radius: calc(var(--raio) + 4px);
-    border: 1px solid var(--foreground-strong);
-    pointer-events: none;
+    border-radius: var(--raio);
     animation: chegada-anel calc(var(--d-drill) * 2) var(--ease-out) both;
   }
 
+  /* O anel é um `box-shadow` no próprio elemento, e não um `::after`.
+     Duas razões, e a primeira é fatal: **um `<input>` é um elemento
+     substituído e não desenha pseudo-elementos** — metade dos campos deste
+     formulário são caixas de texto, e nesses o anel simplesmente não existia.
+     A segunda é que um `::after` posicionado obriga o elemento a
+     `position: relative`, e isso cria um contexto de empilhamento numa caixa
+     que noutros sítios tem um ícone absoluto por cima (o `€` do preço, a lupa
+     da pesquisa). Uma sombra não mexe no layout nem no empilhamento de nada.
+
+     O `box-shadow` do `.campo-por-responder` fica coberto durante os 640ms e
+     volta sozinho quando o atributo sai. */
   @keyframes chegada-anel {
     from {
-      opacity: 0.9;
-      transform: scale(1.03);
+      box-shadow: 0 0 0 3px var(--foreground-strong);
     }
     to {
-      opacity: 0;
-      transform: scale(1);
+      box-shadow: 0 0 0 12px transparent;
     }
   }
 
@@ -3539,9 +3542,8 @@ body {
     .resumo-faltas__numero .numero-assenta__fita {
       transition: none;
     }
-    [data-chegada]::after {
+    [data-chegada] {
       animation: none;
-      content: none;
     }
   }
 
