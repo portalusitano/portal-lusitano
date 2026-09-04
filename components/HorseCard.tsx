@@ -122,8 +122,15 @@ export default memo(function HorseCard({
           )}
 
           {/* Distintivos. Ficam sobre a foto porque em baixo roubariam a linha
-              que o preço e o nome precisam num cartão compacto. */}
-          <div className="absolute top-2 left-2 z-10 flex flex-wrap gap-1">
+              que o preço e o nome precisam num cartão compacto.
+
+              A fila tem de ter um limite à direita. Um bloco absoluto só com
+              `left` mede-se pelo conteúdo e nunca chega ao ponto de mudar de
+              linha, por muito `flex-wrap` que leve: num cartão de 170px em
+              telemóvel, «Destaque Novo Grand Prix» saía pela borda e o cartão,
+              que tem `overflow-hidden`, cortava-o a meio da palavra. O limite
+              pára às dez unidades da direita, que é onde o coração está. */}
+          <div className="absolute top-2 right-10 left-2 z-10 flex flex-wrap gap-1">
             {horse.destaque && (
               <span className="selo selo-destaque">
                 <Flame size={9} aria-hidden="true" />

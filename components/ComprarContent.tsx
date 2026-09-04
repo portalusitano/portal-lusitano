@@ -64,7 +64,7 @@ function CabecalhoComprar({
   t: ReturnType<typeof useLanguage>["t"];
 }) {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
       <div>
         <h1 className="titulo-gradiente text-[1.75rem] leading-[120%] font-normal tracking-tighter md:text-[2.5rem]">
           {tituloDaPagina(language)}
@@ -77,9 +77,13 @@ function CabecalhoComprar({
         )}
       </div>
 
+      {/* `self-start` para o botão medir o que a palavra mede. Sem isso, num
+          telemóvel a coluna estica-o de borda a borda e um CTA de 350px de
+          largura por cima da montra lê-se como uma faixa de campanha, não como
+          um botão — além de gastar em altura o que a grelha ganhou. */}
       <LocalizedLink
         href="/vender-cavalo"
-        className="btn btn-primario shrink-0 rounded-full px-5 whitespace-nowrap"
+        className="btn btn-primario btn-sm shrink-0 self-start rounded-full px-5 whitespace-nowrap sm:self-auto"
       >
         + {anunciarCavalo(language)}
       </LocalizedLink>
