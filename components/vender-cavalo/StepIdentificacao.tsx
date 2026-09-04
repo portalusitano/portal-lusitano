@@ -17,7 +17,7 @@ import { createTranslator } from "@/lib/tr";
 import Seleccao from "@/components/ui/Seleccao";
 import Seccao from "@/components/vender-cavalo/Seccao";
 import SimNao from "@/components/vender-cavalo/SimNao";
-import { ErroDoCampo, classeCampo } from "@/components/vender-cavalo/campos-com-erro";
+import { ErroDoCampo, classeCampo, useFaltas } from "@/components/vender-cavalo/campos-com-erro";
 import {
   ApontamentoDoCampo,
   atributosCampo,
@@ -45,9 +45,36 @@ interface StepIdentificacaoProps extends StepProps {
 }
 
 export default function StepIdentificacao(props: StepIdentificacaoProps) {
-  const { formData, updateField, erros, apontamentos, campo, registoApsl, conta } = props;
+  const {
+    formData,
+    updateField,
+    erros: errosCrus,
+    apontamentos,
+    campo,
+    registoApsl,
+    conta,
+  } = props;
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
+
+  /**
+   * As faltas deste passo, separadas em duas: o que está por responder e o
+   * que está respondido e mal. A régua é o `estaPreenchido` do catálogo — a
+   * mesma que trava o botão e a mesma que conta «7 / 12» no cabeçalho da
+   * secção —, e é ela que decide qual dos campos leva vermelho.
+   */
+  const erros = useFaltas(errosCrus, formData);
+
+  /**
+   * O que `ligarCampo` precisa de saber, montado uma vez.
+   *
+   * Era o objecto `props` inteiro. Deixou de poder ser: o `erros` que chega
+   * nas props é a lista crua da validação, e o que os campos leem é a versão
+   * já separada em «por responder» e «erro». Passar `props` aqui seria pintar
+   * de vermelho, pela porta das traseiras, exactamente o que este trabalho
+   * deixou de pintar.
+   */
+  const ligacao = { erros, apontamentos, campo };
 
   /**
    * A idade não é um campo: é uma conta sobre a data de nascimento.
@@ -94,7 +121,7 @@ export default function StepIdentificacao(props: StepIdentificacaoProps) {
                 onChange={(e) => updateField("nome", e.target.value)}
                 className={classeCampo(erros, "nome")}
                 placeholder={t.vender_cavalo.placeholder_horse_name}
-                {...ligarCampo("nome", formData.nome, props)}
+                {...ligarCampo("nome", formData.nome, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="nome" />
             </div>
@@ -112,7 +139,7 @@ export default function StepIdentificacao(props: StepIdentificacaoProps) {
                 onChange={(e) => updateField("numero_registo", e.target.value)}
                 className={classeCampo(erros, "numero_registo")}
                 placeholder={t.vender_cavalo.placeholder_registration_number}
-                {...ligarCampo("numero_registo", formData.numero_registo, props)}
+                {...ligarCampo("numero_registo", formData.numero_registo, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="numero_registo" />
               <ApontamentoDoCampo apontamentos={apontamentos} campo="numero_registo" />
@@ -142,7 +169,7 @@ export default function StepIdentificacao(props: StepIdentificacaoProps) {
                 value={formData.data_nascimento}
                 onChange={(e) => updateField("data_nascimento", e.target.value)}
                 className={classeCampo(erros, "data_nascimento")}
-                {...ligarCampo("data_nascimento", formData.data_nascimento, props)}
+                {...ligarCampo("data_nascimento", formData.data_nascimento, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="data_nascimento" />
               {idade !== null && idade >= 0 && (
@@ -220,7 +247,7 @@ export default function StepIdentificacao(props: StepIdentificacaoProps) {
                 placeholder={t.vender_cavalo.placeholder_height}
                 min={100}
                 max={220}
-                {...ligarCampo("altura", formData.altura, props)}
+                {...ligarCampo("altura", formData.altura, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="altura" />
               <ApontamentoDoCampo
@@ -283,7 +310,7 @@ export default function StepIdentificacao(props: StepIdentificacaoProps) {
                 onChange={(e) => updateField("nome_registo", e.target.value)}
                 className={classeCampo(erros, "nome_registo")}
                 placeholder={t.vender_cavalo.placeholder_registration_name}
-                {...ligarCampo("nome_registo", formData.nome_registo, props)}
+                {...ligarCampo("nome_registo", formData.nome_registo, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="nome_registo" />
             </div>
@@ -310,7 +337,7 @@ export default function StepIdentificacao(props: StepIdentificacaoProps) {
                 onChange={(e) => updateField("microchip", e.target.value)}
                 className={classeCampo(erros, "microchip")}
                 placeholder={t.vender_cavalo.placeholder_microchip}
-                {...ligarCampo("microchip", formData.microchip, props)}
+                {...ligarCampo("microchip", formData.microchip, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="microchip" />
               <ApontamentoDoCampo apontamentos={apontamentos} campo="microchip" />
@@ -339,7 +366,7 @@ export default function StepIdentificacao(props: StepIdentificacaoProps) {
                 onChange={(e) => updateField("passaporte_equino", e.target.value)}
                 className={classeCampo(erros, "passaporte_equino")}
                 placeholder={t.vender_cavalo.placeholder_passport}
-                {...ligarCampo("passaporte_equino", formData.passaporte_equino, props)}
+                {...ligarCampo("passaporte_equino", formData.passaporte_equino, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="passaporte_equino" />
               <ApontamentoDoCampo apontamentos={apontamentos} campo="passaporte_equino" />
@@ -411,7 +438,7 @@ export default function StepIdentificacao(props: StepIdentificacaoProps) {
                 placeholder="500"
                 min={50}
                 max={1200}
-                {...ligarCampo("peso", formData.peso, props)}
+                {...ligarCampo("peso", formData.peso, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="peso" />
               <ApontamentoDoCampo apontamentos={apontamentos} campo="peso" />
@@ -512,7 +539,7 @@ export default function StepIdentificacao(props: StepIdentificacaoProps) {
                 onChange={(e) => updateField("marcas_distintivas", e.target.value)}
                 className={classeCampo(erros, "marcas_distintivas")}
                 placeholder="Ex: Estrela na testa, meia-lua, meia no posterior esquerdo"
-                {...ligarCampo("marcas_distintivas", formData.marcas_distintivas, props)}
+                {...ligarCampo("marcas_distintivas", formData.marcas_distintivas, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="marcas_distintivas" />
             </div>
@@ -535,7 +562,7 @@ export default function StepIdentificacao(props: StepIdentificacaoProps) {
                 onChange={(e) => updateField("nivel_apsl", e.target.value)}
                 className={classeCampo(erros, "nivel_apsl")}
                 placeholder="Ex: 78.5 pontos — Muito Bom"
-                {...ligarCampo("nivel_apsl", formData.nivel_apsl, props)}
+                {...ligarCampo("nivel_apsl", formData.nivel_apsl, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="nivel_apsl" />
               <ApontamentoDoCampo apontamentos={apontamentos} campo="nivel_apsl" />

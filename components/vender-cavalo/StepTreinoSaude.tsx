@@ -22,7 +22,7 @@ import { createTranslator } from "@/lib/tr";
 import Seleccao from "@/components/ui/Seleccao";
 import Seccao from "@/components/vender-cavalo/Seccao";
 import SimNao from "@/components/vender-cavalo/SimNao";
-import { ErroDoCampo, classeCampo } from "@/components/vender-cavalo/campos-com-erro";
+import { ErroDoCampo, classeCampo, useFaltas } from "@/components/vender-cavalo/campos-com-erro";
 import EscolherFicheiro from "@/components/vender-cavalo/EscolherFicheiro";
 import {
   ApontamentoDoCampo,
@@ -65,13 +65,32 @@ export default function StepTreinoSaude(props: StepTreinoSaudeProps) {
     onDocUpload,
     onToggleDisciplina,
     onToggleUso,
-    erros,
+    erros: errosCrus,
     apontamentos,
     campo,
     conta,
   } = props;
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
+
+  /**
+   * As faltas deste passo, separadas em duas: o que está por responder e o
+   * que está respondido e mal. A régua é o `estaPreenchido` do catálogo — a
+   * mesma que trava o botão e a mesma que conta «7 / 12» no cabeçalho da
+   * secção —, e é ela que decide qual dos campos leva vermelho.
+   */
+  const erros = useFaltas(errosCrus, formData);
+
+  /**
+   * O que `ligarCampo` precisa de saber, montado uma vez.
+   *
+   * Era o objecto `props` inteiro. Deixou de poder ser: o `erros` que chega
+   * nas props é a lista crua da validação, e o que os campos leem é a versão
+   * já separada em «por responder» e «erro». Passar `props` aqui seria pintar
+   * de vermelho, pela porta das traseiras, exactamente o que este trabalho
+   * deixou de pintar.
+   */
+  const ligacao = { erros, apontamentos, campo };
 
   /** Uma pergunta de sim/não ligada a um campo, que é sempre a mesma ligação. */
   const pergunta = (id: keyof DadosFormulario, texto: string, nota?: string) => (
@@ -253,7 +272,7 @@ export default function StepTreinoSaude(props: StepTreinoSaudeProps) {
               onChange={(e) => updateField("anos_treino", e.target.value)}
               className={classeCampo(erros, "anos_treino")}
               placeholder="Ex: 5"
-              {...ligarCampo("anos_treino", formData.anos_treino, props)}
+              {...ligarCampo("anos_treino", formData.anos_treino, ligacao)}
             />
             <ErroDoCampo erros={erros} campo="anos_treino" />
             <ApontamentoDoCampo apontamentos={apontamentos} campo="anos_treino" />
@@ -281,7 +300,7 @@ export default function StepTreinoSaude(props: StepTreinoSaudeProps) {
                 onChange={(e) => updateField("treinador_atual", e.target.value)}
                 className={classeCampo(erros, "treinador_atual")}
                 placeholder="Nome do treinador"
-                {...ligarCampo("treinador_atual", formData.treinador_atual, props)}
+                {...ligarCampo("treinador_atual", formData.treinador_atual, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="treinador_atual" />
             </div>
@@ -306,7 +325,7 @@ export default function StepTreinoSaude(props: StepTreinoSaudeProps) {
                 onChange={(e) => updateField("ginete_habitual", e.target.value)}
                 className={classeCampo(erros, "ginete_habitual")}
                 placeholder="Nome do cavaleiro habitual"
-                {...ligarCampo("ginete_habitual", formData.ginete_habitual, props)}
+                {...ligarCampo("ginete_habitual", formData.ginete_habitual, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="ginete_habitual" />
             </div>
@@ -333,7 +352,7 @@ export default function StepTreinoSaude(props: StepTreinoSaudeProps) {
               onChange={(e) => updateField("competicoes", e.target.value)}
               className={classeCampo(erros, "competicoes")}
               placeholder={t.vender_cavalo.placeholder_competitions}
-              {...ligarCampo("competicoes", formData.competicoes, props)}
+              {...ligarCampo("competicoes", formData.competicoes, ligacao)}
             />
             <ErroDoCampo erros={erros} campo="competicoes" />
           </div>
@@ -365,7 +384,7 @@ export default function StepTreinoSaude(props: StepTreinoSaudeProps) {
               onChange={(e) => updateField("premios", e.target.value)}
               className={classeCampo(erros, "premios", "h-24 resize-none")}
               placeholder={"Campeão Nacional, 2023\n2.º lugar Taça de Portugal, 2022"}
-              {...ligarCampo("premios", formData.premios, props)}
+              {...ligarCampo("premios", formData.premios, ligacao)}
             />
             <ErroDoCampo erros={erros} campo="premios" />
           </div>
@@ -524,7 +543,7 @@ export default function StepTreinoSaude(props: StepTreinoSaudeProps) {
               onChange={(e) => updateField("horas_trabalho_semana", e.target.value)}
               className={classeCampo(erros, "horas_trabalho_semana")}
               placeholder="Ex: 5"
-              {...ligarCampo("horas_trabalho_semana", formData.horas_trabalho_semana, props)}
+              {...ligarCampo("horas_trabalho_semana", formData.horas_trabalho_semana, ligacao)}
             />
             <ErroDoCampo erros={erros} campo="horas_trabalho_semana" />
           </div>
@@ -643,7 +662,11 @@ export default function StepTreinoSaude(props: StepTreinoSaudeProps) {
                     value={formData.data_ultima_vacinacao}
                     onChange={(e) => updateField("data_ultima_vacinacao", e.target.value)}
                     className={classeCampo(erros, "data_ultima_vacinacao")}
-                    {...ligarCampo("data_ultima_vacinacao", formData.data_ultima_vacinacao, props)}
+                    {...ligarCampo(
+                      "data_ultima_vacinacao",
+                      formData.data_ultima_vacinacao,
+                      ligacao
+                    )}
                   />
                   <ErroDoCampo erros={erros} campo="data_ultima_vacinacao" />
                   <ApontamentoDoCampo apontamentos={apontamentos} campo="data_ultima_vacinacao" />
@@ -671,7 +694,7 @@ export default function StepTreinoSaude(props: StepTreinoSaudeProps) {
                     {...ligarCampo(
                       "data_ultima_desparasitacao",
                       formData.data_ultima_desparasitacao,
-                      props
+                      ligacao
                     )}
                   />
                   <ErroDoCampo erros={erros} campo="data_ultima_desparasitacao" />
@@ -709,7 +732,7 @@ export default function StepTreinoSaude(props: StepTreinoSaudeProps) {
                   value={formData.data_ultima_ferragem}
                   onChange={(e) => updateField("data_ultima_ferragem", e.target.value)}
                   className={classeCampo(erros, "data_ultima_ferragem")}
-                  {...ligarCampo("data_ultima_ferragem", formData.data_ultima_ferragem, props)}
+                  {...ligarCampo("data_ultima_ferragem", formData.data_ultima_ferragem, ligacao)}
                 />
                 <ErroDoCampo erros={erros} campo="data_ultima_ferragem" />
                 <ApontamentoDoCampo apontamentos={apontamentos} campo="data_ultima_ferragem" />
@@ -764,7 +787,7 @@ export default function StepTreinoSaude(props: StepTreinoSaudeProps) {
                 onChange={(e) => updateField("historico_lesoes", e.target.value)}
                 className={classeCampo(erros, "historico_lesoes", "h-20 resize-none")}
                 placeholder="Ex: Cólica cirúrgica em 2021, totalmente recuperado. Sem lesões articulares."
-                {...ligarCampo("historico_lesoes", formData.historico_lesoes, props)}
+                {...ligarCampo("historico_lesoes", formData.historico_lesoes, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="historico_lesoes" />
             </div>
@@ -782,7 +805,7 @@ export default function StepTreinoSaude(props: StepTreinoSaudeProps) {
                 onChange={(e) => updateField("observacoes_saude", e.target.value)}
                 className={classeCampo(erros, "observacoes_saude", "h-24 resize-none")}
                 placeholder={t.vender_cavalo.placeholder_health_notes}
-                {...ligarCampo("observacoes_saude", formData.observacoes_saude, props)}
+                {...ligarCampo("observacoes_saude", formData.observacoes_saude, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="observacoes_saude" />
             </div>

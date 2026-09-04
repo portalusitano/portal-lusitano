@@ -8,7 +8,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
 import Seleccao from "@/components/ui/Seleccao";
 import Seccao from "@/components/vender-cavalo/Seccao";
-import { ErroDoCampo, classeCampo } from "@/components/vender-cavalo/campos-com-erro";
+import { ErroDoCampo, classeCampo, useFaltas } from "@/components/vender-cavalo/campos-com-erro";
 import {
   ApontamentoDoCampo,
   atributosCampo,
@@ -35,9 +35,28 @@ import {
  * onde a factura o quer e onde o público não chega.
  */
 export default function StepProprietario(props: StepProps) {
-  const { formData, updateField, erros, apontamentos, campo, conta } = props;
+  const { formData, updateField, erros: errosCrus, apontamentos, campo, conta } = props;
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
+
+  /**
+   * As faltas deste passo, separadas em duas: o que está por responder e o
+   * que está respondido e mal. A régua é o `estaPreenchido` do catálogo — a
+   * mesma que trava o botão e a mesma que conta «7 / 12» no cabeçalho da
+   * secção —, e é ela que decide qual dos campos leva vermelho.
+   */
+  const erros = useFaltas(errosCrus, formData);
+
+  /**
+   * O que `ligarCampo` precisa de saber, montado uma vez.
+   *
+   * Era o objecto `props` inteiro. Deixou de poder ser: o `erros` que chega
+   * nas props é a lista crua da validação, e o que os campos leem é a versão
+   * já separada em «por responder» e «erro». Passar `props` aqui seria pintar
+   * de vermelho, pela porta das traseiras, exactamente o que este trabalho
+   * deixou de pintar.
+   */
+  const ligacao = { erros, apontamentos, campo };
 
   const coudelaria = eCoudelaria(formData);
 
@@ -70,7 +89,7 @@ export default function StepProprietario(props: StepProps) {
               onChange={(e) => updateField("proprietario_nome", e.target.value)}
               className={classeCampo(erros, "proprietario_nome")}
               placeholder={t.vender_cavalo.placeholder_full_name}
-              {...ligarCampo("proprietario_nome", formData.proprietario_nome, props)}
+              {...ligarCampo("proprietario_nome", formData.proprietario_nome, ligacao)}
             />
             <ErroDoCampo erros={erros} campo="proprietario_nome" />
           </div>
@@ -92,7 +111,7 @@ export default function StepProprietario(props: StepProps) {
                 onChange={(e) => updateField("proprietario_email", e.target.value)}
                 className={classeCampo(erros, "proprietario_email")}
                 placeholder={t.vender_cavalo.placeholder_email}
-                {...ligarCampo("proprietario_email", formData.proprietario_email, props)}
+                {...ligarCampo("proprietario_email", formData.proprietario_email, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="proprietario_email" />
               <ApontamentoDoCampo
@@ -117,7 +136,7 @@ export default function StepProprietario(props: StepProps) {
                 onChange={(e) => updateField("proprietario_telefone", e.target.value)}
                 className={classeCampo(erros, "proprietario_telefone")}
                 placeholder={t.vender_cavalo.placeholder_phone}
-                {...ligarCampo("proprietario_telefone", formData.proprietario_telefone, props)}
+                {...ligarCampo("proprietario_telefone", formData.proprietario_telefone, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="proprietario_telefone" />
               <ApontamentoDoCampo apontamentos={apontamentos} campo="proprietario_telefone" />
@@ -215,7 +234,7 @@ export default function StepProprietario(props: StepProps) {
                 onChange={(e) => updateField("proprietario_nif", e.target.value)}
                 className={classeCampo(erros, "proprietario_nif")}
                 placeholder={t.vender_cavalo.placeholder_nif}
-                {...ligarCampo("proprietario_nif", formData.proprietario_nif, props)}
+                {...ligarCampo("proprietario_nif", formData.proprietario_nif, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="proprietario_nif" />
               <ApontamentoDoCampo apontamentos={apontamentos} campo="proprietario_nif" />
@@ -253,7 +272,7 @@ export default function StepProprietario(props: StepProps) {
                 onChange={(e) => updateField("proprietario_whatsapp", e.target.value)}
                 className={classeCampo(erros, "proprietario_whatsapp")}
                 placeholder="+351 9XX XXX XXX"
-                {...ligarCampo("proprietario_whatsapp", formData.proprietario_whatsapp, props)}
+                {...ligarCampo("proprietario_whatsapp", formData.proprietario_whatsapp, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="proprietario_whatsapp" />
               <ApontamentoDoCampo apontamentos={apontamentos} campo="proprietario_whatsapp" />
@@ -278,7 +297,7 @@ export default function StepProprietario(props: StepProps) {
               onChange={(e) => updateField("proprietario_morada", e.target.value)}
               className={classeCampo(erros, "proprietario_morada")}
               placeholder={t.vender_cavalo.placeholder_address}
-              {...ligarCampo("proprietario_morada", formData.proprietario_morada, props)}
+              {...ligarCampo("proprietario_morada", formData.proprietario_morada, ligacao)}
             />
             <ErroDoCampo erros={erros} campo="proprietario_morada" />
           </div>
@@ -307,7 +326,7 @@ export default function StepProprietario(props: StepProps) {
                 onChange={(e) => updateField("website_coudelaria", e.target.value)}
                 className={classeCampo(erros, "website_coudelaria")}
                 placeholder="https://www.coudelaria.pt"
-                {...ligarCampo("website_coudelaria", formData.website_coudelaria, props)}
+                {...ligarCampo("website_coudelaria", formData.website_coudelaria, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="website_coudelaria" />
             </div>

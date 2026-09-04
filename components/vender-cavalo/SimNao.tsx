@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import type { Resposta } from "@/components/vender-cavalo/types";
-import type { ErrosPorCampo } from "@/components/vender-cavalo/campos-com-erro";
+import type { FaltasPorCampo } from "@/components/vender-cavalo/campos-com-erro";
 import { ErroDoCampo } from "@/components/vender-cavalo/campos-com-erro";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
@@ -13,7 +13,7 @@ interface SimNaoProps {
   pergunta: string;
   valor: Resposta;
   onChange: (valor: Resposta) => void;
-  erros: ErrosPorCampo;
+  erros: FaltasPorCampo;
   /** Uma linha por baixo, quando a pergunta precisa de contexto. */
   nota?: string;
 }
@@ -59,10 +59,20 @@ export default function SimNao({ id, pergunta, valor, onChange, erros, nota }: S
     { valor: "nao", texto: tr("Não", "No", "No") },
   ];
 
-  const temErro = Boolean(erros[id]);
+  /**
+   * Uma pergunta por responder não é uma pergunta respondida ao contrário.
+   *
+   * As vinte e sete perguntas deste formulário são o caso mais puro do defeito
+   * que este trabalho corrige: ao carregar em «Continuar», todas as que ainda
+   * não tinham sido lidas apareciam com a mesma queixa vermelha por baixo. Só
+   * que numa pergunta de sim ou não **não há resposta errada** — as duas
+   * respostas são boas, e a única coisa que pode faltar é a escolha. Por isso
+   * aqui só existe um dos dois estados, e é o calmo.
+   */
+  const nivel = erros[id]?.nivel;
 
   return (
-    <div className="sim-nao" data-campo={id}>
+    <div className="sim-nao" data-campo={id} data-falta={nivel ?? undefined}>
       <div className="sim-nao__pergunta">
         {/* O `id` vive aqui e não no `<input>`: é a este elemento que o resumo
             de erros no topo do passo vem ter, e o que a pessoa precisa de ver
@@ -77,7 +87,7 @@ export default function SimNao({ id, pergunta, valor, onChange, erros, nota }: S
         role="radiogroup"
         aria-labelledby={id}
         aria-required="true"
-        {...(temErro ? { "aria-invalid": true as const, "aria-describedby": `erro-${id}` } : {})}
+        {...(nivel ? { "aria-invalid": true as const, "aria-describedby": `erro-${id}` } : {})}
       >
         {opcoes.map((opcao) => (
           <label

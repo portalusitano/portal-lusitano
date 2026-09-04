@@ -16,7 +16,7 @@ import { createTranslator } from "@/lib/tr";
 import Seleccao from "@/components/ui/Seleccao";
 import Seccao from "@/components/vender-cavalo/Seccao";
 import SimNao from "@/components/vender-cavalo/SimNao";
-import { ErroDoCampo, classeCampo } from "@/components/vender-cavalo/campos-com-erro";
+import { ErroDoCampo, classeCampo, useFaltas } from "@/components/vender-cavalo/campos-com-erro";
 import EscolherFicheiro from "@/components/vender-cavalo/EscolherFicheiro";
 import {
   ApontamentoDoCampo,
@@ -53,13 +53,38 @@ export default function StepPrecoApresentacao(props: StepPrecoApresentacaoProps)
     onImageUpload,
     onRemoveImage,
     maxImages,
-    erros,
+    erros: errosCrus,
     apontamentos,
     campo,
     conta,
   } = props;
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
+
+  /**
+   * As faltas deste passo, separadas em duas: o que está por responder e o
+   * que está respondido e mal. A régua é o `estaPreenchido` do catálogo — a
+   * mesma que trava o botão e a mesma que conta «7 / 12» no cabeçalho da
+   * secção —, e é ela que decide qual dos campos leva vermelho.
+   *
+   * As fotografias não são um campo de `FormData` e por isso não estão no
+   * catálogo. A resposta só está dada com o mínimo lá dentro: com uma foto de
+   * três, o que falta é resposta e não uma correcção — quem passa das que o
+   * plano permite é que tem um erro a sério, e esse continua a ser vermelho.
+   */
+  const erros = useFaltas(errosCrus, formData, { fotografias: imagens.length >= MIN_IMAGES });
+
+  /**
+   * O que `ligarCampo` precisa de saber, montado uma vez.
+   *
+   * Era o objecto `props` inteiro. Deixou de poder ser: o `erros` que chega
+   * nas props é a lista crua da validação, e o que os campos leem é a versão
+   * já separada em «por responder» e «erro». Passar `props` aqui seria pintar
+   * de vermelho, pela porta das traseiras, exactamente o que este trabalho
+   * deixou de pintar.
+   */
+  const ligacao = { erros, apontamentos, campo };
+
   const [isDragging, setIsDragging] = useState(false);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -146,7 +171,7 @@ export default function StepPrecoApresentacao(props: StepPrecoApresentacaoProps)
                   onChange={(e) => updateField("preco", e.target.value)}
                   className={classeCampo(erros, "preco", "pl-12")}
                   placeholder="25000"
-                  {...ligarCampo("preco", formData.preco, props)}
+                  {...ligarCampo("preco", formData.preco, ligacao)}
                 />
               </div>
               <ErroDoCampo erros={erros} campo="preco" />
@@ -198,7 +223,7 @@ export default function StepPrecoApresentacao(props: StepPrecoApresentacaoProps)
               onChange={(e) => updateField("localizacao", e.target.value)}
               className={classeCampo(erros, "localizacao")}
               placeholder={t.vender_cavalo.placeholder_location}
-              {...ligarCampo("localizacao", formData.localizacao, props)}
+              {...ligarCampo("localizacao", formData.localizacao, ligacao)}
             />
             <ErroDoCampo erros={erros} campo="localizacao" />
           </div>
@@ -327,7 +352,7 @@ export default function StepPrecoApresentacao(props: StepPrecoApresentacaoProps)
                   onChange={(e) => updateField("preco_cobricao", e.target.value)}
                   className={classeCampo(erros, "preco_cobricao", "pl-12")}
                   placeholder="500"
-                  {...ligarCampo("preco_cobricao", formData.preco_cobricao, props)}
+                  {...ligarCampo("preco_cobricao", formData.preco_cobricao, ligacao)}
                 />
               </div>
               <ErroDoCampo erros={erros} campo="preco_cobricao" />
@@ -409,7 +434,7 @@ export default function StepPrecoApresentacao(props: StepPrecoApresentacaoProps)
               onChange={(e) => updateField("equipamento_incluido", e.target.value)}
               className={classeCampo(erros, "equipamento_incluido")}
               placeholder="Ex: Sela Pessoa + 2 mantas + cabeçada de couro"
-              {...ligarCampo("equipamento_incluido", formData.equipamento_incluido, props)}
+              {...ligarCampo("equipamento_incluido", formData.equipamento_incluido, ligacao)}
             />
             <ErroDoCampo erros={erros} campo="equipamento_incluido" />
           </div>
@@ -560,7 +585,7 @@ export default function StepPrecoApresentacao(props: StepPrecoApresentacaoProps)
               onChange={(e) => updateField("descricao", e.target.value)}
               className={classeCampo(erros, "descricao", "h-40 resize-none")}
               placeholder={t.vender_cavalo.placeholder_description}
-              {...ligarCampo("descricao", formData.descricao, props)}
+              {...ligarCampo("descricao", formData.descricao, ligacao)}
             />
             <ErroDoCampo erros={erros} campo="descricao" />
             {/* Barra de progresso do texto */}
@@ -590,7 +615,7 @@ export default function StepPrecoApresentacao(props: StepPrecoApresentacaoProps)
                 onChange={(e) => updateField("videos_url", e.target.value)}
                 className={classeCampo(erros, "videos_url")}
                 placeholder="https://youtube.com/watch?v=..."
-                {...ligarCampo("videos_url", formData.videos_url, props)}
+                {...ligarCampo("videos_url", formData.videos_url, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="videos_url" />
               <ApontamentoDoCampo apontamentos={apontamentos} campo="videos_url" />
@@ -610,7 +635,7 @@ export default function StepPrecoApresentacao(props: StepPrecoApresentacaoProps)
                 onChange={(e) => updateField("videos_url_2", e.target.value)}
                 className={classeCampo(erros, "videos_url_2")}
                 placeholder="https://youtube.com/watch?v=..."
-                {...ligarCampo("videos_url_2", formData.videos_url_2, props)}
+                {...ligarCampo("videos_url_2", formData.videos_url_2, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="videos_url_2" />
               <ApontamentoDoCampo apontamentos={apontamentos} campo="videos_url_2" />

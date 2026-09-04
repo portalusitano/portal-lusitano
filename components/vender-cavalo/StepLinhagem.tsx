@@ -8,7 +8,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
 import Seleccao from "@/components/ui/Seleccao";
 import Seccao from "@/components/vender-cavalo/Seccao";
-import { ErroDoCampo, classeCampo } from "@/components/vender-cavalo/campos-com-erro";
+import { ErroDoCampo, classeCampo, useFaltas } from "@/components/vender-cavalo/campos-com-erro";
 import { atributosCampo, ligarCampo } from "@/components/vender-cavalo/apontamentos";
 import EscolherFicheiro from "@/components/vender-cavalo/EscolherFicheiro";
 
@@ -34,9 +34,42 @@ interface StepLinhagemProps extends StepProps {
  * que quem lá chegar pelo resumo de erros não sabe onde está.
  */
 export default function StepLinhagem(props: StepLinhagemProps) {
-  const { formData, updateField, documentos, onDocUpload, erros, apontamentos, conta } = props;
+  const {
+    formData,
+    updateField,
+    documentos,
+    onDocUpload,
+    erros: errosCrus,
+    apontamentos,
+    campo,
+    conta,
+  } = props;
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
+
+  /**
+   * As faltas deste passo, separadas em duas: o que está por responder e o
+   * que está respondido e mal. A régua é o `estaPreenchido` do catálogo — a
+   * mesma que trava o botão e a mesma que conta «7 / 12» no cabeçalho da
+   * secção —, e é ela que decide qual dos campos leva vermelho.
+   *
+   * O Livro Azul não é um campo de `FormData` e por isso não está no catálogo:
+   * quem sabe se ele já lá está é este passo, e é ele que o diz. Sem isso um
+   * anexo por escolher entrava como erro — a confusão que este trabalho
+   * existe para desfazer.
+   */
+  const erros = useFaltas(errosCrus, formData, { livro_azul: Boolean(documentos.livroAzul) });
+
+  /**
+   * O que `ligarCampo` precisa de saber, montado uma vez.
+   *
+   * Era o objecto `props` inteiro. Deixou de poder ser: o `erros` que chega
+   * nas props é a lista crua da validação, e o que os campos leem é a versão
+   * já separada em «por responder» e «erro». Passar `props` aqui seria pintar
+   * de vermelho, pela porta das traseiras, exactamente o que este trabalho
+   * deixou de pintar.
+   */
+  const ligacao = { erros, apontamentos, campo };
 
   /** Os oito campos dos avós: quatro pares de nome e registo. */
   const avos = [
@@ -106,7 +139,7 @@ export default function StepLinhagem(props: StepLinhagemProps) {
                 value={formData.pai_nome}
                 onChange={(e) => updateField("pai_nome", e.target.value)}
                 className={classeCampo(erros, "pai_nome")}
-                {...ligarCampo("pai_nome", formData.pai_nome, props)}
+                {...ligarCampo("pai_nome", formData.pai_nome, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="pai_nome" />
             </div>
@@ -123,7 +156,7 @@ export default function StepLinhagem(props: StepLinhagemProps) {
                 value={formData.pai_registo}
                 onChange={(e) => updateField("pai_registo", e.target.value)}
                 className={classeCampo(erros, "pai_registo")}
-                {...ligarCampo("pai_registo", formData.pai_registo, props)}
+                {...ligarCampo("pai_registo", formData.pai_registo, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="pai_registo" />
             </div>
@@ -143,7 +176,7 @@ export default function StepLinhagem(props: StepLinhagemProps) {
                 value={formData.mae_nome}
                 onChange={(e) => updateField("mae_nome", e.target.value)}
                 className={classeCampo(erros, "mae_nome")}
-                {...ligarCampo("mae_nome", formData.mae_nome, props)}
+                {...ligarCampo("mae_nome", formData.mae_nome, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="mae_nome" />
             </div>
@@ -160,7 +193,7 @@ export default function StepLinhagem(props: StepLinhagemProps) {
                 value={formData.mae_registo}
                 onChange={(e) => updateField("mae_registo", e.target.value)}
                 className={classeCampo(erros, "mae_registo")}
-                {...ligarCampo("mae_registo", formData.mae_registo, props)}
+                {...ligarCampo("mae_registo", formData.mae_registo, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="mae_registo" />
             </div>
@@ -197,7 +230,7 @@ export default function StepLinhagem(props: StepLinhagemProps) {
                     value={formData[avo.nome]}
                     onChange={(e) => updateField(avo.nome, e.target.value)}
                     className={classeCampo(erros, avo.nome)}
-                    {...ligarCampo(avo.nome, formData[avo.nome], props)}
+                    {...ligarCampo(avo.nome, formData[avo.nome], ligacao)}
                   />
                   <ErroDoCampo erros={erros} campo={avo.nome} />
                 </div>
@@ -214,7 +247,7 @@ export default function StepLinhagem(props: StepLinhagemProps) {
                     value={formData[avo.registo]}
                     onChange={(e) => updateField(avo.registo, e.target.value)}
                     className={classeCampo(erros, avo.registo)}
-                    {...ligarCampo(avo.registo, formData[avo.registo], props)}
+                    {...ligarCampo(avo.registo, formData[avo.registo], ligacao)}
                   />
                   <ErroDoCampo erros={erros} campo={avo.registo} />
                 </div>
@@ -260,7 +293,7 @@ export default function StepLinhagem(props: StepLinhagemProps) {
                 onChange={(e) => updateField("coudelaria_origem", e.target.value)}
                 className={classeCampo(erros, "coudelaria_origem")}
                 placeholder={t.vender_cavalo.placeholder_stud_origin}
-                {...ligarCampo("coudelaria_origem", formData.coudelaria_origem, props)}
+                {...ligarCampo("coudelaria_origem", formData.coudelaria_origem, ligacao)}
               />
               <ErroDoCampo erros={erros} campo="coudelaria_origem" />
             </div>
@@ -290,7 +323,7 @@ export default function StepLinhagem(props: StepLinhagemProps) {
                 texto={
                   documentos.livroAzul ? documentos.livroAzul.name : t.vender_cavalo.choose_file
                 }
-                comErro={Boolean(erros.livro_azul)}
+                falta={erros.livro_azul?.nivel}
                 descritoPor={erros.livro_azul ? "erro-livro_azul" : undefined}
                 aoEscolher={(f) => onDocUpload("livroAzul", f[0])}
               />
