@@ -111,6 +111,18 @@ const CSP_STRING = [
   "child-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",
+  // Nenhuma destas duas depende de nonces, e é por isso que estão aqui: com
+  // `'unsafe-inline'` no `script-src`, o que a CSP ainda pode fazer é limitar
+  // o estrago de qualquer coisa injectada.
+  //
+  // `frame-ancestors` não é o mesmo que o `X-Frame-Options: DENY` do
+  // next.config.js. O cabeçalho antigo não se aplica a `<embed>` nem a
+  // `<object>`, e não é reconhecido por todos os browsers actuais.
+  "frame-ancestors 'none'",
+  // Sem isto, HTML injectado numa página pode submeter um formulário para um
+  // servidor de fora — que é como se apanham credenciais sem precisar de
+  // executar um único script.
+  "form-action 'self'",
 ].join("; ");
 
 function applySecurityHeaders(response: NextResponse, contentLanguage = "pt") {

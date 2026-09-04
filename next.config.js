@@ -213,7 +213,9 @@ const nextConfig = {
             key: "X-Permitted-Cross-Domain-Policies",
             value: "none",
           },
-          // CSP é agora gerido no middleware.ts com nonces por request
+          // O CSP é posto no middleware.ts. Não leva nonces — não pode, com
+          // App Router e ISR: o nonce é por pedido e a página em cache é a
+          // mesma para toda a gente. Ver CSP_NONCE_IMPLEMENTATION.md.
         ],
       },
       // API routes: individual routes set their own Cache-Control headers
