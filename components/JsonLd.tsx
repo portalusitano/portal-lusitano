@@ -1,5 +1,7 @@
 // Componentes de JSON-LD para SEO estruturado
 
+import { serializarJsonLd } from "@/lib/json-ld";
+
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://portal-lusitano.pt";
 
 // Schema da Organizacao
@@ -24,7 +26,7 @@ export function OrganizationSchema() {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -49,7 +51,7 @@ export function WebsiteSchema() {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -94,7 +96,7 @@ export function ProductSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -155,7 +157,7 @@ export function ArticleSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -181,7 +183,7 @@ export function BreadcrumbSchema({ items }: { items: BreadcrumbItem[] }) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -206,7 +208,7 @@ export function FAQSchema({ items }: { items: FAQItem[] }) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -264,7 +266,7 @@ export function EventSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -324,7 +326,7 @@ export function LocalBusinessSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -378,7 +380,7 @@ export function HorseSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -419,7 +421,7 @@ export function ItemListSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -445,7 +447,7 @@ export function CollectionPageSchema({ name, description, url }: CollectionPageS
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -474,7 +476,7 @@ export function WebApplicationSchema({ name, description, url }: WebApplicationS
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -510,7 +512,7 @@ export function MedicalWebPageSchema() {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -553,7 +555,7 @@ export function DefinedTermSetSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -584,7 +586,7 @@ export function BookSchema() {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -616,7 +618,7 @@ export function EbookOfferSchema() {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -654,7 +656,7 @@ export function VideoObjectSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -694,7 +696,7 @@ export function EducationalArticleSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }

@@ -17,6 +17,7 @@ import {
 import { fotosDaCoudelaria } from "@/lib/fotos-coudelarias";
 import type { Vizinha } from "@/components/directorio/ficha/Vizinhas";
 import { COUDELARIA_STATUS } from "@/lib/coudelaria-status";
+import { serializarJsonLd } from "@/lib/json-ld";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://portal-lusitano.pt";
 
@@ -266,7 +267,7 @@ export default async function PaginaCoudelaria({ params }: { params: Promise<{ s
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(esquema) }}
+        dangerouslySetInnerHTML={{ __html: serializarJsonLd(esquema) }}
       />
       <FichaCoudelaria
         coudelaria={coudelaria}
