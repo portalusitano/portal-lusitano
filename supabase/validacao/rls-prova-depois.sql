@@ -21,6 +21,9 @@ INSERT INTO favoritos (user_email, item_id, item_type) VALUES ('vitima@exemplo.p
 INSERT INTO admin_chat_messages (sender_email, message) VALUES ('admin@portal-lusitano.pt', 'segredo');
 INSERT INTO payments (stripe_session_id, email, amount, currency, status) VALUES ('cs_real', 'cliente@exemplo.pt', 4900, 'eur', 'succeeded');
 INSERT INTO admin_tasks (titulo) VALUES ('tarefa a serio');
+INSERT INTO eventos (slug, destaque) VALUES ('feira-golega', true);
+INSERT INTO reviews (status) VALUES ('approved');
+INSERT INTO reviews (status) VALUES ('pending');
 
 SET ROLE anon;
 
@@ -38,9 +41,12 @@ SELECT tentar('admin_tasks INSERT',          'INSERT INTO admin_tasks (titulo) V
 SELECT tentar('admin_automations SELECT',    'SELECT * FROM admin_automations');
 SELECT tentar('abandoned_carts SELECT',      'SELECT * FROM abandoned_carts');
 SELECT tentar('cart_recovery_emails SELECT', 'SELECT * FROM cart_recovery_emails');
-SELECT tentar('reviews SELECT',              'SELECT * FROM reviews');
 SELECT tentar('linhagens SELECT',            'SELECT * FROM linhagens');
-SELECT tentar('eventos SELECT',              'SELECT * FROM eventos');
+SELECT tentar('eventos UPDATE',              'UPDATE eventos SET slug = ''pirata''');
+SELECT tentar('eventos DELETE',              'DELETE FROM eventos');
+SELECT tentar('eventos INSERT',              'INSERT INTO eventos (slug) VALUES (''pirata'')');
+SELECT tentar('reviews UPDATE',              'UPDATE reviews SET status = ''approved''');
+SELECT tentar('reviews INSERT',              'INSERT INTO reviews (status) VALUES (''approved'')');
 SELECT tentar('coudelarias UPDATE',          'UPDATE coudelarias SET nome = ''pirata''');
 SELECT tentar('coudelarias INSERT',          'INSERT INTO coudelarias (slug, nome, status) VALUES (''p'', ''p'', ''active'')');
 SELECT tentar('coudelarias DELETE',          'DELETE FROM coudelarias');
@@ -53,6 +59,11 @@ SELECT tentar('seller_ratings INSERT',       'INSERT INTO seller_ratings (cavalo
 SELECT count(*) AS coudelarias_activas_visiveis FROM coudelarias WHERE status = 'active';
 \echo 'a ficha mostra as avaliacoes do vendedor:'
 SELECT count(*) AS avaliacoes_visiveis FROM seller_ratings;
+\echo 'app/api/eventos le eventos com a chave anonima:'
+SELECT count(*) AS eventos_visiveis FROM eventos;
+\echo 'app/api/reviews le so as aprovadas:'
+SELECT count(*) AS reviews_aprovadas_visiveis FROM reviews WHERE status = 'approved';
+SELECT count(*) AS reviews_por_aprovar_visiveis FROM reviews WHERE status <> 'approved';
 
 RESET ROLE;
 

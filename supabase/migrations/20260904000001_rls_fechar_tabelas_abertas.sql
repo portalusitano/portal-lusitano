@@ -3,8 +3,10 @@
 -- Data: 2026-09-04
 --
 -- ATENÇÃO: esta migração NÃO foi aplicada a nenhuma base. Foi escrita e
--- validada contra um PostgreSQL 16 local (aplicada duas vezes seguidas, para
--- provar que é idempotente). Rever antes de correr em produção.
+-- validada contra um PostgreSQL 16 local — ver `supabase/validacao/`, que
+-- reproduz o esquema e as políticas de produção, mede as 24 operações que a
+-- chave anónima conseguia fazer e mede também o que tem de continuar a
+-- funcionar. Aplicada duas vezes seguidas sem erro.
 --
 -- -----------------------------------------------------------------------------
 -- O que ela corrige
@@ -43,17 +45,29 @@
 -- -----------------------------------------------------------------------------
 -- Porque é que fechar não parte o site
 -- -----------------------------------------------------------------------------
--- O papel `service_role` **ignora** o RLS. Todas as rotas de API e todas as
--- páginas de servidor deste projecto lêem por `lib/supabase-admin.ts`, que é
--- service role. O cliente anónimo aparece em oito ficheiros e em sete deles só
--- para autenticação (`auth.getUser`, login, registo, recuperação de senha).
+-- O papel `service_role` **ignora** o RLS, e é por ele que quase tudo lê. As
+-- leituras feitas mesmo com a chave anónima foram contadas ficheiro a ficheiro,
+-- e são quatro tabelas:
 --
--- A única leitura de tabela feita com a chave anónima em todo o projecto é
+--   coudelarias    app/mapa/page.tsx, app/directorio/**, /api/coudelarias
+--   cavalos_venda  app/comprar/**, app/page.tsx, /api/cavalos, /api/search
+--   eventos        /api/eventos, /api/eventos/[slug]
+--   reviews        /api/reviews (supabasePublic)
 --
---     app/mapa/page.tsx  →  coudelarias  where status = 'active'
+-- As quatro mantêm a leitura pública. Tudo o resto fecha sem que uma linha de
+-- código mude.
 --
--- e é por isso que a política de leitura pública de `coudelarias` fica
--- intacta. Tudo o resto pode fechar sem que uma linha de código mude.
+-- O que não se pode contar com um grep: o padrão dominante no projecto é
+-- `import { supabaseAdmin as supabase }`, e procurar por "supabase.from" sem
+-- olhar ao alias no topo do ficheiro acusa de anónimo código que é service role
+-- — as rotas de administração todas, por exemplo. O que conta é a que cliente o
+-- identificador está ligado, não como se chama.
+--
+-- Duas escritas que eram anónimas passaram para o service role antes desta
+-- migração, e sem isso ela partia-as: os contadores de visitas de
+-- `app/api/eventos/[slug]/route.ts` e de `app/directorio/[slug]/page.tsx`. Um
+-- UPDATE não se restringe a uma coluna por RLS, portanto deixar `anon` somar
+-- uma visita é deixá-lo reescrever a linha inteira.
 --
 -- As políticas `TO service_role` que se criam abaixo são, em rigor,
 -- redundantes — o service role passa à frente do RLS de qualquer maneira. Ficam
@@ -61,37 +75,89 @@
 -- anteriores já usam.
 -- =============================================================================
 
+-- -----------------------------------------------------------------------------
+-- Ajudante
+-- -----------------------------------------------------------------------------
+-- Tudo o que se segue tem de ser inofensivo numa base onde a tabela não exista
+-- — é o que torna a migração aplicável a um ambiente de desenvolvimento parcial
+-- e o que a torna repetível. Note-se que `ALTER TABLE IF EXISTS` **não** chega:
+-- um `DROP POLICY IF EXISTS ... ON tabela_que_nao_existe` rebenta na mesma, com
+-- "relation does not exist". Quem decide é o `to_regclass`.
+CREATE OR REPLACE FUNCTION public.__rls_fechar(
+  tabela            text,
+  politicas_a_tirar text[] DEFAULT '{}',
+  privilegios_anon  text   DEFAULT NULL,   -- ex.: 'SELECT'; NULL = nenhum
+  politica_service  boolean DEFAULT true,
+  qual_leitura      text   DEFAULT NULL    -- USING de uma política de leitura pública
+) RETURNS void
+LANGUAGE plpgsql AS $fn$
+DECLARE
+  p text;
+BEGIN
+  IF to_regclass('public.' || quote_ident(tabela)) IS NULL THEN
+    RAISE NOTICE 'tabela public.% nao existe, saltada', tabela;
+    RETURN;
+  END IF;
+
+  EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', tabela);
+
+  FOREACH p IN ARRAY politicas_a_tirar LOOP
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', p, tabela);
+  END LOOP;
+
+  IF politica_service THEN
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', tabela || '_service_role', tabela);
+    EXECUTE format(
+      'CREATE POLICY %I ON public.%I FOR ALL TO service_role USING (true) WITH CHECK (true)',
+      tabela || '_service_role', tabela
+    );
+  END IF;
+
+  IF qual_leitura IS NOT NULL THEN
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', tabela || '_select_public', tabela);
+    EXECUTE format(
+      'CREATE POLICY %I ON public.%I FOR SELECT TO anon, authenticated USING (%s)',
+      tabela || '_select_public', tabela, qual_leitura
+    );
+  END IF;
+
+  EXECUTE format('REVOKE ALL ON public.%I FROM anon, authenticated', tabela);
+  IF privilegios_anon IS NOT NULL THEN
+    EXECUTE format('GRANT %s ON public.%I TO anon, authenticated', privilegios_anon, tabela);
+  END IF;
+END $fn$;
+
 -- =============================================================================
--- 1. Tabelas com o RLS desligado
+-- 1. Tabelas com o RLS desligado e sem nenhuma leitura pública legítima
 -- =============================================================================
 -- Ligar o RLS sem criar política nenhuma para `anon` já fecha a tabela: sem
 -- política que autorize, o PostgreSQL nega. O `REVOKE` é o segundo trinco —
 -- sem ele, uma política mal escrita no futuro volta a abrir tudo de uma vez.
+--
+-- Nenhuma destas cinco é lida por código nenhum com a chave anónima;
+-- `linhagens`, `profissionais_analytics_daily` e as duas de `admin_chat` não
+-- são lidas por código nenhum, ponto final.
+SELECT public.__rls_fechar('admin_chat_messages');
+SELECT public.__rls_fechar('admin_chat_read_receipts');
+SELECT public.__rls_fechar('favoritos');
+SELECT public.__rls_fechar('linhagens');
+SELECT public.__rls_fechar('profissionais_analytics_daily');
 
-DO $$
-DECLARE
-  t text;
-BEGIN
-  FOREACH t IN ARRAY ARRAY[
-    'admin_chat_messages',
-    'admin_chat_read_receipts',
-    'favoritos',
-    'linhagens',
-    'profissionais_analytics_daily',
-    'reviews',
-    'eventos'
-  ] LOOP
-    IF to_regclass('public.' || quote_ident(t)) IS NOT NULL THEN
-      EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t);
-      EXECUTE format('REVOKE ALL ON public.%I FROM anon, authenticated', t);
-      EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', t || '_service_role', t);
-      EXECUTE format(
-        'CREATE POLICY %I ON public.%I FOR ALL TO service_role USING (true) WITH CHECK (true)',
-        t || '_service_role', t
-      );
-    END IF;
-  END LOOP;
-END $$;
+-- =============================================================================
+-- 1b. `eventos` e `reviews`: leitura pública fica, escrita pública sai
+-- =============================================================================
+-- Estas duas também tinham o RLS desligado, mas são lidas com a chave anónima
+-- (ver o cabeçalho), portanto não podem ser fechadas como as cinco de cima.
+--
+-- `reviews` fica mais apertada do que estava: a rota pública já filtra por
+-- `status = 'approved'`, portanto avaliações pendentes e rejeitadas deixam de
+-- ser legíveis de fora, o que hoje não é o caso.
+--
+-- `eventos` fica com `USING (true)` porque a rota `[slug]` procura por slug sem
+-- filtrar o estado. Apertar para `status = 'active'` é a continuação natural
+-- disto, mas mexe no comportamento da rota e por isso não vai aqui.
+SELECT public.__rls_fechar('eventos', '{}', 'SELECT', true, 'true');
+SELECT public.__rls_fechar('reviews', '{}', 'SELECT', true, 'status = ''approved''');
 
 -- =============================================================================
 -- 2. Políticas que dizem "service role" e valem para toda a gente
@@ -101,54 +167,37 @@ END $$;
 -- Além da leitura, `anon` podia INSERIR: a guarda de duplicados do webhook
 -- procura `stripe_session_id` nesta tabela, portanto uma linha forjada com a
 -- sessão de outra pessoa faz o webhook saltar o anúncio que ela pagou.
-ALTER TABLE IF EXISTS public.payments ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Enable all for service role" ON public.payments;
-DROP POLICY IF EXISTS "Allow all for service role" ON public.payments;
-DROP POLICY IF EXISTS "payments_service_role" ON public.payments;
-CREATE POLICY "payments_service_role" ON public.payments
-  FOR ALL TO service_role USING (true) WITH CHECK (true);
-REVOKE ALL ON public.payments FROM anon, authenticated;
+SELECT public.__rls_fechar(
+  'payments',
+  ARRAY['Enable all for service role', 'Allow all for service role']
+);
 
 -- leads — email e proveniência de campanha de cada contacto.
-ALTER TABLE IF EXISTS public.leads ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Enable all for service role" ON public.leads;
-DROP POLICY IF EXISTS "Allow all for service role" ON public.leads;
-DROP POLICY IF EXISTS "leads_service_role" ON public.leads;
-CREATE POLICY "leads_service_role" ON public.leads
-  FOR ALL TO service_role USING (true) WITH CHECK (true);
-REVOKE ALL ON public.leads FROM anon, authenticated;
+SELECT public.__rls_fechar(
+  'leads',
+  ARRAY['Enable all for service role', 'Allow all for service role']
+);
 
 -- contact_submissions — o formulário de venda inteiro em `form_data`, mais IP
 -- e user agent. É também o sítio de onde o webhook do Stripe lê os dados do
 -- anúncio: com UPDATE aberto, dava para reescrever o conteúdo de um anúncio já
 -- pago entre o checkout e a entrega do webhook.
-ALTER TABLE IF EXISTS public.contact_submissions ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Enable all for service role" ON public.contact_submissions;
-DROP POLICY IF EXISTS "Allow all for service role" ON public.contact_submissions;
-REVOKE ALL ON public.contact_submissions FROM anon, authenticated;
+-- (Já tem `contact_submissions_service_role`; não se cria uma segunda.)
+SELECT public.__rls_fechar(
+  'contact_submissions',
+  ARRAY['Enable all for service role', 'Allow all for service role'],
+  NULL,
+  false
+);
 
 -- admin_tasks, admin_automations, admin_automation_logs — o painel de
 -- administração. As três tinham `FOR ALL USING (true)` sem papel.
-ALTER TABLE IF EXISTS public.admin_tasks ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Admin can do everything on tasks" ON public.admin_tasks;
-DROP POLICY IF EXISTS "admin_tasks_service_role" ON public.admin_tasks;
-CREATE POLICY "admin_tasks_service_role" ON public.admin_tasks
-  FOR ALL TO service_role USING (true) WITH CHECK (true);
-REVOKE ALL ON public.admin_tasks FROM anon, authenticated;
-
-ALTER TABLE IF EXISTS public.admin_automations ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Admin can do everything on automations" ON public.admin_automations;
-DROP POLICY IF EXISTS "admin_automations_service_role" ON public.admin_automations;
-CREATE POLICY "admin_automations_service_role" ON public.admin_automations
-  FOR ALL TO service_role USING (true) WITH CHECK (true);
-REVOKE ALL ON public.admin_automations FROM anon, authenticated;
-
-ALTER TABLE IF EXISTS public.admin_automation_logs ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Admin can do everything on automation logs" ON public.admin_automation_logs;
-DROP POLICY IF EXISTS "admin_automation_logs_service_role" ON public.admin_automation_logs;
-CREATE POLICY "admin_automation_logs_service_role" ON public.admin_automation_logs
-  FOR ALL TO service_role USING (true) WITH CHECK (true);
-REVOKE ALL ON public.admin_automation_logs FROM anon, authenticated;
+SELECT public.__rls_fechar('admin_tasks', ARRAY['Admin can do everything on tasks']);
+SELECT public.__rls_fechar('admin_automations', ARRAY['Admin can do everything on automations']);
+SELECT public.__rls_fechar(
+  'admin_automation_logs',
+  ARRAY['Admin can do everything on automation logs']
+);
 
 -- =============================================================================
 -- 3. Carrinhos abandonados e emails de recuperação
@@ -157,25 +206,12 @@ REVOKE ALL ON public.admin_automation_logs FROM anon, authenticated;
 -- conta no site para ler os carrinhos e os emails de toda a gente. E
 -- `public_update_own_cart` dizia "own" mas tinha `USING (true)` — qualquer
 -- pessoa reescrevia o carrinho de qualquer outra.
-ALTER TABLE IF EXISTS public.abandoned_carts ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "admin_all_abandoned_carts" ON public.abandoned_carts;
-DROP POLICY IF EXISTS "public_update_own_cart" ON public.abandoned_carts;
-DROP POLICY IF EXISTS "public_insert_abandoned_carts" ON public.abandoned_carts;
-DROP POLICY IF EXISTS "abandoned_carts_service_role" ON public.abandoned_carts;
-CREATE POLICY "abandoned_carts_service_role" ON public.abandoned_carts
-  FOR ALL TO service_role USING (true) WITH CHECK (true);
-REVOKE ALL ON public.abandoned_carts FROM anon, authenticated;
-
-ALTER TABLE IF EXISTS public.cart_recovery_emails ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "admin_all_recovery_emails" ON public.cart_recovery_emails;
-REVOKE ALL ON public.cart_recovery_emails FROM anon, authenticated;
-
-ALTER TABLE IF EXISTS public.cart_recovery_stats ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "admin_all_recovery_stats" ON public.cart_recovery_stats;
-DROP POLICY IF EXISTS "cart_recovery_stats_service_role" ON public.cart_recovery_stats;
-CREATE POLICY "cart_recovery_stats_service_role" ON public.cart_recovery_stats
-  FOR ALL TO service_role USING (true) WITH CHECK (true);
-REVOKE ALL ON public.cart_recovery_stats FROM anon, authenticated;
+SELECT public.__rls_fechar(
+  'abandoned_carts',
+  ARRAY['admin_all_abandoned_carts', 'public_update_own_cart', 'public_insert_abandoned_carts']
+);
+SELECT public.__rls_fechar('cart_recovery_emails', ARRAY['admin_all_recovery_emails'], NULL, false);
+SELECT public.__rls_fechar('cart_recovery_stats', ARRAY['admin_all_recovery_stats']);
 
 -- =============================================================================
 -- 4. coudelarias — leitura pública fica, escrita pública sai
@@ -186,22 +222,13 @@ REVOKE ALL ON public.cart_recovery_stats FROM anon, authenticated;
 -- reescritas por qualquer visitante — e o nome e a descrição de uma coudelaria
 -- vão parar ao JSON-LD da ficha, o que fazia disto também um vector de XSS.
 --
--- A política de leitura NÃO se toca: `app/mapa/page.tsx` lê esta tabela com a
--- chave anónima e é a única leitura anónima do projecto.
-DROP POLICY IF EXISTS "Service role pode inserir" ON public.coudelarias;
-DROP POLICY IF EXISTS "Service role pode atualizar" ON public.coudelarias;
-DROP POLICY IF EXISTS "coudelarias_service_role" ON public.coudelarias;
-CREATE POLICY "coudelarias_service_role" ON public.coudelarias
-  FOR ALL TO service_role USING (true) WITH CHECK (true);
-
-DO $$
-BEGIN
-  IF to_regclass('public.coudelarias') IS NOT NULL THEN
-    -- Só o necessário para o `select` do mapa. Sem INSERT, UPDATE nem DELETE.
-    EXECUTE 'REVOKE ALL ON public.coudelarias FROM anon, authenticated';
-    EXECUTE 'GRANT SELECT ON public.coudelarias TO anon, authenticated';
-  END IF;
-END $$;
+-- As duas políticas de leitura NÃO se tocam: são elas que servem o mapa e o
+-- directório.
+SELECT public.__rls_fechar(
+  'coudelarias',
+  ARRAY['Service role pode inserir', 'Service role pode atualizar'],
+  'SELECT'
+);
 
 -- =============================================================================
 -- 5. seller_ratings — uma avaliação tem de vir de alguém
@@ -213,15 +240,12 @@ END $$;
 --
 -- Fica só leitura pública (as avaliações mostram-se na ficha) e a escrita passa
 -- a ser do servidor, que é quem sabe se houve mesmo uma transacção.
-DROP POLICY IF EXISTS "seller_ratings_insert_authenticated" ON public.seller_ratings;
-
-DO $$
-BEGIN
-  IF to_regclass('public.seller_ratings') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON public.seller_ratings FROM anon, authenticated';
-    EXECUTE 'GRANT SELECT ON public.seller_ratings TO anon, authenticated';
-  END IF;
-END $$;
+SELECT public.__rls_fechar(
+  'seller_ratings',
+  ARRAY['seller_ratings_insert_authenticated'],
+  'SELECT',
+  false
+);
 
 -- =============================================================================
 -- 6. Um pagamento, um anúncio
@@ -238,3 +262,10 @@ END $$;
 CREATE UNIQUE INDEX IF NOT EXISTS payments_stripe_session_id_key
   ON public.payments (stripe_session_id)
   WHERE stripe_session_id IS NOT NULL;
+
+-- -----------------------------------------------------------------------------
+-- O ajudante sai. Uma função com dois underscores à frente é um andaime, e um
+-- andaime esquecido no sítio é uma função `SECURITY INVOKER` que faz `REVOKE` e
+-- `GRANT` por `EXECUTE format` à espera de quem lhe pegue.
+-- -----------------------------------------------------------------------------
+DROP FUNCTION IF EXISTS public.__rls_fechar(text, text[], text, boolean, text);

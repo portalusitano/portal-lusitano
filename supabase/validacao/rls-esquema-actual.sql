@@ -3,9 +3,21 @@
 -- (ALL a anon e authenticated) e as políticas exactamente como `pg_policies`
 -- as mostra — incluindo os nomes trocados.
 
-CREATE ROLE anon NOLOGIN;
-CREATE ROLE authenticated NOLOGIN;
-CREATE ROLE service_role NOLOGIN BYPASSRLS;
+-- Os papéis são do agrupamento e não da base: recriar a base não os apaga,
+-- por isso criam-se só se faltarem. Sem isto, correr a validação uma segunda
+-- vez rebenta logo na primeira linha.
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+    CREATE ROLE anon NOLOGIN;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+    CREATE ROLE authenticated NOLOGIN;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN
+    CREATE ROLE service_role NOLOGIN BYPASSRLS;
+  END IF;
+END $$;
 
 -- ── Tabelas com o RLS desligado ──────────────────────────────────────────────
 CREATE TABLE admin_chat_messages (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), sender_email text, message text);
