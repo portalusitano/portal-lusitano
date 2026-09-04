@@ -51,7 +51,9 @@ CREATE TABLE public.cavalos_venda (
   fotos text[],
   video_url varchar(500),
   registro_apsl varchar(100),
-  documentos_em_dia boolean DEFAULT true,
+  -- Sem resposta do vendedor, o lado prudente — a nota está por extenso em
+  -- `supabase/cavalos-venda-bootstrap.sql`.
+  documentos_em_dia boolean DEFAULT false,
   aceita_troca boolean DEFAULT false,
   transporte_incluido boolean DEFAULT false,
   destaque boolean DEFAULT false,

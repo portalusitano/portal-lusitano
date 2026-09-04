@@ -61,7 +61,12 @@ CREATE TABLE IF NOT EXISTS cavalos_venda (
     fotos TEXT[],
     video_url VARCHAR(500),
     registro_apsl VARCHAR(100), -- número de registro
-    documentos_em_dia BOOLEAN DEFAULT true,
+    -- Sem resposta do vendedor, o lado prudente. Este campo é a resposta que o
+    -- próprio vendedor dá sobre si mesmo, e a falta dela não é um «sim»: um
+    -- anúncio que nunca respondeu à pergunta não se pode ler como «documentos
+    -- em dia». Quem carimba documentos é o painel de revisão, e o que ele
+    -- escreve é `documentos_cavalo.estado` — nunca esta coluna.
+    documentos_em_dia BOOLEAN DEFAULT false,
     aceita_troca BOOLEAN DEFAULT false,
     transporte_incluido BOOLEAN DEFAULT false,
     destaque BOOLEAN DEFAULT false,

@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import LocalizedLink from "@/components/LocalizedLink";
-import { CheckCircle, ArrowRight, Mail, Clock, Eye } from "lucide-react";
+import { CheckCircle, ArrowRight, Mail, ShieldCheck, Eye } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { limparRascunho } from "@/components/vender-cavalo/rascunho";
 
@@ -39,9 +39,11 @@ export default function VenderCavaloSucessoContent() {
       texto: t.success_pages.confirmation_email_desc,
     },
     {
-      icone: Clock,
-      titulo: t.success_pages.approval_24h,
-      texto: t.success_pages.approval_24h_desc,
+      // Um relógio dizia «isto tem um prazo». Não tem: o passo é a revisão,
+      // não a espera, e o texto ao lado deixou de prometer horas.
+      icone: ShieldCheck,
+      titulo: t.success_pages.approval_review,
+      texto: t.success_pages.approval_review_desc,
     },
     {
       icone: Eye,

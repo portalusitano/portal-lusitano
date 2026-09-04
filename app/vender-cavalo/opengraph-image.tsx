@@ -9,6 +9,10 @@ export default function Image() {
   return createOgImage({
     label: "Marketplace Premium",
     title: "Venda o Seu Cavalo",
-    subtitle: "Anúncio verificado com documentos APSL no Portal Lusitano",
+    // Não diz «verificado»: quem carimba um documento como verificado é uma
+    // pessoa, no painel de revisão, um documento de cada vez — e essa decisão
+    // não está tomada quando esta imagem é gerada. O que é verdade antes de
+    // qualquer anúncio existir é o percurso: envia-se, revê-se, publica-se.
+    subtitle: "Envie o anúncio e a documentação; revemos antes de publicar",
   });
 }
