@@ -3793,6 +3793,113 @@ body {
     border-radius: var(--raio);
     padding: 0.75rem 1rem;
   }
+
+  /* --- Os marcos do formulário de publicar ---------------------------------
+   *
+   * Cada passo do indicador. Os que já se visitaram são botões e levam lá de
+   * volta; os que ainda não se alcançaram são texto, porque um botão que não
+   * leva a lado nenhum é pior do que nenhum botão.
+   *
+   * A barra de progresso mede-se com `transform` e não com `width`: a largura
+   * é layout, e o que é layout repinta-se; a escala fica no compositor. A
+   * origem à esquerda é o que a faz crescer da esquerda para a direita em vez
+   * de a partir do meio.
+   */
+  .passo-barra {
+    position: relative;
+    height: 2px;
+    margin: 0 1rem 0.5rem;
+    background: var(--background-card);
+    overflow: hidden;
+  }
+
+  .passo-barra__cheio {
+    position: absolute;
+    inset: 0;
+    transform-origin: left center;
+    background: var(--foreground-strong);
+    transform: scaleX(var(--parte, 0));
+    transition: transform var(--d-fast) var(--ease-out);
+  }
+
+  .passo-marco {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: 0;
+    padding: 0;
+    width: 100%;
+    text-align: center;
+  }
+
+  .passo-marco__disco {
+    display: flex;
+    width: 2rem;
+    height: 2rem;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--background-card);
+    color: var(--foreground-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition:
+      background-color var(--d-fast) var(--ease-out),
+      border-color var(--d-fast) var(--ease-out),
+      color var(--d-fast) var(--ease-out);
+  }
+
+  /* Quem está aqui é branco. É a mesma regra do filtro activo e do dia de
+     hoje no calendário: sobre preto, quem assinala uma escolha é o contraste,
+     e o dourado é do tamanho de um ícone. */
+  .passo-marco[aria-current="step"] .passo-marco__disco {
+    background: var(--foreground-strong);
+    border-color: var(--foreground-strong);
+    color: #000;
+  }
+
+  /* Fechado quer dizer **respondido até ao fim**, e não «já passei por aqui».
+     A diferença passou a ter consequência no dia em que se pôde voltar atrás:
+     um visto num passo a que se voltou para apagar um campo é a promessa
+     falsa em ponto pequeno. */
+  .passo-marco[data-fechado="sim"]:not([aria-current="step"]) .passo-marco__disco {
+    background: var(--elevate-1);
+    border-color: var(--border-soft);
+    color: var(--foreground-secondary);
+  }
+
+  button.passo-marco:hover .passo-marco__disco {
+    border-color: var(--border-hover);
+    color: var(--foreground);
+  }
+
+  .passo-marco__nome {
+    line-height: 1.15;
+    color: var(--foreground-muted);
+    transition: color var(--d-fast) var(--ease-out);
+  }
+
+  .passo-marco[aria-current="step"] .passo-marco__nome {
+    color: var(--foreground);
+  }
+
+  button.passo-marco:hover .passo-marco__nome {
+    color: var(--foreground-secondary);
+  }
+
+  .passo-marco__conta {
+    color: var(--foreground-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .passo-marco[data-fechado="sim"] .passo-marco__conta {
+    color: var(--ok);
+  }
 }
 
 /* ==========================================================================

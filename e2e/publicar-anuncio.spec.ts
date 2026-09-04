@@ -58,7 +58,17 @@ async function escolher(page: Page, id: string, valor: string) {
   );
 }
 
-const passoActual = (page: Page) => page.locator("[aria-current='step']").innerText();
+/**
+ * Em que passo é que a pessoa está.
+ *
+ * Lê-se o `data-passo` e não o texto: o `aria-current` passou do círculo com
+ * o algarismo para o marco inteiro — que é o que representa o passo, e é dele
+ * que um leitor de ecrã precisa —, e o marco tem lá dentro o nome do passo e a
+ * conta de respostas. Pescar «2» de «Passo 2 de 4, Linhagem & Saúde, 12 de 40
+ * respostas» era possível e era frágil.
+ */
+const passoActual = (page: Page) =>
+  page.locator("[aria-current='step']").getAttribute("data-passo");
 
 test.describe("Publicar anúncio", () => {
   test.use({ locale: "pt-PT" });

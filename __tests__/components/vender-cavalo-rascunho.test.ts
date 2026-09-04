@@ -218,3 +218,56 @@ describe("a que passo se pode voltar", () => {
     expect(passoSeguro(base({ passo: 1, documentos: 1 }))).toBe(1);
   });
 });
+
+describe("guardar relata o que aconteceu, e não o que se tentou", () => {
+  // A razão de existir do valor devolvido: sem ele, `guardarRascunho`
+  // devolvia `void` tanto quando escrevia como quando o browser recusava, e
+  // com isso a página não tinha maneira nenhuma de saber se podia dizer
+  // «guardado». Dizia-o à mesma — que é a promessa falsa que este trabalho
+  // todo existe para tirar do formulário.
+  beforeEach(() => limparRascunho());
+
+  it("diz «guardado» quando ficou lá", () => {
+    expect(guardar()).toBe("guardado");
+    expect(localStorage.getItem(CHAVE_RASCUNHO)).not.toBeNull();
+  });
+
+  it("diz «vazio» quando não havia nada para guardar", () => {
+    expect(
+      guardarRascunho({
+        formData: initialFormData,
+        passo: 1,
+        plano: "standard",
+        fotografias: 0,
+        documentos: 0,
+      })
+    ).toBe("vazio");
+  });
+
+  it("diz «recusado» quando o browser deita a escrita fora", () => {
+    // Quota cheia, navegação privada, armazenamento bloqueado por política.
+    const real = Storage.prototype.setItem;
+    Storage.prototype.setItem = () => {
+      throw new DOMException("QuotaExceededError");
+    };
+    try {
+      expect(guardar()).toBe("recusado");
+    } finally {
+      Storage.prototype.setItem = real;
+    }
+  });
+
+  it("diz «recusado» quando escrever não deita erro mas também não guarda", () => {
+    // O caso que um `try/catch` sozinho não apanha, e a razão de se reler o
+    // que se escreveu: há browsers em que o `setItem` aceita a chamada em
+    // silêncio e não fica lá nada. Sem a releitura isto contava como sucesso,
+    // e o ecrã dizia «guardado» sobre um armazenamento vazio.
+    const real = Storage.prototype.setItem;
+    Storage.prototype.setItem = () => {};
+    try {
+      expect(guardar()).toBe("recusado");
+    } finally {
+      Storage.prototype.setItem = real;
+    }
+  });
+});

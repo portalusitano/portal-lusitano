@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { X } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
 import type {
   FormData,
@@ -24,8 +25,6 @@ import StepPrecoApresentacao from "@/components/vender-cavalo/StepPrecoApresenta
 import StepPagamento from "@/components/vender-cavalo/StepPagamento";
 import {
   validarPasso,
-  faltamPorPasso,
-  feitosPorPasso,
   totalPorPasso,
   type ErroCampo,
   type MensagensValidacao,
@@ -36,12 +35,8 @@ import { porCampo } from "@/components/vender-cavalo/campos-com-erro";
 import { errosDeInspeccao, type MensagensInspeccao } from "@/components/vender-cavalo/inspeccao";
 import { useInspeccao } from "@/components/vender-cavalo/usar-inspeccao";
 import { useRegistoApsl } from "@/components/vender-cavalo/usar-registo-apsl";
-import {
-  guardarRascunho,
-  lerRascunho,
-  limparRascunho,
-  passoSeguro,
-} from "@/components/vender-cavalo/rascunho";
+import { lerRascunho, limparRascunho, passoSeguro } from "@/components/vender-cavalo/rascunho";
+import { useRascunho } from "@/components/vender-cavalo/usar-rascunho";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
 
@@ -116,14 +111,47 @@ export default function VenderCavaloPage() {
   const [selectedTier, setSelectedTier] = useState("standard");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [rascunhoReposto, setRascunhoReposto] = useState<{ ficheiros: boolean } | null>(null);
+  /**
+   * O rascunho que voltou, e o que é preciso dizer sobre ele.
+   *
+   * `guardadoEm` está aqui porque «restaurado automaticamente» não responde à
+   * pergunta que quem volta faz primeiro — *restaurado de quando?*. Um
+   * formulário reposto com dados de há três semanas é sobre um cavalo que
+   * talvez já esteja vendido, e a data é a única coisa que permite decidir
+   * entre continuar e recomeçar.
+   *
+   * `passoPedido` e `passoReposto` diferem quando o `passoSeguro` recua alguém
+   * por lhe faltarem ficheiros. Recuar é a decisão certa e está explicada lá;
+   * o que faltava era dizê-lo — a pessoa deixou isto no passo 3 e voltou a
+   * encontrá-lo no 2, sem uma palavra.
+   */
+  const [rascunhoReposto, setRascunhoReposto] = useState<{
+    ficheiros: boolean;
+    guardadoEm: number;
+    passoPedido: number;
+    passoReposto: number;
+  } | null>(null);
+  /**
+   * O passo mais longe a que se chegou.
+   *
+   * É o que permite voltar atrás pelo indicador sem abrir a porta a saltar
+   * para a frente: um passo por alcançar não é clicável, e o `handleSubmit`
+   * confirma o formulário inteiro antes de cobrar seja o que for.
+   */
+  const [maiorPasso, setMaiorPasso] = useState(1);
 
   /** O topo do formulário. Ao mudar de passo é para aqui que se volta. */
   const topoDoFormulario = useRef<HTMLDivElement>(null);
   /** O resumo dos erros. Quando a validação falha é ele que recebe o foco. */
   const resumoDeErros = useRef<HTMLDivElement>(null);
-  /** Já se restaurou? Serve para não gravar por cima do rascunho antes de o ler. */
-  const jaLeuRascunho = useRef(false);
+  /**
+   * A saída da página está autorizada.
+   *
+   * É o que separa «foi-se embora» de «foi pagar»: quando o checkout devolve
+   * o endereço do Stripe, a navegação é o desfecho do formulário e não a
+   * perda dele, e o aviso de saída não tem nada que aparecer.
+   */
+  const saidaAutorizada = useRef(false);
 
   const mensagens: MensagensValidacao = useMemo(
     () => ({
@@ -487,38 +515,83 @@ export default function VenderCavaloPage() {
   // ---- Rascunho -----------------------------------------------------------
   // Ler antes de gravar. Sem esta ordem o primeiro `guardarRascunho` do
   // arranque escrevia o formulário vazio por cima do que lá estava.
+  const [rascunhoLido, setRascunhoLido] = useState(false);
+
   useEffect(() => {
     const { rascunho, perdeuFicheiros } = lerRascunho();
     if (rascunho) {
       setFormData({ ...initialFormData, ...rascunho.formData });
       // Não se devolve ninguém a um passo que ele não vai conseguir passar:
       // as fotografias e os documentos não sobrevivem ao rascunho.
-      setStep(passoSeguro(rascunho));
+      const reposto = passoSeguro(rascunho);
+      setStep(reposto);
+      setMaiorPasso(reposto);
       setSelectedTier(rascunho.plano);
-      setRascunhoReposto({ ficheiros: perdeuFicheiros });
+      setRascunhoReposto({
+        ficheiros: perdeuFicheiros,
+        guardadoEm: rascunho.guardadoEm,
+        passoPedido: rascunho.passo,
+        passoReposto: reposto,
+      });
     }
-    jaLeuRascunho.current = true;
+    setRascunhoLido(true);
   }, []);
 
-  const guardar = useCallback(() => {
-    if (!jaLeuRascunho.current) return;
-    guardarRascunho({
+  /**
+   * A gravação e o que se pode dizer sobre ela.
+   *
+   * Era um `useEffect` por cada mudança de `formData`, ou seja um
+   * `JSON.stringify` de noventa e cinco campos e um `setItem` síncrono **por
+   * tecla** — medido: 38 teclas, 38 gravações, 84 645 bytes. E, apesar de
+   * tudo isso, a página não dizia a ninguém que estava a guardar. O ritmo e o
+   * relato passaram os dois para o `usar-rascunho.ts`, que grava no silêncio
+   * e à saída da página, e que só devolve «guardado» depois de reler o que
+   * escreveu.
+   */
+  const estadoRascunho = useRascunho(
+    {
       formData,
       passo: step,
       plano: selectedTier,
       fotografias: imagens.length,
       documentos: Object.keys(documentos).length,
-    });
-  }, [formData, step, selectedTier, imagens.length, documentos]);
+    },
+    rascunhoLido
+  );
+
+  /**
+   * O aviso de saída, e só pelo que se perde mesmo.
+   *
+   * O rascunho guarda o texto todo, e por isso fechar a página com noventa e
+   * cinco campos escritos não custa nada — avisar aí seria alarme falso. O que
+   * o rascunho **não** guarda são as fotografias e os documentos: são `File`,
+   * não sobrevivem a um `JSON.stringify`, e a razão está escrita no
+   * `rascunho.ts`. Escolher seis fotografias é trabalho a sério e é o único
+   * trabalho desta página que uma saída deita fora.
+   *
+   * Ou seja: avisa-se exactamente quando há alguma coisa a perder, e cala-se
+   * no resto — que é a mesma regra do «faltam 7 campos» aplicada à saída. Ir a
+   * `/termos` e voltar perde as fotografias, e por isso também conta.
+   *
+   * Não dispara a caminho do Stripe: aí a navegação é o desfecho, não a perda.
+   */
+  const ficheirosPorEnviar = imagens.length > 0 || Object.keys(documentos).length > 0;
 
   useEffect(() => {
-    guardar();
-  }, [guardar]);
+    if (!ficheirosPorEnviar) return;
+    const aoSair = (e: BeforeUnloadEvent) => {
+      if (saidaAutorizada.current) return;
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", aoSair);
+    return () => window.removeEventListener("beforeunload", aoSair);
+  }, [ficheirosPorEnviar]);
 
   const recomecar = () => {
     limparRascunho();
     setFormData(initialFormData);
     setStep(1);
+    setMaiorPasso(1);
     setSelectedTier("standard");
     setImagens([]);
     setDocumentos({});
@@ -600,23 +673,76 @@ export default function VenderCavaloPage() {
     }));
   };
 
+  // ---- As contas do progresso ---------------------------------------------
+  const estadoActual = useMemo(
+    () => ({ formData, documentos, imagens, termosAceites: termsAccepted }),
+    [formData, documentos, imagens, termsAccepted]
+  );
+
+  /**
+   * Tudo o que trava um passo: o que a validação exige e o que a inspecção
+   * apanhou. Sai daqui em vez de estar dentro do `validar` porque há três
+   * perguntas a fazer-lhe, e só uma delas pode escrever no ecrã — «este passo
+   * passa?», que escreve; «quantas faltam?», que se lê a cada tecla; e «algum
+   * passo não passa?», que o `handleSubmit` faz antes de cobrar.
+   */
+  const errosDoPasso = useCallback(
+    (passo: number): ErroCampo[] => {
+      const encontrados = validarPasso(passo, estadoActual, mensagens, indiceDaLingua);
+      // Um apontamento de nível `erro` trava o passo onde o campo vive. Sem
+      // isto, bastava não sair do campo para publicar um microchip de catorze
+      // algarismos — e o que ficava guardado era lixo. Só entram os campos que
+      // a validação ainda não acusou: dizer duas vezes a mesma coisa sobre o
+      // mesmo campo é pior do que dizê-la uma.
+      const daInspeccao = errosDeInspeccao(passo, inspeccao.todos).filter(
+        (e) => !encontrados.some((j) => j.campo === e.campo)
+      );
+      return [...encontrados, ...daInspeccao];
+    },
+    [estadoActual, mensagens, indiceDaLingua, inspeccao.todos]
+  );
+
+  /**
+   * Uma conta só, e é a que trava o botão.
+   *
+   * A garantia que aqui se quer é que o «faltam 7» do botão, o «12 / 19» do
+   * cabeçalho da secção, o visto no indicador e o resumo de erros **nunca
+   * discordem**: duas contas feitas em sítios diferentes divergem, e a que
+   * diverge é sempre a que a pessoa está a ler.
+   *
+   * Só que eram duas. O `faltamPorPasso` conta o que a validação exige —
+   * campos por preencher —, e o `nextStep` travava por isso **e mais** pelos
+   * apontamentos de nível `erro` da inspecção, que o `faltamPorPasso` não vê.
+   * Medido no browser: com um NIF que não fecha o dígito de controlo, o botão
+   * dizia «Continuar», o `data-faltam` era `0`, e carregar nele não avançava
+   * nada. A promessa do rótulo era falsa, e era-o exactamente no sítio onde a
+   * pessoa a vai testar.
+   *
+   * O `faltam` passou a sair do `errosDoPasso`, que é a mesma função que o
+   * `nextStep` e o `handleSubmit` chamam. Um campo preenchido com um valor que
+   * não passa conta como por responder, que é o que ele é para quem quer
+   * avançar. E o visto do indicador, que sai daqui pela subtracção, deixa de
+   * poder aparecer sobre um passo que não passa.
+   *
+   * O `feitos` é a subtracção dos dois vectores acima, e não uma terceira
+   * chamada: o `feitosPorPasso` refazia por dentro o `totalPorPasso` e o
+   * `faltamPorPasso`, o que dava três varrimentos dos noventa e cinco campos
+   * onde basta um, a cada tecla.
+   */
+  const faltam = useMemo(
+    () => [1, 2, 3, 4].map((passo) => errosDoPasso(passo).length),
+    [errosDoPasso]
+  );
+  const totais = useMemo(() => totalPorPasso(estadoActual), [estadoActual]);
+  const feitos = useMemo(
+    () => totais.map((total, i) => Math.max(0, total - (faltam[i] ?? 0))),
+    [totais, faltam]
+  );
+
   // ---- Passos -------------------------------------------------------------
+
   const validar = (passo: number): ErroCampo[] => {
-    const encontrados = validarPasso(
-      passo,
-      { formData, documentos, imagens, termosAceites: termsAccepted },
-      mensagens,
-      indiceDaLingua
-    );
-    // Um apontamento de nível `erro` trava o passo onde o campo vive. Sem
-    // isto, bastava não sair do campo para publicar um microchip de catorze
-    // algarismos — e o que ficava guardado era lixo. Só entram os campos que
-    // a validação ainda não acusou: dizer duas vezes a mesma coisa sobre o
-    // mesmo campo é pior do que dizê-la uma.
-    const daInspeccao = errosDeInspeccao(passo, inspeccao.todos).filter(
-      (e) => !encontrados.some((j) => j.campo === e.campo)
-    );
-    const todos = [...encontrados, ...daInspeccao];
+    const todos = errosDoPasso(passo);
     setErrors(todos);
     setResumo(todos);
     return todos;
@@ -656,21 +782,43 @@ export default function VenderCavaloPage() {
     irPara(resumoDeErros.current, true);
   }, [resumo]);
 
+  /** Mudar de passo é sempre a mesma coisa: limpar as queixas do passo que se
+   *  deixa — que são sobre campos que já não estão no ecrã — e voltar ao topo,
+   *  que é onde está o indicador que diz onde se ficou. */
+  const mudarDePasso = (destino: number) => {
+    const seguro = Math.min(Math.max(destino, 1), TOTAL_STEPS);
+    setErrors([]);
+    setResumo([]);
+    setStep(seguro);
+    setMaiorPasso((maior) => Math.max(maior, seguro));
+    irPara(topoDoFormulario.current);
+  };
+
   const nextStep = () => {
     const falhas = validar(step);
     if (falhas.length > 0) {
       levarAosErros.current = true;
       return;
     }
-    setStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
-    irPara(topoDoFormulario.current);
+    mudarDePasso(step + 1);
   };
 
-  const prevStep = () => {
-    setErrors([]);
-    setResumo([]);
-    setStep((prev) => Math.max(prev - 1, 1));
-    irPara(topoDoFormulario.current);
+  const prevStep = () => mudarDePasso(step - 1);
+
+  /**
+   * Saltar para um passo pelo indicador.
+   *
+   * Só para trás — ou melhor, só para onde já se esteve. Andar para a frente
+   * continua a ser pelo «Continuar», que valida; se daqui se pudesse saltar
+   * por cima de um passo, chegava-se ao pagamento sem o passo por baixo ter
+   * sido verificado por ninguém. O que torna isto seguro mesmo assim é o
+   * `handleSubmit`, que confirma os quatro passos antes de cobrar: voltar ao
+   * passo 1 e apagar o email deixou de ser uma maneira de publicar um anúncio
+   * sem email.
+   */
+  const irParaPasso = (destino: number) => {
+    if (destino === step || destino > maiorPasso) return;
+    mudarDePasso(destino);
   };
 
   /** Enter num campo de texto avança o passo, como em qualquer formulário. */
@@ -706,7 +854,34 @@ export default function VenderCavaloPage() {
   };
 
   const handleSubmit = async () => {
-    if (validar(4).length > 0) {
+    /**
+     * Confirma-se o formulário **inteiro** antes de cobrar, e não só a caixa
+     * dos termos.
+     *
+     * Era `validar(4)`, e o 4 estava escrito à mão. Enquanto só se podia andar
+     * para a frente isso chegava — para se estar no passo 4 era preciso ter
+     * passado pelos outros três —, mas era um invariante que vivia na
+     * navegação e não na submissão, e bastou poder voltar atrás pelo indicador
+     * para deixar de ser verdade: apagar o email no passo 1, voltar ao 4 e
+     * pagar.
+     *
+     * Quando falta alguma coisa, leva-se a pessoa **ao passo onde falta**, e
+     * não se lhe deixa uma lista de erros sobre campos que ela não está a ver.
+     * É o primeiro por ordem, porque é o primeiro que ela vai querer fechar.
+     */
+    for (let passo = 1; passo <= TOTAL_STEPS; passo++) {
+      const falhas = errosDoPasso(passo);
+      if (falhas.length === 0) continue;
+      // Muda-se o passo à mão em vez de chamar o `mudarDePasso`: esse leva ao
+      // topo do formulário, e daqui o destino é o resumo dos erros — que é
+      // para onde o efeito do `levarAosErros` leva a seguir. Duas deslocações
+      // suaves encavalitadas não são um movimento, são um solavanco.
+      if (passo !== step) {
+        setStep(passo);
+        setMaiorPasso((maior) => Math.max(maior, passo));
+      }
+      setErrors(falhas);
+      setResumo(falhas);
       levarAosErros.current = true;
       return;
     }
@@ -885,6 +1060,11 @@ export default function VenderCavaloPage() {
       // para um formulário vazio: tudo o que tinha escrito era apagado no
       // instante antes de sair. Quem apaga é a página de sucesso, que é o
       // único sítio onde se sabe que o anúncio existe.
+      //
+      // Esta saída é o desfecho do formulário e não a perda dele: as
+      // fotografias já subiram, e portanto o aviso de saída não tem nada que
+      // aparecer entre a pessoa e o pagamento.
+      saidaAutorizada.current = true;
       window.location.href = data.url;
     } catch (error: unknown) {
       if (process.env.NODE_ENV === "development") console.error("[VenderCavalo]", error);
@@ -899,24 +1079,44 @@ export default function VenderCavaloPage() {
   const maxImages = tierData.maxPhotos === -1 ? 50 : tierData.maxPhotos;
   const errosPorCampo = useMemo(() => porCampo(errors), [errors]);
   const apontamentos = inspeccao.visiveis;
+  const conta = useCallback((seccao: string) => contarSeccao(seccao, formData), [formData]);
 
   /**
-   * As contas do progresso.
+   * Quando é que o rascunho foi guardado, dito de maneira a não envelhecer.
    *
-   * São calculadas do mesmo estado e pelas mesmas funções que a validação usa
-   * para travar o botão. Isso não é economia de código: é a garantia de que o
-   * «faltam 7» do botão, o «12 / 19» do cabeçalho da secção e o resumo de
-   * erros no topo **nunca discordam**. Duas contas feitas em sítios
-   * diferentes divergem, e a que diverge é sempre a que a pessoa está a ler.
+   * Escolheu-se hora absoluta e não «há 4 minutos» de propósito: um tempo
+   * relativo calculado uma vez fica errado assim que a página passa uns
+   * minutos aberta, e mantê-lo certo obrigava a um relógio a bater — que é
+   * exactamente o que o `CLAUDE.md` conta e limita. «Ontem às 14:32» está
+   * certo hoje, daqui a uma hora, e é o que se pode ir confirmar.
+   *
+   * A data serve para decidir: um anúncio começado há três semanas é sobre um
+   * cavalo que talvez já esteja vendido, e é essa a escolha que a barra
+   * oferece ao lado — continuar ou recomeçar.
    */
-  const estadoActual = useMemo(
-    () => ({ formData, documentos, imagens, termosAceites: termsAccepted }),
-    [formData, documentos, imagens, termsAccepted]
+  const quando = useCallback(
+    (instante: number): string => {
+      const codigo = language === "en" ? "en-GB" : language === "es" ? "es-ES" : "pt-PT";
+      const hora = new Intl.DateTimeFormat(codigo, {
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(instante);
+
+      const dia = (t: number) => new Date(t).setHours(0, 0, 0, 0);
+      const diasDeDiferenca = Math.round((dia(Date.now()) - dia(instante)) / 86400000);
+
+      if (diasDeDiferenca <= 0)
+        return tr(`hoje às ${hora}`, `today at ${hora}`, `hoy a las ${hora}`);
+      if (diasDeDiferenca === 1)
+        return tr(`ontem às ${hora}`, `yesterday at ${hora}`, `ayer a las ${hora}`);
+
+      const data = new Intl.DateTimeFormat(codigo, { day: "numeric", month: "long" }).format(
+        instante
+      );
+      return tr(`a ${data}, às ${hora}`, `on ${data} at ${hora}`, `el ${data}, a las ${hora}`);
+    },
+    [language, tr]
   );
-  const faltam = useMemo(() => faltamPorPasso(estadoActual, mensagens), [estadoActual, mensagens]);
-  const feitos = useMemo(() => feitosPorPasso(estadoActual, mensagens), [estadoActual, mensagens]);
-  const totais = useMemo(() => totalPorPasso(estadoActual), [estadoActual]);
-  const conta = useCallback((seccao: string) => contarSeccao(seccao, formData), [formData]);
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-24 md:pt-32 pb-32 px-4 sm:px-6 md:px-12">
@@ -939,20 +1139,49 @@ export default function VenderCavaloPage() {
       </div>
 
       <div ref={topoDoFormulario} className="max-w-3xl mx-auto scroll-mt-24">
-        <StepIndicator currentStep={step} feitos={feitos} totais={totais} />
+        <StepIndicator
+          currentStep={step}
+          feitos={feitos}
+          totais={totais}
+          maiorPasso={maiorPasso}
+          onIrParaPasso={irParaPasso}
+        />
       </div>
 
       {/* O rascunho que voltou. Aparecia só no passo 1 — e como o rascunho
           também repõe o passo, quem o tinha deixado no passo 3 nunca via este
-          aviso: o formulário aparecia preenchido sem explicação nenhuma. */}
+          aviso: o formulário aparecia preenchido sem explicação nenhuma.
+
+          Diz agora três coisas em vez de uma, e as três respondem a perguntas
+          que quem volta faz por esta ordem: *de quando?* — porque um rascunho
+          de há três semanas é sobre um cavalo que talvez já esteja vendido, e
+          sem a data não há como decidir entre continuar e recomeçar;
+          *porque é que estou no passo 2 se saí no 3?* — que era um recuo
+          silencioso; e *o que é que se perdeu?*, que já lá estava.
+
+          E fecha-se sem destruir nada. Fechar era «Recomeçar de novo», ou
+          seja, para tirar um aviso do caminho era preciso deitar fora o
+          trabalho que o aviso anunciava ter salvo. */}
       {rascunhoReposto && (
         <div className="max-w-3xl mx-auto mb-4">
           <div className="barra-rascunho">
             <div className="min-w-0">
               <p className="text-sm text-[var(--foreground-secondary)]">
-                {(t.vender_cavalo as Record<string, string>)?.draft_restored ||
-                  "Rascunho restaurado automaticamente"}
+                {tr(
+                  `Rascunho retomado, guardado ${quando(rascunhoReposto.guardadoEm)}.`,
+                  `Draft restored, saved ${quando(rascunhoReposto.guardadoEm)}.`,
+                  `Borrador recuperado, guardado ${quando(rascunhoReposto.guardadoEm)}.`
+                )}
               </p>
+              {rascunhoReposto.passoReposto < rascunhoReposto.passoPedido && (
+                <p className="meta mt-1">
+                  {tr(
+                    `Saiu no passo ${rascunhoReposto.passoPedido} e voltou ao ${rascunhoReposto.passoReposto}: é aí que estão os ficheiros que faltam.`,
+                    `You left at step ${rascunhoReposto.passoPedido} and are back at step ${rascunhoReposto.passoReposto}: that is where the missing files go.`,
+                    `Salió en el paso ${rascunhoReposto.passoPedido} y ha vuelto al ${rascunhoReposto.passoReposto}: ahí están los archivos que faltan.`
+                  )}
+                </p>
+              )}
               {rascunhoReposto.ficheiros && (
                 <p className="meta mt-1">
                   {tr(
@@ -963,9 +1192,19 @@ export default function VenderCavaloPage() {
                 </p>
               )}
             </div>
-            <button type="button" onClick={recomecar} className="btn btn-subtil btn-sm flex-none">
-              {tr("Recomeçar de novo", "Start over", "Empezar de nuevo")}
-            </button>
+            <div className="flex flex-none items-center gap-2">
+              <button type="button" onClick={recomecar} className="btn btn-subtil btn-sm">
+                {tr("Recomeçar de novo", "Start over", "Empezar de nuevo")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setRascunhoReposto(null)}
+                className="btn btn-subtil btn-sm"
+                aria-label={tr("Fechar o aviso", "Dismiss", "Cerrar el aviso")}
+              >
+                <X size={14} aria-hidden="true" />
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1072,7 +1311,12 @@ export default function VenderCavaloPage() {
           )}
         </div>
 
-        <FormNavigation step={step} onPrev={prevStep} faltam={faltam[step - 1] ?? 0} />
+        <FormNavigation
+          step={step}
+          onPrev={prevStep}
+          faltam={faltam[step - 1] ?? 0}
+          rascunho={estadoRascunho}
+        />
       </form>
     </div>
   );

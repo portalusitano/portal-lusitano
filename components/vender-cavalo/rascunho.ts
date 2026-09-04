@@ -48,6 +48,22 @@ export interface RascunhoLido {
   perdeuFicheiros: boolean;
 }
 
+/**
+ * O que aconteceu à tentativa de guardar.
+ *
+ * Existe por uma razão só: para que a página **não possa** dizer «guardado»
+ * sem ter guardado. O `catch` daqui de baixo engolia a recusa do browser —
+ * quota cheia, navegação privada, armazenamento bloqueado por política — e
+ * devolvia `void`, que é indistinguível de sucesso. Quem escrevia continuava a
+ * escrever noventa e cinco campos a pensar que o rascunho ia ficando, e
+ * descobria o contrário ao voltar.
+ *
+ * - `guardado` — está escrito e foi relido de lá.
+ * - `vazio` — não havia nada para guardar, e o que lá estava foi limpo.
+ * - `recusado` — o browser não deixou. É preciso dizê-lo a quem escreve.
+ */
+export type ResultadoGuardar = "guardado" | "vazio" | "recusado";
+
 const semArmazenamento = (): boolean => typeof window === "undefined" || !window.localStorage;
 
 /**
@@ -75,12 +91,12 @@ export function guardarRascunho(dados: {
   plano: string;
   fotografias: number;
   documentos: number;
-}): void {
-  if (semArmazenamento()) return;
+}): ResultadoGuardar {
+  if (semArmazenamento()) return "recusado";
 
   if (!temConteudo(dados.formData, dados.fotografias, dados.documentos)) {
     limparRascunho();
-    return;
+    return "vazio";
   }
 
   const rascunho: Rascunho = {
@@ -88,11 +104,22 @@ export function guardarRascunho(dados: {
     guardadoEm: Date.now(),
     ...dados,
   };
+  const serializado = JSON.stringify(rascunho);
   try {
-    localStorage.setItem(CHAVE_RASCUNHO, JSON.stringify(rascunho));
+    localStorage.setItem(CHAVE_RASCUNHO, serializado);
+    // Relê-se o que se acabou de escrever, e não se toma o silêncio do
+    // `setItem` por prova. Há browsers — e há modos de browser — em que
+    // escrever não deita excepção nenhuma e mesmo assim não fica lá nada;
+    // com um `try/catch` sozinho, esse caso conta como sucesso. Custa uma
+    // leitura de dois kilobytes por gravação, que é o preço de poder afirmar
+    // uma coisa em vez de a supor.
+    return localStorage.getItem(CHAVE_RASCUNHO)?.length === serializado.length
+      ? "guardado"
+      : "recusado";
   } catch {
-    // Quota cheia ou armazenamento negado. Não há nada a fazer e não vale a
-    // pena interromper quem está a escrever para o dizer.
+    // Quota cheia ou armazenamento negado. Quem chamou é que decide o que
+    // dizer — aqui só se relata.
+    return "recusado";
   }
 }
 
