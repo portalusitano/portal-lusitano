@@ -332,6 +332,16 @@ export function LocalBusinessSchema({
 }
 
 // Schema de Cavalo à Venda
+/**
+ * O que se pode dizer ao Google sobre a disponibilidade de um anúncio.
+ *
+ * Estava fixo em `InStock`, e por isso um cavalo já vendido — cuja ficha
+ * continua a abrir de propósito, para o link que já circulou não morrer —
+ * aparecia nos resultados como disponível. Quem decide é a página, que é a
+ * única que sabe se o prazo acabou ou se o cavalo foi vendido.
+ */
+export type DisponibilidadeAnuncio = "InStock" | "SoldOut" | "Discontinued";
+
 interface HorseSchemaProps {
   name: string;
   description: string;
@@ -340,8 +350,14 @@ interface HorseSchemaProps {
   breed?: string;
   age?: number;
   color?: string;
+  /**
+   * Quem vende. Sem isto o esquema dizia que o vendedor era o Portal Lusitano,
+   * que não vende cavalo nenhum — é um classificados, e a página inicial
+   * promete «sem intermediários».
+   */
   seller?: string;
   location?: string;
+  availability?: DisponibilidadeAnuncio;
 }
 
 export function HorseSchema({
@@ -354,6 +370,7 @@ export function HorseSchema({
   color,
   seller,
   location,
+  availability = "InStock",
 }: HorseSchemaProps) {
   const schema = {
     "@context": "https://schema.org",
@@ -372,8 +389,12 @@ export function HorseSchema({
       "@type": "Offer",
       price: price || undefined,
       priceCurrency: "EUR",
-      availability: "https://schema.org/InStock",
-      seller: { "@type": "Organization", name: seller || "Portal Lusitano", address: location },
+      availability: `https://schema.org/${availability}`,
+      // Sem nome de vendedor não se inventa um: o `Place` diz onde o cavalo
+      // está, que é o que a página sabe mesmo. Pôr aqui o nome do site era
+      // declarar que o portal é o vendedor.
+      seller: seller ? { "@type": "Person", name: seller } : undefined,
+      availableAtOrFrom: location ? { "@type": "Place", name: location } : undefined,
     },
   };
 

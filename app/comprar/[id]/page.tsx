@@ -146,8 +146,15 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
      mas estava público e indexável: um anúncio fabricado, com preço e com
      pontuação de uma associação real, num classificados a sério. Saiu pela
      mesma razão que saíram o «1000+ cavalos» e o selo «verificada». */
+  /* A ascendência declarada. Vive numa tabela à parte, uma linha por
+     antepassado — é ela que traz os avós e os números de registo do pai e da
+     mãe, que nas colunas soltas de `cavalos_venda` não têm sítio. Antes desta
+     leitura o `<Pedigree>` desenhava quatro avós **escritos no código**, iguais
+     em todas as fichas do site. Vai na mesma volta das outras duas consultas:
+     é a ficha inteira num só ida ao servidor. */
+  let ascendentes: { caminho: string; nome: string | null; registo: string | null }[] = [];
   {
-    const [fetchedCavalo, { data: similar }] = await Promise.all([
+    const [fetchedCavalo, { data: similar }, { data: arvore }] = await Promise.all([
       getCavalo(id),
       supabase
         .from("cavalos_venda")
@@ -156,9 +163,14 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
         .or(filtroNaoExpirado())
         .neq("id", id)
         .limit(4),
+      supabase
+        .from("cavalos_venda_ascendentes")
+        .select("caminho, nome, registo")
+        .eq("cavalo_id", id),
     ]);
     cavalo = fetchedCavalo;
     similarHorses = (similar || []).map((c) => ({ ...c }));
+    ascendentes = arvore ?? [];
   }
 
   if (!cavalo) {
@@ -221,6 +233,17 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
 
   return (
     <>
+      {/* Os dados estruturados são a única parte da página que fala com o
+          Google, e falavam mal duas vezes.
+
+          O `seller` ia por preencher e o esquema caía no nome do site: cada
+          cavalo do país dizia ao Google que o vendedor era o **Portal
+          Lusitano**, quando a página inicial promete «sem intermediários». E a
+          disponibilidade era `InStock` sempre — também num cavalo vendido, cuja
+          ficha continua aberta de propósito para o link que já circulou não
+          morrer. Um resultado de pesquisa que diga «disponível» sobre um cavalo
+          vendido é a mesma mentira que os selos, só que dita a quem nunca
+          chegou a abrir o site. */}
       <HorseSchema
         name={cavalo.nome_cavalo}
         description={cavalo.descricao || `Cavalo Lusitano - ${cavalo.nome_cavalo}`}
@@ -229,6 +252,14 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
         breed="Lusitano"
         age={cavalo.idade || undefined}
         location={cavalo.localizacao || undefined}
+        seller={cavalo.contacto_nome || undefined}
+        availability={
+          visibilidade === "vendido"
+            ? "SoldOut"
+            : visibilidade === "visivel"
+              ? "InStock"
+              : "Discontinued"
+        }
       />
       <BreadcrumbSchema
         items={[
@@ -437,7 +468,13 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                   )}
                   {cavalo.pontuacao_apsl && (
                     <div>
-                      <dt className="rotulo mb-1">Pontuação APSL</dt>
+                      {/* «Pontuação APSL» sozinha lê-se como uma nota que a
+                          associação atribuiu. Não é: é um número que o
+                          vendedor escreve, e que hoje nem coluna tem na base
+                          (ver `lib/cavalo-ficha.ts`), pelo que esta linha não
+                          chega sequer a desenhar-se. Fica rotulada como o que
+                          seria se voltasse. */}
+                      <dt className="rotulo mb-1">Pontuação APSL declarada</dt>
                       <dd className="text-base font-medium text-[var(--foreground)]">
                         {cavalo.pontuacao_apsl} pts
                       </dd>
@@ -458,17 +495,27 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
             </Revelar>
 
             {/* PEDIGREE */}
-            {(cavalo.pai || cavalo.mae) && (
+            {(cavalo.pai || cavalo.mae || ascendentes.length > 0) && (
               <Revelar duracao={600}>
                 <section
                   aria-labelledby="pedigree-heading"
                   className="border-t border-[var(--background-secondary)] pt-10"
                 >
+                  {/* «Certificado de Sangue» era o título, e por baixo dizia-se
+                      «Dados verificados via Stud-Book Digital». Nada neste site
+                      consulta stud-book nenhum — o
+                      `components/vender-cavalo/registo-apsl.ts` explica porque
+                      é que não há por onde: não há ponto de consulta público
+                      para a base da raça, e por isso o número de registo que o
+                      vendedor escreve não é confrontado com coisa nenhuma. Um
+                      certificado é um documento que uma entidade emite; isto
+                      são dois nomes escritos num formulário. O título passou a
+                      dizer o que a secção tem, e a origem do dado vai colada ao
+                      dado, dentro do `<Pedigree>`. */}
                   <h2 id="pedigree-heading" className="titulo-seccao mb-5">
-                    Certificado de Sangue
+                    Genealogia
                   </h2>
-                  <Pedigree cavalo={cavalo} />
-                  <p className="meta text-center mt-4">Dados verificados via Stud-Book Digital</p>
+                  <Pedigree cavalo={cavalo} ascendentes={ascendentes} />
                 </section>
               </Revelar>
             )}
@@ -517,9 +564,15 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                           >
                             Ver outros anúncios deste vendedor →
                           </a>
-                        ) : (
-                          <p className="rotulo">Vendedor verificado</p>
-                        )}
+                        ) : /* Aqui estava escrito «Vendedor verificado», e o
+                             ramo em que aparecia é o do anúncio **sem conta
+                             associada** — ou seja, o site chamava verificado
+                             precisamente a quem menos sabia identificar. Não
+                             havia leitura nenhuma da coluna `verificado`: era
+                             texto fixo no `else`. O que se sabe deste vendedor
+                             é o nome que ele escreveu no anúncio, e isso já
+                             está na linha de cima; por baixo não fica nada. */
+                        null}
                       </div>
                     </div>
                   )}
@@ -590,8 +643,20 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                   )}
 
                   {!encerrado && (
-                    <p className="meta text-center pt-1">
-                      Resposta em menos de 24 horas · Transacção segura
+                    /* Dizia «Resposta em menos de 24 horas · Transacção
+                       segura». Nenhuma das duas se sustenta: quem responde é o
+                       vendedor, e o site não tem forma de o obrigar a nada nem
+                       mede quanto tempo demora; e transacção não há — o
+                       dinheiro do cavalo passa directamente entre comprador e
+                       vendedor, sem caução, sem depósito e sem o portal pelo
+                       meio, como a própria página inicial diz («sem
+                       intermediários»). Prometer segurança numa transacção em
+                       que não se entra é a promessa mais cara que um
+                       classificados pode fazer. Fica o que é verdade e o que o
+                       comprador ganha em saber. */
+                    <p className="meta text-center pt-1 leading-relaxed">
+                      O contacto é directo com o vendedor. O Portal Lusitano não intermedeia o
+                      pagamento nem a entrega.
                     </p>
                   )}
 

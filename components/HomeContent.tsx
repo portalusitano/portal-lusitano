@@ -487,7 +487,15 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
 
           <Revelar duracao={600} atraso={100}>
             <p className="mx-auto mb-10 max-w-xl px-2 text-sm leading-relaxed text-[var(--foreground-secondary)] sm:text-base md:mb-16 md:text-lg">
-              Cavalos de criadores verificados, com genealogia, fotografia e contacto directo.
+              {/* Dizia «Cavalos de criadores verificados». É a primeira frase
+                  do site, e não havia verificação nenhuma por trás dela —
+                  qualquer pessoa que pague publica. A segunda metade da frase
+                  já dizia a verdade («sem intermediários»), e é precisamente
+                  por não haver intermediário que também não há quem verifique:
+                  as duas metades contradiziam-se. Fica o que a página entrega
+                  mesmo. */}
+              Cavalos anunciados directamente por criadores e proprietários, com genealogia,
+              fotografia e contacto directo.
               <br className="hidden sm:block" /> Sem intermediários, sem comissões.
             </p>
           </Revelar>

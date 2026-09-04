@@ -10,8 +10,12 @@ export const revalidate = 3600;
 
 export const metadata: Metadata = generatePageMetadata({
   title: "Comprar Cavalos Lusitanos — Marketplace Equestre",
+  // Prometia «criadores certificados» e «pedigree verificado». Ninguém
+  // certifica os criadores deste directório e ninguém confronta a genealogia
+  // com o stud-book — a descrição descreve agora o que a página tem mesmo: os
+  // filtros.
   description:
-    "Compre cavalos Lusitanos de criadores certificados em Portugal. Marketplace com filtros de raça, idade, disciplina e preço. Exemplares selecionados com pedigree verificado.",
+    "Cavalos Lusitanos à venda em Portugal, com filtros de idade, sexo, disciplina e preço. Cada anúncio traz fotografias, genealogia declarada pelo vendedor e contacto directo.",
   path: "/comprar",
   keywords: [
     "comprar cavalo lusitano",

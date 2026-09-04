@@ -77,3 +77,48 @@ CREATE TABLE public.cavalos_venda (
 );
 ALTER TABLE public.cavalos_venda ENABLE ROW LEVEL SECURITY;
 CREATE POLICY cavalos_venda_select_active ON public.cavalos_venda FOR SELECT USING (status = 'active');
+
+-- ---------------------------------------------------------------------------
+-- `storage`, o mínimo — bonecos, como as duas funções de `auth` acima
+-- ---------------------------------------------------------------------------
+--
+-- O Supabase traz este esquema; um PostgreSQL limpo não. Sem ele, a migração
+-- que cria o balde privado dos documentos (`20260904000002_documentos_cavalo`)
+-- morre na primeira linha e nunca se chega a saber se a tabela que vem a
+-- seguir está bem escrita.
+--
+-- Estão aqui as colunas que as migrações deste repositório tocam, e mais
+-- nenhuma. **Não é uma réplica do `storage` do Supabase** e não serve para
+-- provar nada sobre o comportamento dele: o que se prova com estes bonecos é
+-- que o SQL da migração compila e corre três vezes, não que o balde fica com
+-- as permissões certas — isso só a base viva o diz.
+--
+-- `storage.objects` existe por causa do `drop policy ... on storage.objects`
+-- que a migração dos documentos faz para limpar tentativas anteriores: um
+-- `drop policy` precisa da tabela mesmo quando não há política nenhuma para
+-- apagar.
+
+CREATE SCHEMA IF NOT EXISTS storage;
+
+CREATE TABLE IF NOT EXISTS storage.buckets (
+  id text NOT NULL PRIMARY KEY,
+  name text NOT NULL,
+  owner uuid,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  public boolean DEFAULT false,
+  avif_autodetection boolean DEFAULT false,
+  file_size_limit bigint,
+  allowed_mime_types text[]
+);
+
+CREATE TABLE IF NOT EXISTS storage.objects (
+  id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+  bucket_id text REFERENCES storage.buckets(id),
+  name text,
+  owner uuid,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  metadata jsonb
+);
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;

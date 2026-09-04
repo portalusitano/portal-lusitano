@@ -40,10 +40,27 @@ const getVendedor = cache(async (id: string) => {
   const nome =
     (data.find((d) => d.vendedor_nome)?.vendedor_nome as string) || "Vendedor no Portal Lusitano";
 
-  const vendidos = Number(data[0]?.total_vendas) || 0;
-  const verificado = data.some((d) => d.verificado === true);
+  /* Saíram daqui dois números e um distintivo, e cada um por uma razão:
 
-  return { nome, anuncios, vendidos, verificado, desde: anuncios[anuncios.length - 1].createdAt };
+     - **«N vendidos»** lia `total_vendas` do anúncio mais recente. Essa coluna
+       tem `DEFAULT 0` e **nenhum código no repositório alguma vez lhe escreve**
+       — não há caminho, do webhook do Stripe ao painel de administração, que a
+       incremente quando um cavalo é vendido. Ou seja: ou dizia sempre zero, ou
+       dizia um número que alguém pôs à mão na base sem nada por trás. Um
+       historial de vendas é a coisa que mais pesa na decisão de confiar num
+       vendedor, e este não era contado por ninguém. O dado fica na base; o que
+       sai é a afirmação.
+     - **«Vendedor verificado»** vinha de um `.some()` sobre a coluna
+       `verificado` de `cavalos_venda` — que é uma marca por **anúncio**, posta
+       por um administrador através de uma rota de API, sem critério escrito em
+       lado nenhum e sem ecrã que a mostre. Um anúncio marcado passava a
+       carimbar a pessoa inteira, e para todos os anúncios dela, incluindo os
+       que ninguém tinha visto. Uma marca por anúncio não se generaliza ao
+       vendedor sem se decidir primeiro o que ela quer dizer.
+
+     O que fica é o que se sabe mesmo: o nome que o vendedor escreveu, quantos
+     anúncios tem em pé, e desde quando anuncia. */
+  return { nome, anuncios, desde: anuncios[anuncios.length - 1].createdAt };
 });
 
 export async function generateMetadata({
@@ -98,10 +115,9 @@ export default async function VendedorPage({ params }: { params: Promise<{ id: s
                   {vendedor.anuncios.length}{" "}
                   {vendedor.anuncios.length === 1 ? "anúncio" : "anúncios"}
                 </span>
-                {vendedor.vendidos > 0 && <span>{vendedor.vendidos} vendidos</span>}
-                {vendedor.verificado && (
-                  <span className="text-[var(--foreground-muted)]">Vendedor verificado</span>
-                )}
+                <span className="text-[var(--foreground-muted)]">
+                  Anúncios publicados pelo próprio vendedor
+                </span>
               </div>
             </div>
           </div>
