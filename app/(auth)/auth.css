@@ -1,28 +1,31 @@
-/* ===== ECRÃ DE ENTRADA ===== */
-/* Folha própria das páginas de `(auth)`, carregada só pelo layout delas.
+/* ===== A ÁREA DE ENTRADA =====
+ * Só carregado nas páginas de `(auth)`, pelo `import` do layout.
  *
- * Tinha onze conjuntos de fotogramas e três classes desligadas por escrito.
- * Nove desses conjuntos não eram usados por ficheiro nenhum:
- * `auth-slideInLeft`, `auth-float`, `auth-shimmer`, `auth-glow-pulse`,
- * `auth-checkmark-draw`, `auth-success-ring`, `auth-confetti-fall`,
- * `auth-gradient-shift` e `auth-stat-count` — os restos do painel de
- * ornamentos que saiu daqui (as bolas a flutuar, o gradiente animado, os
- * números inventados) e da festa de confetes do registo.
+ * As durações e as curvas daqui **não são deste ficheiro**: são os tokens do
+ * `globals.css`. Estava aqui um `0.5s ease-out` para a entrada e sete
+ * atrasos escritos à mão de `0.05s` a `0.35s`, e um número escrito à mão
+ * dentro de um ficheiro de página é uma duração que ninguém encontra e que
+ * ninguém muda quando as outras mudam — a mesma razão por que o
+ * `<GloboTerra>` lê `--d-drill` do CSS em vez de o copiar.
  *
- * Saem os nove. E sai com eles o `auth-shimmer`, que é o caso que o
- * CLAUDE.md conta: a classe `.animate-auth-shimmer` tinha o ciclo desligado
- * por escrito (`animation: none`) e o JSX reintroduziu-o com um
- * `animation: ... infinite` **em linha**, que ganha sempre a uma classe. Uma
- * regra desligada numa folha de estilo não fica desligada enquanto os
- * fotogramas existirem para alguém lhes chamar pelo nome. Sem
- * `@keyframes auth-shimmer` não há nome para chamar.
+ * Chegar à área de cliente é entrar num sítio, e o site já tem um tempo para
+ * isso: `--d-drill` com `--ease-in-out-cubic`, o mesmo dos submenus do menu
+ * de ecrã inteiro, o mesmo da pilha de regiões do `/mapa` e o mesmo de
+ * escolher uma coudelaria. Não se inventa aqui um tempo próprio.
  *
- * Ficam dois, e são os dois que se usam: a entrada e o abanão do erro. */
+ * Saíram deste ficheiro seis conjuntos de fotogramas que nenhum ficheiro do
+ * repositório usava — `auth-slideInLeft`, `auth-float`, `auth-glow-pulse`,
+ * `auth-gradient-shift`, `auth-stat-count`, `auth-checkmark-draw` — e as
+ * duas classes que só existiam para lhes desligar o ciclo
+ * (`.animate-auth-float`, `.animate-auth-gradient`). Fotogramas que ninguém
+ * usa custam o mesmo a descarregar e a analisar que os outros, e são a
+ * primeira coisa que alguém copia por engano quando precisa de um vizinho.
+ * ========================================================================= */
 
-/* --- O abanão do erro ----------------------------------------------------- */
-/* O movimento dentro da página: alguém carregou em entrar e faltava qualquer
-   coisa. Anula-se sozinho no bloco `prefers-reduced-motion: reduce` do
-   `globals.css`, que trata todas as animações do site. */
+/* --- O tremor do erro ------------------------------------------------------
+ * Continua a ser um movimento próprio do erro e não da chegada; o movimento
+ * dentro do formulário é de quem desenha o formulário. Fica como estava.
+ * ------------------------------------------------------------------------ */
 @keyframes auth-shake {
   0%,
   100% {
@@ -52,9 +55,13 @@
   animation: auth-shake 0.45s ease-in-out;
 }
 
-/* --- A entrada ------------------------------------------------------------ */
-/* Dispara ao carregar, não ao entrar no ecrã: nesta página está tudo acima da
-   dobra e não há nada para revelar a rolar. */
+/* --- A chegada -------------------------------------------------------------
+ * A marca, o cartão e o pé nascem com o mesmo movimento, escalonados. É CSS
+ * puro com `both`: corre na primeira pintura, sem esperar por script nenhum,
+ * e acaba em `opacity: 1` haja ou não hidratação. Um ecrã de entrada que
+ * precise de JavaScript para se ver é um ecrã preto no dia em que o script
+ * falhar.
+ * ------------------------------------------------------------------------ */
 @keyframes auth-fadeInUp {
   from {
     opacity: 0;
@@ -67,19 +74,146 @@
 }
 
 .animate-auth-fadeInUp {
-  animation: auth-fadeInUp 0.5s ease-out both;
+  animation: auth-fadeInUp var(--d-drill) var(--ease-in-out-cubic) both;
 }
 
-/* A cascata é de 100ms por bloco, que é o passo do sistema. Os números saltam
-   de dois em dois por serem os que já estavam escritos nas páginas; os quatro
-   degraus ímpares não eram usados por ninguém e saíram. Quem entra é a marca
-   (sem atraso), o cartão, o botão de voltar e a citação. */
+/* Os degraus da cascata saem da duração e não de uma tabela à parte: um
+   sétimo do `--d-drill` por degrau, que aos 320ms dá ~46ms — perto dos 50ms
+   que aqui estavam escritos à mão, mas agora acompanham o token se ele
+   mudar. O último degrau entra a meio da animação do primeiro, que é o que
+   faz isto ler-se como uma cascata e não como uma lista a carregar. */
+.auth-stagger-1 {
+  animation-delay: calc(var(--d-drill) / 7);
+}
 .auth-stagger-2 {
-  animation-delay: 0.1s;
+  animation-delay: calc(2 * var(--d-drill) / 7);
+}
+.auth-stagger-3 {
+  animation-delay: calc(3 * var(--d-drill) / 7);
 }
 .auth-stagger-4 {
-  animation-delay: 0.2s;
+  animation-delay: calc(4 * var(--d-drill) / 7);
+}
+.auth-stagger-5 {
+  animation-delay: calc(5 * var(--d-drill) / 7);
 }
 .auth-stagger-6 {
-  animation-delay: 0.3s;
+  animation-delay: calc(6 * var(--d-drill) / 7);
+}
+.auth-stagger-7 {
+  animation-delay: var(--d-drill);
+}
+
+/* --- A passagem entre o login e o registo ----------------------------------
+ * Ver `components/auth/PalcoAuth.tsx` para o porquê. Aqui ficam só as duas
+ * metades do movimento: a altura da caixa, que é o que impede o cartão de
+ * saltar 233px num quadro, e a folha que entra.
+ *
+ * A altura repete a receita da `.pilha` do `/mapa`, tokens incluídos. O
+ * recorte só existe enquanto a altura está presa (`data-a-trocar`), e o
+ * componente larga-a no fim: um `overflow: hidden` permanente cortaria o
+ * halo do foco dos campos.
+ * ------------------------------------------------------------------------ */
+.palco-auth {
+  transition: height var(--d-drill) var(--ease-in-out-cubic);
+}
+
+.palco-auth[data-a-trocar="sim"] {
+  overflow: hidden;
+}
+
+/* Dez por cento e não uma largura inteira: o submenu do menu desliza um ecrã
+   porque o que entra é outro ecrã, mas aqui o cartão é o mesmo e só o que
+   está lá dentro é que muda. Uma largura inteira num cartão de 420px lia-se
+   como um carrossel — o que se quer é a profundidade, não a viagem. */
+@keyframes auth-folha-dentro {
+  from {
+    opacity: 0;
+    transform: translateX(10%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes auth-folha-fora {
+  from {
+    opacity: 0;
+    transform: translateX(-10%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Sem `data-sentido` — primeira chegada, ou sem JavaScript — não corre
+   animação nenhuma e o formulário está simplesmente lá. */
+.palco-auth__folha[data-sentido="dentro"] {
+  animation: auth-folha-dentro var(--d-drill) var(--ease-in-out-cubic) both;
+}
+
+.palco-auth__folha[data-sentido="fora"] {
+  animation: auth-folha-fora var(--d-drill) var(--ease-in-out-cubic) both;
+}
+
+/* --- O que ainda é usado pelo registo --------------------------------------
+ * O `.animate-auth-shimmer` fica com o ciclo desligado, e a razão está no
+ * CLAUDE.md: o ciclo já tinha sido desligado aqui uma vez e voltou por um
+ * `style` em linha no JSX, que ganha sempre a uma classe. Enquanto a classe
+ * for referida pelo `/registar`, é aqui que ela tem de continuar a dizer
+ * `animation: none`.
+ * ------------------------------------------------------------------------ */
+.animate-auth-shimmer {
+  background-size: 200% 100%;
+  animation: none;
+}
+
+@keyframes auth-success-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes auth-confetti-fall {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(60px) rotate(360deg) scale(0);
+  }
+}
+
+/* O esqueleto da espera não traz fotogramas novos: usa o `animate-pulse` do
+   Tailwind, que é a excepção já aceite no CLAUDE.md para esqueletos de
+   carregamento. Escrever aqui um ciclo próprio seria um quarto ciclo
+   infinito no site, e um quarto custa uma razão escrita — esta não existe,
+   porque a que já está aceite serve exactamente para isto. */
+
+/* O bloco global de `prefers-reduced-motion` já anula tudo isto com
+   `!important`. Estes dois são explícitos à mesma porque são os que fixam
+   geometria: sem eles a altura ficava presa no valor que o JS escreveu se a
+   preferência mudasse a meio de uma troca. */
+@media (prefers-reduced-motion: reduce) {
+  .palco-auth,
+  .palco-auth__folha {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .palco-auth {
+    height: auto !important;
+  }
 }

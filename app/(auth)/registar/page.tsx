@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useRef, Suspense } from "react";
 import LocalizedLink from "@/components/LocalizedLink";
-import { useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { useLanguage } from "@/context/LanguageContext";
 import {
@@ -18,6 +17,8 @@ import {
   ArrowRight,
 } from "lucide-react";
 import EntrarComConta from "@/components/auth/EntrarComConta";
+import LerParametrosDoUrl from "@/components/auth/LerParametrosDoUrl";
+import { destinoSeguro } from "@/lib/destino-seguro";
 
 // ─── Ajudas ───────────────────────────────────────────────────────────────────
 /* Ver a nota igual no login: o campo é o do sistema, o `pl-10` abre espaço ao
@@ -82,9 +83,27 @@ function RequisitosDaPalavraPasse({ password }: { password: string }) {
 
 // ─── Conteúdo ─────────────────────────────────────────────────────────────────
 function RegistarContent() {
-  const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "";
-  const toolParam = searchParams.get("tool") || "";
+  /* O que vem do URL. Chega por um componente à parte, e a razão está escrita
+     nele: o `useSearchParams` suspende numa página estática, e quem o chamasse
+     arrastava o formulário inteiro consigo — o HTML que o servidor mandava não
+     tinha um único `<form>`.
+
+     O `redirect` é **validado à entrada**. Acaba a alimentar o `next` do
+     `/auth/callback` e o `returnUrl` do `/login`, e os dois já o validam — mas
+     validá-lo também aqui fecha a cadeia nas três pontas, e custa uma linha. */
+  const [{ redirect, toolParam }, setParametros] = useState({ redirect: "", toolParam: "" });
+
+  const lerParametros = useCallback(
+    (p: URLSearchParams) => ({
+      redirect: p.get("redirect") ? destinoSeguro(p.get("redirect"), "") : "",
+      toolParam: p.get("tool") || "",
+    }),
+    []
+  );
+  const guardarParametros = useCallback(
+    (v: { redirect: string; toolParam: string }) => setParametros(v),
+    []
+  );
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -244,6 +263,16 @@ function RegistarContent() {
   // ── Formulário ──────────────────────────────────────────────────────────────
   return (
     <div>
+      {/* Fora do fluxo e sem desenho. A fronteira é só dele: é ele que
+          suspende, e o formulário à volta não vai atrás.
+
+          Basta estar aqui, e não também no ramo de «conta criada»: os
+          parâmetros lêem-se ao montar, e para se chegar a esse ramo é preciso
+          ter submetido este formulário — altura em que o valor já está no
+          estado, que sobrevive ao componente sair do ecrã. */}
+      <Suspense fallback={null}>
+        <LerParametrosDoUrl ler={lerParametros} aoLer={guardarParametros} />
+      </Suspense>
       <h1 className="titulo-pagina mb-1.5">{t.auth.create_account}</h1>
       <p className="mb-6 text-sm leading-relaxed text-[var(--foreground-secondary)]">
         {t.auth.register_desc}
@@ -551,10 +580,9 @@ function RegistarContent() {
   );
 }
 
+/* Sem fronteira à volta da página: a que aqui estava não tinha `fallback`, e
+ * numa rota estática o que o servidor emite é o fallback. Quem suspende agora
+ * é o leitor dos parâmetros, lá dentro, e o formulário fica de fora. */
 export default function RegistarPage() {
-  return (
-    <Suspense>
-      <RegistarContent />
-    </Suspense>
-  );
+  return <RegistarContent />;
 }

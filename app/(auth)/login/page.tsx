@@ -2,11 +2,12 @@
 
 import { useState, useRef, useCallback, Suspense } from "react";
 import LocalizedLink from "@/components/LocalizedLink";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import EntrarComConta from "@/components/auth/EntrarComConta";
 import { useLanguage } from "@/context/LanguageContext";
 import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import LerParametrosDoUrl from "@/components/auth/LerParametrosDoUrl";
 import { destinoSeguro } from "@/lib/destino-seguro";
 
 /* O campo é o do sistema (`.campo`); aqui abre-se espaço à esquerda para o
@@ -55,23 +56,18 @@ function LoginContent() {
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const searchParams = useSearchParams();
-  /* Para onde se volta depois de entrar, **validado**.
-   *
-   * Vinha cru do URL e ia direito a um `router.push`. Um `?returnUrl=` com um
-   * endereço de fora levava a pessoa para lá no instante a seguir a ter
-   * entrado — que é exactamente o truque com que se põe alguém numa página de
-   * login falsa logo depois de ter usado a verdadeira, já convencida de que
-   * está dentro do site certo.
-   *
-   * O `destinoSeguro` já existia e já era usado no `app/auth/callback`; só não
-   * estava aqui. Deixa passar um caminho deste site e mais nada. */
-  const returnUrl = destinoSeguro(searchParams.get("returnUrl"));
-
-  /* Quem chega de uma entrada com conta externa que correu mal vem com a
-     razão no URL. Mostrada aqui, é a diferença entre «não deu» e saber
-     porquê. */
-  const erroDeRegresso = searchParams.get("error");
+  /* O que vem do URL — para onde voltar depois de entrar, e a razão de uma
+     entrada com conta externa que correu mal.
+     
+     Chega por um componente à parte, e a razão está escrita nele: o
+     `useSearchParams` suspende numa página estática, e quem o chamasse
+     arrastava o formulário inteiro consigo. O HTML que o servidor mandava não
+     tinha um único `<form>`. Aqui é estado, e o formulário é escrito pelo
+     servidor. */
+  const [{ returnUrl, erro: erroDeRegresso }, setParametros] = useState({
+    returnUrl: "/",
+    erro: null as string | null,
+  });
   const { t } = useLanguage();
 
   const abanar = useCallback(() => {
@@ -125,8 +121,30 @@ function LoginContent() {
     }
   };
 
+  /* O `returnUrl` é **validado aqui**, ao lado do valor que protege. Um
+     endereço de fora levava a pessoa para lá no instante a seguir a ter
+     entrado; o `destinoSeguro` deixa passar um caminho deste site e mais nada.
+     As duas funções são estáveis, senão o leitor relê a cada desenho. */
+  const lerParametros = useCallback(
+    (p: URLSearchParams) => ({
+      returnUrl: destinoSeguro(p.get("returnUrl")),
+      erro: p.get("error"),
+    }),
+    []
+  );
+  const guardarParametros = useCallback(
+    (v: { returnUrl: string; erro: string | null }) => setParametros(v),
+    []
+  );
+
   return (
     <div>
+      {/* Fora do fluxo e sem desenho. A fronteira é só dele: é ele que
+          suspende, e o formulário à volta não vai atrás. */}
+      <Suspense fallback={null}>
+        <LerParametrosDoUrl ler={lerParametros} aoLer={guardarParametros} />
+      </Suspense>
+
       {/* Dizia «insira o seu email para receber um link de recuperação» por
           baixo de «Entrar na Conta» — a legenda da página ao lado. */}
       <h1 className="titulo-pagina mb-1.5">{t.auth.login_account}</h1>
@@ -276,10 +294,14 @@ function LoginContent() {
   );
 }
 
+/* Já não há aqui uma fronteira de `<Suspense>` à volta da página inteira.
+ *
+ * Havia, e sem `fallback`. Como a rota é estática e o `useSearchParams`
+ * suspende na pré-renderização, o que o servidor emitia era o fallback — ou
+ * seja, nada. Medido no HTML servido: zero `<form>`, zero campos.
+ *
+ * Quem suspende agora é o `<LerParametrosDeEntrada>`, lá dentro, que não
+ * desenha nada. O formulário fica de fora e é escrito pelo servidor inteiro. */
 export default function LoginPage() {
-  return (
-    <Suspense>
-      <LoginContent />
-    </Suspense>
-  );
+  return <LoginContent />;
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import RodapeEntrada from "@/components/auth/RodapeEntrada";
+import TransicaoAuth from "@/components/auth/TransicaoAuth";
 import "./auth.css";
 
 export const metadata: Metadata = {
@@ -66,7 +67,21 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="cartao-seco animate-auth-fadeInUp auth-stagger-2 bg-[var(--background-card)]">
           <div className="cartao-seco__costura" />
           <div className="cartao-seco__esbatido" />
-          <div className="relative z-10 px-6 py-7 sm:px-8">{children}</div>
+          {/* O palco e a folha são escritos aqui, pelo servidor, e o
+              `<TransicaoAuth>` é um irmão que não desenha nada: encontra-as
+              e anima-as. A razão de o `children` não ir dentro de um
+              componente de cliente está escrita nesse ficheiro, e não é a
+              velocidade — é o observador do conteúdo, que com um nó novo por
+              navegação mentia. Sem JavaScript ficam duas `<div>` à volta do
+              formulário, e mais nada. */}
+          <div className="relative z-10 px-6 py-7 sm:px-8">
+            <div className="palco-auth" data-palco-auth>
+              <div className="palco-auth__folha" data-palco-folha>
+                {children}
+              </div>
+            </div>
+            <TransicaoAuth />
+          </div>
         </div>
 
         <RodapeEntrada />
