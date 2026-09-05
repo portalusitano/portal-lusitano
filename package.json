@@ -30,7 +30,8 @@
     "sync-cavalos": "npx tsx scripts/sync-cavalos-images.ts",
     "optimize-images": "npx tsx scripts/optimize-images.ts",
     "mapa:geometria": "node scripts/mapa/montar-geometria.mjs",
-    "paises:gerar": "node scripts/paises/gerar.mjs"
+    "paises:gerar": "node scripts/paises/gerar.mjs",
+    "oficiais:gerar": "node scripts/oficiais/gerar.mjs"
   },
   "lint-staged": {
     "*.{js,cjs,mjs,jsx,ts,tsx}": [

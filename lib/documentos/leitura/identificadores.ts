@@ -40,6 +40,7 @@ import {
 } from "@/components/vender-cavalo/passaporte-ueln";
 import { DIGITOS_MICROCHIP, lerMicrochip, normalizarMicrochip } from "@/lib/microchip-iso";
 import { aplanar, chaveDeNome } from "@/lib/documentos/leitura/normalizar";
+import { ROTULOS_DO_PASSAPORTE } from "@/lib/documentos/vocabulario-passaporte";
 
 /** Os campos que se procuram. São os do `Conflito` do contrato. */
 export type CampoDoDocumento = "ueln" | "microchip" | "numero_registo" | "nome";
@@ -74,19 +75,98 @@ const MAX_NOME = 60;
  * «chipado», em «chip de leitura», e não custa nada perder o rótulo quando o
  * número está ao lado da palavra inteira.
  */
+/**
+ * Os rótulos que o **regulamento** manda imprimir, tirados do
+ * `ROTULOS_DO_PASSAPORTE`.
+ *
+ * Até aqui esta tabela era inteiramente inferida — «do que esses documentos
+ * costumam imprimir», como estava escrito —, e isso era o ponto mais fraco de
+ * todo o sistema de verificação. O Anexo II do Regulamento de Execução (UE)
+ * 2021/963 fixa o modelo do documento, e agora os rótulos vêm de lá.
+ *
+ * Só se aproveitam os que **identificam o animal**: o transpondedor, o código
+ * único, o nome e o número no livro genealógico. Os outros cinquenta são
+ * cabeçalhos, secções e campos de assinatura, e um deles — «Data» — casaria
+ * com metade do documento.
+ *
+ * O rótulo do regulamento é uma frase inteira, com pontuação e parênteses. O
+ * que aqui interessa é a parte que se procura no texto de um PDF, e por isso
+ * corta-se no primeiro parêntese e nos dois pontos: `Transponder code (where
+ * available)` procura-se como `TRANSPONDER CODE`.
+ */
+function doRegulamento(...seccoes: string[]): string[] {
+  const fatiar = (r: string) =>
+    r
+      .split(/[(:]/)[0]
+      .trim()
+      .toUpperCase()
+      // Sem acentos, porque é assim que o resto deste módulo compara.
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "");
+
+  return ROTULOS_DO_PASSAPORTE.filter((r) => seccoes.includes(r.campo))
+    .flatMap((r) => [r.pt, r.en, r.fr].filter((x): x is string => Boolean(x)))
+    .map(fatiar)
+    .filter((r) => r.length >= 4);
+}
+
+/**
+ * O que se procura ao lado de um número, para saber de que campo ele é.
+ *
+ * São duas famílias, e a distinção importa:
+ *
+ * - **As do regulamento**, que é o que um passaporte da União imprime. Vêm do
+ *   `vocabulario-passaporte.ts`, que é gerado a partir do Anexo II.
+ * - **As inferidas**, que ficam porque um Livro Azul da APSL **não é um
+ *   passaporte da União** e não segue aquele modelo — imprime «Registo»,
+ *   «APSL», «Stud Book» —, e porque há documentos anteriores a 2021 em
+ *   circulação. Tirá-las seria trocar cobertura por pureza.
+ *
+ * O conjunto elimina repetições: várias secções do anexo imprimem o mesmo
+ * rótulo, e procurar duas vezes a mesma palavra é procurar duas vezes.
+ */
 const ROTULOS: Readonly<Record<CampoDoDocumento, readonly string[]>> = {
-  microchip: ["MICROCHIP", "MICRO CHIP", "TRANSPONDER", "TRANSPONDEDOR", "TRANSPONDEUR"],
-  ueln: ["UELN", "PASSAPORTE", "PASSPORT", "PASAPORTE"],
-  numero_registo: ["REGISTO", "REGISTRO", "APSL", "STUD BOOK", "STUD-BOOK"],
+  microchip: [
+    ...new Set([
+      ...doRegulamento("Transponder / microchip", "Código do transpondedor"),
+      "MICROCHIP",
+      "MICRO CHIP",
+      "TRANSPONDER",
+      "TRANSPONDEDOR",
+      "TRANSPONDEUR",
+    ]),
+  ],
+  ueln: [
+    ...new Set([
+      ...doRegulamento("UELN / código único", "Número único vitalício (UELN)"),
+      "UELN",
+      "PASSAPORTE",
+      "PASSPORT",
+      "PASAPORTE",
+    ]),
+  ],
+  numero_registo: [
+    ...new Set([
+      ...doRegulamento("Número no livro genealógico", "Número de identificação individual"),
+      "REGISTO",
+      "REGISTRO",
+      "APSL",
+      "STUD BOOK",
+      "STUD-BOOK",
+    ]),
+  ],
   nome: [
-    "NOME DO ANIMAL",
-    "NOME DO CAVALO",
-    "NOME DO EQUIDEO",
-    "NOME DO EQUINO",
-    "NOME DE REGISTO",
-    "NOME REGISTADO",
-    "NAME OF ANIMAL",
-    "NOME",
+    ...new Set([
+      ...doRegulamento("Nome do animal"),
+      "NOME DO ANIMAL",
+      "NOME DO CAVALO",
+      "NOME DO EQUIDEO",
+      "NOME DO EQUINO",
+      "NOME DE REGISTO",
+      "NOME REGISTADO",
+      "NAME OF ANIMAL",
+      "NOME",
+    ]),
   ],
 };
 

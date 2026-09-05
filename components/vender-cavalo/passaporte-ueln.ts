@@ -1,3 +1,4 @@
+import { BASES_UELN } from "@/lib/documentos/ueln-bases";
 /**
  * O número do passaporte equino, lido pelo UELN.
  *
@@ -33,11 +34,19 @@
  * cavalos mais velhos. O que se pode fazer com honestidade é dizer «isto não
  * parece um UELN» a quem tinha um UELN para escrever e se enganou a copiá-lo.
  *
- * **Não valida o bloco do meio.** A lista dos códigos de base de dados é
- * mantida pelos organismos do UELN e não a temos; inventar quais são os
- * válidos seria recusar passaportes reais por causa de uma lista adivinhada.
- * Verifica-se o que o formato garante — o comprimento e o bloco do país serem
- * algarismos — e mais nada.
+ * **O bloco do meio já se reconhece, e continua a não recusar nada.** Dizia-se
+ * aqui que a lista dos códigos de base de dados «é mantida pelos organismos do
+ * UELN e não a temos». Passou a haver: está em `lib/documentos/ueln-bases.ts`,
+ * gerada a partir de `dados/oficiais/ueln-bases.csv`, com 720 códigos.
+ *
+ * O que se ganha é dizer de quem é o número — «620003, APSL» — e assinalar um
+ * bloco que não consta. O que **não** se ganha é o direito de recusar: a lista
+ * é a cópia de um dia, organizações novas entram, e um código que aqui não
+ * esteja pode ser de uma base que existe. Recusá-lo seria repetir, com uma
+ * lista a sério, o erro que se evitou quando não havia lista nenhuma.
+ *
+ * Vale a pena o registo: antes de a lista chegar tinha-se suposto que a APSL
+ * era `620015`. **Não existe.** É `620003`.
  */
 
 export interface PassaporteLido {
@@ -54,6 +63,15 @@ export interface PassaporteLido {
   diferenca?: number;
   /** O bloco do país, quando são três algarismos. */
   codigoPais?: string;
+  /** O bloco do meio: a base de dados ou stud-book que emitiu o número. */
+  codigoBase?: string;
+  /**
+   * A organização a que o bloco do meio pertence, quando a conhecemos.
+   *
+   * `undefined` quer dizer **não sabemos**, e nunca «não presta». Ver o
+   * cabeçalho.
+   */
+  organizacao?: string;
 }
 
 /** Quinze caracteres: 3 do país, 3 da base de dados, 9 do animal. */
@@ -94,5 +112,17 @@ export function lerPassaporte(valor: string): PassaporteLido {
     return { limpo, pareceUeln: false, problema: "pais-nao-numerico" };
   }
 
-  return { limpo, pareceUeln: true, problema: null, codigoPais: pais };
+  /* Os seis primeiros são o país mais a base, e é assim que a lista os guarda:
+     `620003` e não `620` + `003`. O nome pode não estar lá, e isso não é
+     problema nenhum — é a diferença entre saber e não saber. */
+  const base = limpo.slice(0, 6);
+
+  return {
+    limpo,
+    pareceUeln: true,
+    problema: null,
+    codigoPais: pais,
+    codigoBase: limpo.slice(3, 6),
+    organizacao: BASES_UELN[base],
+  };
 }
