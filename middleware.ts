@@ -253,6 +253,53 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 301);
   }
 
+  /* A área de cliente, quando não há sessão nenhuma.
+   *
+   * **Isto não é a autenticação, e não a substitui.** A verificação a sério
+   * continua onde estava — `app/minha-conta/**` chama `supabase.auth.getUser()`
+   * e faz `redirect("/login")`. O que aqui se corta é o caso mais comum e mais
+   * barato: quem não traz sequer um cookie de sessão não precisa de acordar o
+   * servidor de autenticação para ouvir o que já se sabe.
+   *
+   * A razão de existir é medida, e é de experiência e não de desempenho.
+   * Carregar no ícone da conta sem sessão eram **duas navegações**: primeiro
+   * para `/minha-conta`, que renderizava o esqueleto de carregamento durante
+   * ~370ms, e só depois para `/login`. Medido no browser, a partir do rodapé
+   * da página inicial: a página da conta aterrava a meio (`scrollY=380`),
+   * rolava sozinha até ao topo, e só então mudava para o login. Via-se a
+   * viagem toda.
+   *
+   * Com isto é uma navegação só, decidida no limite, sem esqueleto e sem
+   * página pelo meio.
+   *
+   * **Só se recusa a ausência, nunca a invalidez.** Um cookie presente mas
+   * expirado, adulterado ou de outro projecto passa por aqui e vai bater na
+   * verificação de verdade, que é quem sabe dizer que não presta. Julgar aqui
+   * a validade de um token seria pôr uma segunda ideia de autenticação no
+   * caminho — e a que ficasse errada seria sempre esta. */
+  const semPrefixo = pathname.replace(/^\/(en|es)/, "") || "/";
+  if (semPrefixo.startsWith("/minha-conta")) {
+    // O Supabase guarda a sessão em `sb-<projecto>-auth-token`, e parte-a em
+    // `.0`, `.1` quando não cabe num cookie. Basta um pedaço para não podermos
+    // afirmar que não há sessão.
+    const temCookieDeSessao = request.cookies
+      .getAll()
+      .some((c) => /^sb-.+-auth-token(\.\d+)?$/.test(c.name));
+
+    if (!temCookieDeSessao) {
+      const prefixo = pathname.match(/^\/(en|es)/)?.[0] ?? "";
+      const destino = request.nextUrl.clone();
+      destino.pathname = `${prefixo}/login`;
+      /* Por onde voltar depois de entrar. É o nome que a página de login já
+         conhece, e vai o caminho sem o anfitrião — validado do outro lado pelo
+         `destinoSeguro`, porque um regresso que aceite um endereço inteiro
+         vindo do URL é uma porta aberta para mandar quem acabou de entrar
+         para fora do site. */
+      destino.searchParams.set("returnUrl", semPrefixo);
+      return NextResponse.redirect(destino);
+    }
+  }
+
   // i18n: Rewrite /en/* and /es/* routes to serve the same pages with locale cookie
   // Isto permite que o Google indexe /en/comprar, /en/loja, /es/comprar, /es/loja, etc.
   const i18nMatch = pathname.match(/^\/(en|es)(\/|$)/);

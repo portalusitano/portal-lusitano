@@ -7,15 +7,17 @@
  * deslocamento suave nativo umas duzentas linhas abaixo.
  *
  * O motor saiu (a razão está escrita no `ClientShell`), e com ele sai a folha.
- * Quem trata das âncoras internas é o par que fica: o `scroll-behavior:
- * smooth` que já cá estava, dentro do `prefers-reduced-motion: no-preference`
- * — logo já respeita quem não quer movimento, sem uma linha de JavaScript —
- * e este `scroll-padding-top`, que faz o mesmo que o `offset: -80` que o
- * Lenis aplicava à mão: afasta o destino de uma âncora da barra fixa, para o
- * título a que se salta não ficar escondido por trás dela.
+ * O que fica é este `scroll-padding-top`, que faz o mesmo que o `offset: -80`
+ * que o Lenis aplicava à mão: afasta o destino de uma âncora da barra fixa,
+ * para o título a que se salta não ficar escondido por trás dela.
  *
  * Vale para tudo o que desloca o documento — âncoras, `scrollIntoView`,
  * navegação por teclado —, e não só para os cliques que um ouvinte apanhasse.
+ *
+ * Ficou aqui também, durante algum tempo, um `scroll-behavior: smooth` que se
+ * julgava servir as âncoras. Servia sobretudo para animar o salto para o topo
+ * que o Next faz a cada mudança de rota. Saiu, e a razão medida está escrita
+ * onde ele estava, umas duzentas linhas abaixo.
  * ========================================================================= */
 html {
   scroll-padding-top: 5rem;
@@ -209,11 +211,37 @@ html.is-theme-transitioning body {
 
 /* ===== ACESSIBILIDADE ===== */
 
-/* Smooth scrolling (respeita preferências do utilizador) */
-@media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
+/* O deslocamento é instantâneo, e isso é uma correcção e não uma perda.
+ *
+ * Havia aqui um `scroll-behavior: smooth` no `html`, herdado de quando o Lenis
+ * saiu. A intenção era servir as âncoras internas. O que fazia na prática era
+ * outra coisa: **o Next desloca a página para o topo a cada mudança de rota**,
+ * e uma propriedade no `html` não distingue esse salto de uma âncora — por
+ * isso o salto passava a ser uma animação.
+ *
+ * Medido no browser, a navegar do rodapé da página inicial para o directório:
+ * a página nova aterrava em `scrollY=612` e **animava 26 quadros** até ao topo.
+ * Em todas as páginas, em todas as navegações feitas com a página rolada. No
+ * caminho para a área de cliente notava-se a dobrar, porque ali há duas
+ * navegações seguidas: via-se a página aterrar a meio, rolar sozinha para
+ * cima, e só então mudar para o login.
+ *
+ * E não servia ninguém. Os deslocamentos que se querem suaves pedem-no
+ * explicitamente (`behavior: "smooth"` em `MarketplaceGrid`, `DirectorioContent`,
+ * `FormErrors`, `vender-cavalo`) e não dependem daqui. Os que se querem
+ * imediatos — a opção de uma lista a entrar na vista com as setas, em
+ * `Seleccao` e `Search` — dependiam, e estavam a animar sem que ninguém o
+ * pedisse.
+ *
+ * As três únicas âncoras `href="#"` do site são **links de salto**
+ * (`SkipLinks`, e o «saltar para as regiões» do mapa). Para essas, instantâneo
+ * é melhor: quem carrega em «saltar para o conteúdo» quer lá estar, não quer
+ * ver a viagem.
+ *
+ * O `scroll-padding-top` fica, que é o que impede o cabeçalho fixo de tapar o
+ * destino. */
+html {
+  scroll-behavior: auto;
 }
 
 /* Focus styles visíveis para navegação por teclado */

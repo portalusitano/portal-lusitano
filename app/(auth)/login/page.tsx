@@ -8,6 +8,7 @@ import EntrarComConta from "@/components/auth/EntrarComConta";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
 import { Mail, Lock, Eye, EyeOff, LogIn, Loader2, AlertCircle } from "lucide-react";
+import { destinoSeguro } from "@/lib/destino-seguro";
 
 /* O campo é o do sistema (`.campo`); aqui só se abre espaço à esquerda para
    o ícone. O `pl-10` ganha ao `padding` do `.campo` porque as utilidades do
@@ -40,7 +41,17 @@ function LoginContent() {
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const returnUrl = searchParams.get("returnUrl") || "/";
+  /* Para onde se volta depois de entrar, **validado**.
+   *
+   * Vinha cru do URL e ia direito a um `router.push`. Um `?returnUrl=` com um
+   * endereço de fora levava a pessoa para lá no instante a seguir a ter
+   * entrado — que é exactamente o truque com que se põe alguém numa página de
+   * login falsa logo depois de ter usado a verdadeira, já convencida de que
+   * está dentro do site certo.
+   *
+   * O `destinoSeguro` já existia e já era usado no `app/auth/callback`; só não
+   * estava aqui. Deixa passar um caminho deste site e mais nada. */
+  const returnUrl = destinoSeguro(searchParams.get("returnUrl"));
 
   /* Quem chega de uma entrada com conta externa que correu mal vem com a
      razão no URL. Mostrada aqui, é a diferença entre «não deu» e saber
