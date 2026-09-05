@@ -505,37 +505,20 @@ body {
   }
 }
 
-/* Loading spinner rotations */
-@keyframes spin-slow {
-  to {
-    transform: rotate(360deg);
-  }
-}
-@keyframes spin-slow-reverse {
-  to {
-    transform: rotate(-360deg);
-  }
-}
-@keyframes pulse-scale {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.2);
-    opacity: 0.8;
-  }
-}
-@keyframes pulse-opacity {
-  0%,
-  100% {
-    opacity: 0.3;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
+/* Aqui viviam quatro conjuntos de fotogramas — `spin-slow`,
+   `spin-slow-reverse`, `pulse-scale` e `pulse-opacity` — e serviam um só
+   ecrã: a roda de espera do `app/loading.tsx`, que corria os quatro ao mesmo
+   tempo, para sempre. O site tem três ciclos infinitos, contados e com razão
+   escrita; aquele ecrã sozinho tinha quatro.
+
+   A espera passou a ser um esqueleto com a forma da página, com o
+   `animate-pulse` do Tailwind, que é a excepção que o `CLAUDE.md` aceita por
+   escrito. Os fotogramas ficaram sem quem os chamasse.
+
+   Vão-se embora em vez de ficarem à espera, e a razão está escrita no
+   `CLAUDE.md`, na lição do `auth-shimmer`: uma regra desligada numa folha de
+   estilo não fica desligada se uma página a puder reescrever em linha. Um
+   nome que já não existe não se reescreve. */
 
 /* Toast notifications */
 @keyframes slideInRight {
