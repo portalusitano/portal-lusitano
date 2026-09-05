@@ -1,6 +1,28 @@
-/* ===== AUTH ANIMATIONS ===== */
-/* Page-specific styles — only loaded on auth pages via auth layout import */
+/* ===== ECRÃ DE ENTRADA ===== */
+/* Folha própria das páginas de `(auth)`, carregada só pelo layout delas.
+ *
+ * Tinha onze conjuntos de fotogramas e três classes desligadas por escrito.
+ * Nove desses conjuntos não eram usados por ficheiro nenhum:
+ * `auth-slideInLeft`, `auth-float`, `auth-shimmer`, `auth-glow-pulse`,
+ * `auth-checkmark-draw`, `auth-success-ring`, `auth-confetti-fall`,
+ * `auth-gradient-shift` e `auth-stat-count` — os restos do painel de
+ * ornamentos que saiu daqui (as bolas a flutuar, o gradiente animado, os
+ * números inventados) e da festa de confetes do registo.
+ *
+ * Saem os nove. E sai com eles o `auth-shimmer`, que é o caso que o
+ * CLAUDE.md conta: a classe `.animate-auth-shimmer` tinha o ciclo desligado
+ * por escrito (`animation: none`) e o JSX reintroduziu-o com um
+ * `animation: ... infinite` **em linha**, que ganha sempre a uma classe. Uma
+ * regra desligada numa folha de estilo não fica desligada enquanto os
+ * fotogramas existirem para alguém lhes chamar pelo nome. Sem
+ * `@keyframes auth-shimmer` não há nome para chamar.
+ *
+ * Ficam dois, e são os dois que se usam: a entrada e o abanão do erro. */
 
+/* --- O abanão do erro ----------------------------------------------------- */
+/* O movimento dentro da página: alguém carregou em entrar e faltava qualquer
+   coisa. Anula-se sozinho no bloco `prefers-reduced-motion: reduce` do
+   `globals.css`, que trata todas as animações do site. */
 @keyframes auth-shake {
   0%,
   100% {
@@ -30,6 +52,9 @@
   animation: auth-shake 0.45s ease-in-out;
 }
 
+/* --- A entrada ------------------------------------------------------------ */
+/* Dispara ao carregar, não ao entrar no ecrã: nesta página está tudo acima da
+   dobra e não há nada para revelar a rolar. */
 @keyframes auth-fadeInUp {
   from {
     opacity: 0;
@@ -41,146 +66,20 @@
   }
 }
 
-@keyframes auth-slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes auth-float {
-  0%,
-  100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-8px) rotate(1deg);
-  }
-}
-
-@keyframes auth-shimmer {
-  0% {
-    background-position: -200% center;
-  }
-  100% {
-    background-position: 200% center;
-  }
-}
-
-@keyframes auth-glow-pulse {
-  0%,
-  100% {
-    opacity: 0.3;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.5;
-    transform: scale(1.05);
-  }
-}
-
-@keyframes auth-checkmark-draw {
-  0% {
-    stroke-dashoffset: 50;
-  }
-  100% {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes auth-success-ring {
-  0% {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1.15);
-    opacity: 0.6;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes auth-confetti-fall {
-  0% {
-    opacity: 1;
-    transform: translateY(0) rotate(0deg) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(60px) rotate(360deg) scale(0);
-  }
-}
-
-@keyframes auth-gradient-shift {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-@keyframes auth-stat-count {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
 .animate-auth-fadeInUp {
   animation: auth-fadeInUp 0.5s ease-out both;
 }
 
-.auth-stagger-1 {
-  animation-delay: 0.05s;
-}
+/* A cascata é de 100ms por bloco, que é o passo do sistema. Os números saltam
+   de dois em dois por serem os que já estavam escritos nas páginas; os quatro
+   degraus ímpares não eram usados por ninguém e saíram. Quem entra é a marca
+   (sem atraso), o cartão, o botão de voltar e a citação. */
 .auth-stagger-2 {
   animation-delay: 0.1s;
-}
-.auth-stagger-3 {
-  animation-delay: 0.15s;
 }
 .auth-stagger-4 {
   animation-delay: 0.2s;
 }
-.auth-stagger-5 {
-  animation-delay: 0.25s;
-}
 .auth-stagger-6 {
   animation-delay: 0.3s;
-}
-.auth-stagger-7 {
-  animation-delay: 0.35s;
-}
-
-/* Antes flutuava sem parar. O movimento contínuo em três elementos de
-   fundo mais o gradiente deixava o ecrã de entrada nervoso; fica a posição,
-   sai o ciclo. */
-.animate-auth-float {
-  animation: none;
-}
-
-.animate-auth-shimmer {
-  background-size: 200% 100%;
-  animation: none;
-}
-
-/* O gradiente fica; o ciclo infinito não.
-   O site tem um só — o ponto verde da contagem de anúncios. Com vários, o
-   site fica inquieto e nenhum deles quer dizer nada. */
-.animate-auth-gradient {
-  background-size: 200% 200%;
-  animation: none;
 }

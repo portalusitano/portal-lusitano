@@ -24,10 +24,18 @@ export const metadata: Metadata = {
  * do site — com a costura de luz no topo e as laterais dissolvidas — e mais
  * nada. É o mesmo desenho da página inicial, que é o que se pretende de um
  * ecrã de entrada: reconhecer-se o sítio ao primeiro olhar.
+ *
+ * As medidas verticais são um orçamento, não um gosto. Em 1280×900 a página
+ * media 950px: cinquenta pixéis de rolo para conteúdo que cabia, e por causa
+ * deles a navegação aterrava a meio em vez de aterrar no topo. Uma página de
+ * entrada que não cabe no ecrã é a primeira coisa que o sítio faz mal à
+ * frente de quem ainda está a decidir se confia nele. O que se cortou foi
+ * espaço vazio — `py-16` para `py-10`, a distância da marca ao cartão e a
+ * distância da citação ao resto —; a ferradura, essa, cresceu.
  */
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center px-5 py-16">
+    <div className="relative flex min-h-screen flex-col items-center justify-center px-5 py-10">
       {/* O mesmo halo ténue que abre a página inicial. Nada de dourado: sobre
           preto, um gradiente quente a 25% lê-se como castanho. */}
       <div
@@ -40,19 +48,25 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       />
 
       <div className="relative z-10 w-full max-w-[420px]">
+        {/* A ferradura era de 40px com o nome do mesmo tamanho por baixo: a
+            marca do sítio lia-se como um ícone de barra de ferramentas. Passa
+            a 56px, que é o tamanho a que o desenho se vê, e o nome desce para
+            `.rotulo` — a marca é a ferradura, e a palavra é a legenda dela.
+            Este é o único dourado da página, e é o que o CLAUDE.md lhe
+            reserva. */}
         <Link
           href="/"
-          className="animate-auth-fadeInUp mb-10 flex flex-col items-center gap-3"
-          aria-label="Portal Lusitano — página inicial"
+          className="animate-auth-fadeInUp mb-7 flex flex-col items-center gap-2.5"
+          aria-label="Portal Lusitano"
         >
-          <Image src="/logo.webp" alt="" width={40} height={40} className="h-10 w-10" priority />
-          <span className="rotulo-forte">Portal Lusitano</span>
+          <Image src="/logo.webp" alt="" width={56} height={56} className="h-14 w-14" priority />
+          <span className="rotulo">Portal Lusitano</span>
         </Link>
 
         <div className="cartao-seco animate-auth-fadeInUp auth-stagger-2 bg-[var(--background-card)]">
           <div className="cartao-seco__costura" />
           <div className="cartao-seco__esbatido" />
-          <div className="relative z-10 px-6 py-8 sm:px-8">{children}</div>
+          <div className="relative z-10 px-6 py-7 sm:px-8">{children}</div>
         </div>
 
         <RodapeEntrada />

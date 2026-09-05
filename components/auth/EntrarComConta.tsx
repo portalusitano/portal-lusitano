@@ -4,7 +4,6 @@ import { useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { useLanguage } from "@/context/LanguageContext";
-import { createTranslator } from "@/lib/tr";
 
 /*
  * Entrar com uma conta que já se tem.
@@ -60,8 +59,7 @@ const LOGOS: Record<Fornecedor, { nome: string; icone: React.ReactNode }> = {
 export default function EntrarComConta({ regressarA = "/" }: { regressarA?: string }) {
   const [aCarregar, setACarregar] = useState<Fornecedor | null>(null);
   const [erro, setErro] = useState("");
-  const { language } = useLanguage();
-  const tr = createTranslator(language);
+  const { t } = useLanguage();
 
   const entrar = async (fornecedor: Fornecedor) => {
     setErro("");
@@ -73,13 +71,7 @@ export default function EntrarComConta({ regressarA = "/" }: { regressarA?: stri
        devolve a resposta sem URL e sem erro, e nada mais acontece. */
     const desistir = window.setTimeout(() => {
       setACarregar(null);
-      setErro(
-        tr(
-          "A janela de autenticação não abriu. Tente outra vez.",
-          "The sign-in window did not open. Please try again.",
-          "La ventana de autenticación no se abrió. Inténtelo de nuevo."
-        )
-      );
+      setErro(t.auth.oauth_window_failed);
     }, 8000);
 
     try {
@@ -100,16 +92,8 @@ export default function EntrarComConta({ regressarA = "/" }: { regressarA?: stri
       const porLigar = e instanceof Error && /provider is not enabled|not enabled/i.test(e.message);
       setErro(
         porLigar
-          ? tr(
-              `A entrada com ${LOGOS[fornecedor].nome} ainda não está activa.`,
-              `Signing in with ${LOGOS[fornecedor].nome} is not enabled yet.`,
-              `El acceso con ${LOGOS[fornecedor].nome} aún no está activo.`
-            )
-          : tr(
-              "Não foi possível abrir a janela de autenticação. Tente outra vez.",
-              "Could not open the sign-in window. Please try again.",
-              "No se pudo abrir la ventana de autenticación. Inténtelo de nuevo."
-            )
+          ? t.auth.oauth_provider_disabled.replace("{provider}", LOGOS[fornecedor].nome)
+          : t.auth.oauth_window_failed
       );
     }
   };
@@ -137,7 +121,7 @@ export default function EntrarComConta({ regressarA = "/" }: { regressarA?: stri
             ) : (
               LOGOS[f].icone
             )}
-            {tr("Continuar com", "Continue with", "Continuar con")} {LOGOS[f].nome}
+            {t.auth.continue_with.replace("{provider}", LOGOS[f].nome)}
           </button>
         ))}
       </div>
@@ -145,7 +129,7 @@ export default function EntrarComConta({ regressarA = "/" }: { regressarA?: stri
       {/* A costura entre as duas maneiras de entrar. */}
       <div className="my-6 flex items-center gap-3">
         <span className="h-px flex-1 bg-[var(--border-soft)]" />
-        <span className="rotulo">{tr("ou", "or", "o")}</span>
+        <span className="rotulo">{t.auth.or}</span>
         <span className="h-px flex-1 bg-[var(--border-soft)]" />
       </div>
     </div>

@@ -55,6 +55,18 @@ const FICHEIROS_CROMADO = [
   "components/directorio/ficha/PainelIdentidade.tsx",
   "components/directorio/ficha/Partilhar.tsx",
   "components/directorio/ficha/Vizinhas.tsx",
+  // As páginas de entrada. Entraram por serem o caso mais caro de todos: em
+  // inglês, o campo do email dizia «seu@email.com», o do registo pedia «O seu
+  // nome completo» e «Crie uma palavra-passe forte», e a caixa dos termos
+  // dizia «Aceito os Termos de Serviço» — tudo isto por baixo de «Sign In» e
+  // «Create Account». É a página onde alguém decide se confia no sítio o
+  // suficiente para lhe dar uma palavra-passe, e era a página onde o sítio
+  // falava duas línguas ao mesmo tempo.
+  "app/(auth)/login/page.tsx",
+  "app/(auth)/registar/page.tsx",
+  "app/(auth)/recuperar-senha/page.tsx",
+  "components/auth/EntrarComConta.tsx",
+  "components/auth/RodapeEntrada.tsx",
 ];
 
 const ATRIBUTOS_DE_TEXTO = new Set([
@@ -84,6 +96,7 @@ const NAO_E_TRADUZIVEL = new Set([
   "WhatsApp",
   "YouTube",
   "Email",
+  "Google",
   "Google Analytics",
   "Google AdSense",
   "Meta Pixel",
