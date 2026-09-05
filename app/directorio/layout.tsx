@@ -8,7 +8,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "Directório de Coudelarias",
   description:
-    "Directório completo de coudelarias de cavalos Lusitanos em Portugal. Encontre criadores certificados, veja exemplares e contacte directamente.",
+    "Coudelarias de cavalos Lusitanos em Portugal, por região: localidade, ano de fundação, efectivo declarado, especialidades e linhagens.",
   keywords: [
     "coudelarias portugal",
     "directório coudelarias",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Directório de Coudelarias | Portal Lusitano",
     description:
-      "Directório completo de coudelarias de cavalos Lusitanos em Portugal. Encontre criadores certificados, veja exemplares e contacte directamente.",
+      "Coudelarias de cavalos Lusitanos em Portugal, por região: localidade, ano de fundação, efectivo declarado, especialidades e linhagens.",
     url: `${SITE_URL}/directorio`,
     siteName: "Portal Lusitano",
     locale: "pt_PT",
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Directório de Coudelarias | Portal Lusitano",
     description:
-      "Directório completo de coudelarias de cavalos Lusitanos em Portugal. Encontre criadores certificados, veja exemplares e contacte directamente.",
+      "Coudelarias de cavalos Lusitanos em Portugal, por região: localidade, ano de fundação, efectivo declarado, especialidades e linhagens.",
     images: ["/opengraph-image"],
   },
 };
@@ -62,7 +62,7 @@ export default function DirectorioLayout({ children }: { children: React.ReactNo
       />
       <CollectionPageSchema
         name="Directório de Coudelarias"
-        description="Directório completo de coudelarias de cavalos Lusitanos em Portugal. Encontre criadores certificados, veja exemplares e contacte directamente."
+        description="Coudelarias de cavalos Lusitanos em Portugal, por região: localidade, ano de fundação, efectivo declarado, especialidades e linhagens."
         url={`${SITE_URL}/directorio`}
       />
       {children}

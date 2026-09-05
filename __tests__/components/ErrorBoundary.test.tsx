@@ -5,6 +5,16 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
+// O fallback usa LocalizedLink, que lê o idioma do contexto. Sem provider no
+// teste, o componente rebentava antes de mostrar o próprio erro.
+vi.mock("@/components/LocalizedLink", () => ({
+  default: ({ children, href, ...props }: { children: React.ReactNode; href: string }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}));
+
 vi.mock("next/link", () => ({
   default: ({
     children,
@@ -21,10 +31,14 @@ vi.mock("next/link", () => ({
   ),
 }));
 
+// Ícones derivados dos que o componente importa: uma lista escrita à mão
+// parte sempre que o componente troca de ícone, o que não é regressão.
 vi.mock("lucide-react", () => ({
-  RefreshCw: (props: Record<string, unknown>) => <svg data-testid="icon-refresh" {...props} />,
+  RefreshCw: (props: Record<string, unknown>) => <svg data-testid="icon-refreshcw" {...props} />,
   Home: (props: Record<string, unknown>) => <svg data-testid="icon-home" {...props} />,
-  AlertTriangle: (props: Record<string, unknown>) => <svg data-testid="icon-alert" {...props} />,
+  AlertTriangle: (props: Record<string, unknown>) => (
+    <svg data-testid="icon-alerttriangle" {...props} />
+  ),
 }));
 
 // ---------------------------------------------------------------------------
@@ -41,6 +55,11 @@ function ThrowingChild({ shouldThrow = true }: { shouldThrow?: boolean }) {
 
 // Suppress console.error noise from React/ErrorBoundary during tests
 beforeEach(() => {
+  // O componente detecta o idioma pelo localStorage e, em falta dele, pelo
+  // navigator — que em jsdom é en-US. Fixar o idioma torna as afirmações
+  // sobre o texto deterministas.
+  localStorage.setItem("portal-language", "pt");
+
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
 

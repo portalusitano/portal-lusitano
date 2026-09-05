@@ -1,5 +1,10 @@
 import { supabaseAdmin as supabase } from "@/lib/supabase-admin";
 import { revalidatePath } from "next/cache";
+import {
+  LISTING_STATUS,
+  LISTING_STATUS_LABEL,
+  type ListingStatus,
+} from "@/lib/marketplace-listings";
 
 export default async function AdminVendasPage({
   searchParams,
@@ -10,7 +15,11 @@ export default async function AdminVendasPage({
   if (sParams?.dev !== "true") return null;
 
   // FUNÇÃO DE ENGENHARIA: Server Action para atualizar o estado
-  async function updateStatus(id: string, newStatus: string) {
+  // Aprovar escrevia `aprovado` e rejeitar escrevia `rejeitado` — duas
+  // palavras que `cavalos_venda.status` não usa. `/comprar` filtra por
+  // `active`, por isso aprovar aqui era esconder o anúncio. O vocabulário
+  // desta tabela é o `LISTING_STATUS`, e rejeitar é `inativo`.
+  async function updateStatus(id: string, newStatus: ListingStatus) {
     "use server";
     await supabase.from("cavalos_venda").update({ status: newStatus }).eq("id", id);
 
@@ -18,7 +27,7 @@ export default async function AdminVendasPage({
     revalidatePath("/admin/vendas");
   }
 
-  // Vai buscar todos os cavalos (pendentes, aprovados e rejeitados)
+  // Vai buscar todos os cavalos
   const { data: cavalos } = await supabase
     .from("cavalos_venda")
     .select("*")
@@ -26,18 +35,18 @@ export default async function AdminVendasPage({
 
   return (
     <>
-      <main className="min-h-screen bg-black text-white pt-48 px-10 pb-20">
-        <header className="mb-16 border-b border-[#C5A059]/30 pb-8 flex justify-between items-end">
+      <div className="min-h-screen bg-black text-white pt-48 px-10 pb-20">
+        <header className="mb-16 border-b border-[var(--border-soft)] pb-8 flex justify-between items-end">
           <div>
-            <p className="text-[#C5A059] text-[10px] uppercase tracking-[0.4em] font-bold mb-2 italic">
+            <p className="text-[var(--foreground-muted)] rotulo font-bold mb-2 italic">
               Curadoria de Elite
             </p>
-            <h1 className="text-5xl font-serif italic text-white">
-              Gestão de Anúncios <span className="text-[#C5A059]">Marketplace</span>
+            <h1 className="text-5xl font-normal text-white">
+              Gestão de Anúncios <span className="text-[var(--foreground-muted)]">Marketplace</span>
             </h1>
           </div>
           <div className="text-right">
-            <span className="text-zinc-500 text-[10px] uppercase tracking-widest">
+            <span className="text-zinc-500 text-[10px] uppercase tracking-wider">
               Total de Pedidos: {cavalos?.length || 0}
             </span>
           </div>
@@ -46,7 +55,7 @@ export default async function AdminVendasPage({
         <div className="overflow-x-auto border border-zinc-900 bg-zinc-950/20 backdrop-blur-md">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="text-[#C5A059] text-[10px] uppercase tracking-[0.3em] font-bold border-b border-zinc-800">
+              <tr className="text-[var(--foreground-muted)] rotulo font-bold border-b border-zinc-800">
                 <th className="py-6 px-6">Data</th>
                 <th className="py-6 px-6">Exemplar</th>
                 <th className="py-6 px-6">Linhagem</th>
@@ -55,7 +64,7 @@ export default async function AdminVendasPage({
                 <th className="py-6 px-6 text-right">Decisão Master</th>
               </tr>
             </thead>
-            <tbody className="text-sm font-light">
+            <tbody className="text-sm font-normal">
               {cavalos?.map((c) => (
                 <tr
                   key={c.id}
@@ -65,28 +74,28 @@ export default async function AdminVendasPage({
                     {c.created_at ? new Date(c.created_at).toLocaleDateString("pt-PT") : "—"}
                   </td>
                   <td className="py-8 px-6">
-                    <span className="font-serif text-xl text-white group-hover:text-[#C5A059] transition-colors">
+                    <span className="text-xl text-white group-hover:text-[var(--foreground-strong)] transition-colors">
                       {c.nome_cavalo}
                     </span>
-                    <span className="block text-[9px] text-zinc-600 uppercase mt-1">
+                    <span className="block text-[11px] text-zinc-600 uppercase mt-1">
                       ID: {c.id.slice(0, 8)}
                     </span>
                   </td>
-                  <td className="py-8 px-6 text-zinc-400 font-light">{c.linhagem}</td>
-                  <td className="py-8 px-6 font-serif text-[#C5A059] text-lg">
+                  <td className="py-8 px-6 text-zinc-400 font-normal">{c.linhagem}</td>
+                  <td className="py-8 px-6 text-[var(--foreground-muted)] text-lg">
                     {Number(c.preco).toLocaleString("pt-PT")} €
                   </td>
                   <td className="py-8 px-6">
                     <span
-                      className={`px-4 py-1 rounded-full text-[8px] uppercase font-bold tracking-widest border ${
-                        c.status === "aprovado"
+                      className={`px-4 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider border ${
+                        c.status === LISTING_STATUS.ACTIVE
                           ? "border-green-500/50 text-green-500 bg-green-500/5"
-                          : c.status === "rejeitado"
+                          : c.status === LISTING_STATUS.INATIVO
                             ? "border-red-500/50 text-red-500 bg-red-500/5"
                             : "border-zinc-700 text-zinc-500 bg-zinc-900"
                       }`}
                     >
-                      {c.status}
+                      {LISTING_STATUS_LABEL[c.status as ListingStatus] ?? c.status}
                     </span>
                   </td>
                   <td className="py-8 px-6 text-right">
@@ -94,12 +103,12 @@ export default async function AdminVendasPage({
                       <form
                         action={async () => {
                           "use server";
-                          await updateStatus(c.id, "aprovado");
+                          await updateStatus(c.id, LISTING_STATUS.ACTIVE);
                         }}
                       >
                         <button
                           type="submit"
-                          className="text-zinc-500 hover:text-green-500 text-[9px] uppercase font-bold tracking-widest transition-all"
+                          className="text-zinc-500 hover:text-green-500 text-[11px] uppercase font-bold tracking-wider transition-all"
                         >
                           Aprovar
                         </button>
@@ -107,12 +116,12 @@ export default async function AdminVendasPage({
                       <form
                         action={async () => {
                           "use server";
-                          await updateStatus(c.id, "rejeitado");
+                          await updateStatus(c.id, LISTING_STATUS.INATIVO);
                         }}
                       >
                         <button
                           type="submit"
-                          className="text-zinc-500 hover:text-red-500 text-[9px] uppercase font-bold tracking-widest transition-all"
+                          className="text-zinc-500 hover:text-red-500 text-[11px] uppercase font-bold tracking-wider transition-all"
                         >
                           Rejeitar
                         </button>
@@ -124,7 +133,7 @@ export default async function AdminVendasPage({
             </tbody>
           </table>
         </div>
-      </main>
+      </div>
     </>
   );
 }

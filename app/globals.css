@@ -1,18 +1,26 @@
 @import "tailwindcss";
 @import "./print.css";
 
-/* ===== LENIS SMOOTH SCROLL ===== */
-html.lenis, html.lenis body {
-  height: auto;
-}
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
-.lenis.lenis-smooth [data-lenis-prevent] {
-  overscroll-behavior: contain;
-}
-.lenis.lenis-stopped {
-  overflow: hidden;
+/* ===== DESLOCAMENTO =======================================================
+ * O site deslocava-se com o Lenis, e este bloco era a folha de estilo que ele
+ * pedia — incluindo um `scroll-behavior: auto !important` que anulava o
+ * deslocamento suave nativo umas duzentas linhas abaixo.
+ *
+ * O motor saiu (a razão está escrita no `ClientShell`), e com ele sai a folha.
+ * O que fica é este `scroll-padding-top`, que faz o mesmo que o `offset: -80`
+ * que o Lenis aplicava à mão: afasta o destino de uma âncora da barra fixa,
+ * para o título a que se salta não ficar escondido por trás dela.
+ *
+ * Vale para tudo o que desloca o documento — âncoras, `scrollIntoView`,
+ * navegação por teclado —, e não só para os cliques que um ouvinte apanhasse.
+ *
+ * Ficou aqui também, durante algum tempo, um `scroll-behavior: smooth` que se
+ * julgava servir as âncoras. Servia sobretudo para animar o salto para o topo
+ * que o Next faz a cada mudança de rota. Saiu, e a razão medida está escrita
+ * onde ele estava, umas duzentas linhas abaixo.
+ * ========================================================================= */
+html {
+  scroll-padding-top: 5rem;
 }
 
 /* ===== VIEW TRANSITIONS — THEME SWITCH ===== */
@@ -27,8 +35,16 @@ html.lenis, html.lenis body {
 ::view-transition-new(root) {
   animation-name: fade-in;
 }
-@keyframes fade-out { to { opacity: 0; } }
-@keyframes fade-in  { from { opacity: 0; } }
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
 
 /* ===== FONT FALLBACK METRICS =====
  * Reduces CLS during font swap by matching fallback metrics
@@ -38,62 +54,120 @@ html.lenis, html.lenis body {
 /* Dark mode (default) */
 :root,
 html.dark {
-  --background: #050505;
+  /* Cinco valores de fundo, não uma escala de cinzentos ao acaso. */
+  --background: #000000;
   --background-secondary: #0a0a0a;
-  --background-card: #111111;
-  --background-elevated: #1a1a1a;
-  --foreground: #ededed;
-  --foreground-secondary: #a1a1aa;
-  --foreground-muted: #8b8b94;
-  --border: rgba(255, 255, 255, 0.1);
-  --border-hover: rgba(255, 255, 255, 0.2);
-  --gold: #c5a059;
-  --gold-hover: #d4af6a;
-  --surface-hover: rgba(255, 255, 255, 0.08);
-  --scrollbar-track: #0a0a0a;
-  --scrollbar-thumb: #333;
-  --selection-bg: #c5a059;
-  --selection-fg: black;
-  --nav-bg: #050505;
-  --nav-bg-scrolled: #050505;
+  --background-card: #0a0a0a;
+  --background-elevated: #141414;
+  --foreground: #f0f0f0;
+  --foreground-strong: #ffffff;
+  --foreground-secondary: #a1a4a5;
+  --foreground-muted: #666666;
+  /* Hairlines com um toque de azul: a luz fria sobre preto lê-se como vidro,
+     o branco puro lê-se como uma caixa desenhada. */
+  --border: rgba(214, 235, 253, 0.19);
+  --border-soft: rgba(214, 235, 253, 0.1);
+  --border-hover: rgba(214, 235, 253, 0.15);
+  --elevate-1: rgba(255, 255, 255, 0.04);
+  --elevate-2: rgba(255, 255, 255, 0.09);
+  /* Um só acento em todo o site. Mudar aqui muda tudo. */
+  --gold: #c6a15b;
+  --gold-hover: #d4b273;
+  /* Canais em cru do acento, para brilhos e sombras com opacidade. */
+  --gold-rgb: 198 161 91;
+  --ok: #34d399;
+  --ok-rgb: 52 211 153;
+  /* O par do `--ok`. Faltava, e por isso os formulários assinalavam o erro
+     com vermelhos literais espalhados por três ficheiros. */
+  --erro: #f87171;
+  --erro-rgb: 248 113 113;
+  --surface-hover: rgba(255, 255, 255, 0.04);
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: #2b2b2b;
+  --selection-bg: #c6a15b;
+  --selection-fg: #000;
+  --nav-bg: transparent;
+  --nav-bg-scrolled: rgba(0, 0, 0, 0.55);
+  /* Curvas de movimento, iguais em todo o lado. */
+  --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  /* `--ease-out` já é o `ease-out-soft` do kit — mesma curva, não se duplica. */
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-inout: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1);
+  --ease-header: cubic-bezier(0.215, 0.61, 0.355, 1);
+
+  /* Durações medidas no site de referência. */
+  --d-fast: 200ms;
+  --d-menu: 300ms;
+  --d-drill: 320ms;
+  --d-header: 230ms;
+  --d-reveal: 1000ms;
+  /* Um elemento que nasce por cima de uma cena já composta — os nomes das
+     coudelarias sobre o globo, escalonados. Não é o `--d-reveal`, que é a
+     entrada de um bloco inteiro ao entrar no ecrã: aqui são quinze pequenos
+     a acenderem-se em cascata, e a um segundo cada a cascata deixava de se
+     ler como cascata e passava a ler-se como a página a carregar devagar. */
+  --d-nascer: 700ms;
 }
 
 /* Light mode */
 html.light {
-  --background: #f8f7f4;
-  --background-secondary: #ffffff;
+  --background: #ffffff;
+  --background-secondary: #fafafa;
   --background-card: #ffffff;
-  --background-elevated: #f0efe8;
-  --foreground: #1a1a1a;
-  --foreground-secondary: #555555;
-  --foreground-muted: #737373;
-  --border: rgba(0, 0, 0, 0.1);
-  --border-hover: rgba(0, 0, 0, 0.2);
-  --gold: #a8873a;
-  --gold-hover: #c5a059;
-  --surface-hover: rgba(0, 0, 0, 0.05);
-  --scrollbar-track: #f0f0f0;
-  --scrollbar-thumb: #ccc;
-  --selection-bg: #a8873a;
-  --selection-fg: white;
-  --nav-bg: rgba(255, 255, 255, 0.97);
-  --nav-bg-scrolled: #ffffff;
+  --background-elevated: #f4f4f5;
+  --foreground: #0a0a0a;
+  --foreground-strong: #000000;
+  --foreground-secondary: #52525b;
+  --foreground-muted: #8b8b93;
+  --border: rgba(9, 9, 11, 0.14);
+  --border-soft: rgba(9, 9, 11, 0.07);
+  --border-hover: rgba(9, 9, 11, 0.22);
+  --elevate-1: rgba(9, 9, 11, 0.03);
+  --elevate-2: rgba(9, 9, 11, 0.06);
+  --gold: #8a6d2f;
+  --gold-hover: #a8873a;
+  --gold-rgb: 138 109 47;
+  --ok: #059669;
+  --ok-rgb: 5 150 105;
+  --erro: #dc2626;
+  --erro-rgb: 220 38 38;
+  --surface-hover: rgba(9, 9, 11, 0.04);
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: #d4d4d8;
+  --selection-bg: #8a6d2f;
+  --selection-fg: #fff;
+  --nav-bg: transparent;
+  --nav-bg-scrolled: rgba(255, 255, 255, 0.75);
+  --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-inout: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  /* Uma família para tudo o que é texto. `font-serif` fica a apontar para a
+     Geist de propósito: havia dezenas de `font-serif` espalhados pelas
+     páginas e mapeá-los aqui trocou-os todos de uma vez, sem tocar em cada
+     um deles e sem deixar nenhum a cair no serif do browser. */
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans, Arial, Helvetica, sans-serif);
+  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* Theme transition only runs during explicit theme toggle */
 html.is-theme-transitioning body {
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 /* ... (mantém o que já lá estava) */
@@ -137,23 +211,77 @@ html.is-theme-transitioning body {
 
 /* ===== ACESSIBILIDADE ===== */
 
-/* Smooth scrolling (respeita preferências do utilizador) */
-@media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
+/* O deslocamento é instantâneo, e isso é uma correcção e não uma perda.
+ *
+ * Havia aqui um `scroll-behavior: smooth` no `html`, herdado de quando o Lenis
+ * saiu. A intenção era servir as âncoras internas. O que fazia na prática era
+ * outra coisa: **o Next desloca a página para o topo a cada mudança de rota**,
+ * e uma propriedade no `html` não distingue esse salto de uma âncora — por
+ * isso o salto passava a ser uma animação.
+ *
+ * Medido no browser, a navegar do rodapé da página inicial para o directório:
+ * a página nova aterrava em `scrollY=612` e **animava 26 quadros** até ao topo.
+ * Em todas as páginas, em todas as navegações feitas com a página rolada. No
+ * caminho para a área de cliente notava-se a dobrar, porque ali há duas
+ * navegações seguidas: via-se a página aterrar a meio, rolar sozinha para
+ * cima, e só então mudar para o login.
+ *
+ * E não servia ninguém. Os deslocamentos que se querem suaves pedem-no
+ * explicitamente (`behavior: "smooth"` em `MarketplaceGrid`, `DirectorioContent`,
+ * `FormErrors`, `vender-cavalo`) e não dependem daqui. Os que se querem
+ * imediatos — a opção de uma lista a entrar na vista com as setas, em
+ * `Seleccao` e `Search` — dependiam, e estavam a animar sem que ninguém o
+ * pedisse.
+ *
+ * As três únicas âncoras `href="#"` do site são **links de salto**
+ * (`SkipLinks`, e o «saltar para as regiões» do mapa). Para essas, instantâneo
+ * é melhor: quem carrega em «saltar para o conteúdo» quer lá estar, não quer
+ * ver a viagem.
+ *
+ * O `scroll-padding-top` fica, que é o que impede o cabeçalho fixo de tapar o
+ * destino. */
+html {
+  scroll-behavior: auto;
 }
 
 /* Focus styles visíveis para navegação por teclado */
 /* !important necessário para sobrescrever outline-none do Tailwind */
 :focus-visible {
-  outline: 2px solid var(--gold) !important;
+  outline: 2px solid rgba(255, 255, 255, 0.45) !important;
   outline-offset: 2px !important;
+  border-radius: 8px;
+}
+
+html.light :focus-visible {
+  outline-color: rgba(0, 0, 0, 0.45) !important;
 }
 
 /* Remove outline em cliques de rato mas mantém para teclado */
 :focus:not(:focus-visible) {
   outline: none;
+}
+
+/* Um painel que recebe o foco por código não desenha anel.
+ *
+ * Quando um diálogo abre, o foco vai para o painel — é isso que faz um leitor
+ * de ecrã anunciar o nome do diálogo e lê-lo do princípio, em vez de aterrar a
+ * meio, numa ligação. Mas o painel não é um comando: ninguém lá chega com o
+ * Tab (tem `tabindex="-1"`), e por isso um anel à volta dele não assinala nada
+ * — só desenha um rectângulo em volta de tudo o que se está a ler.
+ *
+ * O alvo é apertado de propósito: só o elemento que o `useFocusTrap` marcou
+ * como tendo recebido o foco por código. Qualquer comando lá dentro continua a
+ * ter o anel, que é o que um utilizador de teclado precisa de ver. A marca vem
+ * do hook e não de um selector adivinhado, porque o painel que recebe o foco
+ * nem sempre é o mesmo nó que tem o `role="dialog"` — no aviso de cookies é o
+ * de dentro.
+ *
+ * Sem camada, como a regra que tem de bater — para declarações `!important`,
+ * uma camada anterior ganharia a esta. Aqui decide a especificidade: (0,3,0)
+ * contra (0,1,0). */
+[data-painel-focado]:focus,
+[data-painel-focado]:focus-visible {
+  outline: none !important;
 }
 
 /* Skip links - visíveis apenas com foco */
@@ -295,7 +423,10 @@ html {
 
 /* Better touch targets - minimum 44x44px */
 @media (max-width: 768px) {
-  button,
+  /* Os interruptores ficam de fora: o `min-height` esticava a calha de 22px
+     num borrão redondo. A regra vive fora de qualquer `@layer`, por isso um
+     `min-h-0` numa página perdia sempre para ela. */
+  button:not([role="switch"]),
   a,
   input[type="submit"],
   input[type="button"] {
@@ -318,7 +449,8 @@ html {
     display: none;
   }
 
-  html, body {
+  html,
+  body {
     scrollbar-width: none;
   }
 }
@@ -373,37 +505,20 @@ body {
   }
 }
 
-/* Loading spinner rotations */
-@keyframes spin-slow {
-  to {
-    transform: rotate(360deg);
-  }
-}
-@keyframes spin-slow-reverse {
-  to {
-    transform: rotate(-360deg);
-  }
-}
-@keyframes pulse-scale {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.2);
-    opacity: 0.8;
-  }
-}
-@keyframes pulse-opacity {
-  0%,
-  100% {
-    opacity: 0.3;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
+/* Aqui viviam quatro conjuntos de fotogramas — `spin-slow`,
+   `spin-slow-reverse`, `pulse-scale` e `pulse-opacity` — e serviam um só
+   ecrã: a roda de espera do `app/loading.tsx`, que corria os quatro ao mesmo
+   tempo, para sempre. O site tem três ciclos infinitos, contados e com razão
+   escrita; aquele ecrã sozinho tinha quatro.
+
+   A espera passou a ser um esqueleto com a forma da página, com o
+   `animate-pulse` do Tailwind, que é a excepção que o `CLAUDE.md` aceita por
+   escrito. Os fotogramas ficaram sem quem os chamasse.
+
+   Vão-se embora em vez de ficarem à espera, e a razão está escrita no
+   `CLAUDE.md`, na lição do `auth-shimmer`: uma regra desligada numa folha de
+   estilo não fica desligada se uma página a puder reescrever em linha. Um
+   nome que já não existe não se reescreve. */
 
 /* Toast notifications */
 @keyframes slideInRight {
@@ -468,10 +583,14 @@ body {
 }
 
 /* Stagger children - cada filho anima em cascata */
+/* Entrada do sistema anterior, ainda usada por várias páginas. É a mesma
+   família de movimento do `data-revelar` — fade mais deslocamento vertical —
+   por isso alinha-se aqui a distância em vez de se tocar em cada chamada.
+   Diferença que fica: esta dispara ao carregar, não ao entrar no ecrã. */
 @keyframes fadeSlideIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -564,6 +683,14 @@ body {
 }
 
 /* Bottom padding for fixed bottom nav — includes safe-area for notched iPhones */
+/* Esta regra está FORA de qualquer @layer de propósito, logo ganha às
+   utilidades do Tailwind: um `pb-20` escrito no JSX de um <main> não lhe
+   chega. Enquanto houve <main> dentro de <main>, isso queria dizer duas
+   coisas ao mesmo tempo — a folga era contada duas vezes (a de fora mais a
+   de dentro) e o `pb-*` de cada página era calado. Agora há um só <main>, o
+   do app/layout.tsx: conta uma vez, e os `pb-*` das páginas valem o que
+   dizem. Quem acrescentar um <main> novo a uma página traz as duas coisas
+   de volta. */
 @media (max-width: 1024px) {
   main {
     padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
@@ -723,25 +850,6 @@ body {
 }
 
 /* Ripple click effect */
-.ripple-btn {
-  position: relative;
-  overflow: hidden;
-}
-.ripple-btn::after {
-  content: "";
-  position: absolute;
-  width: 100%;
-  padding-top: 100%;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  opacity: 0;
-}
-.ripple-btn:active::after {
-  animation: rippleEffect 0.5s ease-out;
-}
 @keyframes rippleEffect {
   0% {
     transform: translate(-50%, -50%) scale(0);
@@ -755,45 +863,27 @@ body {
 
 /* Expand underline left→right */
 @keyframes expandWidth {
-  from { transform: scaleX(0); transform-origin: left; }
-  to   { transform: scaleX(1); transform-origin: left; }
+  from {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  to {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
 }
 
 /* Infinite ticker marquee */
 @keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 /* Gold shimmer on hover */
-.shimmer-gold {
-  position: relative;
-  overflow: hidden;
-}
-.shimmer-gold::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(197, 160, 89, 0.08), transparent);
-  transform: translateX(-100%);
-  transition: none;
-}
-.shimmer-gold:hover::before {
-  /* will-change apenas durante hover — liberta GPU layer quando não está a animar */
-  will-change: transform;
-  animation: shimmerSlide 0.8s ease-out;
-}
-@keyframes shimmerSlide {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
 
 /* Parallax container */
 .parallax-section {
@@ -802,20 +892,8 @@ body {
 }
 
 /* Floating animation for decorative elements */
-@keyframes floatGentle {
-  0%,
-  100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  33% {
-    transform: translateY(-8px) rotate(1deg);
-  }
-  66% {
-    transform: translateY(4px) rotate(-1deg);
-  }
-}
 .float-gentle {
-  animation: floatGentle 6s ease-in-out infinite;
+  animation: none;
   will-change: transform;
 }
 /* Disable continuous animation on touch devices — saves battery */
@@ -836,22 +914,6 @@ body {
 }
 
 /* Glow pulse for gold accents — static shadow, animate only on hover */
-.glow-pulse {
-  position: relative;
-}
-.glow-pulse::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  box-shadow: 0 0 40px rgba(197, 160, 89, 0.25), 0 0 80px rgba(197, 160, 89, 0.1);
-  opacity: 0;
-  transition: opacity 0.5s ease;
-  pointer-events: none;
-}
-.glow-pulse:hover::after {
-  opacity: 1;
-}
 
 /* Gradient border animation */
 @keyframes borderGradient {
@@ -890,14 +952,6 @@ body {
 }
 
 /* Text gradient animation */
-@keyframes textGradientShift {
-  0% {
-    background-position: 0% center;
-  }
-  100% {
-    background-position: 200% center;
-  }
-}
 .text-gradient-gold {
   background: linear-gradient(90deg, var(--gold), #e8d5a8, var(--gold), #e8d5a8);
   background-size: 200% auto;
@@ -906,7 +960,7 @@ body {
   background-clip: text;
 }
 .text-gradient-gold:hover {
-  animation: textGradientShift 2s linear infinite;
+  animation: none;
 }
 
 /* Horizontal scroll gallery */
@@ -989,19 +1043,11 @@ body {
 }
 
 /* Marquee for testimonials/brands */
-@keyframes marqueeScroll {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
 .marquee-track {
   display: flex;
   width: max-content;
   will-change: transform;
-  animation: marqueeScroll 30s linear infinite;
+  animation: none;
 }
 .marquee-track:hover {
   animation-play-state: paused;
@@ -1015,16 +1061,6 @@ body {
 }
 
 /* Gradient orb decorative — static blur, no animation for perf */
-.gradient-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  pointer-events: none;
-  opacity: 0.06;
-  contain: layout style;
-  /* Camada GPU própria — elimina repaints durante scroll */
-  transform: translateZ(0);
-}
 
 /* ===== MOBILE MENU ENTRANCE ANIMATION ===== */
 @keyframes mobileMenuIn {
@@ -1038,26 +1074,6 @@ body {
   }
 }
 
-/* ===== MOBILE TOUCH ACTIVE STATES =====
- * :hover never fires on touch — give mobile users the same gold feedback
- * through :active as desktop users get through :hover. */
-@media (hover: none) {
-  /* Stronger glow on active tap for card accents */
-  .glow-pulse:active::after {
-    opacity: 1;
-  }
-
-  /* Flash shimmer sweep on tap */
-  .shimmer-gold:active::before {
-    animation: shimmerSlide 0.5s ease-out;
-  }
-
-  /* More visible orbs on small screens (OLED tends to crush subtle opacity) */
-  .gradient-orb {
-    opacity: 0.12;
-  }
-}
-
 /* ===== RESPONSIVE TYPOGRAPHY SCALE =====
  * Automatically scale down large text on small screens so nothing overflows.
  * These rules apply on all screens ≤ 640px (Tailwind's default "sm" breakpoint).
@@ -1066,25 +1082,4088 @@ body {
 @media (max-width: 640px) {
   .text-8xl,
   .text-9xl {
-    font-size: 2.5rem;   /* 40px — was 6–8rem */
+    font-size: 2.5rem; /* 40px — was 6–8rem */
     line-height: 1.1;
   }
 
   .text-7xl {
-    font-size: 2.25rem;  /* 36px — was 4.5rem */
+    font-size: 2.25rem; /* 36px — was 4.5rem */
     line-height: 1.1;
   }
 
   .text-6xl {
-    font-size: 2rem;     /* 32px — was 3.75rem */
+    font-size: 2rem; /* 32px — was 3.75rem */
     line-height: 1.12;
   }
 
   .text-5xl {
-    font-size: 1.75rem;  /* 28px — was 3rem */
+    font-size: 1.75rem; /* 28px — was 3rem */
     line-height: 1.15;
   }
 
   /* text-4xl (2.25rem / 36px) is kept as-is; 36px is generally fine on mobile. */
 }
 
+/* ===========================================================================
+ * SISTEMA DE INTERFACE — CLASSIFICADOS
+ * ===========================================================================
+ * O site nasceu com uma linguagem editorial de luxo: serif itálico grande,
+ * etiquetas de 9px em maiúsculas com tracking de meio em, muito ar. Isso
+ * funciona numa ficha de cavalo e trabalha contra uma grelha onde se comparam
+ * quarenta anúncios: obriga a percorrer o ecrã para ver metade dos que cabiam,
+ * e as etiquetas são pequenas ao ponto de não se lerem.
+ *
+ * Estas classes são a versão densa: tamanhos legíveis, tracking contido,
+ * espaçamento numa grelha de 4px. O serif fica reservado para onde ainda faz
+ * sentido — o título da ficha e o herói da homepage.
+ *
+ * Regra prática: se está a escrever `text-[9px]` ou `tracking-[0.4em]` numa
+ * página, é sinal de que falta aqui uma classe.
+ * ========================================================================= */
+
+:root {
+  /* Cantos. Um raio pequeno e constante lê-se como sistema; vários raios
+     diferentes lêem-se como descuido. */
+  --raio: 12px;
+  --raio-sm: 8px;
+  --raio-lg: 24px;
+}
+/* As classes de componente vivem na camada `components` de propósito: as
+ * utilidades do Tailwind estão numa camada posterior, por isso um `pl-11`
+ * ou um `h-12` numa página ganham sempre à classe. Fora da camada, o
+ * `padding` do `.campo` calava o `pl-11` e o ícone da pesquisa aterrava
+ * por cima do texto. */
+@layer components {
+  /* --- Tipografia ---------------------------------------------------------- */
+
+  /* Etiqueta acima de um valor ou de um grupo. Substitui os `text-[9px]
+     uppercase tracking-[0.3em]` espalhados pelo site. */
+  .rotulo {
+    font-size: 0.6875rem; /* 11px */
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    color: var(--foreground-muted);
+  }
+
+  /* Rótulo forte: o mesmo tamanho do `.rotulo`, mas aceso. Era dourado, e
+     numa página com seis destes — como a de contacto — o acento deixava de
+     ser acento. Quem tem de se destacar num rótulo é o próprio rótulo, e
+     para isso chega o peso e o branco. */
+  .rotulo-forte {
+    font-size: 0.6875rem;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    color: var(--foreground-strong);
+  }
+
+  /* Título de secção dentro de uma página. */
+  .titulo-seccao {
+    font-size: 0.9375rem; /* 15px */
+    line-height: 1.3;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--foreground);
+  }
+
+  /* Título de página. */
+  .titulo-pagina {
+    font-size: 1.5rem; /* 24px */
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--foreground);
+  }
+
+  @media (min-width: 640px) {
+    .titulo-pagina {
+      font-size: 1.75rem; /* 28px */
+    }
+  }
+
+  /* Texto de apoio: metadados de um anúncio, contagens, datas. */
+  .meta {
+    font-size: 0.75rem; /* 12px */
+    line-height: 1.4;
+    color: var(--foreground-muted);
+  }
+
+  /* Preços. `tabular-nums` alinha as colunas de dígitos entre cartões, que é o
+     que permite comparar preços de relance numa grelha. */
+  .preco {
+    font-variant-numeric: tabular-nums;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    color: var(--gold);
+  }
+
+  /* --- Superfícies --------------------------------------------------------- */
+
+  .cartao {
+    background: var(--background-card);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--raio-lg);
+    overflow: hidden;
+  }
+
+  .cartao-interactivo {
+    transition:
+      border-color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .cartao-interactivo:hover {
+    border-color: var(--border);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .cartao-interactivo:hover {
+      transform: translateY(-2px);
+    }
+  }
+
+  /* --- Botões -------------------------------------------------------------- */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    border-radius: var(--raio);
+    border: 1px solid transparent;
+    font-size: 0.8125rem; /* 13px */
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color var(--d-fast) ease-out,
+      border-color var(--d-fast) ease-out,
+      color var(--d-fast) ease-out;
+  }
+
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  /* Alvo de toque de 44px em ecrãs sem rato, sem inchar o botão no desktop. */
+  @media (pointer: coarse) {
+    .btn {
+      min-height: 44px;
+    }
+  }
+
+  /* Branco, não dourado. O acento é do tamanho de um ícone; usá-lo em cada
+     botão gastava-o e deixava de assinalar seja o que for. */
+  .btn-primario {
+    background: var(--foreground-strong);
+    color: #000;
+    font-weight: 600;
+  }
+
+  .btn-primario:hover:not(:disabled) {
+    background: #e4e4e7;
+  }
+
+  html.light .btn-primario {
+    background: #0a0a0a;
+    color: #fff;
+  }
+
+  html.light .btn-primario:hover:not(:disabled) {
+    background: #27272a;
+  }
+
+  /* Para a única acção que merece o acento: publicar um anúncio. */
+  .btn-acento {
+    background: var(--gold);
+    color: #000;
+    font-weight: 600;
+  }
+
+  .btn-acento:hover:not(:disabled) {
+    background: var(--gold-hover);
+  }
+
+  .btn-secundario {
+    background: transparent;
+    border-color: var(--border-soft);
+    color: var(--foreground-secondary);
+  }
+
+  /* O hover inverte: fundo cheio, texto preto. Num botão de contorno sobre
+     preto, mudar só a cor da borda quase não se vê — a inversão é a única
+     resposta que se lê à distância a que a mão está do ecrã. */
+  .btn-secundario:hover:not(:disabled) {
+    border-color: var(--foreground-strong);
+    background: var(--foreground-strong);
+    color: #000;
+  }
+
+  html.light .btn-secundario:hover:not(:disabled) {
+    border-color: #0a0a0a;
+    background: #0a0a0a;
+    color: #fff;
+  }
+
+  .btn-subtil {
+    background: transparent;
+    color: var(--foreground-secondary);
+  }
+
+  .btn-subtil:hover:not(:disabled) {
+    color: var(--foreground);
+    background: var(--surface-hover);
+  }
+
+  /* Pastilha cheia e translúcida — o botão de menu em ecrã pequeno. Não é
+     `.btn-secundario` porque não é uma hairline: é uma superfície suave que
+     se lê sobre fotografia sem precisar de contorno. */
+  .btn-pilula {
+    background: var(--elevate-2);
+    color: var(--foreground-strong);
+    border-radius: 999px;
+    padding: 0.5rem 1.125rem;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .btn-pilula:hover:not(:disabled) {
+    background: var(--elevate-1);
+  }
+
+  .btn-sm {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.75rem;
+  }
+
+  /* --- Campos de formulário ------------------------------------------------ */
+
+  .campo {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--background-elevated);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--raio);
+    color: var(--foreground);
+    font-size: 0.875rem; /* 14px — abaixo disto o iOS faz zoom ao focar */
+    line-height: 1.4;
+    transition: border-color 0.15s ease;
+  }
+
+  /* O mesmo chão de toque que o `.btn` já tinha. Sem ele, afinar um campo
+     que está ao lado de um botão desalinhava os dois em ecrãs de toque — o
+     botão parava nos 44px e o campo não. */
+  @media (pointer: coarse) {
+    .campo {
+      min-height: 44px;
+    }
+  }
+
+  .campo::placeholder {
+    color: var(--foreground-muted);
+  }
+
+  .campo:hover {
+    border-color: var(--border-hover);
+  }
+
+  .campo:focus {
+    border-color: var(--border);
+    outline: none;
+  }
+
+  /* --- Fichas e distintivos ------------------------------------------------ */
+
+  /* Pastilha de filtro, clicável. */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--border-soft);
+    border-radius: 999px;
+    background: var(--elevate-1);
+    color: var(--foreground-secondary);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.3;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      border-color 0.15s ease,
+      color 0.15s ease;
+  }
+
+  .chip:hover {
+    border-color: var(--border);
+    color: var(--foreground-strong);
+  }
+
+  /* O filtro escolhido é branco, não dourado. Numa fila de oito regiões o
+     activo tem de saltar à vista, e sobre preto quem faz isso é o contraste;
+     o dourado repetido em cada página de filtros deixava de assinalar nada e
+     dava a estas páginas uma cor que a página inicial não tem. */
+  .chip-activo {
+    border-color: var(--foreground-strong);
+    background: var(--foreground-strong);
+    color: #000;
+  }
+
+  html.light .chip-activo {
+    border-color: #0a0a0a;
+    background: #0a0a0a;
+    color: #fff;
+  }
+
+  /* Distintivo informativo, não clicável. */
+  .selo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: var(--raio-sm);
+    font-size: 0.625rem; /* 10px — só para uma ou duas palavras sobre a foto */
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1.4;
+  }
+
+  .selo-destaque {
+    background: var(--gold);
+    color: #000;
+  }
+
+  .selo-novo {
+    background: var(--ok);
+    color: #000;
+  }
+
+  /* Branco, para o distintivo que aparece em quase todos os cartões de uma
+     grelha. O dourado num selo é para o que é raro; repetido vinte vezes
+     numa página deixa de assinalar nada. */
+  .selo-forte {
+    background: var(--foreground-strong);
+    color: #000;
+  }
+
+  .selo-neutro {
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+
+  /* ===========================================================================
+   * PRIMITIVAS VISUAIS
+   * ===========================================================================
+   * As três receitas que dão identidade ao site. Vivem aqui e não nas páginas
+   * para que um cartão seja o mesmo cartão em todo o lado.
+   * ========================================================================= */
+
+  /* --- Título com gradiente ------------------------------------------------ */
+  /* O branco puro no topo a esbater para 75% dá volume ao texto grande sem
+     precisar de sombra. Só vale a pena em títulos: em corpo de texto o
+     degradê corta a legibilidade. */
+  .titulo-gradiente {
+    background: linear-gradient(180deg, var(--foreground-strong), var(--foreground-secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  /* --- Separador com brilho ------------------------------------------------ */
+  /* A costura entre secções: um risco de luz que nasce no centro e desvanece,
+     mais um halo largo por baixo. É o que faz as secções encaixarem umas nas
+     outras em vez de ficarem empilhadas. */
+  .separador-brilho {
+    position: relative;
+  }
+
+  .separador-brilho::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 300px;
+    max-width: 100%;
+    height: 1px;
+    background: radial-gradient(ellipse at center, var(--elevate-2) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .separador-brilho::after {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 400px;
+    max-width: 100%;
+    height: 200px;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center top, var(--elevate-1) 0%, transparent 70%);
+  }
+
+  /* --- Cartão assinatura --------------------------------------------------- */
+  /* Sem borda em baixo e com um gradiente a dissolver as laterais no fundo: o
+     cartão parece emergir do preto em vez de estar colado a ele. O risco de luz
+     de 150px no topo é o que o separa do fundo sem uma caixa desenhada. */
+  .cartao-seco {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border-radius: 24px;
+    border: 1px solid var(--border);
+    border-bottom: 0;
+    overflow: hidden;
+  }
+
+  .cartao-seco__costura {
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: 1px;
+    width: 150px;
+    max-width: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(143, 143, 143, 0.67) 50%,
+      transparent 100%
+    );
+  }
+
+  .cartao-seco__esbatido {
+    pointer-events: none;
+    position: absolute;
+    left: -2px;
+    top: -2px;
+    height: calc(100% + 4px);
+    width: calc(100% + 4px);
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      var(--background) 60%,
+      var(--background) 100%
+    );
+  }
+
+  /* --- Botão de vidro ------------------------------------------------------ */
+  .botao-vidro {
+    border: 2px solid var(--elevate-1);
+    -webkit-backdrop-filter: blur(32px);
+    backdrop-filter: blur(32px);
+    background-origin: border-box;
+    background-image: linear-gradient(
+      104deg,
+      rgba(253, 253, 253, 0.05) 5%,
+      rgba(240, 240, 228, 0.1)
+    );
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s var(--ease-inout);
+  }
+
+  .botao-vidro:hover {
+    background-image: linear-gradient(
+      104deg,
+      rgba(253, 253, 253, 0.1) 5%,
+      rgba(240, 240, 228, 0.15)
+    );
+    border-color: var(--elevate-2);
+  }
+
+  /* --- Previews em HTML dentro dos cartões --------------------------------- */
+  /* Tabelas verdadeiras a 10–11px em vez de capturas de ecrã: pesam zero, ficam
+     nítidas em qualquer ecrã e o conteúdo actualiza-se sozinho. */
+  .linha-ui {
+    display: grid;
+    align-items: center;
+    border-bottom: 1px solid var(--border-soft);
+    padding: 10px 0;
+  }
+
+  .cabeca-ui {
+    display: grid;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 0;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--foreground-secondary);
+  }
+
+  .ponto {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  /* --- Entrada ao entrar no ecrã ------------------------------------------- */
+  /* O estado inicial só se aplica havendo JS, para a página nunca ficar em
+     branco se o script falhar. */
+  .js [data-revelar] {
+    opacity: 0;
+    transform: translate(var(--rx, 0px), var(--ry, 2rem));
+    transition:
+      opacity var(--rd, var(--d-reveal)) var(--ease-out) var(--rdelay, 0ms),
+      transform var(--rd, var(--d-reveal)) var(--ease-out) var(--rdelay, 0ms);
+    will-change: opacity, transform;
+  }
+
+  /* O `will-change` acima pede uma camada de composição por bloco, e é isso
+     que faz a entrada correr no compositor em vez de na linha principal. Mas
+     ficava pedida para sempre: numa página com trinta blocos eram trinta
+     camadas a ocupar memória de vídeo muito depois de a última animação ter
+     acabado — o contrário do que o `will-change` serve.
+
+     O `ObservadorRevelar` marca cada bloco como `assente` quando a entrada
+     dele acaba, e a camada é devolvida aqui. A promessa mantém-se enquanto é
+     precisa e acaba quando deixa de ser. */
+  .js [data-revelar].assente {
+    will-change: auto;
+  }
+
+  /* Direcções. O eixo é escolhido pelo valor do atributo; a distância é
+     sempre 2rem, para o movimento ter o mesmo peso venha de onde vier. */
+  .js [data-revelar="down"] {
+    --ry: -2rem;
+  }
+  .js [data-revelar="left"] {
+    --rx: 2rem;
+    --ry: 0px;
+  }
+  .js [data-revelar="right"] {
+    --rx: -2rem;
+    --ry: 0px;
+  }
+
+  .js [data-revelar].dentro {
+    opacity: 1;
+    transform: none;
+  }
+
+  @keyframes descer-cabecalho {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes crescer {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .anim-cabecalho {
+    animation: descer-cabecalho 0.5s var(--ease-out);
+  }
+
+  .anim-crescer {
+    animation: crescer 0.2s var(--ease-out);
+    transform-origin: top center;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .js [data-revelar] {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+
+    .anim-cabecalho,
+    .anim-crescer,
+    .seleccao__lista {
+      animation: none;
+    }
+  }
+
+  /* --- Ponto a pulsar ------------------------------------------------------ */
+  /* O único ciclo infinito do site inteiro. Um site com vários fica inquieto;
+     com um só, esse um quer dizer "isto está vivo agora". */
+  @keyframes pulsar-ponto {
+    75%,
+    100% {
+      transform: scale(2);
+      opacity: 0;
+    }
+  }
+
+  .anim-pulsar {
+    animation: pulsar-ponto 1s var(--ease-out) infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .anim-pulsar {
+      animation: none;
+    }
+  }
+}
+
+/* ===========================================================================
+ * MENU DE ECRÃ INTEIRO
+ * ===========================================================================
+ * O painel não desliza: anima só a opacidade. O peso vem do fundo a 64% com
+ * desfoque de 24px, que empurra a página para trás sem a apagar — é isso, e
+ * não o movimento, que faz o menu parecer pousado por cima do site.
+ *
+ * As entradas deixaram de entrar escalonadas. Um menu abre-se para navegar,
+ * não para se ver a compor, e o escalonamento atrasava a última linha quando
+ * ela podia já ser o destino de quem abriu.
+ * ========================================================================= */
+
+@keyframes menu-aparecer {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes menu-sair {
+  to {
+    opacity: 0;
+  }
+}
+
+.menu-painel {
+  animation: menu-aparecer var(--d-menu) var(--ease-in-out-cubic) both;
+}
+
+.menu-painel[data-a-fechar="true"] {
+  animation: menu-sair var(--d-menu) var(--ease-in-out-cubic) both;
+}
+
+/* --- Níveis ---------------------------------------------------------------
+ * Os dois níveis ocupam o mesmo sítio. Ao abrir um grupo, o submenu entra a
+ * deslizar da direita uma largura inteira enquanto o nível de cima fica
+ * quieto e só se apaga: são os dois movimentos ao mesmo tempo que dão a
+ * leitura de profundidade, em vez de troca de página.
+ * ------------------------------------------------------------------------ */
+
+.menu-palco {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.menu-nivel {
+  transition:
+    transform var(--d-drill) var(--ease-in-out-cubic),
+    opacity var(--d-drill) var(--ease-in-out-cubic);
+}
+
+.menu-nivel[data-nivel="0"][data-atras="true"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.menu-nivel[data-nivel="1"] {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.menu-nivel[data-nivel="1"][data-activo="true"] {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-painel,
+  .menu-painel[data-a-fechar="true"] {
+    animation: none;
+  }
+
+  .menu-nivel {
+    transition: none;
+  }
+}
+
+/* ===========================================================================
+ * CORTINA, MURO EM MOVIMENTO, GRUPO DE NAVEGAÇÃO
+ * ===========================================================================
+ * Três peças do sistema de movimento que não pertencem a nenhum componente
+ * já existente. Ficam em `@layer components` como as outras: as utilidades
+ * do Tailwind vêm depois e continuam a ganhar a uma classe destas.
+ * ========================================================================= */
+
+@layer components {
+  /* --- Cortina de entrada -------------------------------------------------
+   * Um pano preto que sobe e descobre a página. Anima-se sozinha em CSS e só
+   * depois é que o JS a retira do DOM: se o script falhar, a cortina já saiu
+   * do ecrã à mesma e nunca fica um rectângulo preto por cima do site.
+   * ---------------------------------------------------------------------- */
+
+  @keyframes cortina-subir {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(-100%);
+    }
+  }
+
+  .cortina {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: var(--background);
+    pointer-events: none;
+    animation: cortina-subir 250ms var(--ease-in-out-cubic) forwards;
+  }
+
+  /* --- Intro com mote ------------------------------------------------------
+   * A cortina, quando é a primeira vez na sessão, segura o ecrã dois
+   * segundos e escreve o mote antes de subir.
+   *
+   * Uma só animação faz as duas coisas: o pano fica parado 88% do tempo e
+   * sobe nos últimos 270ms. É de propósito que não são duas — assim o pano
+   * sai sozinho, em CSS, sem depender de nenhum temporizador em JS. Um
+   * preloader que precise de script para sair é um ecrã preto permanente no
+   * dia em que o script falhar.
+   * ---------------------------------------------------------------------- */
+
+  @keyframes cortina-segurar {
+    0%,
+    88% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(-100%);
+    }
+  }
+
+  @keyframes intro-frase {
+    0% {
+      opacity: 0;
+      transform: translateY(var(--dy-entra, 10px));
+    }
+    35%,
+    65% {
+      opacity: 1;
+      transform: none;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(var(--dy-sai, -10px));
+    }
+  }
+
+  html.intro .cortina {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    animation: cortina-segurar 2250ms var(--ease-in-out-cubic) forwards;
+  }
+
+  /* O mote está sempre na marcação, servidor incluído, e é o CSS que decide
+     se se vê. Deixá-lo ao estado do React obrigava o servidor a adivinhar se
+     era a primeira visita da sessão — e adivinhar mal é um erro de
+     hidratação em todas as páginas. */
+  .intro__mote {
+    display: none;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0 0.35em;
+    text-align: center;
+  }
+
+  html.intro .intro__mote {
+    display: flex;
+  }
+
+  .intro__mote > * {
+    font-size: clamp(1.5rem, 5vw, 2.2rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    color: var(--foreground-strong);
+    animation: intro-frase 2s var(--ease-in-out-cubic) forwards;
+  }
+
+  /* Cada grupo parte de mais longe e sai para mais longe do que o anterior.
+     É esse desencontro — e não o atraso — que dá a leitura em camadas. */
+  .intro__mote > *:nth-child(1) {
+    --dy-entra: 10px;
+    --dy-sai: -10px;
+    animation-delay: 0s;
+  }
+  .intro__mote > *:nth-child(2) {
+    --dy-entra: 20px;
+    --dy-sai: -20px;
+    animation-delay: 0.05s;
+  }
+  .intro__mote > *:nth-child(3) {
+    --dy-entra: 30px;
+    --dy-sai: -30px;
+    animation-delay: 0.05s;
+  }
+  .intro__mote > *:nth-child(4) {
+    --dy-entra: 40px;
+    --dy-sai: -40px;
+    animation-delay: 0.1s;
+  }
+
+  /* --- Muro de coudelarias em movimento -----------------------------------
+   * A máscara nas pontas é o que distingue isto de um carrossel: os nomes
+   * não desaparecem numa aresta, dissolvem-se no fundo. Pára ao passar o
+   * rato por cima, para se poder ler e clicar um nome.
+   * ---------------------------------------------------------------------- */
+
+  @keyframes deslizar-esquerda {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(var(--distancia, -50%));
+    }
+  }
+
+  .muro {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  }
+
+  .muro__pista {
+    display: flex;
+    width: max-content;
+    --distancia: -50%;
+    animation: deslizar-esquerda 45s linear infinite;
+  }
+
+  .muro:hover .muro__pista,
+  .muro:focus-within .muro__pista {
+    animation-play-state: paused;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cortina {
+    display: none;
+  }
+
+  .muro__pista {
+    animation: none;
+  }
+}
+
+/* --- Grupo de navegação -----------------------------------------------------
+ * Ao apontar para o grupo, as entradas todas esmorecem e só a apontada fica
+ * acesa. Diz onde está a mão sem precisar de sublinhado nem caixa.
+ *
+ * Fica fora de `@layer` de propósito, ao contrário de quase tudo o resto: a
+ * cor de base das entradas está numa utilidade do Tailwind no JSX, e as
+ * utilidades vêm numa camada posterior. Dentro da camada, esta regra perdia
+ * sempre e o esmorecer não acontecia.
+ * -------------------------------------------------------------------------- */
+
+.grupo-nav .ligacao-nav {
+  transition: color var(--d-fast) ease-out;
+}
+
+@media (hover: hover) {
+  .grupo-nav:hover .ligacao-nav:not([aria-current="page"]) {
+    color: color-mix(in srgb, var(--foreground) 48%, transparent);
+  }
+
+  .grupo-nav:hover .ligacao-nav:hover {
+    color: var(--foreground-strong);
+  }
+}
+
+/* ===========================================================================
+ * CONTEÚDO DOS PREVIEWS A COMPOR-SE
+ * ===========================================================================
+ * Os previews em HTML dentro dos cartões não entram feitos: a cabeça da
+ * tabela aparece primeiro e as linhas caem a seguir, uma a uma. É a única
+ * animação do site que encena um conteúdo em vez de o revelar — e ganha-o
+ * porque estes quadros são a demonstração do produto, não decoração.
+ *
+ * O gatilho é o `.dentro` que o observador põe no bloco `[data-revelar]` que
+ * envolve o cartão, por isso só corre quando o cartão entra mesmo no ecrã, e
+ * corre uma vez só.
+ *
+ * O escalonamento é feito por `nth-child` e não por um `--i` no JSX: assim
+ * qualquer preview novo herda o comportamento sem ter de o pedir.
+ * ========================================================================= */
+
+@layer components {
+  /* Entra de baixo e da esquerda, com um toque de desfoque e de escala.
+     Só com opacidade e Y a linha aparecia sem se perceber de onde; é a
+     combinação que a faz ler como uma linha a ser pousada na tabela em vez
+     de simplesmente acender. */
+  @keyframes ui-entrar {
+    from {
+      opacity: 0;
+      filter: blur(6px);
+      transform: translate(-18px, 20px) scale(0.97);
+    }
+    60% {
+      filter: blur(0);
+    }
+    to {
+      opacity: 1;
+      filter: blur(0);
+      transform: none;
+    }
+  }
+
+  .js [data-revelar] .cabeca-ui,
+  .js [data-revelar] .linha-ui,
+  .js [data-revelar] .bloco-ui {
+    opacity: 0;
+  }
+
+  .js [data-revelar].dentro .cabeca-ui,
+  .js [data-revelar].dentro .linha-ui,
+  .js [data-revelar].dentro .bloco-ui {
+    animation: ui-entrar 720ms var(--ease-out) both;
+  }
+
+  .js [data-revelar].dentro .cabeca-ui {
+    animation-delay: 200ms;
+  }
+
+  /* 85ms por linha, a contar de 300ms. Cinco linhas fecham antes dos 650ms
+     — dá para ver a tabela a encher sem se ficar à espera dela. */
+  .js [data-revelar].dentro .linha-ui:nth-child(2),
+  .js [data-revelar].dentro .bloco-ui:nth-child(1) {
+    animation-delay: 300ms;
+  }
+  .js [data-revelar].dentro .linha-ui:nth-child(3),
+  .js [data-revelar].dentro .bloco-ui:nth-child(2) {
+    animation-delay: 385ms;
+  }
+  .js [data-revelar].dentro .linha-ui:nth-child(4),
+  .js [data-revelar].dentro .bloco-ui:nth-child(3) {
+    animation-delay: 470ms;
+  }
+  .js [data-revelar].dentro .linha-ui:nth-child(5),
+  .js [data-revelar].dentro .bloco-ui:nth-child(4) {
+    animation-delay: 555ms;
+  }
+  .js [data-revelar].dentro .linha-ui:nth-child(6),
+  .js [data-revelar].dentro .bloco-ui:nth-child(5) {
+    animation-delay: 640ms;
+  }
+  .js [data-revelar].dentro .linha-ui:nth-child(7),
+  .js [data-revelar].dentro .bloco-ui:nth-child(6) {
+    animation-delay: 725ms;
+  }
+  .js [data-revelar].dentro .linha-ui:nth-child(8) {
+    animation-delay: 810ms;
+  }
+  .js [data-revelar].dentro .linha-ui:nth-child(9) {
+    animation-delay: 895ms;
+  }
+
+  /* Painel que se escreve a si próprio: a escrita é a entrada, e duas ideias
+     de entrada ao mesmo tempo leem-se como confusão — uma linha a desfocar
+     enquanto o texto lhe está a ser escrito lá dentro não se percebe. As
+     linhas ficam quietas e opacas; quem anima é o texto. */
+  .js [data-revelar] .painel-escrito .cabeca-ui,
+  .js [data-revelar] .painel-escrito .linha-ui,
+  .js [data-revelar] .painel-escrito .bloco-ui,
+  .js [data-revelar].dentro .painel-escrito .cabeca-ui,
+  .js [data-revelar].dentro .painel-escrito .linha-ui,
+  .js [data-revelar].dentro .painel-escrito .bloco-ui {
+    opacity: 1;
+    filter: none;
+    transform: none;
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js [data-revelar] .cabeca-ui,
+  .js [data-revelar] .linha-ui,
+  .js [data-revelar] .bloco-ui {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+@layer components {
+  /* ── Lista de selecção ────────────────────────────────────────────────
+     O painel aberto é uma superfície de vidro sobre preto: fundo elevado
+     quase opaco, desfoque por trás e uma hairline fria. A escolha assinala-se
+     a branco (contraste), nunca a dourado nem com a barra azul do sistema —
+     o acento do site é do tamanho de um ícone e não se gasta aqui. */
+
+  .seleccao {
+    position: relative;
+    width: 100%;
+  }
+
+  /* Presente na caixa, invisível ao olho: submete o formulário e é a ele que
+     o browser ancora a mensagem do `required`. Por isso não leva
+     `display:none` — com isso o Chrome recusa-se a mostrar o aviso. */
+  .seleccao__nativo {
+    position: absolute;
+    bottom: 0;
+    left: 1rem;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .seleccao__gatilho {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-align: left;
+    cursor: pointer;
+    appearance: none;
+  }
+
+  .seleccao__gatilho:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  .seleccao__gatilho[data-aberto] {
+    border-color: var(--border);
+  }
+
+  .seleccao__rotulo {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Sem escolha feita, o rótulo é uma sugestão — lê-se como um placeholder. */
+  .seleccao__gatilho[data-vazio] .seleccao__rotulo {
+    color: var(--foreground-muted);
+  }
+
+  .seleccao__seta {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--foreground-muted);
+    transition:
+      transform var(--d-fast) var(--ease-out),
+      color var(--d-fast) var(--ease-out);
+  }
+
+  .seleccao__gatilho:hover .seleccao__seta {
+    color: var(--foreground-secondary);
+  }
+
+  .seleccao__gatilho[data-aberto] .seleccao__seta {
+    transform: rotate(180deg);
+    color: var(--foreground-strong);
+  }
+
+  .seleccao__lista {
+    position: fixed;
+    z-index: 9998;
+    max-height: 18rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0.375rem;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--raio-lg);
+    background: color-mix(in srgb, var(--background-elevated) 92%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow:
+      0 1px 0 0 var(--elevate-1) inset,
+      0 24px 48px -12px rgba(0, 0, 0, 0.7);
+    animation: crescer var(--d-fast) var(--ease-out) both;
+    transform-origin: top center;
+  }
+
+  .seleccao__lista[data-acima] {
+    transform-origin: bottom center;
+  }
+
+  .seleccao__opcao {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: var(--raio-sm);
+    color: var(--foreground-secondary);
+    font-size: 0.875rem;
+    line-height: 1.4;
+    cursor: pointer;
+    transition:
+      background-color var(--d-fast) var(--ease-out),
+      color var(--d-fast) var(--ease-out);
+  }
+
+  .seleccao__opcao[data-activa] {
+    background: var(--elevate-2);
+    color: var(--foreground-strong);
+  }
+
+  .seleccao__opcao[data-escolhida] {
+    color: var(--foreground-strong);
+  }
+
+  .seleccao__opcao[aria-disabled="true"] {
+    color: var(--foreground-muted);
+    cursor: not-allowed;
+    background: none;
+  }
+
+  .seleccao__texto {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .seleccao__visto {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: var(--foreground-strong);
+  }
+}
+
+@layer components {
+  /* ── Alfinetes do globo ───────────────────────────────────────────────
+     O exemplo que serviu de referência tinha pontos verdes a pulsar. Aqui
+     o verde é o estado «activo» e mais nada, e a pulsação seria mais um
+     ciclo infinito — que neste projecto se contam. Branco para todas as
+     coudelarias, dourado só para as em destaque: vinte e tal alfinetes
+     dourados seguidos deixavam de assinalar seja o que for. */
+
+  .alfinete {
+    position: relative;
+    width: 10px;
+    height: 10px;
+    animation: alfinete-cair 460ms var(--ease-out) var(--entrada, 0ms) both;
+    border-radius: 50%;
+    background: var(--foreground-strong);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.12);
+    cursor: pointer;
+    transition:
+      box-shadow var(--d-fast) var(--ease-out),
+      transform var(--d-fast) var(--ease-out);
+  }
+
+  .alfinete[data-destaque] {
+    background: var(--gold);
+    box-shadow: 0 0 0 4px rgb(var(--gold-rgb) / 0.2);
+  }
+
+  .alfinete:hover,
+  .alfinete:focus-visible {
+    outline: none;
+    transform: scale(1.25);
+    box-shadow: 0 0 0 7px rgba(255, 255, 255, 0.16);
+  }
+
+  .alfinete[data-destaque]:hover,
+  .alfinete[data-destaque]:focus-visible {
+    box-shadow: 0 0 0 7px rgb(var(--gold-rgb) / 0.28);
+  }
+
+  /* A legenda vive dentro do alfinete: assim viaja com ele quando o globo
+     roda, sem uma linha de JavaScript a persegui-lo. */
+  @keyframes alfinete-cair {
+    from {
+      opacity: 0;
+      transform: translateY(-10px) scale(0.4);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .alfinete__rotulo {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 0.375rem 0.5rem;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--raio-sm);
+    background: var(--background-elevated);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--d-fast) var(--ease-out);
+  }
+
+  .alfinete:hover .alfinete__rotulo,
+  .alfinete:focus-visible .alfinete__rotulo {
+    opacity: 1;
+  }
+
+  .alfinete__rotulo strong {
+    font-size: 11px;
+    font-weight: 500;
+    font-style: normal;
+    color: var(--foreground-strong);
+  }
+
+  .alfinete__rotulo em {
+    font-size: 10px;
+    font-style: normal;
+    color: var(--foreground-muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .alfinete {
+      animation: none;
+    }
+  }
+}
+
+@layer components {
+  /* ── Holofote e marcas vivas ──────────────────────────────────────────
+     A grelha de seis lê-se como uma folha de vidro: a luz do ponteiro
+     atravessa-a e acende a hairline por onde passa. É o mesmo azul frio
+     das outras hairlines do site — branco puro leria como uma caixa
+     desenhada. Sem rato, nada disto existe. */
+
+  .cartao-holofote {
+    position: relative;
+    isolation: isolate;
+    transition:
+      border-color var(--d-fast) var(--ease-out),
+      transform var(--d-fast) var(--ease-out);
+  }
+
+  .cartao-holofote:hover {
+    transform: translateY(-2px);
+  }
+
+  /* A hairline acesa: a borda inteira num gradiente, recortada à moldura. */
+  .cartao-holofote::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    padding: 1px;
+    background: radial-gradient(
+      260px circle at var(--px, -999px) var(--py, -999px),
+      rgba(214, 235, 253, 0.9),
+      rgba(214, 235, 253, 0.25) 40%,
+      transparent 65%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 220ms var(--ease-out);
+    pointer-events: none;
+  }
+
+  /* E um halo ténue por baixo, para o cartão não ser só um contorno aceso. */
+  .cartao-holofote::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      300px circle at var(--px, -999px) var(--py, -999px),
+      rgba(255, 255, 255, 0.09),
+      transparent 62%
+    );
+    opacity: 0;
+    transition: opacity 220ms var(--ease-out);
+    pointer-events: none;
+  }
+
+  .grelha-holofote:hover .cartao-holofote::before,
+  .grelha-holofote:hover .cartao-holofote::after {
+    opacity: 1;
+  }
+
+  /* ── A linha viva de cada cartão ──────────────────────────────────────
+     Um pedaço de interface a 11px que se escreve sozinho e vai mudando: a
+     mesma ideia dos previews da página inicial, à escala de um cartão. As
+     barras abstractas que aqui estavam eram bonitas e não diziam nada. */
+
+  .linha-viva {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 22px;
+    border-bottom: 1px solid var(--border-soft);
+    padding-bottom: 10px;
+  }
+
+  /* Sem cor não se via: o `.ponto` do sistema traz a forma, não o tom. */
+  .linha-viva__ponto {
+    height: 6px;
+    width: 6px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--foreground-muted);
+  }
+
+  .linha-viva__texto {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px;
+    color: var(--foreground-secondary);
+  }
+
+  .linha-viva__forte {
+    flex-shrink: 0;
+    border-radius: var(--raio-sm);
+    border: 1px solid var(--border-soft);
+    padding: 2px 7px;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--foreground-strong);
+  }
+}
+
+@layer components {
+  @media (prefers-reduced-motion: reduce) {
+    /* Sem o levantar do cartão: o holofote é luz, e essa fica. */
+    .cartao-holofote:hover {
+      transform: none;
+    }
+  }
+}
+
+@layer components {
+  /* ── Etiquetas sobre o globo ──────────────────────────────────────────
+     O nome de cada coudelaria escrito por cima da cena 3D. Em HTML e não em
+     textura: fica nítido em qualquer ecrã, herda a tipografia do site e
+     pode receber o rato e o foco.
+
+     A hierarquia é nome-da-coudelaria primeiro e localidade por baixo, e não
+     ao contrário. Com os dados reais o contrário dava dois títulos «Ferreira
+     do Alentejo» lado a lado com a coudelaria sussurrada por baixo: o que
+     distingue duas coudelarias da mesma vila é o nome delas, e o sítio já
+     está dito pelo ponto onde a etiqueta assenta.
+
+     O dourado ficou no alfinete e no fio, e saiu do texto. Das onze etiquetas
+     que se liam ao mesmo tempo, seis eram douradas — não é um acento, é uma
+     segunda cor de texto. E sobre uma fotografia do planeta o dourado a 12px
+     lê-se pior do que o branco, o que punha as coudelarias em destaque a ser
+     as mais difíceis de ler. Um ponto e um fio dourados são do tamanho de um
+     ícone, que é o que o acento pode ocupar. */
+
+  .globo-etiquetas {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .globo-etiqueta {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    pointer-events: auto;
+    will-change: transform, opacity;
+    transition: opacity var(--d-fast) var(--ease-out);
+    animation: etiqueta-nascer var(--d-nascer) var(--ease-out) var(--entrada, 0ms) backwards;
+  }
+
+  /* Nasce depois de a câmara pousar: escrever nomes por cima de uma
+     aproximação a meio é ruído. A visibilidade anima junto com a opacidade
+     de propósito — sem ela a etiqueta é invisível mas continua a apanhar o
+     rato e a receber o foco durante os dois segundos da entrada. */
+  @keyframes etiqueta-nascer {
+    from {
+      opacity: 0;
+      visibility: hidden;
+    }
+    to {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+
+  /* O fio que liga o ponto ao nome. Sem ele, os nomes flutuam e não se
+     percebe a que ponto pertence cada um.
+
+     O fio tem de chegar ao alfinete. A primeira versão punha-o dentro da
+     caixa (`left: 0`), com o cotovelo a apontar para fora: o segmento
+     horizontal partia da borda da etiqueta e afastava-se do ponto, deixando
+     dez pixéis de vazio entre os dois. Ligava a etiqueta a coisa nenhuma.
+     Agora sai da caixa (`-10px`) e acaba exactamente onde o ponto está. */
+  .globo-etiqueta__linha {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    pointer-events: none;
+    border-style: solid;
+    border-width: 0;
+    /* Era 0.5, e sobre o terreno claro do Alentejo o fio desaparecia: os
+       nomes ficavam a flutuar sem se perceber a que ponto pertenciam. O
+       texto já resolvia isto com sombra; o fio leva a mesma sombra, que numa
+       borda só se consegue com `drop-shadow` — o `text-shadow` não lhe pega
+       e o `box-shadow` desenharia a caixa toda. */
+    border-color: rgba(226, 240, 253, 0.78);
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9));
+  }
+
+  .globo-etiqueta[data-lado="direita"][data-vert="cima"] .globo-etiqueta__linha {
+    left: -10px;
+    bottom: -10px;
+    border-bottom-width: 1px;
+    border-right-width: 1px;
+    border-bottom-right-radius: 3px;
+  }
+
+  .globo-etiqueta[data-lado="esquerda"][data-vert="cima"] .globo-etiqueta__linha {
+    right: -10px;
+    bottom: -10px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-bottom-left-radius: 3px;
+  }
+
+  .globo-etiqueta[data-lado="direita"][data-vert="baixo"] .globo-etiqueta__linha {
+    left: -10px;
+    top: -10px;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-top-right-radius: 3px;
+  }
+
+  .globo-etiqueta[data-lado="esquerda"][data-vert="baixo"] .globo-etiqueta__linha {
+    right: -10px;
+    top: -10px;
+    border-top-width: 1px;
+    border-left-width: 1px;
+    border-top-left-radius: 3px;
+  }
+
+  /* Centrada por cima ou por baixo do ponto. Aqui o cotovelo também não tem
+     lado para onde virar — o nome está a prumo sobre o ponto —, e o fio fica
+     um traço vertical do meio da caixa até ao alfinete. */
+  .globo-etiqueta[data-lado="centro"] .globo-etiqueta__linha {
+    left: 50%;
+    width: 0;
+    border-left-width: 1px;
+  }
+
+  .globo-etiqueta[data-lado="centro"][data-vert="cima"] .globo-etiqueta__linha {
+    bottom: -10px;
+  }
+
+  .globo-etiqueta[data-lado="centro"][data-vert="baixo"] .globo-etiqueta__linha {
+    top: -10px;
+  }
+
+  .globo-etiqueta[data-lado="centro"] .globo-etiqueta__caixa {
+    text-align: center;
+  }
+
+  /* À altura do ponto o cotovelo não tem para onde virar: fica o traço. */
+  .globo-etiqueta[data-vert="meio"] .globo-etiqueta__linha {
+    top: 50%;
+    height: 0;
+    border-top-width: 1px;
+  }
+
+  .globo-etiqueta[data-lado="direita"][data-vert="meio"] .globo-etiqueta__linha {
+    left: -10px;
+  }
+
+  .globo-etiqueta[data-lado="esquerda"][data-vert="meio"] .globo-etiqueta__linha {
+    right: -10px;
+  }
+
+  /* O fio não muda de cor num destaque. O dourado saiu daqui pela mesma razão
+     por que saiu dos alfinetes: eram vinte e um dos vinte e nove fios, e um
+     acento repetido vinte e uma vezes deixa de assinalar o que quer que seja.
+     Quem distingue um destaque é o halo, que abre mais. */
+
+  .globo-etiqueta[data-activo] .globo-etiqueta__linha {
+    border-color: rgba(255, 255, 255, 0.85);
+  }
+
+  .globo-etiqueta__caixa {
+    display: block;
+    white-space: nowrap;
+  }
+
+  .globo-etiqueta[data-lado="esquerda"] .globo-etiqueta__caixa {
+    text-align: right;
+  }
+
+  /* Sem lugar neste quadro. Sai do rato mas não necessariamente da
+     tabulação: a etiqueta que tem o foco fica focável mesmo durante o quadro
+     em que a câmara ainda não a trouxe à vista — sem isso, percorrer o globo
+     pelas setas perdia o foco ao segundo passo. Quem trata da tabulação é o
+     `inert`, que é outra coisa e vive no JavaScript. */
+  .globo-etiqueta[data-oculta] {
+    pointer-events: none;
+  }
+
+  /* ── Enquanto uma coudelaria está a ser escolhida ─────────────────────
+     A opacidade dos nomes é escrita pelo motor a cada quadro, e no resto do
+     tempo esta transição de 200ms serve para amaciar o esbatimento junto ao
+     horizonte. Durante a escolha estorva: o motor já está a interpolar com
+     o relógio da escolha, e uma segunda interpolação por cima dá um véu que
+     chega duzentos milissegundos atrasado em relação à argola que abre no
+     ponto — que é exactamente a diferença entre um movimento e dois.
+
+     A escolhida sobe por cima de tudo o resto: é a única que fica, e não
+     pode ficar por baixo de um nome que está a apagar-se. */
+  .globo-etiquetas[data-escolha] .globo-etiqueta,
+  .globo-etiquetas[data-escolha] .globo-mancha {
+    transition: none;
+  }
+
+  .globo-etiqueta[data-escolhida] {
+    z-index: 2;
+  }
+
+  /* Um botão a sério, não uma `div` com `role="button"`: assim o Enter e o
+     espaço vêm do browser, o foco vem do browser, e não há uma linha de
+     JavaScript a imitar o que o elemento já sabe fazer. */
+  .globo-etiqueta__cabeca,
+  .globo-etiqueta__membro {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-align: inherit;
+    /* A cabeça de um nome é uma ligação a sério para a ficha da coudelaria —
+       um passo, e não uma janela onde é preciso carregar outra vez. Sublinhado
+       não: sobre a fotografia do planeta, a 12px, um risco por baixo de cada
+       nome desenha uma segunda linha de horizonte. Quem diz que é accionável
+       é o cursor, e o realce ao apontar. */
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  /* Sem nada para abrir, a cabeça é um `span` e não pretende ser clicável. */
+  span.globo-etiqueta__cabeca {
+    cursor: inherit;
+  }
+
+  .globo-etiqueta__nome {
+    display: block;
+    /* Um nome não pode crescer sem fim: uma etiqueta de trezentos pixéis
+       tapa três vizinhas. Ao apontar, abre. */
+    max-width: 168px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 12px;
+    line-height: 1.25;
+    font-weight: 500;
+    color: var(--foreground-strong);
+    /* Sombra em vez de caixa: uma caixa por cada nome tapava o planeta. */
+    text-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.95),
+      0 0 12px rgba(0, 0, 0, 0.8);
+  }
+
+  .globo-etiqueta[data-activo] .globo-etiqueta__nome,
+  .globo-etiqueta[data-activo] .globo-etiqueta__local {
+    max-width: 320px;
+  }
+
+  .globo-etiqueta__local {
+    display: block;
+    max-width: 168px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 10px;
+    line-height: 1.3;
+    /* Era `--foreground-muted` (#666): sobre uma fotografia do planeta, com
+       o terreno claro do Alentejo por baixo, a segunda linha desaparecia. */
+    color: var(--foreground-secondary);
+    text-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.95),
+      0 0 10px rgba(0, 0, 0, 0.7);
+  }
+
+  /* Quando não há espaço para as duas linhas, fica a primeira. Vale mais um
+     nome sem a localidade do que um ponto sem nome nenhum. */
+  .globo-etiqueta[data-curto] .globo-etiqueta__local,
+  .globo-etiqueta[data-aberto] .globo-etiqueta__local {
+    display: none;
+  }
+
+  /* Quantas coudelarias há neste ponto. Não é um selo: é um algarismo do
+     tamanho do texto à volta, para se ler sem roubar a linha. */
+  .globo-etiqueta__conta {
+    margin-left: 5px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--elevate-2);
+    font-size: 9px;
+    font-variant-numeric: tabular-nums;
+    line-height: 14px;
+    vertical-align: 1px;
+    color: var(--foreground-strong);
+  }
+
+  /* A pilha aberta: os nomes que estavam encostados uns aos outros, agora em
+     coluna e cada um seu botão. É esta a forma de «aproximar» um ponto onde
+     duas coudelarias têm a mesma coordenada — nenhum zoom as separa. */
+  .globo-etiqueta__membros {
+    display: grid;
+    gap: 1px;
+    margin: 2px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .globo-etiqueta__membro {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--foreground-secondary);
+    text-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.95),
+      0 0 10px rgba(0, 0, 0, 0.7);
+    transition: color var(--d-fast) var(--ease-out);
+  }
+
+  .globo-etiqueta__membro:hover,
+  .globo-etiqueta__membro:focus-visible {
+    color: var(--foreground-strong);
+  }
+
+  /* Estado escolhido é branco. O ponto que está debaixo do rato acende-se em
+     branco mesmo quando é dourado — o dourado diz «esta é rara», o branco diz
+     «é esta que estás a apontar», e são duas coisas diferentes. */
+  .globo-etiqueta[data-activo] .globo-etiqueta__local {
+    color: var(--foreground);
+  }
+
+  /* ── Manchas: o algarismo por cima de um ajuntamento de pontos ────────
+     Onde não coube um nome, fica a conta. É a diferença entre uma nuvem de
+     pintas anónimas e um mapa que diz «aqui estão sete».
+
+     É um algarismo, não um selo: a mesma família do `.globo-etiqueta__conta`
+     — hairline fria, fundo elevado, número em tabular — mas redondo e
+     autónomo, porque não se encosta a nome nenhum. Branco e não dourado: o
+     dourado é o acento e já saiu dos alfinetes pela mesma razão — repetido
+     em cada mancha da grelha deixaria de assinalar seja o que for. */
+
+  .globo-mancha {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    pointer-events: auto;
+    will-change: transform, opacity;
+    transition: opacity var(--d-fast) var(--ease-out);
+    animation: etiqueta-nascer var(--d-nascer) var(--ease-out) var(--entrada, 0ms) backwards;
+  }
+
+  /* Fora de jogo: sem lugar neste quadro. Sai do rato também — uma bolha
+     invisível a apanhar o ponteiro é um clique que ninguém pediu. */
+  .globo-mancha[data-oculta] {
+    pointer-events: none;
+  }
+
+  .globo-mancha__chip {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    margin: 0;
+    padding: 0;
+    border: 1px solid rgba(214, 235, 253, 0.22);
+    border-radius: 999px;
+    background: var(--background-elevated);
+    box-shadow:
+      0 1px 4px rgba(0, 0, 0, 0.95),
+      0 0 14px rgba(0, 0, 0, 0.7);
+    font: inherit;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    color: var(--foreground-secondary);
+    cursor: pointer;
+    transition:
+      color var(--d-fast) var(--ease-out),
+      border-color var(--d-fast) var(--ease-out);
+  }
+
+  /* Estado escolhido é branco. */
+  .globo-mancha:hover .globo-mancha__chip,
+  .globo-mancha[data-aberta] .globo-mancha__chip {
+    border-color: var(--border-hover);
+    color: var(--foreground-strong);
+  }
+
+  /* O painel dos nomes pendura-se do algarismo e não desloca nada: a
+     colocação da mancha usa sempre a medida do algarismo fechado, por isso
+     abrir não obriga a recolocar o quadro inteiro. */
+  .globo-mancha__painel {
+    position: absolute;
+    top: 26px;
+    left: 50%;
+    z-index: 2;
+    display: none;
+    width: max-content;
+    max-width: 220px;
+    /* O `--desvio` é escrito no momento em que abre, e é o que encosta o
+       painel à borda em vez de o deixar sair da lona — que o `overflow:
+       hidden` da camada cortaria a meio de uma lista. */
+    transform: translateX(calc(-50% + var(--desvio, 0px)));
+    padding: 7px 9px 8px;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    background: var(--background-card);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.85);
+  }
+
+  .globo-mancha[data-aberta] .globo-mancha__painel {
+    display: block;
+    animation: globo-mancha-abrir var(--d-fast) var(--ease-out);
+    transform-origin: top center;
+  }
+
+  /* Na metade de baixo da lona o painel abre para cima. Sem isto ficava
+     cortado pela borda: medido, cinco nomes visíveis em onze. */
+  .globo-mancha[data-cima] .globo-mancha__painel {
+    top: auto;
+    bottom: 26px;
+    transform-origin: bottom center;
+  }
+
+  /* O mesmo movimento do `.anim-crescer` dos dropdowns — 200ms, `--ease-out`,
+     origem no topo —, escrito à parte só porque este painel já traz um
+     `translateX(-50%)` para se centrar no algarismo, e uma animação de
+     `transform` que não o carregue atira-o para o lado a meio da abertura. */
+  @keyframes globo-mancha-abrir {
+    from {
+      opacity: 0;
+      transform: translateX(calc(-50% + var(--desvio, 0px))) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(calc(-50% + var(--desvio, 0px))) scale(1);
+    }
+  }
+
+  .globo-mancha__titulo {
+    margin: 0 0 5px;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--foreground-muted);
+  }
+
+  /* Uma mancha grande dava um menu mais alto do que a lona do telemóvel.
+     Tem tecto e rola; a barra fina já vem do `*` do sistema. */
+  .globo-mancha__membros {
+    display: grid;
+    gap: 1px;
+    max-height: 232px;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+    overscroll-behavior: contain;
+  }
+
+  .globo-mancha__membro {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 2px 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    color: var(--foreground-secondary);
+    transition: color var(--d-fast) var(--ease-out);
+  }
+
+  .globo-mancha__membro:hover,
+  .globo-mancha__membro:focus-visible {
+    color: var(--foreground-strong);
+  }
+
+  .globo-mancha__nome {
+    display: block;
+    overflow: hidden;
+    font-size: 11px;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .globo-mancha__sitio {
+    display: block;
+    overflow: hidden;
+    font-size: 9px;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--foreground-muted);
+  }
+
+  /* ── Os comandos da vista ─────────────────────────────────────────────
+     Aproximar é a acção que faz aparecer os nomes, e era a única que não
+     estava desenhada em lado nenhum: quem não soubesse que a roda do rato
+     ali fazia alguma coisa nunca a experimentava. Três botões pequenos no
+     canto, com a mesma hairline fria e o mesmo vidro do resto do site.
+
+     Ficam no alto e à direita porque em baixo passa a barra de cookies em
+     telemóvel e a legenda da página em todos os ecrãs; e descem o que for
+     preciso quando o cabeçalho lhes fica por cima — é o `--recuo`, que o
+     componente escreve com a mesma medida que usa para os nomes. */
+  .globo-comandos {
+    position: absolute;
+    top: calc(10px + var(--recuo, 0px));
+    right: 10px;
+    z-index: 20;
+    display: grid;
+    gap: 6px;
+    transition: top var(--d-fast) var(--ease-out);
+  }
+
+  .globo-comando {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--background-card) 78%, transparent);
+    backdrop-filter: blur(10px);
+    color: var(--foreground-secondary);
+    cursor: pointer;
+    transition:
+      color var(--d-fast) var(--ease-out),
+      border-color var(--d-fast) var(--ease-out),
+      background var(--d-fast) var(--ease-out);
+  }
+
+  .globo-comando svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Estado escolhido é branco. */
+  .globo-comando:hover:not(:disabled),
+  .globo-comando:focus-visible {
+    border-color: var(--border-hover);
+    background: var(--background-elevated);
+    color: var(--foreground-strong);
+  }
+
+  /* Apagado ao fim do curso. É a maneira de dizer que a aproximação tem
+     limite sem escrever um número que ninguém quer ler. */
+  .globo-comando:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  @media (max-width: 768px) {
+    /* Quadrado outra vez: a regra global de alvo de toque põe-lhe 44px de
+       altura, e 34 de largura por 44 de altura é uma cápsula. */
+    .globo-comando {
+      width: 44px;
+      height: 44px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .globo-etiqueta {
+      animation: none;
+      visibility: visible;
+    }
+
+    .globo-etiqueta__membro {
+      transition: none;
+    }
+
+    .globo-mancha {
+      animation: none;
+      visibility: visible;
+    }
+
+    .globo-mancha__chip,
+    .globo-mancha__membro {
+      transition: none;
+    }
+
+    .globo-mancha[data-aberta] .globo-mancha__painel {
+      animation: none;
+    }
+  }
+}
+
+/* ── Fora de qualquer camada, de propósito ────────────────────────────────
+   A regra de alvo de toque de 44px lá em cima neste ficheiro também vive
+   fora de camada, e **CSS sem camada ganha a qualquer `@layer`** — por isso
+   nada dentro de `@layer components` lhe pode responder. É a mesma razão
+   pela qual os interruptores já estavam de fora. Aqui são dois casos:
+
+   - O algarismo de uma mancha é redondo. Esticado a 44px de altura por 22 de
+     largura deixa de ser um algarismo e passa a ser uma cápsula. Medido em
+     telemóvel: 22×44.
+   - A caixa de um nome é também a caixa com que o teste de colisão decide
+     quem cabe. Com 44px de altura em vez dos 28 que o texto ocupa, cada nome
+     reserva 57% mais altura do que gasta — e num ecrã de 518px isso custa
+     nomes que cabiam. Medido: 44px em telemóvel, 28 no computador, com o
+     mesmo texto. Vale para o `<button>` e para o `<a>`: a regra do outro
+     lado apanha os dois, e a cabeça de um nome passou a ser uma ligação.
+
+   O alvo de toque não se perde: passa para um `::after` transparente que
+   estica para os 44px **sem entrar na medida do elemento**. É essa a
+   diferença entre uma área de toque e um espaço reservado — e é o que
+   permite ter as duas coisas. */
+@media (max-width: 768px) {
+  /* Dois selectores e a etiqueta do elemento: a regra do outro lado é
+     `button:not([role="switch"])`, e um `:not()` conta a especificidade do
+     que leva lá dentro — (0,1,1), que ganha a uma classe só. Medido: com
+     `.globo-etiqueta__cabeca` sozinho o `min-height` continuava nos 44px. */
+  .globo-etiqueta button.globo-etiqueta__cabeca,
+  .globo-etiqueta a.globo-etiqueta__cabeca,
+  .globo-mancha button.globo-mancha__chip {
+    position: relative;
+    min-height: 0;
+  }
+
+  .globo-etiqueta button.globo-etiqueta__cabeca::after,
+  .globo-etiqueta a.globo-etiqueta__cabeca::after,
+  .globo-mancha button.globo-mancha__chip::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    min-width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* ── Pilha de níveis: entrar numa região ──────────────────────────────────
+ * Escolher uma região não é filtrar uma lista, é entrar num sítio. O site já
+ * tem um idioma para isso — os submenus do menu de ecrã inteiro —, e é esse
+ * que se repete aqui em vez de se inventar outro: os níveis empilham-se no
+ * mesmo sítio, o que entra vem da direita uma largura inteira enquanto o que
+ * fica se apaga sem se mexer. São os dois ao mesmo tempo que se leem como
+ * profundidade; qualquer um deles sozinho lê-se como um corte.
+ *
+ * A altura da caixa é animada a partir da altura medida do nível activo. Sem
+ * isso, passar de cinco regiões para treze coudelarias dá um salto no
+ * documento e o que está por baixo pula.
+ * ------------------------------------------------------------------------ */
+@layer components {
+  .pilha {
+    position: relative;
+    overflow: hidden;
+    height: var(--altura-pilha, auto);
+    transition: height var(--d-drill) var(--ease-in-out-cubic);
+  }
+
+  .pilha__nivel {
+    transition:
+      transform var(--d-drill) var(--ease-in-out-cubic),
+      opacity var(--d-drill) var(--ease-in-out-cubic);
+  }
+
+  /* O nível que está fora não pode apanhar o rato nem o foco: uma lista
+     invisível a receber tabulações é pior do que não existir. */
+  .pilha__nivel[data-fora="sim"] {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  /* Quem fica para trás não desliza — só se apaga. É essa quietude que faz o
+     outro parecer vir de cima. */
+  .pilha__nivel[data-fora="sim"][data-lado="atras"] {
+    transform: scale(0.97);
+  }
+
+  .pilha__nivel[data-fora="sim"][data-lado="frente"] {
+    transform: translateX(12%);
+  }
+
+  .pilha__nivel[data-fora="nao"] {
+    position: relative;
+    opacity: 1;
+    transform: none;
+  }
+
+  /* As linhas do nível que entra compõem-se em cascata, 45ms a 45ms. É curto
+     de propósito: com treze coudelarias, 100ms por linha punha a última a
+     aparecer 1,3s depois da primeira, e quem entra numa região quer a lista,
+     não um espectáculo. */
+  @keyframes linha-entrar {
+    from {
+      opacity: 0;
+      transform: translateX(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .pilha__nivel[data-fora="nao"] .linha-cascata {
+    animation: linha-entrar var(--d-fast) var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * 45ms);
+  }
+
+  /* ── Trocar de vista: globo ↔ lista ─────────────────────────────────────
+   * A troca era instantânea e lia-se como um corte de montagem: o globo
+   * desaparecia e uma grelha aparecia no mesmo instante, sem nada dizer que
+   * era a mesma informação vista de outra maneira. Um esbatimento curto com
+   * um resto de escala diz que o conteúdo é o mesmo e mudou de forma.
+   * --------------------------------------------------------------------- */
+  @keyframes vista-entrar {
+    from {
+      opacity: 0;
+      transform: scale(0.985) translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .vista-troca {
+    animation: vista-entrar var(--d-menu) var(--ease-out) both;
+  }
+
+  /* Os cartões da lista entram atrás da vista, em cascata. O tecto está em
+     dez: passados dez, o atraso deixa de se ler como ordem e passa a
+     leitura-a-conta-gotas. */
+  .vista-troca .cartao-cascata {
+    animation: vista-entrar var(--d-fast) var(--ease-out) both;
+    animation-delay: calc(120ms + min(var(--i, 0), 10) * 40ms);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pilha,
+  .pilha__nivel,
+  .pilha__nivel[data-fora="nao"] .linha-cascata,
+  .vista-troca,
+  .vista-troca .cartao-cascata {
+    animation: none !important;
+    transition: none !important;
+  }
+  .pilha {
+    height: auto !important;
+  }
+}
+
+/* ===== PUBLICAR ANÚNCIO =====
+ * O percurso de `/vender-cavalo`. Classes próprias porque o que elas resolvem
+ * é próprio deste percurso: um formulário de quatro passos e noventa e quatro
+ * campos, onde o que custa é saber o que falta e onde é que ele está. */
+@layer components {
+  /* Um campo que está a impedir alguém de avançar. Sobre preto uma borda
+     vermelha fina quase não se vê; leva também um halo — o mesmo que o foco
+     faz, com a cor do erro. */
+  .campo-erro,
+  .campo-erro:hover,
+  .campo-erro:focus {
+    border-color: var(--erro);
+    box-shadow: 0 0 0 3px rgb(var(--erro-rgb) / 0.16);
+  }
+
+  /* A mensagem por baixo do campo. Fica junto ao problema; o resumo lá em
+     cima é para quem chega de fora, esta é para quem já lá está. */
+  .erro-campo {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.375rem;
+    margin-top: 0.375rem;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--erro);
+  }
+
+  /* O resumo no topo do passo. Era `bg-red-500/10` com três tons de vermelho
+     do Tailwind escritos na página, e nenhum deles o `--erro` do sistema. */
+  .resumo-erros {
+    border: 1px solid rgb(var(--erro-rgb) / 0.35);
+    background: rgb(var(--erro-rgb) / 0.08);
+    border-radius: var(--raio-lg);
+    padding: 1rem;
+  }
+
+  /* Cada linha do resumo é um botão que leva ao campo. Um resumo que só
+     descreve obriga a procurar, entre quarenta e sete campos, qual é o que
+     falta; este leva lá e põe-lhe o foco. */
+  .resumo-erros__ir {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.25rem 0;
+    color: var(--erro);
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    text-decoration: underline;
+    text-decoration-color: rgb(var(--erro-rgb) / 0.4);
+    text-underline-offset: 3px;
+    cursor: pointer;
+    transition: text-decoration-color var(--d-fast) var(--ease-out);
+  }
+
+  .resumo-erros__ir:hover {
+    text-decoration-color: var(--erro);
+  }
+
+  /* --- O que falta, e o que está errado -------------------------------------
+   * Duas coisas que eram uma só, e essa foi a mudança que arrumou o
+   * formulário inteiro.
+   *
+   * Com noventa e nove campos obrigatórios, carregar em «Continuar» com o
+   * passo por preencher acendia vinte e sete campos a vermelho e escrevia
+   * vinte e sete frases vermelhas por baixo deles — duas páginas de vermelho
+   * antes de a pessoa ter escrito uma letra. Medido: 29 elementos vermelhos
+   * no primeiro ecrã, 82 na página.
+   *
+   * Nada ali estava errado. Estava por fazer, que é outra coisa: um campo por
+   * tocar não é um campo com um valor mau. E a consequência de os pintar da
+   * mesma cor não é só o susto — é que **nenhum se distingue de nenhum**.
+   * Vinte e sete alarmes ao mesmo tempo são zero alarmes, e no dia em que um
+   * email vier sem arroba o vermelho já não vale nada.
+   *
+   * Por isso são agora dois desenhos:
+   *
+   *  - `.campo-por-responder` — a hairline acesa e um halo de luz fria, que é
+   *    o mesmo idioma do `.campo-erro` um tom abaixo. Sobre preto quem
+   *    assinala é o contraste, e é o que o site já faz em todo o lado (o
+   *    filtro activo, o dia de hoje, a página actual).
+   *  - `.campo-erro` — vermelho, e agora só para quem respondeu e respondeu
+   *    mal. Ficou como estava; o que mudou foi passar a ser raro. */
+  .campo-por-responder,
+  .campo-por-responder:hover {
+    border-color: var(--border);
+    /* O halo é a hairline do sistema e não um branco literal: em tema claro
+       um `rgba(255,255,255,·)` sobre fundo branco não é um halo mais fraco, é
+       nenhum. O token vira com o tema. */
+    box-shadow: 0 0 0 3px var(--border-soft);
+  }
+
+  /* A linha por baixo do campo por responder. Duas palavras, no secundário:
+     não é uma frase, é um estado. A frase que aqui estava — «Falta preencher:
+     NIF.» — dizia o nome do campo que o rótulo, logo acima, já diz. */
+  .falta-campo {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.375rem;
+    margin-top: 0.375rem;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--foreground-secondary);
+  }
+
+  /* --- O resumo do topo -----------------------------------------------------
+   * O `.resumo-erros` fica no elemento por compatibilidade — é o selector por
+   * onde os casos de Playwright encontram o painel, e renomeá-lo era partir
+   * uma garantia por uma questão de nome. Quem manda no desenho é o
+   * `.resumo-faltas`, e as regras vão escritas com as duas classes para
+   * ganharem sem depender da ordem do ficheiro.
+   *
+   * O painel deixou de ser vermelho. O que ele diz não é «errou», é «faltam
+   * estas» — e uma conta não se pinta com a cor de alarme. Fica a superfície
+   * elevada com a hairline activa, que é como o site desenha um painel que
+   * pede atenção sem gritar. */
+  .resumo-erros.resumo-faltas {
+    border: 1px solid var(--border);
+    background: var(--elevate-1);
+    border-radius: var(--raio-lg);
+    padding: 1rem 1.125rem 1.125rem;
+  }
+
+  /* A conta. É o que a pessoa procura primeiro, e por isso é o maior e o mais
+     claro do painel — a hierarquia faz-se com peso e tamanho, não com cor. */
+  .resumo-faltas__conta {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    color: var(--foreground-strong);
+  }
+
+  .resumo-faltas__conta > svg {
+    align-self: center;
+    color: var(--foreground-secondary);
+  }
+
+  .resumo-faltas__numero {
+    font-size: 1.5rem;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* A fita dos algarismos anda em `--d-menu`.
+     Sem isto o número saltava: a `.numero-assenta` só transita dentro de um
+     `[data-revelar].dentro`, que é a entrada de um bloco ao entrar no ecrã, e
+     este número não entra — muda, a cada campo que se responde. É a mesma
+     razão pela qual a contagem dos filtros do directório tem o seu andamento
+     próprio, e é a mesma duração. Não altera a `.numero-assenta`: só lhe põe
+     a transição onde ela não tinha nenhuma. */
+  .resumo-faltas__numero .numero-assenta__fita {
+    transition: transform var(--d-menu) var(--ease-out);
+  }
+
+  .resumo-faltas__unidade {
+    font-size: 0.8125rem;
+    color: var(--foreground-secondary);
+  }
+
+  .resumo-faltas__nota {
+    margin-top: 0.25rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--foreground-secondary);
+  }
+
+  /* O caminho para a primeira falta. É o botão branco do sistema: o dourado
+     nesta página é do CTA de publicar anúncio, e um segundo dourado no mesmo
+     ecrã deixaria de assinalar o primeiro. */
+  .resumo-faltas__primeira {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    max-width: 100%;
+  }
+
+  .resumo-faltas__seccoes {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  /* Cada secção é um degrau da hierarquia que faltava: o cabeçalho diz onde,
+     a conta diz quanto, e as pastilhas dizem quais. Com as vinte e sete
+     linhas todas do mesmo peso não havia nenhuma primeira — e sem uma
+     primeira não há por onde começar. */
+  .resumo-faltas__seccao {
+    border-top: 1px solid var(--border-soft);
+    padding-top: 0.625rem;
+  }
+
+  .resumo-faltas__cabeca {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Quando os nomes não cabem, o cabeçalho da secção é que leva lá. É um
+     botão a sério, com o alvo de toque do site, e a seta di-lo. */
+  .resumo-faltas__cabeca--ir {
+    width: 100%;
+    /* O título fica à esquerda e a conta encosta-se à seta, do outro lado.
+       Com o `space-between` que o cabeçalho de leitura usa, os três ficavam
+       espalhados por igual e a conta perdia o par. */
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0;
+    text-align: left;
+    cursor: pointer;
+    border-radius: var(--raio-sm);
+    padding: 0.25rem 0.375rem;
+    margin-left: -0.375rem;
+    transition: background var(--d-fast) var(--ease-out);
+  }
+
+  .resumo-faltas__cabeca--ir .resumo-faltas__saldo {
+    margin-left: auto;
+  }
+
+  .resumo-faltas__cabeca--ir > svg {
+    color: var(--foreground-muted);
+    transition:
+      color var(--d-fast) var(--ease-out),
+      transform var(--d-fast) var(--ease-out);
+  }
+
+  .resumo-faltas__cabeca--ir:hover {
+    background: var(--elevate-1);
+  }
+
+  .resumo-faltas__cabeca--ir:hover .rotulo,
+  .resumo-faltas__cabeca--ir:hover > svg {
+    color: var(--foreground-strong);
+  }
+
+  .resumo-faltas__cabeca--ir:hover > svg {
+    transform: translateX(2px);
+  }
+
+  .resumo-faltas__saldo {
+    flex: none;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.75rem;
+    color: var(--foreground-muted);
+  }
+
+  .resumo-faltas__campos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  /* A forma curta: os nomes soltos, sem cabeçalho de secção. Com sete faltas
+     não se pergunta «onde» a uma lista que se lê inteira de uma vez, e um
+     cabeçalho por cada uma fazia o painel crescer ao responder-se. */
+  .resumo-faltas__campos--soltos {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-soft);
+  }
+
+  /* Uma pastilha por campo. Era uma linha sublinhada a vermelho, e vinte e
+     sete dessas empilhadas são uma parede de 765px; em pastilha as mesmas
+     vinte e sete cabem em nove linhas e continuam todas a um toque. */
+  .resumo-faltas__ir {
+    display: inline-block;
+    max-width: 100%;
+    padding: 0.25rem 0.625rem;
+    border: 1px solid var(--border-soft);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--foreground-secondary);
+    font-size: 0.75rem;
+    line-height: 1.4;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      border-color var(--d-fast) var(--ease-out),
+      color var(--d-fast) var(--ease-out),
+      background var(--d-fast) var(--ease-out);
+  }
+
+  .resumo-faltas__ir:hover {
+    border-color: var(--border-hover);
+    background: var(--elevate-1);
+    color: var(--foreground-strong);
+  }
+
+  /* --- O painel a aparecer, e o campo a receber quem vem dele ---------------
+   * Uma ideia só, e é a mesma nos dois sítios: **o que é preciso responder
+   * assenta**. O painel sobe e assenta, os algarismos rolam e assentam, e o
+   * campo onde se chega abre um anel que se fecha e assenta.
+   *
+   * Corre uma vez e pára. Não há aqui ciclo nenhum — o site conta três em
+   * tudo o que tem, e um quarto custava uma razão escrita que não há. */
+  .resumo-faltas {
+    animation: resumo-faltas-entrar var(--d-menu) var(--ease-out) both;
+  }
+
+  @keyframes resumo-faltas-entrar {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* O campo que acabou de receber o foco a partir do resumo.
+     Entre carregar num nome e a página parar não acontecia nada que dissesse
+     *qual* dos quarenta campos à vista tinha sido escolhido. É o mesmo
+     movimento com que o globo assinala a coudelaria escolhida, e o mesmo
+     token: `--d-drill` é o tempo de entrar num sítio, e ir do resumo ao campo
+     é entrar nele. O anel é um `box-shadow` e uma opacidade — nada que obrigue
+     o browser a refazer layout — e vive num `::after` para não disputar o
+     `box-shadow` que o próprio campo usa para o estado dele. */
+  [data-chegada] {
+    border-radius: var(--raio);
+    animation: chegada-anel calc(var(--d-drill) * 2) var(--ease-out) both;
+  }
+
+  /* O anel é um `box-shadow` no próprio elemento, e não um `::after`.
+     Duas razões, e a primeira é fatal: **um `<input>` é um elemento
+     substituído e não desenha pseudo-elementos** — metade dos campos deste
+     formulário são caixas de texto, e nesses o anel simplesmente não existia.
+     A segunda é que um `::after` posicionado obriga o elemento a
+     `position: relative`, e isso cria um contexto de empilhamento numa caixa
+     que noutros sítios tem um ícone absoluto por cima (o `€` do preço, a lupa
+     da pesquisa). Uma sombra não mexe no layout nem no empilhamento de nada.
+
+     O `box-shadow` do `.campo-por-responder` fica coberto durante os 640ms e
+     volta sozinho quando o atributo sai. */
+  @keyframes chegada-anel {
+    from {
+      box-shadow: 0 0 0 3px var(--foreground-strong);
+    }
+    to {
+      box-shadow: 0 0 0 12px transparent;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .resumo-faltas {
+      animation: none;
+    }
+    .resumo-faltas__numero .numero-assenta__fita {
+      transition: none;
+    }
+    [data-chegada] {
+      animation: none;
+    }
+  }
+
+  /* Painel de nota — o aviso da APSL, o da verificação de documentos. Eram
+     `bg-blue-500/10` com texto `text-blue-300`: uma quarta cor no site, que
+     não está em token nenhum. Sobre preto, quem diz «isto é uma nota» é a
+     hairline e o recuo, não uma cor nova. */
+  .painel-nota {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    border: 1px solid var(--border-soft);
+    border-left: 2px solid var(--border);
+    background: var(--elevate-1);
+    border-radius: var(--raio);
+    padding: 0.875rem 1rem;
+    color: var(--foreground-secondary);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+
+  /* --- Apontamentos: o que não impede, mas vale a pena perguntar ------------
+   * Um erro trava o passo, é vermelho e vai ao resumo do topo. Estes dois não
+   * travam nada, e por isso não são vermelhos: 193cm de altura é possível, e
+   * pintar de vermelho o que é possível ensina a ignorar o vermelho.
+   *
+   * A cor é a do `.painel-nota` — o secundário sobre uma hairline —, e não uma
+   * quarta cor inventada para o site. Sobre preto, quem diz «olhe para isto» é
+   * o contraste e o ícone. O que separa um aviso de uma sugestão é a hairline
+   * da esquerda: a da sugestão é a activa, porque a sugestão tem uma acção
+   * dentro dela e a outra não tem. */
+  .apontamento {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.375rem;
+    margin-top: 0.375rem;
+    padding-left: 0.5rem;
+    border-left: 2px solid var(--border-soft);
+    font-size: 0.75rem;
+    line-height: 1.45;
+    color: var(--foreground-secondary);
+  }
+
+  .apontamento--sugestao {
+    border-left-color: var(--border);
+  }
+
+  /* O botão que aceita a sugestão escreve o próprio valor que propõe — ler
+     «gmail.com» e carregar em «gmail.com» é uma acção só, sem intermediário.
+     Vai a mono porque o que ele mostra é um dado: um domínio, um número de
+     centímetros, um preço. */
+  .apontamento__aceitar {
+    display: inline-block;
+    margin-left: 0.375rem;
+    padding: 0.0625rem 0.375rem;
+    border: 1px solid var(--border);
+    border-radius: var(--raio-sm);
+    background: var(--elevate-1);
+    color: var(--foreground-strong);
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 0.6875rem;
+    line-height: 1.5;
+    cursor: pointer;
+    transition:
+      background var(--d-fast) var(--ease-out),
+      border-color var(--d-fast) var(--ease-out);
+  }
+
+  .apontamento__aceitar:hover {
+    background: var(--foreground-strong);
+    border-color: var(--foreground-strong);
+    color: var(--background);
+  }
+
+  /* O campo que está a ser verificado contra a base. Não é um estado de erro
+     nem de sucesso — é «ainda não se sabe» —, e por isso só um texto ténue.
+     Sem ciclo nenhum a rodar: a espera é de um pedido e acaba sozinha. */
+  .apontamento--espera {
+    color: var(--foreground-muted);
+  }
+
+  /* --- Secções do formulário de anúncio -------------------------------------
+   * Estiveram aqui as regras do `<Detalhes>`, que era uma gaveta fechada com a
+   * palavra «Opcional» na cabeça. Saíram com o componente: deixou de haver
+   * opcional, e uma gaveta é a promessa de que o que lá está dentro se pode
+   * saltar. O que fica é o cabeçalho — um assunto e a conta de onde vai —,
+   * porque com noventa e oito campos obrigatórios o que assusta não é o total,
+   * é não se saber quanto falta.
+   *
+   * A hairline fica à esquerda e não à volta: uma caixa por secção, oito por
+   * passo, empilhava oito molduras dentro do cartão que já é uma moldura. Um
+   * risco vertical arruma a coluna sem acrescentar caixa nenhuma. */
+  .seccao-campos {
+    border-left: 1px solid var(--border-soft);
+    padding-left: 1rem;
+    margin-left: 0.125rem;
+  }
+
+  /* A secção completa apaga o risco em vez de o acender. Acender oito riscos à
+     medida que se responde é encher o passo de sinais no fim, que é quando já
+     não são precisos; apagá-los deixa acesos só os que ainda pedem alguma
+     coisa. */
+  .seccao-campos[data-completa="sim"] {
+    border-left-color: transparent;
+  }
+
+  .seccao-campos__cabeca {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .seccao-campos__conta {
+    flex: none;
+    font-size: 0.75rem;
+    line-height: 1.3;
+    color: var(--foreground-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .seccao-campos__conta[data-completa="sim"] {
+    color: var(--ok);
+  }
+
+  .seccao-campos__corpo {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  /* --- Uma pergunta de sim ou não ------------------------------------------
+   * Duas pastilhas, e a escolhida é a `.chip-activo` — branca, como todo o
+   * estado escolhido do site. O `<input type="radio">` continua lá dentro,
+   * escondido mas focável: é dele que vêm as setas do teclado, o salto da
+   * tabulação por cima do grupo inteiro e o «2 de 2» do leitor de ecrã. */
+  .sim-nao {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+  }
+
+  .sim-nao__pergunta {
+    min-width: 0;
+    flex: 1 1 12rem;
+  }
+
+  .sim-nao__texto {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--foreground-secondary);
+  }
+
+  /* O `id` está no texto da pergunta para que o resumo de erros lhe possa dar
+     o foco; sem `outline` próprio, o anel do browser desenhava-se à volta de
+     uma linha de texto e lia-se como se o texto fosse clicável. */
+  .sim-nao__texto:focus-visible {
+    outline: 1px solid var(--border-hover);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+
+  .sim-nao__opcoes {
+    display: inline-flex;
+    flex: none;
+    gap: 0.5rem;
+  }
+
+  .sim-nao__opcao {
+    position: relative;
+    min-width: 3.5rem;
+    justify-content: center;
+  }
+
+  /* Escondido, não removido: `display: none` tira-o da ordem de tabulação e
+     leva com ele o grupo de rádio inteiro. */
+  .sim-nao__radio {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .sim-nao__opcao:has(.sim-nao__radio:focus-visible) {
+    outline: 1px solid var(--border-hover);
+    outline-offset: 2px;
+  }
+
+  /* A pergunta que ainda espera resposta.
+     Numa pergunta de sim ou não **não há resposta errada** — as duas servem —,
+     por isso o que aqui pode faltar é só a escolha, e o que a assinala é o
+     texto da pergunta subir do secundário para o corrente. Sem cor nova e sem
+     mexer no sítio de nada: um risco ou um recuo empurrariam as duas pastilhas
+     e vinte e sete perguntas seguidas a saltar de sítio é pior do que o
+     problema. O `erro` fica reservado ao que a inspecção apanha. */
+  .sim-nao[data-falta="por-responder"] .sim-nao__texto {
+    color: var(--foreground);
+  }
+
+  .sim-nao[data-falta="erro"] .sim-nao__texto {
+    color: var(--erro);
+  }
+
+  /* A linha de estado ocupa a largura toda: sem isto entrava como terceiro
+     item da fila e ficava encostada às pastilhas. */
+  .sim-nao .falta-campo {
+    flex: 1 0 100%;
+    margin-top: 0;
+  }
+
+  /* --- Guarda do rascunho -------------------------------------------------- */
+  .barra-rascunho {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border: 1px solid var(--border-soft);
+    background: var(--elevate-1);
+    border-radius: var(--raio);
+    padding: 0.75rem 1rem;
+  }
+
+  /* --- Os marcos do formulário de publicar ---------------------------------
+   *
+   * Cada passo do indicador. Os que já se visitaram são botões e levam lá de
+   * volta; os que ainda não se alcançaram são texto, porque um botão que não
+   * leva a lado nenhum é pior do que nenhum botão.
+   *
+   * A barra de progresso mede-se com `transform` e não com `width`: a largura
+   * é layout, e o que é layout repinta-se; a escala fica no compositor. A
+   * origem à esquerda é o que a faz crescer da esquerda para a direita em vez
+   * de a partir do meio.
+   */
+  .passo-barra {
+    position: relative;
+    height: 2px;
+    margin: 0 1rem 0.5rem;
+    background: var(--background-card);
+    overflow: hidden;
+  }
+
+  .passo-barra__cheio {
+    position: absolute;
+    inset: 0;
+    transform-origin: left center;
+    background: var(--foreground-strong);
+    transform: scaleX(var(--parte, 0));
+    transition: transform var(--d-fast) var(--ease-out);
+  }
+
+  .passo-marco {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: 0;
+    padding: 0;
+    width: 100%;
+    text-align: center;
+  }
+
+  .passo-marco__disco {
+    display: flex;
+    width: 2rem;
+    height: 2rem;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--background-card);
+    color: var(--foreground-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition:
+      background-color var(--d-fast) var(--ease-out),
+      border-color var(--d-fast) var(--ease-out),
+      color var(--d-fast) var(--ease-out);
+  }
+
+  /* Quem está aqui é branco. É a mesma regra do filtro activo e do dia de
+     hoje no calendário: sobre preto, quem assinala uma escolha é o contraste,
+     e o dourado é do tamanho de um ícone. */
+  .passo-marco[aria-current="step"] .passo-marco__disco {
+    background: var(--foreground-strong);
+    border-color: var(--foreground-strong);
+    color: #000;
+  }
+
+  /* Fechado quer dizer **respondido até ao fim**, e não «já passei por aqui».
+     A diferença passou a ter consequência no dia em que se pôde voltar atrás:
+     um visto num passo a que se voltou para apagar um campo é a promessa
+     falsa em ponto pequeno. */
+  .passo-marco[data-fechado="sim"]:not([aria-current="step"]) .passo-marco__disco {
+    background: var(--elevate-1);
+    border-color: var(--border-soft);
+    color: var(--foreground-secondary);
+  }
+
+  button.passo-marco:hover .passo-marco__disco {
+    border-color: var(--border-hover);
+    color: var(--foreground);
+  }
+
+  .passo-marco__nome {
+    line-height: 1.15;
+    color: var(--foreground-muted);
+    transition: color var(--d-fast) var(--ease-out);
+  }
+
+  .passo-marco[aria-current="step"] .passo-marco__nome {
+    color: var(--foreground);
+  }
+
+  button.passo-marco:hover .passo-marco__nome {
+    color: var(--foreground-secondary);
+  }
+
+  .passo-marco__conta {
+    color: var(--foreground-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .passo-marco[data-fechado="sim"] .passo-marco__conta {
+    color: var(--ok);
+  }
+}
+
+/* ==========================================================================
+ * Números que assentam
+ *
+ * Cada casa de um número é uma fita com os dez algarismos empilhados; o que
+ * se anima é a posição da fita, e por isso a entrada inteira corre no
+ * compositor sem uma única escrita no DOM.
+ *
+ * O gatilho é o mesmo dos previews em HTML — o `.dentro` que o observador põe
+ * no `[data-revelar]` que envolve o bloco. Corre uma vez e pára.
+ *
+ * A posição final é a do estado por omissão, e não a do estado animado: sem
+ * a classe `.js` — que o script em linha do `layout.tsx` põe antes da
+ * primeira pintura — a fita já está no sítio certo e lê-se o número. Se o
+ * script falhar, aparece 1648 e não 0000.
+ * ========================================================================= */
+
+@layer components {
+  .numero-assenta {
+    display: inline-flex;
+    /* `tabular-nums` mantém a largura da casa igual em todos os algarismos.
+       Sem isto a fita muda de largura enquanto roda e o cartão inteiro
+       estremece. */
+    font-variant-numeric: tabular-nums;
+  }
+
+  .numero-assenta__casa {
+    display: inline-block;
+    overflow: hidden;
+    /* A janela tem exactamente a altura de um algarismo. É `1em` e não uma
+       medida em pixels para acompanhar o `text-2xl` e o `sm:text-3xl` do
+       cartão sem os conhecer. */
+    height: 1em;
+    line-height: 1;
+  }
+
+  .numero-assenta__fita {
+    display: block;
+    transform: translateY(calc(var(--algarismo) * -1em));
+  }
+
+  .numero-assenta__algarismo {
+    display: block;
+    height: 1em;
+    line-height: 1;
+  }
+
+  /* Com JavaScript, e antes de o bloco entrar no ecrã, todas as fitas ficam
+     no zero. Cada casa percorre depois a distância que lhe compete: é essa
+     diferença de percurso que dá o andamento de um contador mecânico a
+     parar, sem ser preciso escalonar as velocidades à mão. */
+  .js [data-revelar] .numero-assenta__fita {
+    transform: translateY(0);
+  }
+
+  .js [data-revelar].dentro .numero-assenta__fita {
+    transform: translateY(calc(var(--algarismo) * -1em));
+    /* A duração é a da própria entrada do bloco: os algarismos assentam
+       enquanto o cartão acaba de subir, e não a seguir. Duas entradas
+       seguidas no mesmo elemento leem-se como hesitação. */
+    transition: transform var(--d-reveal) var(--ease-out);
+    /* As casas partem da esquerda. 60ms é o que chega para se ler a ordem
+       sem que a última pareça atrasada. */
+    transition-delay: calc(var(--ordem) * 60ms);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .js [data-revelar] .numero-assenta__fita,
+    .js [data-revelar].dentro .numero-assenta__fita {
+      transform: translateY(calc(var(--algarismo) * -1em));
+      transition: none;
+    }
+  }
+}
+
+/* ===== DIRECTÓRIO — A BARRA E A GAVETA DE FILTROS =====
+ * O bloco de controlo do directório eram catorze coisas empilhadas: uma caixa
+ * de pesquisa de 48px, uma caixa de ordenação por baixo dela em telemóvel, e
+ * duas filas rotuladas REGIÃO e ACTIVIDADE com todas as pastilhas acesas ao
+ * mesmo tempo. Media 526px num ecrã de 844 — mais do que a altura de um
+ * cartão —, e por isso quem abria o directório num telemóvel não via **uma
+ * única coudelaria** antes de rolar. Numa página cujo trabalho é mostrar
+ * coudelarias, isso não é densidade, é uma antecâmara.
+ *
+ * O que se cortou foi adorno, não informação:
+ *
+ *  - **Os dois rótulos REGIÃO e ACTIVIDADE saíram do ecrã por omissão e
+ *    foram para dentro da gaveta.** Não desapareceram: ali é onde se está a
+ *    escolher e onde a divisão entre os dois eixos conta. Fora dali gastavam
+ *    duas linhas inteiras — uma coluna de 6rem em computador, uma linha
+ *    própria em telemóvel — para dizer o que as próprias palavras já dizem:
+ *    ninguém confunde «Alentejo» com «Dressage».
+ *  - **As pastilhas passaram a abrir-se a pedido.** Doze filtros todos
+ *    apagados são doze botões que ninguém pediu. O botão que os abre traz o
+ *    número dos que estão acesos, e os que estão acesos aparecem por baixo,
+ *    na barra de resultados, com um × — o estado nunca fica escondido, só a
+ *    lista de hipóteses é que fica.
+ *  - **As contagens ficam.** São o que diz quanto vale carregar numa
+ *    pastilha, e foi trabalho anterior torná-las verdadeiras.
+ *
+ * A concha é uma só em computador — pesquisa, filtros e ordenação dentro do
+ * mesmo comprimido, separados por hairlines — e parte-se em duas em
+ * telemóvel, onde não cabem lado a lado. É a mesma peça a mudar de forma, e
+ * não duas peças diferentes.
+ * ------------------------------------------------------------------------ */
+@layer components {
+  .barra-dir {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .barra-dir__seccao {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    border: 1px solid var(--border-soft);
+    border-radius: 999px;
+    background: var(--background-elevated);
+    transition: border-color var(--d-fast) var(--ease-out);
+  }
+
+  .barra-dir__seccao--busca {
+    flex: 1;
+    padding-left: 0.875rem;
+    /* A folga à direita fica na **secção** e não no `padding` da caixa de
+       texto: uma caixa de texto corta o que transborda no limite da caixa de
+       padding, portanto um `padding-right` lá dentro não impede o marcador de
+       ir bater na curva do comprimido. Aqui encolhe a caixa, e aí impede. */
+    padding-right: 0.875rem;
+  }
+
+  /* O realce do foco é uma camada à parte, e não a borda a mudar de cor:
+     opacidade corre no compositor, uma sombra a animar é repintura. Corre
+     uma vez ao focar e outra ao sair — não é ciclo nenhum. */
+  .barra-dir::after,
+  .barra-dir__seccao::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: 999px;
+    pointer-events: none;
+    opacity: 0;
+    box-shadow:
+      inset 0 0 0 1px var(--border),
+      0 0 0 3px var(--elevate-1);
+    transition: opacity var(--d-fast) var(--ease-out);
+  }
+
+  @media (max-width: 767px) {
+    .barra-dir__seccao:focus-within::after {
+      opacity: 1;
+    }
+  }
+
+  /* A partir de `md` a concha é uma só: a barra leva a borda e as secções
+     ficam nuas, separadas por uma hairline. */
+  @media (min-width: 768px) {
+    .barra-dir {
+      flex-direction: row;
+      gap: 0;
+      border: 1px solid var(--border-soft);
+      border-radius: 999px;
+      background: var(--background-elevated);
+      transition: border-color var(--d-fast) var(--ease-out);
+    }
+
+    .barra-dir:focus-within::after {
+      opacity: 1;
+    }
+
+    .barra-dir__seccao {
+      border: 0;
+      background: transparent;
+    }
+
+    .barra-dir__seccao + .barra-dir__seccao {
+      border-left: 1px solid var(--border-soft);
+    }
+  }
+
+  /* A caixa de texto. Sem borda própria — a borda é a da concha — e sem o
+     botão de limpar que o WebKit desenha por cima do nosso. */
+  .barra-dir__busca {
+    flex: 1;
+    min-width: 0;
+    padding: 0.5rem 0.5rem 0.5rem 0.625rem;
+    min-height: 2.375rem;
+    border: 0;
+    background: transparent;
+    color: var(--foreground);
+    /* 14px é o chão: abaixo disto o iOS faz zoom ao focar o campo. */
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+
+  .barra-dir__busca:focus {
+    outline: none;
+  }
+
+  .barra-dir__busca::placeholder {
+    color: var(--foreground-muted);
+  }
+
+  .barra-dir__busca::-webkit-search-cancel-button,
+  .barra-dir__busca::-webkit-search-decoration {
+    appearance: none;
+    display: none;
+  }
+
+  /* O mesmo chão de toque do `.campo`: num ecrã de dedo a barra é o controlo
+     principal, e mais fina não pode querer dizer mais difícil de acertar. */
+  @media (pointer: coarse) {
+    .barra-dir__busca {
+      min-height: 44px;
+    }
+  }
+
+  .barra-dir__lupa {
+    flex-shrink: 0;
+    color: var(--foreground-muted);
+    transition:
+      color var(--d-fast) var(--ease-out),
+      transform var(--d-fast) var(--ease-out);
+  }
+
+  .barra-dir__seccao--busca:focus-within .barra-dir__lupa {
+    color: var(--foreground-strong);
+    transform: scale(1.1);
+  }
+
+  .barra-dir__limpar {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    /* A folga até à curva do comprimido é a da secção; aqui só se recupera
+       parte dela, senão o × fica a flutuar longe do fim do texto. */
+    margin-right: -0.375rem;
+    border-radius: 999px;
+    color: var(--foreground-muted);
+    transition: color var(--d-fast) var(--ease-out);
+  }
+
+  .barra-dir__limpar:hover {
+    color: var(--foreground-strong);
+  }
+
+  /* Os dois botões da direita: abrir os filtros e escolher a ordenação. */
+  .barra-dir__accao {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.375rem;
+    padding: 0 0.875rem;
+    color: var(--foreground-secondary);
+    font-size: 0.8125rem;
+    line-height: 1.3;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color var(--d-fast) var(--ease-out);
+  }
+
+  .barra-dir__accao:hover,
+  .barra-dir__accao[aria-expanded="true"] {
+    color: var(--foreground-strong);
+  }
+
+  .barra-dir__seccao--accoes {
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 767px) {
+    /* Em telemóvel os dois partem a largura ao meio: assim a lista da
+       ordenação, que nasce com a largura do gatilho, tem onde escrever
+       «Recomendadas» sem cortar. */
+    .barra-dir__seccao--accoes {
+      flex: 1;
+    }
+
+    .barra-dir__accao {
+      flex: 1;
+      justify-content: center;
+    }
+
+    .barra-dir__ordenar {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .barra-dir__ordenar {
+      width: 10.5rem;
+    }
+  }
+
+  .barra-dir__risco {
+    flex-shrink: 0;
+    align-self: stretch;
+    width: 1px;
+    margin: 0.5rem 0;
+    background: var(--border-soft);
+  }
+
+  .barra-dir__seta {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: var(--foreground-muted);
+    transition: transform var(--d-fast) var(--ease-out);
+  }
+
+  .barra-dir__accao[aria-expanded="true"] .barra-dir__seta {
+    transform: rotate(180deg);
+    color: var(--foreground-strong);
+  }
+
+  /* Quantos filtros estão acesos. Branco, como tudo o que assinala escolha
+     neste site — o dourado fica para o que é raro. */
+  .barra-dir__conta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.125rem;
+    height: 1.125rem;
+    padding: 0 0.25rem;
+    border-radius: 999px;
+    background: var(--foreground-strong);
+    color: #000;
+    font-size: 0.625rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    animation: conta-entrar var(--d-fast) var(--ease-out) both;
+  }
+
+  html.light .barra-dir__conta {
+    background: #0a0a0a;
+    color: #fff;
+  }
+
+  @keyframes conta-entrar {
+    from {
+      opacity: 0;
+      transform: scale(0.6);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ── A gaveta ──────────────────────────────────────────────────────────
+   * Mesmo movimento da `.pilha` do painel de regiões do `/mapa`: a altura é
+   * medida do conteúdo e animada, com a curva e a duração de entrar num
+   * sítio. Abrir os filtros é entrar neles, e há caminho de volta.
+   *
+   * Fechada leva `inert` do lado do JSX: uma fila de pastilhas invisível a
+   * receber tabulações é pior do que não existir.
+   * -------------------------------------------------------------------- */
+  .gaveta {
+    overflow: hidden;
+    height: var(--altura-gaveta, 0px);
+    /* O conteúdo respira seis pixéis para dentro de todos os lados, para o
+       anel de foco de uma pastilha não ficar cortado pelo `overflow`. */
+    margin-inline: -0.375rem;
+    transition: height var(--d-drill) var(--ease-in-out-cubic);
+  }
+
+  .gaveta__conteudo {
+    display: grid;
+    gap: 0.875rem;
+    padding: 0.875rem 0.375rem 0.375rem;
+  }
+
+  /* As pastilhas compõem-se ao abrir, 30ms a 30ms, com tecto em dez: passados
+     dez, o atraso deixa de se ler como ordem. Corre uma vez por abertura e
+     pára — o gatilho é o `data-aberta` a aparecer. */
+  @keyframes chip-entrar {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .gaveta[data-aberta] .chip-cascata {
+    animation: chip-entrar var(--d-fast) var(--ease-out) both;
+    animation-delay: calc(min(var(--i, 0), 10) * 30ms);
+  }
+
+  /* Uma pastilha acesa não se apaga ao passar o rato por cima.
+   *
+   * O `.chip:hover` tem especificidade 0,2,0 e o `.chip-activo` tem 0,1,0,
+   * portanto ao passar o rato numa pastilha escolhida o texto voltava a
+   * `--foreground-strong` — branco sobre o fundo branco do próprio estado
+   * escolhido. Ou seja: uma pastilha em branco, sem palavra nenhuma lá
+   * dentro, exactamente enquanto lhe apontam. Vinha de antes desta barra e
+   * via-se em todas as grelhas de filtros do site.
+   *
+   * Não se mexe em nenhuma das duas regras — acrescenta-se a que faltava,
+   * com a especificidade da que estava a ganhar. Exige as **duas** classes
+   * para não apanhar o `btn chip-activo` da ficha, que não é uma pastilha e
+   * não tem este defeito. */
+  .chip.chip-activo:hover {
+    border-color: var(--foreground-strong);
+    color: #000;
+  }
+
+  html.light .chip.chip-activo:hover {
+    border-color: #0a0a0a;
+    color: #fff;
+  }
+
+  /* A contagem dentro da pastilha. */
+  .chip__conta {
+    display: inline-flex;
+    align-items: center;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.6;
+  }
+
+  /* Um número que muda por causa de um filtro não é uma entrada de página: a
+     fita anda em `--d-menu` e sem escalonar as casas. Com os 1000ms da
+     entrada, mexer num filtro deixava as contagens ainda a rodar quando a
+     grelha já estava composta. Não altera a `.numero-assenta` — só lhe muda
+     o andamento onde esta classe estiver por cima. */
+  .js [data-revelar].dentro .numero-assenta-rapido .numero-assenta__fita {
+    transition-duration: var(--d-menu);
+    transition-delay: 0ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gaveta,
+  .gaveta[data-aberta] .chip-cascata,
+  .barra-dir__conta,
+  .barra-dir::after,
+  .barra-dir__seccao::after,
+  .barra-dir__lupa,
+  .barra-dir__seta {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* O anel do teclado, na caixa de pesquisa, toma a forma da concha.
+ *
+ * A regra global do foco desenha um rectângulo de cantos a 8px à volta do
+ * elemento focado. Nos dois botões da direita isso está certo — é preciso
+ * ver **qual** dos três está focado. Na caixa de texto não: ela ocupa a
+ * concha quase toda, e um rectângulo lá dentro lê-se como uma caixa dentro
+ * de outra, que é exactamente o que este sistema visual evita. O anel não se
+ * tira — muda de sítio: passa para a concha, com a mesma cor e a mesma
+ * espessura, e com o raio dela.
+ *
+ * Tem de ser **fora de qualquer camada e com `!important`**, porque é isso
+ * que a regra global é, e CSS sem camada ganha a qualquer `@layer`.
+ *
+ * Quem marca o estado é o `data-busca` que o componente põe ao focar, e não
+ * um `:has(.barra-dir__busca:focus-visible)`: o `:has()` foi escrito
+ * primeiro e o compilador de CSS **deitou a regra fora** — os alvos de
+ * browser deste projecto não o garantem, e uma regra que desaparece em
+ * silêncio deixava a caixa de pesquisa com o anel rectangular outra vez.
+ * Um `:focus-within` também não serve: acendia a concha inteira quando o
+ * foco fosse num dos dois botões, e aí o anel deixava de dizer qual.
+ *
+ * Sem JavaScript o atributo nunca aparece e fica o anel de origem — que é o
+ * comportamento seguro: nunca fica uma caixa de pesquisa sem foco visível. */
+@media (min-width: 768px) {
+  .barra-dir[data-busca]::after {
+    opacity: 1;
+    box-shadow:
+      inset 0 0 0 1px var(--border),
+      0 0 0 2px rgba(255, 255, 255, 0.45);
+  }
+}
+
+@media (max-width: 767px) {
+  .barra-dir__seccao[data-busca]::after {
+    opacity: 1;
+    box-shadow:
+      inset 0 0 0 1px var(--border),
+      0 0 0 2px rgba(255, 255, 255, 0.45);
+  }
+}
+
+html.light .barra-dir[data-busca]::after,
+html.light .barra-dir__seccao[data-busca]::after {
+  box-shadow:
+    inset 0 0 0 1px var(--border),
+    0 0 0 2px rgba(0, 0, 0, 0.45);
+}
+
+.barra-dir[data-busca] .barra-dir__busca:focus-visible {
+  outline: none !important;
+}
+
+/* ==========================================================================
+ * Galeria da coudelaria — uma folha que se levanta da pilha
+ *
+ * As fotografias são o que vende uma coudelaria, e passar de uma para a
+ * seguinte não pode ser um corte. É **uma** ideia, e é esta: as fotografias
+ * são uma pilha de provas em papel, e mudar de fotografia é levantar a de
+ * cima. Tudo o resto sai daqui.
+ *
+ * O que a faz ler-se como uma folha e não como um carrossel:
+ *
+ * 1. **As duas camadas não andam à mesma velocidade.** A que chega percorre
+ *    7% da largura; a que fica cede 2,5% para o lado contrário. É essa
+ *    diferença — e não a distância — que dá profundidade. Com as duas a
+ *    andar o mesmo, lê-se uma tira a deslizar.
+ * 2. **A que fica nunca se apaga.** Um cruzamento de opacidades deixa, a
+ *    meio, dois fantasmas e nenhuma fotografia; e sobretudo: enquanto a nova
+ *    não chegou da rede, é a antiga que se vê. **Nunca há um buraco preto** —
+ *    é a mesma regra do mapa, que só entra quando tem o que mostrar. Quem
+ *    tira a camada de baixo é o JavaScript, e só depois de a de cima ter
+ *    carregado.
+ * 3. **Um fio de luz na aresta de ataque.** É o risco do `.cartao-seco__costura`
+ *    posto de pé: a aresta da folha a apanhar luz ao pousar. Acende e apaga
+ *    dentro da mesma animação — não é um segundo movimento, é a beira do
+ *    primeiro.
+ *
+ * Duração e curva são as de **entrar num sítio** — `--d-drill` e
+ * `--ease-in-out-cubic`, as mesmas dos submenus e da pilha de regiões do
+ * `/mapa`. Ver a fotografia seguinte é entrar nela; não se inventa aqui um
+ * tempo próprio. Corre uma vez e pára: não há ciclo nenhum e não há passagem
+ * automática. Quem está a ver cavalos quer parar num.
+ * ========================================================================= */
+
+@layer components {
+  .galeria-pilha {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--raio-lg);
+    border: 1px solid var(--border-soft);
+    background: var(--background-card);
+    /* O dedo desloca a página na vertical sem passar por JavaScript nenhum:
+       o eixo Y fica com o browser, no compositor, e só o X vem ter connosco
+       por eventos de ponteiro. É por isto que esta galeria não regista um
+       único ouvinte de `touchmove` nem de `wheel` — a lição do Lenis. */
+    touch-action: pan-y;
+  }
+
+  .galeria-folha {
+    position: absolute;
+    inset: 0;
+  }
+
+  .galeria-folha__foto {
+    object-fit: cover;
+  }
+
+  /* No visor de ecrã inteiro vê-se a fotografia inteira, não um recorte. */
+  .galeria-visor .galeria-folha__foto {
+    object-fit: contain;
+  }
+
+  .galeria-folha--leito {
+    z-index: 1;
+    animation: folha-ceder var(--d-drill) var(--ease-in-out-cubic) both;
+  }
+
+  .galeria-folha--topo {
+    z-index: 2;
+    animation: folha-pousar var(--d-drill) var(--ease-in-out-cubic) both;
+  }
+
+  /* A opacidade acaba a 45% e o movimento continua até ao fim. Medido a olho
+     nas capturas: com a opacidade a subir ao longo de toda a animação, o que
+     se via a meio eram duas fotografias sobrepostas — um cruzamento, não uma
+     folha. Assim a fotografia fica opaca cedo e o que resta a ler-se é ela a
+     acabar de encostar. O esbatimento deixa de ser o efeito e passa a ser só
+     o que evita o piscar. */
+  @keyframes folha-pousar {
+    0% {
+      opacity: 0;
+      transform: translate3d(calc(var(--sentido, 1) * 7%), 0, 0) scale(1.035);
+    }
+    45% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+  }
+
+  /* O `--partida` é onde o dedo largou a folha. Sem ele, largar um arrasto a
+     meio fazia a camada de baixo saltar para zero antes de ceder. */
+  @keyframes folha-ceder {
+    from {
+      transform: translate3d(var(--partida, 0px), 0, 0) scale(1);
+    }
+    to {
+      transform: translate3d(calc(var(--sentido, 1) * -2.5%), 0, 0) scale(0.99);
+    }
+  }
+
+  .galeria-folha__fio {
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    opacity: 0;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(214, 235, 253, 0.85) 50%,
+      transparent 100%
+    );
+  }
+
+  .galeria-folha--topo .galeria-folha__fio {
+    animation: folha-fio var(--d-drill) var(--ease-out) both;
+  }
+
+  /* O fio sozinho é uma linha branca a passar; o que faz dele a **aresta de
+     uma folha** é a sombra que a folha lança sobre a que está por baixo. Sai
+     para fora da camada — o recorte é do `.galeria-pilha` — e por isso cai
+     mesmo em cima da fotografia de baixo. Sem ela, as duas camadas leem-se
+     como duas imagens no mesmo plano. */
+  .galeria-folha__fio::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2rem;
+    background: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.55) 100%);
+  }
+
+  .galeria-folha--topo[data-sentido="1"] .galeria-folha__fio {
+    left: 0;
+  }
+
+  .galeria-folha--topo[data-sentido="1"] .galeria-folha__fio::before {
+    right: 0;
+  }
+
+  .galeria-folha--topo[data-sentido="-1"] .galeria-folha__fio {
+    right: 0;
+  }
+
+  .galeria-folha--topo[data-sentido="-1"] .galeria-folha__fio::before {
+    left: 0;
+    background: linear-gradient(270deg, transparent 0%, rgba(0, 0, 0, 0.55) 100%);
+  }
+
+  @keyframes folha-fio {
+    0% {
+      opacity: 0;
+    }
+    35% {
+      opacity: 0.9;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  /* --- Arrasto ------------------------------------------------------------- */
+  /* Enquanto o dedo manda, manda o dedo: a animação sai da frente e o que
+     desenha a posição é o `--arrasto`. Vem depois do `--topo` de propósito —
+     mesma especificidade, ganha a ordem. */
+  .galeria-folha--arrasta {
+    animation: none;
+    transform: translate3d(var(--arrasto, 0px), 0, 0);
+  }
+
+  .galeria-folha--arrasta[data-solta="sim"] {
+    transition: transform var(--d-fast) var(--ease-out);
+  }
+
+  /* --- Comandos sobre a fotografia ---------------------------------------- */
+  .galeria-comando {
+    position: absolute;
+    z-index: 3;
+    display: flex;
+    height: 2.75rem;
+    width: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: 1px solid var(--border);
+    background: color-mix(in srgb, var(--background) 62%, transparent);
+    color: var(--foreground-strong);
+    backdrop-filter: blur(8px);
+    transition:
+      background-color var(--d-fast) var(--ease-out),
+      transform var(--d-fast) var(--ease-out),
+      opacity var(--d-fast) var(--ease-out);
+  }
+
+  .galeria-comando:hover {
+    background: var(--background);
+  }
+
+  .galeria-comando--anterior {
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .galeria-comando--seguinte {
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .galeria-comando--anterior:hover {
+    transform: translateY(-50%) translateX(-2px);
+  }
+
+  .galeria-comando--seguinte:hover {
+    transform: translateY(-50%) translateX(2px);
+  }
+
+  /* O botão de ampliar cobre a fotografia: o alvo é a fotografia, e o ícone
+     é só onde ele se anuncia. Fica por baixo das setas em z. */
+  .galeria-ampliar {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    cursor: zoom-in;
+  }
+
+  .galeria-ampliar__marca {
+    position: absolute;
+    left: 0.75rem;
+    bottom: 0.75rem;
+    display: flex;
+    height: 2.25rem;
+    width: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: 1px solid var(--border-soft);
+    background: color-mix(in srgb, var(--background) 62%, transparent);
+    color: var(--foreground-strong);
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    transform: translateY(4px);
+    transition:
+      opacity var(--d-fast) var(--ease-out),
+      transform var(--d-fast) var(--ease-out);
+  }
+
+  .galeria-pilha:hover .galeria-ampliar__marca,
+  .galeria-ampliar:focus-visible .galeria-ampliar__marca {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Sem rato não há hover que revele coisa nenhuma: no telemóvel a marca
+     está sempre lá. */
+  @media (pointer: coarse) {
+    .galeria-ampliar__marca {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .galeria-conta {
+    position: absolute;
+    z-index: 3;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid var(--border-soft);
+    background: color-mix(in srgb, var(--background) 62%, transparent);
+    padding: 0.25rem 0.625rem;
+    backdrop-filter: blur(8px);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* --- Fita de miniaturas -------------------------------------------------- */
+  .galeria-fita {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding: 0.25rem 0;
+    /* A barra de deslocamento do sistema é um widget do sistema — cinzenta,
+       com setas nas pontas em Windows, tipo de letra e cantos do sistema — e
+       não há CSS que lhe chegue. É a mesma razão pela qual aqui não se usa
+       `<select>` nativo. Quem diz que há mais fotografias é o esbatido nas
+       pontas, que é da casa e só aparece do lado onde há mesmo mais. */
+    scrollbar-width: none;
+    --fim-esq: 0px;
+    --fim-dir: 0px;
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent 0,
+      #000 var(--fim-esq),
+      #000 calc(100% - var(--fim-dir)),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      90deg,
+      transparent 0,
+      #000 var(--fim-esq),
+      #000 calc(100% - var(--fim-dir)),
+      transparent 100%
+    );
+  }
+
+  .galeria-fita::-webkit-scrollbar {
+    display: none;
+  }
+
+  .galeria-fita[data-mais-esq="sim"] {
+    --fim-esq: 2.5rem;
+  }
+
+  .galeria-fita[data-mais-dir="sim"] {
+    --fim-dir: 2.5rem;
+  }
+
+  .galeria-mini {
+    position: relative;
+    display: block;
+    flex: none;
+    width: 5rem;
+    height: 3.5rem;
+    overflow: hidden;
+    border-radius: var(--raio-sm);
+    border: 1px solid var(--border-soft);
+    background: var(--background-card);
+    opacity: 0.5;
+    transition:
+      opacity var(--d-fast) var(--ease-out),
+      border-color var(--d-fast) var(--ease-out),
+      transform var(--d-fast) var(--ease-out);
+  }
+
+  .galeria-mini:hover {
+    opacity: 0.85;
+  }
+
+  /* Estado escolhido é branco, não dourado — a regra do sistema. E não é só
+     opacidade: sobre onze fotografias parecidas, «esta é mais nítida do que
+     as outras» não se lê. O que se lê é a linha branca por baixo. */
+  .galeria-mini[aria-current="true"] {
+    opacity: 1;
+    border-color: var(--foreground-strong);
+    transform: translateY(-2px);
+  }
+
+  .galeria-mini__risco {
+    pointer-events: none;
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    height: 2px;
+    width: 0;
+    transform: translateX(-50%);
+    background: var(--foreground-strong);
+    transition: width var(--d-fast) var(--ease-out);
+  }
+
+  .galeria-mini[aria-current="true"] .galeria-mini__risco {
+    width: 60%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .galeria-folha--topo,
+    .galeria-folha--leito {
+      animation: none;
+    }
+
+    .galeria-folha--topo {
+      opacity: 1;
+      transform: none;
+    }
+
+    .galeria-folha__fio {
+      display: none;
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
+ * Visor de ecrã inteiro
+ *
+ * Ver uma fotografia de uma coudelaria a 720px de largura não é ver a
+ * fotografia. Aqui ela ocupa a janela e vê-se inteira (`object-fit: contain`,
+ * herdado da regra da pilha) — o recorte a 3:2 do quadro serve a grelha, não
+ * a fotografia.
+ *
+ * O fundo é o mesmo idioma do menu de ecrã inteiro: preto quase opaco com
+ * desfoque, e não uma caixa por cima da página. Entra com opacidade em
+ * `--d-menu`, corre uma vez e pára.
+ * ------------------------------------------------------------------------ */
+
+@layer components {
+  .galeria-visor {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    display: flex;
+    flex-direction: column;
+    /* 98% e não os 64% do menu de ecrã inteiro. O menu quer empurrar a
+       página para trás sem a esconder; aqui a página não é para se ver de
+       todo — o assunto é a fotografia. Medido: a 94% lia-se o fantasma do
+       «PORTAL LUSITANO» por cima do céu da fotografia. */
+    background: color-mix(in srgb, var(--background) 98%, transparent);
+    backdrop-filter: blur(24px);
+    animation: visor-nascer var(--d-menu) var(--ease-in-out-cubic) both;
+  }
+
+  @keyframes visor-nascer {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .galeria-visor__barra {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    color: var(--foreground-secondary);
+  }
+
+  /* O botão de fechar é o único comando da barra, e por isso encosta à
+     direita mesmo quando não há contador ao lado. */
+  .galeria-visor__barra > :only-child {
+    margin-left: auto;
+  }
+
+  .galeria-visor__quadro {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    touch-action: pan-y;
+  }
+
+  .galeria-comando--fechar {
+    position: static;
+  }
+}
+
+/* ==========================================================================
+ * Escolha de língua
+ *
+ * Três siglas, três botões, e uma pastilha que desliza entre eles.
+ *
+ * O que se move é a pastilha e não o texto. É ela que diz «foi para ali» —
+ * um simples acender de cor diz «este está aceso» e deixa por contar o
+ * caminho. E é um `translateX` e mais nada, que é a propriedade que o browser
+ * anima no compositor sem tocar no layout.
+ *
+ * As três casas têm largura igual, e é isso que dispensa medir seja o que
+ * for: a pastilha desloca-se em múltiplos exactos de 100% da sua própria
+ * largura, escritos numa variável que o componente põe em linha. Sem grelha
+ * igual, «PT», «EN» e «ES» teriam larguras diferentes e a posição da pastilha
+ * teria de sair de um `getBoundingClientRect` — uma leitura de layout por
+ * cada troca de língua, para não ganhar nada.
+ * ========================================================================= */
+
+@layer components {
+  .idiomas {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    align-items: stretch;
+    border: 1px solid var(--border-soft);
+    border-radius: 999px;
+    padding: 2px;
+    /* Impede a pastilha de assomar por fora do canto redondo enquanto desliza. */
+    overflow: hidden;
+  }
+
+  .idiomas__pastilha {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    left: 2px;
+    width: calc((100% - 4px) / 3);
+    border-radius: 999px;
+    background: var(--elevate-1);
+    transform: translateX(calc(var(--idioma, 0) * 100%));
+    transition: transform var(--d-fast) var(--ease-out);
+  }
+
+  .idiomas__opcao {
+    position: relative;
+    z-index: 1;
+    padding: 0.25rem 0.5rem;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    color: var(--foreground-muted);
+    transition: color var(--d-fast) var(--ease-out);
+  }
+
+  .idiomas__opcao:hover {
+    color: var(--foreground-secondary);
+  }
+
+  /* A escolhida é branca, e mais nada. Sobre preto, quem assinala uma escolha
+     é o contraste — e o acento é do tamanho de um ícone. */
+  .idiomas__opcao[aria-pressed="true"] {
+    color: var(--foreground-strong);
+  }
+
+  .idiomas__opcao:focus-visible {
+    outline: 1px solid var(--foreground-strong);
+    outline-offset: -1px;
+    border-radius: 999px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .idiomas__pastilha {
+      transition: none;
+    }
+  }
+}
+
+/* ==========================================================================
+ * Pesquisa do site
+ *
+ * O painel é o idioma de modal que o site já tem — o mesmo pano do pedido de
+ * cookies, os mesmos 28px de canto, a mesma hairline. Não se inventa aqui um
+ * segundo modal.
+ * ========================================================================= */
+
+@layer components {
+  .busca-pano {
+    background: rgba(0, 0, 0, 0.64);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    animation: nascer-pano var(--d-fast) var(--ease-out);
+  }
+
+  @keyframes nascer-pano {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Os dois botões de ícone da barra: limpar e fechar. */
+  .busca-icone {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    color: var(--foreground-muted);
+    transition:
+      color var(--d-fast) var(--ease-out),
+      background-color var(--d-fast) var(--ease-out);
+  }
+
+  .busca-icone:hover {
+    color: var(--foreground-strong);
+    background: var(--elevate-1);
+  }
+
+  /* --- Uma linha de resultado ---------------------------------------------
+   * Serve os resultados, o histórico e os atalhos: são três listas com o
+   * mesmo desenho, e ter três desenhos parecidos numa caixa de 600px é o que
+   * faz uma caixa parecer remendada.
+   * ---------------------------------------------------------------------- */
+  .linha-busca {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.625rem 1.25rem;
+    text-align: left;
+    transition: background-color var(--d-fast) var(--ease-out);
+  }
+
+  .linha-busca:hover {
+    background: var(--elevate-1);
+  }
+
+  /* A escolhida pelo teclado. Fundo e texto a branco, sem risco à esquerda:
+     uma aresta direita dentro de um painel de cantos redondos lê-se mal, e
+     ainda empurrava o conteúdo dois pixéis a cada seta. */
+  .linha-busca--activa {
+    background: var(--elevate-1);
+  }
+
+  .linha-busca--activa .linha-busca__titulo {
+    color: var(--foreground-strong);
+  }
+
+  .linha-busca__selo {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 1.5rem;
+    padding: 0 0.5rem;
+    border: 1px solid var(--border-soft);
+    border-radius: 999px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--foreground-muted);
+  }
+
+  /* As linhas entram em cascata, com tecto em dez — passados dez, o atraso
+     deixa de se ler como ordem e passa a leitura a conta-gotas. */
+  .js .linha-busca {
+    animation: nascer-linha-busca var(--d-fast) var(--ease-out) both;
+    animation-delay: calc(var(--ordem, 0) * 24ms);
+  }
+
+  @keyframes nascer-linha-busca {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .tecla {
+    padding: 0.125rem 0.375rem;
+    border: 1px solid var(--border-soft);
+    border-radius: 6px;
+    background: var(--elevate-1);
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 10px;
+    color: var(--foreground-muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .busca-pano,
+    .js .linha-busca {
+      animation: none;
+    }
+  }
+}
+
+/* ==========================================================================
+ * Pesquisa — a moldura e o foco
+ *
+ * A regra global `:focus-visible` desenha um anel de 2px com 8px de canto e
+ * `!important`, e é ela que dá o alvo de teclado a todo o site. Numa caixa de
+ * texto que ocupa uma linha inteira dentro de um painel de 28px de canto, esse
+ * anel lê-se como um oval encaixado à força — e como a caixa recebe o foco no
+ * instante em que o painel abre, ele aparece sempre, mesmo a quem chegou com
+ * o rato.
+ *
+ * O indicador não se tira: tira-se do sítio errado. Quem acende passa a ser a
+ * **moldura do painel**, que é o que de facto tem o foco enquanto se escreve —
+ * um alvo maior, com a forma certa, e visível na mesma. Bater um `!important`
+ * com outro é feio e aqui é a única saída, porque a regra global o usa.
+ * ========================================================================= */
+
+@layer components {
+  .busca-painel {
+    overflow: hidden;
+    border: 1px solid var(--border-soft);
+    border-radius: 28px;
+    background: var(--background-elevated);
+    box-shadow: 0 12px 60px rgba(0, 0, 0, 0.8);
+    transition: border-color var(--d-fast) var(--ease-out);
+  }
+
+  .busca-painel:focus-within {
+    border-color: var(--border-hover);
+  }
+
+  .busca-campo {
+    background: transparent;
+    color: var(--foreground);
+  }
+
+  .busca-campo::placeholder {
+    color: var(--foreground-muted);
+  }
+
+  .busca-campo:focus,
+  .busca-campo:focus-visible {
+    outline: none !important;
+  }
+
+  /* O título de uma linha, seja ela um resultado, um histórico ou um atalho. */
+  .linha-busca__titulo {
+    color: var(--foreground);
+    transition: color var(--d-fast) var(--ease-out);
+  }
+}
+
+/* ==========================================================================
+ * Sem JavaScript, o conteúdo está no HTML — só está escondido
+ *
+ * Um `loading.tsx` do App Router é o fallback de um `<Suspense>`, e numa rota
+ * pré-renderizada vão os dois para o HTML: primeiro o fallback, e a seguir o
+ * conteúdo verdadeiro dentro de um `<div hidden id="S:n">`. Quem os troca é um
+ * `$RC(...)` que o React corre no cliente.
+ *
+ * Com o JavaScript desligado esse `$RC` nunca corre. O resultado, medido: a
+ * página fica para sempre nos dois anéis a rodar e no «A carregar...», com a
+ * página inteira escrita por baixo, invisível. Não é um caso de canto — é o
+ * que um rastreador que não execute JavaScript vê de um classificados.
+ *
+ * A troca faz-se em CSS, e sem uma linha de JavaScript nova: a classe `js`
+ * vive no `<html>` e é posta por um script em linha antes da primeira pintura.
+ * Se o script não correu, a classe não existe, e é esse o sinal de que o `$RC`
+ * também nunca virá.
+ *
+ * O `!important` é preciso porque o atributo `hidden` traz `display: none` do
+ * agente do utilizador, e a folha de reposição repete-o.
+ * ========================================================================= */
+
+/* Dentro de `@layer base`, e não fora dela — e a razão é uma inversão do
+ * cascade que é fácil de apanhar ao contrário.
+ *
+ * A regra do projecto, escrita no `CLAUDE.md`, é que **CSS sem camada ganha a
+ * qualquer `@layer`**. Isso é verdade para declarações normais. Para
+ * declarações `!important` a ordem inverte-se: aí uma camada anterior ganha às
+ * seguintes, e todas ganham ao que está fora de camada.
+ *
+ * O Tailwind tem `[hidden]:where(:not([hidden="until-found"])) { display: none
+ * !important }` na camada `base`. Escrito fora de camada, o `display: block
+ * !important` daqui perdia — medido: o conteúdo continuava invisível com o
+ * `S:0` a 4881 caracteres. Na mesma camada decide a especificidade, e a daqui
+ * é maior. */
+@layer base {
+  html:not(.js) [data-carregando] {
+    display: none !important;
+  }
+
+  html:not(.js) div[hidden][id^="S:"] {
+    display: block !important;
+  }
+}

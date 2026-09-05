@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { X } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
-import type { FormData, Documentos, DocumentType } from "@/components/vender-cavalo/types";
-import {
-  initialFormData,
-  TOTAL_STEPS,
-  MIN_IMAGES,
-  MIN_DESCRIPTION_LENGTH,
-} from "@/components/vender-cavalo/data";
+import type {
+  FormData,
+  Documentos,
+  DocumentType,
+  Resposta,
+} from "@/components/vender-cavalo/types";
+import { initialFormData, TOTAL_STEPS } from "@/components/vender-cavalo/data";
 import { LISTING_TIERS } from "@/lib/listing-tiers";
 import PageHeader from "@/components/vender-cavalo/PageHeader";
 import PricingBanner from "@/components/vender-cavalo/PricingBanner";
@@ -22,10 +23,44 @@ import StepLinhagem from "@/components/vender-cavalo/StepLinhagem";
 import StepTreinoSaude from "@/components/vender-cavalo/StepTreinoSaude";
 import StepPrecoApresentacao from "@/components/vender-cavalo/StepPrecoApresentacao";
 import StepPagamento from "@/components/vender-cavalo/StepPagamento";
+import {
+  validarPasso,
+  totalPorPasso,
+  type ErroCampo,
+  type MensagensValidacao,
+} from "@/components/vender-cavalo/validacao";
+import { contarSeccao } from "@/components/vender-cavalo/campos";
+import { enviarAnexos, type Progresso } from "@/lib/enviar-anexos";
+import { porCampo } from "@/components/vender-cavalo/campos-com-erro";
+import { errosDeInspeccao, type MensagensInspeccao } from "@/components/vender-cavalo/inspeccao";
+import { useInspeccao } from "@/components/vender-cavalo/usar-inspeccao";
+import { useRegistoApsl } from "@/components/vender-cavalo/usar-registo-apsl";
+import { lerRascunho, limparRascunho, passoSeguro } from "@/components/vender-cavalo/rascunho";
+import { useRascunho } from "@/components/vender-cavalo/usar-rascunho";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
 
-const AUTOSAVE_KEY = "vender-cavalo-draft";
+/**
+ * A fronteira entre as três respostas do formulário e os dois valores que o
+ * webhook lê.
+ *
+ * Dentro do formulário, uma pergunta de sim ou não tem **três** estados: sim,
+ * não, e ainda não respondi (ver o tipo `Resposta`). Fora dele nada mudou — o
+ * `checkout-cavalo.ts` e o `lib/anuncio-campos.ts` continuam a ler booleanos,
+ * e é para eles que estas chaves viajam.
+ *
+ * A conversão faz-se aqui, no único sítio onde o pedido é montado, e não em
+ * cada campo: se estivesse espalhada por vinte e sete sítios, o vigésimo
+ * oitavo campo que alguém acrescentasse ficava a enviar a palavra `"sim"` onde
+ * o outro lado espera `true`, e isso não dá erro nenhum — dá uma coluna
+ * errada, que é o defeito que a `campos-do-anuncio.test.ts` existe para
+ * perseguir.
+ *
+ * Uma pergunta sem resposta é `false`, e não `null`: nenhum dos dois lados
+ * sabe o que fazer com um booleano vazio, e a validação já garante que isto
+ * nunca acontece — nenhuma destas perguntas chega aqui por responder.
+ */
+const sim = (r: Resposta): boolean => r === "sim";
 
 function calcularIdade(dataNascimento: string): number {
   if (!dataNascimento) return 0;
@@ -45,58 +80,580 @@ function calcularIdade(dataNascimento: string): number {
 
 export default function VenderCavaloPage() {
   const { t, language } = useLanguage();
-  const tr = createTranslator(language);
+  const tr = useMemo(() => createTranslator(language), [language]);
+  /** A mesma ordem do `createTranslator`: é com ela que a validação escolhe
+   *  em que língua escreve o nome do campo na frase genérica. */
+  const indiceDaLingua = language === "en" ? 1 : language === "es" ? 2 : 0;
   const { showToast } = useToast();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [imagens, setImagens] = useState<File[]>([]);
   const [documentos, setDocumentos] = useState<Documentos>({});
-  const [errors, setErrors] = useState<string[]>([]);
+  /** O que está a acontecer enquanto os anexos sobem, para o botão o dizer. */
+  const [progressoAnexos, setProgressoAnexos] = useState<Progresso | null>(null);
+  const [errors, setErrors] = useState<ErroCampo[]>([]);
+  /**
+   * O que o resumo do topo mostra.
+   *
+   * Vive à parte dos `errors` porque as duas coisas respondem a perguntas
+   * diferentes. O `errors` é «o que está errado agora», e é ele que acende o
+   * campo e escreve a frase por baixo — e passou a encher-se também ao sair de
+   * um campo, que é quando a pessoa ainda está a pensar naquilo.
+   *
+   * O resumo é «o que te impediu de avançar quando carregaste em Continuar»,
+   * e tem de continuar a ser só isso. Ele é `role="alert"` com
+   * `aria-live="assertive"`: pô-lo a aparecer a cada `blur` fazia um leitor de
+   * ecrã interromper quem escreve para lhe ler a lista inteira, e punha um
+   * bloco vermelho no topo da página por causa de um campo que a pessoa acabou
+   * de largar e já vê assinalado ao lado.
+   */
+  const [resumo, setResumo] = useState<ErroCampo[]>([]);
   const [selectedTier, setSelectedTier] = useState("standard");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [restored, setRestored] = useState(false);
+  /**
+   * O rascunho que voltou, e o que é preciso dizer sobre ele.
+   *
+   * `guardadoEm` está aqui porque «restaurado automaticamente» não responde à
+   * pergunta que quem volta faz primeiro — *restaurado de quando?*. Um
+   * formulário reposto com dados de há três semanas é sobre um cavalo que
+   * talvez já esteja vendido, e a data é a única coisa que permite decidir
+   * entre continuar e recomeçar.
+   *
+   * `passoPedido` e `passoReposto` diferem quando o `passoSeguro` recua alguém
+   * por lhe faltarem ficheiros. Recuar é a decisão certa e está explicada lá;
+   * o que faltava era dizê-lo — a pessoa deixou isto no passo 3 e voltou a
+   * encontrá-lo no 2, sem uma palavra.
+   */
+  const [rascunhoReposto, setRascunhoReposto] = useState<{
+    ficheiros: boolean;
+    guardadoEm: number;
+    passoPedido: number;
+    passoReposto: number;
+  } | null>(null);
+  /**
+   * O passo mais longe a que se chegou.
+   *
+   * É o que permite voltar atrás pelo indicador sem abrir a porta a saltar
+   * para a frente: um passo por alcançar não é clicável, e o `handleSubmit`
+   * confirma o formulário inteiro antes de cobrar seja o que for.
+   */
+  const [maiorPasso, setMaiorPasso] = useState(1);
 
-  // Auto-restore draft from localStorage on mount
+  /** O topo do formulário. Ao mudar de passo é para aqui que se volta. */
+  const topoDoFormulario = useRef<HTMLDivElement>(null);
+  /** O resumo dos erros. Quando a validação falha é ele que recebe o foco. */
+  const resumoDeErros = useRef<HTMLDivElement>(null);
+  /**
+   * A saída da página está autorizada.
+   *
+   * É o que separa «foi-se embora» de «foi pagar»: quando o checkout devolve
+   * o endereço do Stripe, a navegação é o desfecho do formulário e não a
+   * perda dele, e o aviso de saída não tem nada que aparecer.
+   */
+  const saidaAutorizada = useRef(false);
+
+  const mensagens: MensagensValidacao = useMemo(
+    () => ({
+      // As quatro formas genéricas. Recebem o nome do campo — o mesmo que está
+      // no rótulo ao lado dele — e montam a frase com o verbo do tipo. É o que
+      // permite ter noventa e oito mensagens sem escrever noventa e oito
+      // frases em três línguas, que é prosa que ninguém reveria.
+      porPreencher: (nome: string) =>
+        tr(`Falta preencher: ${nome}.`, `Still to fill in: ${nome}.`, `Falta rellenar: ${nome}.`),
+      porEscolher: (nome: string) =>
+        tr(`Falta escolher: ${nome}.`, `Still to choose: ${nome}.`, `Falta elegir: ${nome}.`),
+      porResponder: (nome: string) =>
+        tr(
+          `Falta responder sim ou não: ${nome}.`,
+          `Still to answer yes or no: ${nome}.`,
+          `Falta responder sí o no: ${nome}.`
+        ),
+      porEscolherLista: (nome: string) =>
+        tr(
+          `Escolha pelo menos uma opção em ${nome}.`,
+          `Choose at least one option in ${nome}.`,
+          `Elija al menos una opción en ${nome}.`
+        ),
+      nomeProprietario: t.form_validation.required_owner_name,
+      email: t.form_validation.required_email,
+      emailInvalido: tr(
+        "O email parece ter uma gralha — confirme a arroba e o domínio.",
+        "That email looks like a typo — check the @ and the domain.",
+        "El email parece tener una errata — compruebe la arroba y el dominio."
+      ),
+      telefone: t.form_validation.required_phone,
+      nomeCavalo: t.form_validation.required_horse_name,
+      numeroRegisto: t.form_validation.required_registration_number,
+      dataNascimento: t.form_validation.required_birth_date,
+      dataNascimentoFutura: tr(
+        "Confirme o ano de nascimento — a data indicada não é possível.",
+        "Check the year of birth — that date is not possible.",
+        "Compruebe el año de nacimiento — esa fecha no es posible."
+      ),
+      sexo: t.form_validation.required_sex,
+      pelagem: t.form_validation.required_coat,
+      pai: tr("Indique o nome do pai.", "Enter the sire's name.", "Indique el nombre del padre."),
+      mae: tr("Indique o nome da mãe.", "Enter the dam's name.", "Indique el nombre de la madre."),
+      livroAzul: t.form_validation.required_blue_book,
+      nivelTreino: t.form_validation.required_training_level,
+      estadoSaude: t.form_validation.required_health_status,
+      preco: t.form_validation.required_price,
+      precoInvalido: tr(
+        "Indique um preço acima de zero.",
+        "Enter a price above zero.",
+        "Indique un precio superior a cero."
+      ),
+      regiao: tr(
+        "Selecione o distrito / região do cavalo.",
+        "Please select the horse's district / region.",
+        "Por favor seleccione el distrito / región del caballo."
+      ),
+      localizacao: t.vender_cavalo.error_location_required,
+      descricao: t.vender_cavalo.error_description_min,
+      fotografias: t.vender_cavalo.error_photos_min,
+      termos: t.vender_cavalo.error_terms_required,
+    }),
+    [t, tr]
+  );
+
+  /**
+   * As frases da inspecção. Vivem ao lado das da validação e pela mesma razão:
+   * a camada que decide não sabe de línguas, e as três línguas escrevem-se
+   * uma vez só, aqui.
+   */
+  const mensagensInspeccao: MensagensInspeccao = useMemo(
+    () => ({
+      microchipComprimento: (faltam) =>
+        faltam > 0
+          ? tr(
+              `Um microchip tem 15 algarismos — faltam ${faltam}.`,
+              `A microchip has 15 digits — ${faltam} missing.`,
+              `Un microchip tiene 15 dígitos — faltan ${faltam}.`
+            )
+          : tr(
+              `Um microchip tem 15 algarismos — há ${-faltam} a mais.`,
+              `A microchip has 15 digits — ${-faltam} too many.`,
+              `Un microchip tiene 15 dígitos — hay ${-faltam} de más.`
+            ),
+      microchipNaoNumerico: tr(
+        "O microchip é só algarismos. Com letras, o número que tem à frente é outro — talvez o do passaporte.",
+        "A microchip is digits only. With letters, that is another number — the passport, perhaps.",
+        "El microchip son sólo dígitos. Con letras, ése es otro número — quizá el del pasaporte."
+      ),
+      microchipPrefixo: tr(
+        "Os três primeiros algarismos são o código do país (620 em Portugal) ou 900–999 do fabricante. Confirme o início.",
+        "The first three digits are the country code (620 in Portugal) or 900–999 for a manufacturer. Check the start.",
+        "Los tres primeros dígitos son el código de país (620 en Portugal) o 900–999 del fabricante. Compruebe el inicio."
+      ),
+      microchipRepetido: tr(
+        "Quinze algarismos iguais não são um microchip.",
+        "Fifteen identical digits are not a microchip.",
+        "Quince dígitos iguales no son un microchip."
+      ),
+      nifComprimento: tr(
+        "O NIF tem nove algarismos.",
+        "A Portuguese tax number has nine digits.",
+        "El NIF tiene nueve dígitos."
+      ),
+      nifControlo: tr(
+        "Este NIF não fecha — o último algarismo é de controlo e não bate certo com os outros oito.",
+        "This tax number does not check out — the last digit is a checksum and does not match the other eight.",
+        "Este NIF no cuadra — el último dígito es de control y no coincide con los otros ocho."
+      ),
+      nifSingularEmpresa: tr(
+        "Escolheu vender como empresa mas o NIF é de pessoa singular. A factura sai com este nome.",
+        "You are selling as a business but this tax number belongs to an individual. The invoice will use it.",
+        "Vende como empresa pero el NIF es de persona física. La factura saldrá con éste."
+      ),
+      nifColectivoParticular: tr(
+        "Escolheu vender como particular mas o NIF é de pessoa colectiva. Confirme qual deles quer na factura.",
+        "You are selling as a private individual but this is a company tax number. Check which you want on the invoice.",
+        "Vende como particular pero el NIF es de persona jurídica. Compruebe cuál quiere en la factura."
+      ),
+      telefoneInvalido: tr(
+        "Um número português é 9 seguido de 1, 2, 3 ou 6 e mais sete algarismos, ou um fixo com nove a começar por 2.",
+        "A Portuguese number is 9 followed by 1, 2, 3 or 6 and seven more digits, or a nine-digit landline starting with 2.",
+        "Un número portugués es 9 seguido de 1, 2, 3 o 6 y siete dígitos más, o un fijo de nueve que empieza por 2."
+      ),
+      telefoneInternacional: tr(
+        "Este número não tem algarismos que cheguem. Inclua o indicativo do país.",
+        "That number has too few digits. Include the country code.",
+        "Ese número no tiene dígitos suficientes. Incluya el prefijo del país."
+      ),
+      emailDominio: (sugerido) =>
+        tr(
+          `Quis dizer ${sugerido}? A confirmação da compra vai por email.`,
+          `Did you mean ${sugerido}? The purchase confirmation goes by email.`,
+          `¿Quiso decir ${sugerido}? La confirmación de la compra va por email.`
+        ),
+      alturaEmMaos: (cm) =>
+        tr(
+          `Isso parecem mãos, e a caixa pede centímetros — dá ${cm}cm.`,
+          `That looks like hands, and this box asks for centimetres — that is ${cm}cm.`,
+          `Eso parecen manos, y la casilla pide centímetros — son ${cm}cm.`
+        ),
+      alturaImpossivel: tr(
+        "A altura vai em centímetros, ao garrote.",
+        "Height goes in centimetres, at the withers.",
+        "La altura va en centímetros, a la cruz."
+      ),
+      alturaInvulgar: tr(
+        "Um Lusitano adulto anda pelos 150–170cm. Confirme se é mesmo esta.",
+        "An adult Lusitano is usually 150–170cm. Please confirm.",
+        "Un Lusitano adulto ronda los 150–170cm. Confirme si es ésta."
+      ),
+      pesoImpossivel: tr(
+        "O peso vai em quilogramas.",
+        "Weight goes in kilograms.",
+        "El peso va en kilogramos."
+      ),
+      pesoInvulgar: tr(
+        "Um Lusitano adulto anda pelos 400–650kg. Confirme se é mesmo este.",
+        "An adult Lusitano is usually 400–650kg. Please confirm.",
+        "Un Lusitano adulto ronda los 400–650kg. Confirme si es éste."
+      ),
+      precoZeroAMenos: tr(
+        "Para um PSL registado isto é muito baixo — faltou um zero?",
+        "That is very low for a registered PSL — is a zero missing?",
+        "Para un PSL registrado es muy bajo — ¿falta un cero?"
+      ),
+      precoBaixo: tr(
+        "É um preço baixo para um PSL registado. Confirme antes de publicar.",
+        "That is a low price for a registered PSL. Please check before publishing.",
+        "Es un precio bajo para un PSL registrado. Compruébelo antes de publicar."
+      ),
+      precoAlto: tr(
+        "É um preço muito alto. Confirme o número de zeros.",
+        "That is a very high price. Please check the zeros.",
+        "Es un precio muy alto. Compruebe los ceros."
+      ),
+      pontuacaoForaDaEscala: tr(
+        "A pontuação morfológica é numa escala até 100.",
+        "The conformation score runs on a scale up to 100.",
+        "La puntuación morfológica va en una escala hasta 100."
+      ),
+      pontuacaoInvulgar: tr(
+        "As pontuações atribuídas andam quase sempre entre 60 e 80. Confirme.",
+        "Awarded scores are almost always between 60 and 80. Please check.",
+        "Las puntuaciones otorgadas suelen estar entre 60 y 80. Compruébelo."
+      ),
+      registoCurto: tr(
+        "Um número de registo tem mais do que dois caracteres.",
+        "A registration number has more than two characters.",
+        "Un número de registro tiene más de dos caracteres."
+      ),
+      registoRepetido: tr(
+        "Isto é o mesmo caractere repetido, não um número de registo.",
+        "That is one character repeated, not a registration number.",
+        "Eso es un mismo carácter repetido, no un número de registro."
+      ),
+      registoEONome: tr(
+        "Aqui vai o número do Livro Azul, não o nome do cavalo.",
+        "This box takes the stud-book number, not the horse's name.",
+        "Aquí va el número del Libro Azul, no el nombre del caballo."
+      ),
+      registoSemAlgarismos: tr(
+        "Não tem um único algarismo. Confirme que copiou o número certo.",
+        "There is not a single digit in it. Check you copied the right number.",
+        "No tiene ni un dígito. Compruebe que copió el número correcto."
+      ),
+      registoDuplicado: tr(
+        "Já há um anúncio com este número de registo. Se o cavalo é o mesmo, não precisa de o publicar outra vez.",
+        "There is already a listing with this registration number. If it is the same horse, no need to publish it twice.",
+        "Ya hay un anuncio con este número de registro. Si es el mismo caballo, no hace falta publicarlo otra vez."
+      ),
+      videoNaoReconhecido: tr(
+        "Só reconhecemos YouTube e Vimeo — o resto fica como ligação e não como vídeo no anúncio.",
+        "We recognise YouTube and Vimeo only — anything else stays a link, not a video in the listing.",
+        "Sólo reconocemos YouTube y Vimeo — el resto queda como enlace y no como vídeo en el anuncio."
+      ),
+      treinoCedoDemais: (idade) =>
+        tr(
+          `Com ${idade} anos ainda não há desbaste. Confirme a data de nascimento ou o nível.`,
+          `At ${idade} a horse is not yet started. Check the date of birth or the level.`,
+          `Con ${idade} años aún no hay doma. Compruebe la fecha de nacimiento o el nivel.`
+        ),
+      treinoAltaEscolaCedo: (idade) =>
+        tr(
+          `Alta Escola com ${idade} anos é muito cedo. Confirme a data de nascimento ou o nível.`,
+          `High School at ${idade} is very early. Check the date of birth or the level.`,
+          `Alta Escuela con ${idade} años es muy pronto. Compruebe la fecha de nacimiento o el nivel.`
+        ),
+      treinoPotroTarde: (idade) =>
+        tr(
+          `Um cavalo de ${idade} anos ainda sem desbaste é raro. Confirme.`,
+          `A ${idade}-year-old still unbroken is rare. Please confirm.`,
+          `Un caballo de ${idade} años aún sin domar es raro. Confirme.`
+        ),
+      passaporteComprimento: (faltam) =>
+        faltam > 0
+          ? tr(
+              `Um UELN tem 15 caracteres — 3 do país, 3 do stud-book e 9 do animal. Faltam ${faltam}. Se o passaporte é anterior ao UELN, siga em frente.`,
+              `A UELN has 15 characters — 3 for the country, 3 for the studbook and 9 for the animal. ${faltam} missing. If the passport predates the UELN, carry on.`,
+              `Un UELN tiene 15 caracteres — 3 del país, 3 del stud-book y 9 del animal. Faltan ${faltam}. Si el pasaporte es anterior al UELN, siga adelante.`
+            )
+          : tr(
+              `Um UELN tem 15 caracteres — há ${-faltam} a mais. Se o passaporte é anterior ao UELN, siga em frente.`,
+              `A UELN has 15 characters — ${-faltam} too many. If the passport predates the UELN, carry on.`,
+              `Un UELN tiene 15 caracteres — hay ${-faltam} de más. Si el pasaporte es anterior al UELN, siga adelante.`
+            ),
+      passaportePaisNaoNumerico: tr(
+        "Os três primeiros caracteres de um UELN são o código numérico do país — 620 em Portugal, 724 em Espanha.",
+        "The first three characters of a UELN are the numeric country code — 620 for Portugal, 724 for Spain.",
+        "Los tres primeros caracteres de un UELN son el código numérico del país — 620 en Portugal, 724 en España."
+      ),
+      dataNoFuturo: tr(
+        "Esta data ainda não chegou.",
+        "That date has not happened yet.",
+        "Esa fecha aún no ha llegado."
+      ),
+      dataAntesDeNascer: tr(
+        "Esta data é anterior ao nascimento do cavalo.",
+        "That date is before the horse was born.",
+        "Esa fecha es anterior al nacimiento del caballo."
+      ),
+      vacinacaoDesactualizada: (meses) =>
+        tr(
+          `Respondeu que a vacinação está em dia, mas a última foi há ${meses} meses — o reforço é anual. Confirme a data ou a resposta.`,
+          `You answered that vaccination is up to date, but the last one was ${meses} months ago — the booster is annual. Check the date or the answer.`,
+          `Respondió que la vacunación está al día, pero la última fue hace ${meses} meses — el refuerzo es anual. Compruebe la fecha o la respuesta.`
+        ),
+      desparasitacaoDesactualizada: (meses) =>
+        tr(
+          `Respondeu que a desparasitação está em dia, mas a última foi há ${meses} meses. Confirme a data ou a resposta.`,
+          `You answered that deworming is up to date, but the last one was ${meses} months ago. Check the date or the answer.`,
+          `Respondió que la desparasitación está al día, pero la última fue hace ${meses} meses. Compruebe la fecha o la respuesta.`
+        ),
+      ferragemAntiga: (meses) =>
+        tr(
+          `Há ${meses} meses sem ferragem nem aparo — o ciclo do casco é de 6 a 8 semanas, também no cavalo descalço.`,
+          `${meses} months with no shoeing or trim — the hoof cycle is 6 to 8 weeks, barefoot horses included.`,
+          `Hace ${meses} meses sin herraje ni recorte — el ciclo del casco es de 6 a 8 semanas, también descalzo.`
+        ),
+      treinoMaisAnosDoQueIdade: (anos, idade) =>
+        tr(
+          `${anos} anos de treino num cavalo de ${idade}. Confirme a data de nascimento ou os anos.`,
+          `${anos} years in training for a ${idade}-year-old. Check the date of birth or the years.`,
+          `${anos} años de entrenamiento en un caballo de ${idade}. Compruebe la fecha o los años.`
+        ),
+
+      /**
+       * As frases da coerência: as que olham para o conjunto e não para um
+       * campo. Falam de uma árvore que não fecha — um pai mais novo do que o
+       * filho, um cavalo que é seu próprio antepassado.
+       *
+       * Todas perguntam em vez de acusar, mesmo as que travam o passo. Quem
+       * está a preencher isto quase sempre enganou-se a copiar do Livro Azul,
+       * e a frase tem de o levar a olhar outra vez, não a sentir-se apanhado.
+       */
+      coerencia: {
+        nascimentoNoFuturo: tr(
+          "Esta data ainda não chegou. Confirme o ano.",
+          "That date is in the future. Check the year.",
+          "Esa fecha aún no ha llegado. Compruebe el año."
+        ),
+        nascimentoDepoisDoHistorial: tr(
+          "As datas de saúde que indicou são todas anteriores ao nascimento. Confirme a data de nascimento.",
+          "The health dates you gave all come before the date of birth. Check the date of birth.",
+          "Las fechas de salud indicadas son todas anteriores al nacimiento. Compruebe la fecha de nacimiento."
+        ),
+        longevidadeInvulgar: (anos) =>
+          tr(
+            `${anos} anos é uma idade invulgar. Se está certa, siga em frente.`,
+            `${anos} years old is unusual. If that is right, carry on.`,
+            `${anos} años es una edad poco común. Si es correcta, continúe.`
+          ),
+        alturaParaAIdade: (adulta) =>
+          tr(
+            `Para a idade, esta altura dá um adulto de cerca de ${adulta} cm. Confirme a altura ou a data de nascimento.`,
+            `For that age, this height implies an adult of about ${adulta} cm. Check the height or the date of birth.`,
+            `Para esa edad, esta altura implica un adulto de unos ${adulta} cm. Compruebe la altura o la fecha.`
+          ),
+        progenitorNovoDemais: (meses) =>
+          tr(
+            `Este antepassado nasceu ${meses} meses depois do cavalo. Confirme as datas ou o nome.`,
+            `This ancestor was born ${meses} months after the horse. Check the dates or the name.`,
+            `Este antepasado nació ${meses} meses después del caballo. Compruebe las fechas o el nombre.`
+          ),
+        progenitorPoucoHabitual: (meses) =>
+          tr(
+            `Este antepassado tinha ${meses} meses quando o cavalo nasceu, o que é pouco habitual.`,
+            `This ancestor was ${meses} months old when the horse was born, which is unusual.`,
+            `Este antepasado tenía ${meses} meses cuando nació el caballo, lo que es poco habitual.`
+          ),
+        antepassadoDeSiProprio: tr(
+          "Este antepassado tem o mesmo registo do cavalo. Confirme o número.",
+          "This ancestor has the same registration number as the horse. Check the number.",
+          "Este antepasado tiene el mismo registro que el caballo. Compruebe el número."
+        ),
+        papelContraditorio: tr(
+          "O mesmo antepassado aparece como pai e como mãe. Confirme os nomes.",
+          "The same ancestor appears as both sire and dam. Check the names.",
+          "El mismo antepasado aparece como padre y como madre. Compruebe los nombres."
+        ),
+        sexoContraPapel: tr(
+          "O sexo indicado não corresponde ao lugar na árvore. Confirme.",
+          "The sex given does not match the place in the tree. Please check.",
+          "El sexo indicado no corresponde al lugar en el árbol. Compruébelo."
+        ),
+      },
+    }),
+    [tr]
+  );
+
+  // ---- A inspecção de cada campo ------------------------------------------
+  // O número de registo é o único que precisa de perguntar a um servidor, e
+  // por isso tem estado próprio; o resultado dele entra na inspecção como
+  // contexto, para que a mensagem do duplicado saia do mesmo sítio que as
+  // outras e não de um canto à parte da página.
+  const registoApsl = useRegistoApsl();
+  const inspeccao = useInspeccao(formData, mensagensInspeccao, {
+    registoDuplicado: registoApsl.duplicado,
+  });
+
+  // ---- Rascunho -----------------------------------------------------------
+  // Ler antes de gravar. Sem esta ordem o primeiro `guardarRascunho` do
+  // arranque escrevia o formulário vazio por cima do que lá estava.
+  const [rascunhoLido, setRascunhoLido] = useState(false);
+
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(AUTOSAVE_KEY);
-      if (saved) {
-        const draft = JSON.parse(saved);
-        if (draft.formData) setFormData(draft.formData);
-        if (draft.step) setStep(draft.step);
-        if (draft.selectedTier) setSelectedTier(draft.selectedTier);
-        setRestored(true);
-      }
-    } catch {
-      // Ignore parse errors
+    const { rascunho, perdeuFicheiros } = lerRascunho();
+    if (rascunho) {
+      setFormData({ ...initialFormData, ...rascunho.formData });
+      // Não se devolve ninguém a um passo que ele não vai conseguir passar:
+      // as fotografias e os documentos não sobrevivem ao rascunho.
+      const reposto = passoSeguro(rascunho);
+      setStep(reposto);
+      setMaiorPasso(reposto);
+      setSelectedTier(rascunho.plano);
+      setRascunhoReposto({
+        ficheiros: perdeuFicheiros,
+        guardadoEm: rascunho.guardadoEm,
+        passoPedido: rascunho.passo,
+        passoReposto: reposto,
+      });
     }
+    setRascunhoLido(true);
   }, []);
 
-  // Auto-save draft to localStorage on changes
-  const saveDraft = useCallback(() => {
-    try {
-      localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ formData, step, selectedTier }));
-    } catch {
-      // Ignore storage errors (quota exceeded, etc.)
-    }
-  }, [formData, step, selectedTier]);
+  /**
+   * A gravação e o que se pode dizer sobre ela.
+   *
+   * Era um `useEffect` por cada mudança de `formData`, ou seja um
+   * `JSON.stringify` de noventa e cinco campos e um `setItem` síncrono **por
+   * tecla** — medido: 38 teclas, 38 gravações, 84 645 bytes. E, apesar de
+   * tudo isso, a página não dizia a ninguém que estava a guardar. O ritmo e o
+   * relato passaram os dois para o `usar-rascunho.ts`, que grava no silêncio
+   * e à saída da página, e que só devolve «guardado» depois de reler o que
+   * escreveu.
+   */
+  const estadoRascunho = useRascunho(
+    {
+      formData,
+      passo: step,
+      plano: selectedTier,
+      fotografias: imagens.length,
+      documentos: Object.keys(documentos).length,
+    },
+    rascunhoLido
+  );
+
+  /**
+   * O aviso de saída, e só pelo que se perde mesmo.
+   *
+   * O rascunho guarda o texto todo, e por isso fechar a página com noventa e
+   * cinco campos escritos não custa nada — avisar aí seria alarme falso. O que
+   * o rascunho **não** guarda são as fotografias e os documentos: são `File`,
+   * não sobrevivem a um `JSON.stringify`, e a razão está escrita no
+   * `rascunho.ts`. Escolher seis fotografias é trabalho a sério e é o único
+   * trabalho desta página que uma saída deita fora.
+   *
+   * Ou seja: avisa-se exactamente quando há alguma coisa a perder, e cala-se
+   * no resto — que é a mesma regra do «faltam 7 campos» aplicada à saída. Ir a
+   * `/termos` e voltar perde as fotografias, e por isso também conta.
+   *
+   * Não dispara a caminho do Stripe: aí a navegação é o desfecho, não a perda.
+   */
+  const ficheirosPorEnviar = imagens.length > 0 || Object.keys(documentos).length > 0;
 
   useEffect(() => {
-    saveDraft();
-  }, [saveDraft]);
+    if (!ficheirosPorEnviar) return;
+    const aoSair = (e: BeforeUnloadEvent) => {
+      if (saidaAutorizada.current) return;
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", aoSair);
+    return () => window.removeEventListener("beforeunload", aoSair);
+  }, [ficheirosPorEnviar]);
 
-  const clearDraft = () => {
-    try {
-      localStorage.removeItem(AUTOSAVE_KEY);
-    } catch {
-      // Ignore
-    }
+  const recomecar = () => {
+    limparRascunho();
+    setFormData(initialFormData);
+    setStep(1);
+    setMaiorPasso(1);
+    setSelectedTier("standard");
+    setImagens([]);
+    setDocumentos({});
+    setTermsAccepted(false);
+    setErrors([]);
+    setResumo([]);
+    setRascunhoReposto(null);
   };
 
+  // ---- Campos -------------------------------------------------------------
   const updateField = (field: keyof FormData, value: FormData[keyof FormData]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    // Um erro que já foi corrigido não fica no ecrã à espera do próximo
+    // «Continuar»: quem escreve no campo apaga a queixa sobre ele.
+    const semEste = (lista: ErroCampo[]) =>
+      lista.some((e) => e.campo === field) ? lista.filter((e) => e.campo !== field) : lista;
+    setErrors(semEste);
+    setResumo(semEste);
+    // E um campo que está a ser corrigido cala-se enquanto o está. Sem isto,
+    // corrigir um email a partir do meio da palavra dá uma mensagem diferente
+    // a cada tecla — que é exactamente o que não se quer fazer a quem escreve.
+    if (typeof value === "string") inspeccao.aoEscrever(String(field), value);
+    if (field === "numero_registo") registoApsl.esquecer();
   };
+
+  /**
+   * Os quatro momentos de um campo, montados uma vez e passados a todos os
+   * passos. É aqui que se cumpre a regra do «ao sair do campo, não ao
+   * submeter»: quem acabou de escrever ainda está a pensar naquilo.
+   */
+  const accoesDeCampo = useMemo(
+    () => ({
+      aoFocar: inspeccao.aoFocar,
+      aoSair: (campo: string) => {
+        inspeccao.aoSair(campo);
+        // Um apontamento de nível `erro` aparece no instante em que se sai do
+        // campo, e não à espera do botão. Os avisos e as sugestões não passam
+        // por aqui: mostra-os o próprio campo, e nenhum deles trava nada.
+        const erro = inspeccao.erroDe(campo);
+        if (erro) {
+          setErrors((antes) => [
+            ...antes.filter((e) => e.campo !== campo),
+            { campo, mensagem: erro.mensagem },
+          ]);
+        }
+        // A única verificação de existência possível hoje é contra a nossa
+        // própria base, e faz-se aqui — ao sair do campo, não a cada tecla.
+        if (campo === "numero_registo") {
+          registoApsl.verificar(formData.numero_registo, formData.nome);
+        }
+      },
+      aoEscolher: inspeccao.marcarTocado,
+      aoAceitar: (campo: string, valor: string) => {
+        updateField(campo as keyof FormData, valor);
+        inspeccao.marcarTocado(campo);
+      },
+    }),
+    // `updateField` é recriada a cada render de propósito — fecha sobre o
+    // `inspeccao` desta passagem —, e por isso não entra nas dependências.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [inspeccao, registoApsl, formData.numero_registo, formData.nome]
+  );
 
   const toggleDisciplina = (disc: string) => {
     setFormData((prev) => ({
@@ -116,74 +673,172 @@ export default function VenderCavaloPage() {
     }));
   };
 
-  // Merged step validation: Step 1 = Owner+ID, Step 2 = Lineage+Health, Step 3 = Price, Step 4 = Payment
-  const validateStep = (currentStep: number): boolean => {
-    const newErrors: string[] = [];
+  // ---- As contas do progresso ---------------------------------------------
+  const estadoActual = useMemo(
+    () => ({ formData, documentos, imagens, termosAceites: termsAccepted }),
+    [formData, documentos, imagens, termsAccepted]
+  );
 
-    if (currentStep === 1) {
-      // Owner info — apenas essenciais para contacto
-      if (!formData.proprietario_nome) newErrors.push(t.form_validation.required_owner_name);
-      if (!formData.proprietario_email) newErrors.push(t.form_validation.required_email);
-      if (!formData.proprietario_telefone) newErrors.push(t.form_validation.required_phone);
-      // NIF is optional (collected for invoicing later)
-      // Horse ID — apenas o essencial
-      if (!formData.nome) newErrors.push(t.form_validation.required_horse_name);
-      if (!formData.nome_registo) newErrors.push(t.form_validation.required_registration_name);
-      if (!formData.numero_registo) newErrors.push(t.form_validation.required_registration_number);
-      if (!formData.microchip || formData.microchip.length < 15) newErrors.push(t.form_validation.required_microchip);
-      if (!formData.data_nascimento) newErrors.push(t.form_validation.required_birth_date);
-      if (!formData.sexo) newErrors.push(t.form_validation.required_sex);
-      if (!formData.temperamento) newErrors.push(tr("Selecione o temperamento do cavalo.", "Please select the horse's temperament.", "Por favor seleccione el temperamento del caballo."));
-    }
+  /**
+   * Tudo o que trava um passo: o que a validação exige e o que a inspecção
+   * apanhou. Sai daqui em vez de estar dentro do `validar` porque há três
+   * perguntas a fazer-lhe, e só uma delas pode escrever no ecrã — «este passo
+   * passa?», que escreve; «quantas faltam?», que se lê a cada tecla; e «algum
+   * passo não passa?», que o `handleSubmit` faz antes de cobrar.
+   */
+  const errosDoPasso = useCallback(
+    (passo: number): ErroCampo[] => {
+      const encontrados = validarPasso(passo, estadoActual, mensagens, indiceDaLingua);
+      // Um apontamento de nível `erro` trava o passo onde o campo vive. Sem
+      // isto, bastava não sair do campo para publicar um microchip de catorze
+      // algarismos — e o que ficava guardado era lixo. Só entram os campos que
+      // a validação ainda não acusou: dizer duas vezes a mesma coisa sobre o
+      // mesmo campo é pior do que dizê-la uma.
+      const daInspeccao = errosDeInspeccao(passo, inspeccao.todos).filter(
+        (e) => !encontrados.some((j) => j.campo === e.campo)
+      );
+      return [...encontrados, ...daInspeccao];
+    },
+    [estadoActual, mensagens, indiceDaLingua, inspeccao.todos]
+  );
 
-    if (currentStep === 2) {
-      // Lineage
-      if (!formData.pai_nome || !formData.pai_registo)
-        newErrors.push(t.form_validation.required_sire);
-      if (!formData.mae_nome || !formData.mae_registo)
-        newErrors.push(t.form_validation.required_dam);
-      if (!documentos.livroAzul) newErrors.push(t.form_validation.required_blue_book);
-      // Training & Health
-      if (!formData.nivel_treino) newErrors.push(t.form_validation.required_training_level);
-      if (!formData.nivel_cavaleiro) newErrors.push(tr("Selecione o nível de cavaleiro recomendado.", "Please select the recommended rider level.", "Por favor seleccione el nivel de jinete recomendado."));
-      if (!formData.estado_saude) newErrors.push(t.form_validation.required_health_status);
-      if (!formData.vacinacao_atualizada) newErrors.push(t.form_validation.required_vaccination);
-    }
+  /**
+   * Uma conta só, e é a que trava o botão.
+   *
+   * A garantia que aqui se quer é que o «faltam 7» do botão, o «12 / 19» do
+   * cabeçalho da secção, o visto no indicador e o resumo de erros **nunca
+   * discordem**: duas contas feitas em sítios diferentes divergem, e a que
+   * diverge é sempre a que a pessoa está a ler.
+   *
+   * Só que eram duas. O `faltamPorPasso` conta o que a validação exige —
+   * campos por preencher —, e o `nextStep` travava por isso **e mais** pelos
+   * apontamentos de nível `erro` da inspecção, que o `faltamPorPasso` não vê.
+   * Medido no browser: com um NIF que não fecha o dígito de controlo, o botão
+   * dizia «Continuar», o `data-faltam` era `0`, e carregar nele não avançava
+   * nada. A promessa do rótulo era falsa, e era-o exactamente no sítio onde a
+   * pessoa a vai testar.
+   *
+   * O `faltam` passou a sair do `errosDoPasso`, que é a mesma função que o
+   * `nextStep` e o `handleSubmit` chamam. Um campo preenchido com um valor que
+   * não passa conta como por responder, que é o que ele é para quem quer
+   * avançar. E o visto do indicador, que sai daqui pela subtracção, deixa de
+   * poder aparecer sobre um passo que não passa.
+   *
+   * O `feitos` é a subtracção dos dois vectores acima, e não uma terceira
+   * chamada: o `feitosPorPasso` refazia por dentro o `totalPorPasso` e o
+   * `faltamPorPasso`, o que dava três varrimentos dos noventa e cinco campos
+   * onde basta um, a cada tecla.
+   */
+  const faltam = useMemo(
+    () => [1, 2, 3, 4].map((passo) => errosDoPasso(passo).length),
+    [errosDoPasso]
+  );
+  const totais = useMemo(() => totalPorPasso(estadoActual), [estadoActual]);
+  const feitos = useMemo(
+    () => totais.map((total, i) => Math.max(0, total - (faltam[i] ?? 0))),
+    [totais, faltam]
+  );
 
-    if (currentStep === 3) {
-      if (!formData.preco) newErrors.push(t.form_validation.required_price);
-      if (!formData.regiao) newErrors.push(tr("Selecione o distrito / região do cavalo.", "Please select the horse's district / region.", "Por favor seleccione el distrito / región del caballo."));
-      if (!formData.localizacao) newErrors.push(t.vender_cavalo.error_location_required);
-      if (!formData.descricao || formData.descricao.length < MIN_DESCRIPTION_LENGTH)
-        newErrors.push(t.vender_cavalo.error_description_min);
-      if (imagens.length < MIN_IMAGES) newErrors.push(t.vender_cavalo.error_photos_min);
-    }
+  // ---- Passos -------------------------------------------------------------
 
-    if (currentStep === 4) {
-      if (!termsAccepted) newErrors.push(t.vender_cavalo.error_terms_required);
-    }
+  const validar = (passo: number): ErroCampo[] => {
+    const todos = errosDoPasso(passo);
+    setErrors(todos);
+    setResumo(todos);
+    return todos;
+  };
 
-    setErrors(newErrors);
-    return newErrors.length === 0;
+  /**
+   * Onde é que a pessoa fica depois de carregar num botão.
+   *
+   * Medido antes: com o passo 1 vazio, o resumo de erros aparecia 1302px acima
+   * do ecrã em computador e 1452px abaixo da dobra em telemóvel — nos dois
+   * casos, carregar em «Continuar» não fazia nada visível. E ao avançar de
+   * passo a página ficava onde estava: o passo 2 abria a meio de si próprio,
+   * com `scrollY` a 3455 numa página de 4872.
+   */
+  const irPara = (elemento: HTMLElement | null, foco = false) => {
+    if (!elemento) return;
+    // O `?.` não é decoração: o jsdom, onde os testes de unidade correm, não
+    // implementa `scrollIntoView`, e sem ele voltar um passo atrás rebentava.
+    elemento.scrollIntoView?.({ block: "start", behavior: "smooth" });
+    if (foco) elemento.focus({ preventScroll: true });
+  };
+
+  /**
+   * O resumo de erros só existe no DOM depois de haver erros para mostrar.
+   *
+   * Chamar-lhe o foco no mesmo instante em que se chama `setErrors` não
+   * funciona: nessa altura o `ref` ainda é `null`, porque o React só monta o
+   * resumo no render seguinte. Marca-se a intenção e vai-se lá no efeito, que
+   * corre já com o elemento montado.
+   */
+  const levarAosErros = useRef(false);
+
+  useEffect(() => {
+    if (!levarAosErros.current) return;
+    levarAosErros.current = false;
+    if (resumo.length === 0) return;
+    irPara(resumoDeErros.current, true);
+  }, [resumo]);
+
+  /** Mudar de passo é sempre a mesma coisa: limpar as queixas do passo que se
+   *  deixa — que são sobre campos que já não estão no ecrã — e voltar ao topo,
+   *  que é onde está o indicador que diz onde se ficou. */
+  const mudarDePasso = (destino: number) => {
+    const seguro = Math.min(Math.max(destino, 1), TOTAL_STEPS);
+    setErrors([]);
+    setResumo([]);
+    setStep(seguro);
+    setMaiorPasso((maior) => Math.max(maior, seguro));
+    irPara(topoDoFormulario.current);
   };
 
   const nextStep = () => {
-    if (validateStep(step)) {
-      setStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
+    const falhas = validar(step);
+    if (falhas.length > 0) {
+      levarAosErros.current = true;
+      return;
     }
+    mudarDePasso(step + 1);
   };
 
-  const prevStep = () => {
-    setStep((prev) => Math.max(prev - 1, 1));
+  const prevStep = () => mudarDePasso(step - 1);
+
+  /**
+   * Saltar para um passo pelo indicador.
+   *
+   * Só para trás — ou melhor, só para onde já se esteve. Andar para a frente
+   * continua a ser pelo «Continuar», que valida; se daqui se pudesse saltar
+   * por cima de um passo, chegava-se ao pagamento sem o passo por baixo ter
+   * sido verificado por ninguém. O que torna isto seguro mesmo assim é o
+   * `handleSubmit`, que confirma os quatro passos antes de cobrar: voltar ao
+   * passo 1 e apagar o email deixou de ser uma maneira de publicar um anúncio
+   * sem email.
+   */
+  const irParaPasso = (destino: number) => {
+    if (destino === step || destino > maiorPasso) return;
+    mudarDePasso(destino);
+  };
+
+  /** Enter num campo de texto avança o passo, como em qualquer formulário. */
+  const aoSubmeter = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (step < TOTAL_STEPS) nextStep();
+    else handleSubmit();
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (tierData.maxPhotos !== -1 && imagens.length + files.length > maxImages) {
-      setErrors([t.vender_cavalo.error_max_images]);
+      const excesso = [{ campo: "fotografias", mensagem: t.vender_cavalo.error_max_images }];
+      setErrors(excesso);
+      setResumo(excesso);
       return;
     }
     setImagens((prev) => [...prev, ...files]);
+    setErrors((prev) => prev.filter((erro) => erro.campo !== "fotografias"));
+    setResumo((prev) => prev.filter((erro) => erro.campo !== "fotografias"));
   };
 
   const removeImage = (index: number) => {
@@ -192,33 +847,78 @@ export default function VenderCavaloPage() {
 
   const handleDocUpload = (type: DocumentType, file: File) => {
     setDocumentos((prev) => ({ ...prev, [type]: file }));
+    if (type === "livroAzul") {
+      setErrors((prev) => prev.filter((e) => e.campo !== "livro_azul"));
+      setResumo((prev) => prev.filter((e) => e.campo !== "livro_azul"));
+    }
   };
 
   const handleSubmit = async () => {
-    if (!validateStep(4)) return;
+    /**
+     * Confirma-se o formulário **inteiro** antes de cobrar, e não só a caixa
+     * dos termos.
+     *
+     * Era `validar(4)`, e o 4 estava escrito à mão. Enquanto só se podia andar
+     * para a frente isso chegava — para se estar no passo 4 era preciso ter
+     * passado pelos outros três —, mas era um invariante que vivia na
+     * navegação e não na submissão, e bastou poder voltar atrás pelo indicador
+     * para deixar de ser verdade: apagar o email no passo 1, voltar ao 4 e
+     * pagar.
+     *
+     * Quando falta alguma coisa, leva-se a pessoa **ao passo onde falta**, e
+     * não se lhe deixa uma lista de erros sobre campos que ela não está a ver.
+     * É o primeiro por ordem, porque é o primeiro que ela vai querer fechar.
+     */
+    for (let passo = 1; passo <= TOTAL_STEPS; passo++) {
+      const falhas = errosDoPasso(passo);
+      if (falhas.length === 0) continue;
+      // Muda-se o passo à mão em vez de chamar o `mudarDePasso`: esse leva ao
+      // topo do formulário, e daqui o destino é o resumo dos erros — que é
+      // para onde o efeito do `levarAosErros` leva a seguir. Duas deslocações
+      // suaves encavalitadas não são um movimento, são um solavanco.
+      if (passo !== step) {
+        setStep(passo);
+        setMaiorPasso((maior) => Math.max(maior, passo));
+      }
+      setErrors(falhas);
+      setResumo(falhas);
+      levarAosErros.current = true;
+      return;
+    }
 
     setLoading(true);
 
     try {
-      // 1. Upload images to Supabase Storage first
-      let imageUrls: string[] = [];
-      if (imagens.length > 0) {
-        const uploadFormData = new FormData();
-        imagens.forEach((img) => uploadFormData.append("images", img));
-
-        const uploadRes = await fetch("/api/vender-cavalo/upload", {
-          method: "POST",
-          body: uploadFormData,
-        });
-
-        if (!uploadRes.ok) {
-          const uploadErr = await uploadRes.json();
-          throw new Error(uploadErr.error || tr("Erro ao fazer upload das imagens", "Error uploading images", "Error al subir las imágenes"));
-        }
-
-        const { urls } = await uploadRes.json();
-        imageUrls = urls as string[];
-      }
+      // 1. As fotografias e os documentos, antes do pagamento.
+      //
+      // Era um `FormData` com todas as fotografias numa volta só, e o Livro
+      // Azul não seguia de todo — ficava no `useState` e desaparecia com a
+      // página, depois de o formulário o ter exigido e de ter mostrado um
+      // visto verde. As duas coisas estão em `lib/enviar-anexos.ts`, com a
+      // razão de cada uma escrita lá: as fotografias encolhem no browser e
+      // sobem em voltas que cabem no tecto da plataforma, e cada documento
+      // vai no seu próprio pedido.
+      const { imageUrls, referencia } = await enviarAnexos(
+        { imagens, documentos },
+        {
+          fotografias: tr(
+            "Erro ao enviar as fotografias",
+            "Error uploading photos",
+            "Error al subir las fotografías"
+          ),
+          documentos: tr(
+            "Erro ao enviar os documentos",
+            "Error uploading documents",
+            "Error al subir los documentos"
+          ),
+          grandeDemais: tr(
+            "O ficheiro é demasiado grande para ser enviado.",
+            "The file is too large to upload.",
+            "El archivo es demasiado grande para enviarlo."
+          ),
+        },
+        { aoProgredir: setProgressoAnexos }
+      );
 
       // 2. Create Stripe checkout session with image URLs
       const response = await fetch("/api/vender-cavalo/checkout", {
@@ -231,13 +931,21 @@ export default function VenderCavaloPage() {
             proprietarioEmail: formData.proprietario_email,
             proprietarioTelefone: formData.proprietario_telefone,
             proprietarioWhatsapp: formData.proprietario_whatsapp || formData.proprietario_telefone,
+            proprietarioNif: formData.proprietario_nif,
+            proprietarioMorada: formData.proprietario_morada,
+            tipoProprietario: formData.tipo_proprietario,
+            paisProprietario: formData.pais_proprietario,
+            websiteCoudelaria: formData.website_coudelaria,
             nomeCavalo: formData.nome,
             nomeRegisto: formData.nome_registo,
             numeroRegisto: formData.numero_registo,
             microchip: formData.microchip,
             passaporteEquino: formData.passaporte_equino,
+            racaConfirmada: formData.raca_confirmada,
+            paisNascimento: formData.pais_nascimento,
             peso: formData.peso,
             corOlhos: formData.cor_olhos,
+            corCrina: formData.cor_crina,
             nivelApsl: formData.nivel_apsl,
             pai: formData.pai_nome,
             paiRegisto: formData.pai_registo,
@@ -251,6 +959,10 @@ export default function VenderCavaloPage() {
             avoMaternoRegisto: formData.avo_materno_registo,
             avoMaternoMae: formData.avo_materno_mae_nome,
             avoMaternoMaeRegisto: formData.avo_materno_mae_registo,
+            // O anúncio publicado lê `linhagem`; o formulário chamava-lhe
+            // `linhagemPrincipal` e mandava só esse nome, por isso a linhagem
+            // nunca chegava ao anúncio. Vão os dois.
+            linhagem: formData.linhagem_principal,
             linhagemPrincipal: formData.linhagem_principal,
             coudelariaOrigem: formData.coudelaria_origem,
             dataNascimento: formData.data_nascimento,
@@ -261,54 +973,74 @@ export default function VenderCavaloPage() {
             temperamento: formData.temperamento,
             marcasDistintivas: formData.marcas_distintivas,
             corCasco: formData.cor_casco,
-            provaAptidaoApsl: formData.prova_aptidao_apsl,
+            provaAptidaoApsl: sim(formData.prova_aptidao_apsl),
             nivelTreino: formData.nivel_treino,
             anosTreino: formData.anos_treino,
             nivelCavaleiro: formData.nivel_cavaleiro,
             treinadorAtual: formData.treinador_atual,
             gineteHabitual: formData.ginete_habitual,
+            usoAtual: formData.uso_atual,
             disciplinas: formData.disciplinas,
             competicoes: formData.competicoes,
             premios: formData.premios,
-            habituadoTransporte: formData.habituado_transporte,
-            habituadoFerrador: formData.habituado_ferrador,
-            habituadoVeterinario: formData.habituado_veterinario,
-            trabalhaEmGrupo: formData.trabalha_em_grupo,
-            trabalhaSolto: formData.trabalha_solto,
-            aptoCriancas: formData.apto_criancas,
+            habituadoTransporte: sim(formData.habituado_transporte),
+            habituadoFerrador: sim(formData.habituado_ferrador),
+            habituadoVeterinario: sim(formData.habituado_veterinario),
+            trabalhaEmGrupo: sim(formData.trabalha_em_grupo),
+            trabalhaSolto: sim(formData.trabalha_solto),
+            trabalhaAMao: sim(formData.trabalha_a_mao),
+            habituadoCampo: sim(formData.habituado_campo),
+            aptoCriancas: sim(formData.apto_criancas),
+            regimeEstabulacao: formData.regime_estabulacao,
+            tipoAlimentacao: formData.tipo_alimentacao,
+            horasTrabalhoSemana: formData.horas_trabalho_semana,
+            testeDnaRealizado: sim(formData.teste_dna_realizado),
+            seguroEquino: sim(formData.seguro_equino),
             estadoSaude: formData.estado_saude,
-            vacinacaoAtualizada: formData.vacinacao_atualizada,
+            vacinacaoAtualizada: sim(formData.vacinacao_atualizada),
             dataUltimaVacinacao: formData.data_ultima_vacinacao,
-            desparasitacaoAtualizada: formData.desparasitacao_atualizada,
+            desparasitacaoAtualizada: sim(formData.desparasitacao_atualizada),
             dataUltimaDesparasitacao: formData.data_ultima_desparasitacao,
-            exameVeterinario: formData.exame_veterinario,
-            radiografiasDisponivel: formData.radiografias_disponivel,
-            piroplasmoseTestado: formData.piroplasmose_testado,
+            exameVeterinario: sim(formData.exame_veterinario),
+            radiografiasDisponivel: sim(formData.radiografias_disponivel),
+            piroplasmoseTestado: sim(formData.piroplasmose_testado),
             dataUltimaFerragem: formData.data_ultima_ferragem,
             tipoFerragem: formData.tipo_ferragem,
             nomeVeterinario: formData.nome_veterinario,
             historicoLesoes: formData.historico_lesoes,
             observacoesSaude: formData.observacoes_saude,
             preco: formData.preco,
-            precoNegociavel: formData.negociavel,
-            aceitaTroca: formData.aceita_troca,
-            transporteIncluido: formData.transporte_incluido,
-            trialPossivel: formData.trial_possivel,
+            precoNegociavel: sim(formData.negociavel),
+            aceitaTroca: sim(formData.aceita_troca),
+            transporteIncluido: sim(formData.transporte_incluido),
+            trialPossivel: sim(formData.trial_possivel),
             duracaoTrial: formData.duracao_trial,
-            financiamentoPossivel: formData.financiamento_possivel,
-            exportacaoPossivel: formData.exportacao_possivel,
-            acompanhamentoPosVenda: formData.acompanhamento_pos_venda,
-            internatoPossivel: formData.internato_possivel,
-            aulasIncluidas: formData.aulas_incluidas,
-            disponivelCobricao: formData.disponivel_cobricao,
+            financiamentoPossivel: sim(formData.financiamento_possivel),
+            exportacaoPossivel: sim(formData.exportacao_possivel),
+            acompanhamentoPosVenda: sim(formData.acompanhamento_pos_venda),
+            internatoPossivel: sim(formData.internato_possivel),
+            aulasIncluidas: sim(formData.aulas_incluidas),
+            disponivelCobricao: sim(formData.disponivel_cobricao),
             precoCobricao: formData.preco_cobricao,
+            disponibilidadeVisita: formData.disponibilidade_visita,
+            motivoVenda: formData.motivo_venda,
+            aceitaVisitaVeterinario: sim(formData.aceita_visita_veterinario),
+            equipamentoIncluido: formData.equipamento_incluido,
             regiao: formData.regiao,
             localizacao: formData.localizacao,
             descricao: formData.descricao,
+            // O primeiro vídeo era pedido e nunca era enviado: só ia o
+            // segundo. Quem punha um vídeo só perdia-o sempre.
+            videosUrl: formData.videos_url,
             videosUrl2: formData.videos_url_2,
             registoAPSL: formData.numero_registo,
-            documentosEmDia: formData.vacinacao_atualizada && formData.desparasitacao_atualizada,
+            documentosEmDia:
+              sim(formData.vacinacao_atualizada) && sim(formData.desparasitacao_atualizada),
             imageUrls,
+            // Por onde o webhook do Stripe encontra os documentos desta
+            // submissão: antes do pagamento o anúncio não existe, e portanto
+            // não há `cavalo_id` a que os prender.
+            referenciaDocumentos: referencia,
           },
         }),
       });
@@ -323,117 +1055,269 @@ export default function VenderCavaloPage() {
         throw new Error(t.vender_cavalo.error_no_checkout_url);
       }
 
-      // Clear draft on successful checkout redirect
-      clearDraft();
+      // O rascunho fica. Quem desiste no Stripe — ou a quem o cartão é
+      // recusado — volta a esta página pelo `cancel_url`, e antes voltava
+      // para um formulário vazio: tudo o que tinha escrito era apagado no
+      // instante antes de sair. Quem apaga é a página de sucesso, que é o
+      // único sítio onde se sabe que o anúncio existe.
+      //
+      // Esta saída é o desfecho do formulário e não a perda dele: as
+      // fotografias já subiram, e portanto o aviso de saída não tem nada que
+      // aparecer entre a pessoa e o pagamento.
+      saidaAutorizada.current = true;
       window.location.href = data.url;
     } catch (error: unknown) {
       if (process.env.NODE_ENV === "development") console.error("[VenderCavalo]", error);
       const message = error instanceof Error ? error.message : "Unknown error";
       showToast("error", t.vender_cavalo.error_payment.replace("{message}", message));
+      setProgressoAnexos(null);
       setLoading(false);
     }
   };
 
   const tierData = LISTING_TIERS[selectedTier] || LISTING_TIERS.standard;
-  const precoTotal = tierData.priceInCents / 100;
   const maxImages = tierData.maxPhotos === -1 ? 50 : tierData.maxPhotos;
+  const errosPorCampo = useMemo(() => porCampo(errors), [errors]);
+  const apontamentos = inspeccao.visiveis;
+  const conta = useCallback((seccao: string) => contarSeccao(seccao, formData), [formData]);
+
+  /**
+   * Quando é que o rascunho foi guardado, dito de maneira a não envelhecer.
+   *
+   * Escolheu-se hora absoluta e não «há 4 minutos» de propósito: um tempo
+   * relativo calculado uma vez fica errado assim que a página passa uns
+   * minutos aberta, e mantê-lo certo obrigava a um relógio a bater — que é
+   * exactamente o que o `CLAUDE.md` conta e limita. «Ontem às 14:32» está
+   * certo hoje, daqui a uma hora, e é o que se pode ir confirmar.
+   *
+   * A data serve para decidir: um anúncio começado há três semanas é sobre um
+   * cavalo que talvez já esteja vendido, e é essa a escolha que a barra
+   * oferece ao lado — continuar ou recomeçar.
+   */
+  const quando = useCallback(
+    (instante: number): string => {
+      const codigo = language === "en" ? "en-GB" : language === "es" ? "es-ES" : "pt-PT";
+      const hora = new Intl.DateTimeFormat(codigo, {
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(instante);
+
+      const dia = (t: number) => new Date(t).setHours(0, 0, 0, 0);
+      const diasDeDiferenca = Math.round((dia(Date.now()) - dia(instante)) / 86400000);
+
+      if (diasDeDiferenca <= 0)
+        return tr(`hoje às ${hora}`, `today at ${hora}`, `hoy a las ${hora}`);
+      if (diasDeDiferenca === 1)
+        return tr(`ontem às ${hora}`, `yesterday at ${hora}`, `ayer a las ${hora}`);
+
+      const data = new Intl.DateTimeFormat(codigo, { day: "numeric", month: "long" }).format(
+        instante
+      );
+      return tr(`a ${data}, às ${hora}`, `on ${data} at ${hora}`, `el ${data}, a las ${hora}`);
+    },
+    [language, tr]
+  );
 
   return (
-    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-24 md:pt-32 pb-32 px-4 sm:px-6 md:px-12">
-      <PageHeader />
-      <HowItWorks />
-      <PricingBanner selectedTier={selectedTier} onTierChange={setSelectedTier} />
-
-      <div className="max-w-3xl mx-auto">
-        <StepIndicator currentStep={step} />
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-24 md:pt-32 pb-32 px-4 sm:px-6 md:px-12">
+      <div data-revelar="" suppressHydrationWarning>
+        <PageHeader />
+      </div>
+      <div
+        data-revelar=""
+        suppressHydrationWarning
+        style={{ "--rdelay": "100ms" } as React.CSSProperties}
+      >
+        <HowItWorks />
+      </div>
+      <div
+        data-revelar=""
+        suppressHydrationWarning
+        style={{ "--rdelay": "200ms" } as React.CSSProperties}
+      >
+        <PricingBanner selectedTier={selectedTier} onTierChange={setSelectedTier} />
       </div>
 
-      {/* Auto-save indicator */}
-      {restored && step === 1 && (
+      <div ref={topoDoFormulario} className="max-w-3xl mx-auto scroll-mt-24">
+        <StepIndicator
+          currentStep={step}
+          feitos={feitos}
+          totais={totais}
+          maiorPasso={maiorPasso}
+          onIrParaPasso={irParaPasso}
+        />
+      </div>
+
+      {/* O rascunho que voltou. Aparecia só no passo 1 — e como o rascunho
+          também repõe o passo, quem o tinha deixado no passo 3 nunca via este
+          aviso: o formulário aparecia preenchido sem explicação nenhuma.
+
+          Diz agora três coisas em vez de uma, e as três respondem a perguntas
+          que quem volta faz por esta ordem: *de quando?* — porque um rascunho
+          de há três semanas é sobre um cavalo que talvez já esteja vendido, e
+          sem a data não há como decidir entre continuar e recomeçar;
+          *porque é que estou no passo 2 se saí no 3?* — que era um recuo
+          silencioso; e *o que é que se perdeu?*, que já lá estava.
+
+          E fecha-se sem destruir nada. Fechar era «Recomeçar de novo», ou
+          seja, para tirar um aviso do caminho era preciso deitar fora o
+          trabalho que o aviso anunciava ter salvo. */}
+      {rascunhoReposto && (
         <div className="max-w-3xl mx-auto mb-4">
-          <div className="flex items-center justify-between bg-[var(--gold)]/10 border border-[var(--gold)]/20 px-4 py-2 text-sm">
-            <span className="text-[var(--foreground-secondary)]">
-              {(t.vender_cavalo as Record<string, string>)?.draft_restored ||
-                "Rascunho restaurado automaticamente"}
-            </span>
-            <button
-              onClick={() => {
-                clearDraft();
-                setFormData(initialFormData);
-                setStep(1);
-                setSelectedTier("standard");
-                setRestored(false);
-              }}
-              className="text-[var(--gold)] text-xs uppercase tracking-wider hover:underline"
-            >
-              {(t.vender_cavalo as Record<string, string>)?.clear_draft || "Limpar"}
-            </button>
+          <div className="barra-rascunho">
+            <div className="min-w-0">
+              <p className="text-sm text-[var(--foreground-secondary)]">
+                {tr(
+                  `Rascunho retomado, guardado ${quando(rascunhoReposto.guardadoEm)}.`,
+                  `Draft restored, saved ${quando(rascunhoReposto.guardadoEm)}.`,
+                  `Borrador recuperado, guardado ${quando(rascunhoReposto.guardadoEm)}.`
+                )}
+              </p>
+              {rascunhoReposto.passoReposto < rascunhoReposto.passoPedido && (
+                <p className="meta mt-1">
+                  {tr(
+                    `Saiu no passo ${rascunhoReposto.passoPedido} e voltou ao ${rascunhoReposto.passoReposto}: é aí que estão os ficheiros que faltam.`,
+                    `You left at step ${rascunhoReposto.passoPedido} and are back at step ${rascunhoReposto.passoReposto}: that is where the missing files go.`,
+                    `Salió en el paso ${rascunhoReposto.passoPedido} y ha vuelto al ${rascunhoReposto.passoReposto}: ahí están los archivos que faltan.`
+                  )}
+                </p>
+              )}
+              {rascunhoReposto.ficheiros && (
+                <p className="meta mt-1">
+                  {tr(
+                    "As fotografias e os documentos não ficam guardados no rascunho — volte a escolhê-los.",
+                    "Photos and documents are not kept in the draft — please choose them again.",
+                    "Las fotografías y los documentos no se guardan en el borrador — vuelva a elegirlos."
+                  )}
+                </p>
+              )}
+            </div>
+            <div className="flex flex-none items-center gap-2">
+              <button type="button" onClick={recomecar} className="btn btn-subtil btn-sm">
+                {tr("Recomeçar de novo", "Start over", "Empezar de nuevo")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setRascunhoReposto(null)}
+                className="btn btn-subtil btn-sm"
+                aria-label={tr("Fechar o aviso", "Dismiss", "Cerrar el aviso")}
+              >
+                <X size={14} aria-hidden="true" />
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      <div className="max-w-3xl mx-auto">
-        <FormErrors errors={errors} />
+      {/* Um formulário a sério. Eram noventa e quatro campos sem um único
+          `<form>`: a tecla Enter não fazia nada, o `required` de cada campo
+          não era verificado por ninguém, e não havia marco de formulário para
+          quem navega com leitor de ecrã. */}
+      <form className="max-w-3xl mx-auto" onSubmit={aoSubmeter} noValidate>
+        <FormErrors ref={resumoDeErros} erros={resumo} />
 
-        {/* Step 1: Owner + Horse Identification (merged old steps 1+2) */}
-        {step === 1 && (
-          <>
-            <StepProprietario formData={formData} updateField={updateField} />
-            <div className="mt-8 pt-8 border-t border-[var(--border)]">
-              <StepIdentificacao formData={formData} updateField={updateField} />
-            </div>
-          </>
-        )}
+        {/* A troca de passo usa o movimento que o sistema já tem para trocar
+            de vista, e a `key` é o que a faz voltar a correr. */}
+        <div key={step} className="vista-troca">
+          {/* Passo 1: proprietário + identificação */}
+          {step === 1 && (
+            <>
+              <StepProprietario
+                formData={formData}
+                updateField={updateField}
+                erros={errosPorCampo}
+                apontamentos={apontamentos}
+                campo={accoesDeCampo}
+                conta={conta}
+              />
+              <div className="mt-8 pt-8 border-t border-[var(--border)]">
+                <StepIdentificacao
+                  formData={formData}
+                  updateField={updateField}
+                  erros={errosPorCampo}
+                  apontamentos={apontamentos}
+                  campo={accoesDeCampo}
+                  conta={conta}
+                  registoApsl={registoApsl.estado}
+                />
+              </div>
+            </>
+          )}
 
-        {/* Step 2: Lineage + Training/Health (merged old steps 3+4) */}
-        {step === 2 && (
-          <>
-            <StepLinhagem
-              formData={formData}
-              updateField={updateField}
-              documentos={documentos}
-              onDocUpload={handleDocUpload}
-            />
-            <div className="mt-8 pt-8 border-t border-[var(--border)]">
-              <StepTreinoSaude
+          {/* Passo 2: linhagem + treino e saúde */}
+          {step === 2 && (
+            <>
+              <StepLinhagem
                 formData={formData}
                 updateField={updateField}
                 documentos={documentos}
                 onDocUpload={handleDocUpload}
-                onToggleDisciplina={toggleDisciplina}
-                onToggleUso={toggleUso}
+                erros={errosPorCampo}
+                apontamentos={apontamentos}
+                campo={accoesDeCampo}
+                conta={conta}
               />
-            </div>
-          </>
-        )}
+              <div className="mt-8 pt-8 border-t border-[var(--border)]">
+                <StepTreinoSaude
+                  formData={formData}
+                  updateField={updateField}
+                  documentos={documentos}
+                  onDocUpload={handleDocUpload}
+                  onToggleDisciplina={toggleDisciplina}
+                  onToggleUso={toggleUso}
+                  erros={errosPorCampo}
+                  apontamentos={apontamentos}
+                  campo={accoesDeCampo}
+                  conta={conta}
+                />
+              </div>
+            </>
+          )}
 
-        {/* Step 3: Price & Presentation (old step 5) */}
-        {step === 3 && (
-          <StepPrecoApresentacao
-            formData={formData}
-            updateField={updateField}
-            imagens={imagens}
-            onImageUpload={handleImageUpload}
-            onRemoveImage={removeImage}
-            maxImages={maxImages}
-          />
-        )}
+          {/* Passo 3: preço e apresentação */}
+          {step === 3 && (
+            <StepPrecoApresentacao
+              formData={formData}
+              updateField={updateField}
+              imagens={imagens}
+              onImageUpload={handleImageUpload}
+              onRemoveImage={removeImage}
+              maxImages={maxImages}
+              erros={errosPorCampo}
+              apontamentos={apontamentos}
+              campo={accoesDeCampo}
+              conta={conta}
+            />
+          )}
 
-        {/* Step 4: Payment (old step 6) */}
-        {step === 4 && (
-          <StepPagamento
-            formData={formData}
-            imagens={imagens}
-            selectedTier={selectedTier}
-            termsAccepted={termsAccepted}
-            onTermsChange={setTermsAccepted}
-            loading={loading}
-            onSubmit={handleSubmit}
-          />
-        )}
+          {/* Passo 4: pagamento */}
+          {step === 4 && (
+            <StepPagamento
+              formData={formData}
+              imagens={imagens}
+              selectedTier={selectedTier}
+              termsAccepted={termsAccepted}
+              onTermsChange={(aceite) => {
+                setTermsAccepted(aceite);
+                if (aceite) {
+                  setErrors((prev) => prev.filter((e) => e.campo !== "termos_aceites"));
+                  setResumo((prev) => prev.filter((e) => e.campo !== "termos_aceites"));
+                }
+              }}
+              loading={loading}
+              progresso={progressoAnexos}
+              erros={errosPorCampo}
+            />
+          )}
+        </div>
 
-        <FormNavigation step={step} onPrev={prevStep} onNext={nextStep} />
-      </div>
-    </main>
+        <FormNavigation
+          step={step}
+          onPrev={prevStep}
+          faltam={faltam[step - 1] ?? 0}
+          rascunho={estadoRascunho}
+        />
+      </form>
+    </div>
   );
 }

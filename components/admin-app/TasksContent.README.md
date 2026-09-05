@@ -1,18 +1,22 @@
 # Task Management System - TasksContent Component
 
 ## Overview
+
 A production-ready Kanban-style task management system for Portal Lusitano's admin panel. Features drag-and-drop functionality, advanced filtering, real-time statistics, and full CRUD operations.
 
 ## Features
 
 ### 1. Kanban Board View
+
 - **3 Columns**: To Do (pendente), In Progress (em_andamento), Done (concluida)
 - **Drag & Drop**: Move tasks between columns using @dnd-kit
 - **Visual Feedback**: Smooth animations and hover states
 - **Color Coding**: Each column has distinct colors (gray, blue, green)
 
 ### 2. Task Cards
+
 Display the following information:
+
 - **Title & Description**: Truncated with line-clamp for readability
 - **Priority Badge**: Color-coded (baixa/normal/alta/urgente)
 - **Due Date**: With smart color coding
@@ -23,7 +27,9 @@ Display the following information:
 - **Quick Actions**: Edit and Delete buttons (visible on hover)
 
 ### 3. Task Statistics
+
 Real-time dashboard showing:
+
 - Total tasks
 - Pending tasks
 - In Progress tasks
@@ -34,17 +40,21 @@ Real-time dashboard showing:
 ### 4. Advanced Filtering & Sorting
 
 #### Filters:
+
 - **Search**: Full-text search across title, description, and assigned_to
 - **Priority**: Filter by baixa, normal, alta, urgente
 - **Assigned To**: Filter by assigned admin user
 
 #### Sorting:
+
 - By Due Date (default)
 - By Creation Date
 - By Priority (urgente → alta → normal → baixa)
 
 ### 5. Create/Edit Task Modal
+
 Full-featured modal with:
+
 - **Title** (required)
 - **Description** (textarea)
 - **Assigned To** (text input with datalist of admin users)
@@ -56,6 +66,7 @@ Full-featured modal with:
 - Keyboard shortcuts (ESC to close)
 
 ### 6. Smart Date Formatting
+
 - "Hoje" for today
 - "Ontem" for yesterday
 - "Amanhã" for tomorrow
@@ -64,9 +75,11 @@ Full-featured modal with:
 ## API Endpoints
 
 ### GET /api/admin/tasks
+
 List all tasks with filtering.
 
 **Query Parameters:**
+
 - `status`: pendente | em_andamento | concluida | all (default: all)
 - `priority`: baixa | normal | alta | urgente | all (default: all)
 - `assigned_to`: email | all (default: all)
@@ -74,6 +87,7 @@ List all tasks with filtering.
 - `month`: YYYY-MM format
 
 **Response:**
+
 ```json
 {
   "tasks": [
@@ -105,9 +119,11 @@ List all tasks with filtering.
 ```
 
 ### POST /api/admin/tasks
+
 Create a new task.
 
 **Request Body:**
+
 ```json
 {
   "title": "string (required)",
@@ -122,16 +138,21 @@ Create a new task.
 ```
 
 **Response:**
+
 ```json
 {
-  "task": { /* Task object */ }
+  "task": {
+    /* Task object */
+  }
 }
 ```
 
 ### PATCH /api/admin/tasks/[id]
+
 Update an existing task.
 
 **Request Body:** (all fields optional)
+
 ```json
 {
   "title": "string",
@@ -147,16 +168,21 @@ Update an existing task.
 ```
 
 **Response:**
+
 ```json
 {
-  "task": { /* Updated task object */ }
+  "task": {
+    /* Updated task object */
+  }
 }
 ```
 
 ### DELETE /api/admin/tasks/[id]
+
 Delete a task (with confirmation).
 
 **Response:**
+
 ```json
 {
   "message": "Tarefa eliminada com sucesso"
@@ -164,9 +190,11 @@ Delete a task (with confirmation).
 ```
 
 ### GET /api/admin/users
+
 Get list of admin users (for assignment dropdown).
 
 **Response:**
+
 ```json
 {
   "users": [
@@ -220,6 +248,7 @@ CREATE TABLE admin_tasks (
 ```
 
 ### Migration Required
+
 Run this migration to add the `assigned_to` field:
 
 ```sql
@@ -233,18 +262,21 @@ CREATE INDEX IF NOT EXISTS idx_admin_tasks_assigned_to ON admin_tasks(assigned_t
 ## Design System
 
 ### Colors
+
 - **Gold/Primary**: #C5A059 (Portal Lusitano brand color)
 - **Background**: Gradient from #050505 via #0A0A0A to #050505
 - **Cards**: bg-white/5 with border-white/10
 - **Text**: White primary, gray-400 secondary
 
 ### Priority Colors
+
 - **Baixa**: Gray (bg-gray-500/20, text-gray-400)
 - **Normal**: Blue (bg-blue-500/20, text-blue-400)
 - **Alta**: Orange (bg-orange-500/20, text-orange-400)
 - **Urgente**: Red (bg-red-500/20, text-red-400)
 
 ### Status Colors
+
 - **Pendente**: Gray (border-gray-500/30)
 - **Em Andamento**: Blue (border-blue-500/30)
 - **Concluída**: Green (border-green-500/30)
@@ -265,6 +297,7 @@ CREATE INDEX IF NOT EXISTS idx_admin_tasks_assigned_to ON admin_tasks(assigned_t
 ## Usage
 
 ### Import the Component
+
 ```tsx
 import TasksContent from "@/components/admin-app/TasksContent";
 
@@ -274,6 +307,7 @@ export default function TasksPage() {
 ```
 
 ### Integration with Admin Layout
+
 The component is designed to work within the admin-app layout structure:
 
 ```tsx
@@ -286,7 +320,9 @@ export default function TasksPage() {
 ```
 
 ## Toast Notifications
+
 The component includes a simple toast implementation. For production, consider replacing with a library like:
+
 - `react-hot-toast`
 - `sonner`
 - `react-toastify`
@@ -294,7 +330,7 @@ The component includes a simple toast implementation. For production, consider r
 To replace the toast implementation, update the `showToast` function:
 
 ```tsx
-import { toast } from 'react-hot-toast'; // or your preferred library
+import { toast } from "react-hot-toast"; // or your preferred library
 
 const showToast = (message: string, type: "success" | "error") => {
   if (type === "success") {
@@ -306,7 +342,9 @@ const showToast = (message: string, type: "success" | "error") => {
 ```
 
 ## Keyboard Shortcuts (Future Enhancement)
+
 Consider adding:
+
 - `N`: New task
 - `ESC`: Close modal
 - `Enter`: Submit form
@@ -370,17 +408,20 @@ Consider adding:
 ## Troubleshooting
 
 ### Tasks not loading
+
 - Check API endpoint is running: `/api/admin/tasks`
 - Verify authentication session is valid
 - Check browser console for errors
 - Verify Supabase connection
 
 ### Drag-and-drop not working
+
 - Ensure @dnd-kit packages are installed
 - Check browser console for errors
 - Verify sensor configuration
 
 ### Filter/Search not working
+
 - Check state updates in React DevTools
 - Verify filter logic in component
 - Test API endpoint with query parameters
@@ -388,6 +429,7 @@ Consider adding:
 ## Support
 
 For issues or questions, contact the development team or refer to:
+
 - Next.js Documentation: https://nextjs.org/docs
 - @dnd-kit Documentation: https://docs.dndkit.com
 - Supabase Documentation: https://supabase.com/docs

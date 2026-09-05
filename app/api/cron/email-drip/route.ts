@@ -73,7 +73,10 @@ export async function GET(request: NextRequest) {
   const expected = `Bearer ${cronSecret}`;
   const authBuffer = Buffer.from(authHeader || "");
   const expectedBuffer = Buffer.from(expected);
-  if (authBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(authBuffer, expectedBuffer)) {
+  if (
+    authBuffer.length !== expectedBuffer.length ||
+    !crypto.timingSafeEqual(authBuffer, expectedBuffer)
+  ) {
     logger.warn("[email-drip] Unauthorized cron request");
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -87,9 +90,22 @@ export async function GET(request: NextRequest) {
 
   try {
     // ── Fetch eligible leads ──
+    //
+    // `leads` tem sete colunas: `id`, `email`, `nome`, `utm_source`,
+    // `utm_medium`, `utm_campaign` e `created_at`. Desta consulta, só `email`
+    // e `created_at` existem — `name` é `nome`, e `sequence_step`, `source` e
+    // `status` não existem de todo. Esta cadeia de emails nunca correu: o
+    // PostgREST devolve 42703 e a rota responde 500 a cada firing do cron.
+    //
+    // O que aqui se corrige é o que é inequívoco: `name` → `nome`. As outras
+    // três não se acrescentam por migração, porque não é uma correcção de
+    // nomes — é desenhar a funcionalidade: decidir quem entra na cadeia, o que
+    // marca a saída e como se conta o passo. Isso é uma decisão de produto e
+    // de esquema, não uma linha de código, e fica registada como dívida em
+    // `__tests__/lib/colunas-supabase.test.ts` com esta razão.
     const { data: leads, error: fetchError } = await supabaseAdmin
       .from("leads")
-      .select("email, name, sequence_step, created_at")
+      .select("email, nome, sequence_step, created_at")
       .eq("source", "free-ebook")
       .eq("status", "active")
       .gte("sequence_step", 0)
@@ -127,7 +143,7 @@ export async function GET(request: NextRequest) {
       // Not yet time for this step
       if (daysSinceSignup < dripStep.delayDays) continue;
 
-      const leadName = lead.name || "Amigo";
+      const leadName = lead.nome || "Amigo";
 
       try {
         const html = dripStep.getContent(leadName, lead.email, baseUrl);

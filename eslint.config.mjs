@@ -12,8 +12,12 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Scripts utilitários usam CommonJS (require) - não são parte do bundle
+    // Scripts utilitários usam CommonJS (require) - não são parte do bundle.
+    // O `.cjs` faltava no padrão: a extensão é a forma de dizer ao Node que o
+    // ficheiro é CommonJS, e mesmo assim apanhava «require() style import is
+    // forbidden» — a regra certa aplicada ao ficheiro errado.
     "scripts/*.js",
+    "scripts/*.cjs",
   ]),
   {
     rules: {

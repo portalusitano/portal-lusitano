@@ -58,7 +58,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       "startViewTransition" in document &&
       !window.matchMedia("(prefers-reduced-motion: reduce)").matches
     ) {
-      (document as Document & { startViewTransition: (cb: () => void) => void }).startViewTransition(apply);
+      (
+        document as Document & { startViewTransition: (cb: () => void) => void }
+      ).startViewTransition(apply);
     } else {
       apply();
     }

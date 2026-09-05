@@ -1,6 +1,31 @@
-/* ===== AUTH ANIMATIONS ===== */
-/* Page-specific styles — only loaded on auth pages via auth layout import */
+/* ===== A ÁREA DE ENTRADA =====
+ * Só carregado nas páginas de `(auth)`, pelo `import` do layout.
+ *
+ * As durações e as curvas daqui **não são deste ficheiro**: são os tokens do
+ * `globals.css`. Estava aqui um `0.5s ease-out` para a entrada e sete
+ * atrasos escritos à mão de `0.05s` a `0.35s`, e um número escrito à mão
+ * dentro de um ficheiro de página é uma duração que ninguém encontra e que
+ * ninguém muda quando as outras mudam — a mesma razão por que o
+ * `<GloboTerra>` lê `--d-drill` do CSS em vez de o copiar.
+ *
+ * Chegar à área de cliente é entrar num sítio, e o site já tem um tempo para
+ * isso: `--d-drill` com `--ease-in-out-cubic`, o mesmo dos submenus do menu
+ * de ecrã inteiro, o mesmo da pilha de regiões do `/mapa` e o mesmo de
+ * escolher uma coudelaria. Não se inventa aqui um tempo próprio.
+ *
+ * Saíram deste ficheiro seis conjuntos de fotogramas que nenhum ficheiro do
+ * repositório usava — `auth-slideInLeft`, `auth-float`, `auth-glow-pulse`,
+ * `auth-gradient-shift`, `auth-stat-count`, `auth-checkmark-draw` — e as
+ * duas classes que só existiam para lhes desligar o ciclo
+ * (`.animate-auth-float`, `.animate-auth-gradient`). Fotogramas que ninguém
+ * usa custam o mesmo a descarregar e a analisar que os outros, e são a
+ * primeira coisa que alguém copia por engano quando precisa de um vizinho.
+ * ========================================================================= */
 
+/* --- O tremor do erro ------------------------------------------------------
+ * Continua a ser um movimento próprio do erro e não da chegada; o movimento
+ * dentro do formulário é de quem desenha o formulário. Fica como estava.
+ * ------------------------------------------------------------------------ */
 @keyframes auth-shake {
   0%,
   100% {
@@ -30,6 +55,13 @@
   animation: auth-shake 0.45s ease-in-out;
 }
 
+/* --- A chegada -------------------------------------------------------------
+ * A marca, o cartão e o pé nascem com o mesmo movimento, escalonados. É CSS
+ * puro com `both`: corre na primeira pintura, sem esperar por script nenhum,
+ * e acaba em `opacity: 1` haja ou não hidratação. Um ecrã de entrada que
+ * precise de JavaScript para se ver é um ecrã preto no dia em que o script
+ * falhar.
+ * ------------------------------------------------------------------------ */
 @keyframes auth-fadeInUp {
   from {
     opacity: 0;
@@ -41,55 +73,101 @@
   }
 }
 
-@keyframes auth-slideInLeft {
+.animate-auth-fadeInUp {
+  animation: auth-fadeInUp var(--d-drill) var(--ease-in-out-cubic) both;
+}
+
+/* Os degraus da cascata saem da duração e não de uma tabela à parte: um
+   sétimo do `--d-drill` por degrau, que aos 320ms dá ~46ms — perto dos 50ms
+   que aqui estavam escritos à mão, mas agora acompanham o token se ele
+   mudar. O último degrau entra a meio da animação do primeiro, que é o que
+   faz isto ler-se como uma cascata e não como uma lista a carregar. */
+.auth-stagger-1 {
+  animation-delay: calc(var(--d-drill) / 7);
+}
+.auth-stagger-2 {
+  animation-delay: calc(2 * var(--d-drill) / 7);
+}
+.auth-stagger-3 {
+  animation-delay: calc(3 * var(--d-drill) / 7);
+}
+.auth-stagger-4 {
+  animation-delay: calc(4 * var(--d-drill) / 7);
+}
+.auth-stagger-5 {
+  animation-delay: calc(5 * var(--d-drill) / 7);
+}
+.auth-stagger-6 {
+  animation-delay: calc(6 * var(--d-drill) / 7);
+}
+.auth-stagger-7 {
+  animation-delay: var(--d-drill);
+}
+
+/* --- A passagem entre o login e o registo ----------------------------------
+ * Ver `components/auth/PalcoAuth.tsx` para o porquê. Aqui ficam só as duas
+ * metades do movimento: a altura da caixa, que é o que impede o cartão de
+ * saltar 233px num quadro, e a folha que entra.
+ *
+ * A altura repete a receita da `.pilha` do `/mapa`, tokens incluídos. O
+ * recorte só existe enquanto a altura está presa (`data-a-trocar`), e o
+ * componente larga-a no fim: um `overflow: hidden` permanente cortaria o
+ * halo do foco dos campos.
+ * ------------------------------------------------------------------------ */
+.palco-auth {
+  transition: height var(--d-drill) var(--ease-in-out-cubic);
+}
+
+.palco-auth[data-a-trocar="sim"] {
+  overflow: hidden;
+}
+
+/* Dez por cento e não uma largura inteira: o submenu do menu desliza um ecrã
+   porque o que entra é outro ecrã, mas aqui o cartão é o mesmo e só o que
+   está lá dentro é que muda. Uma largura inteira num cartão de 420px lia-se
+   como um carrossel — o que se quer é a profundidade, não a viagem. */
+@keyframes auth-folha-dentro {
   from {
     opacity: 0;
-    transform: translateX(-20px);
+    transform: translateX(10%);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: none;
   }
 }
 
-@keyframes auth-float {
-  0%,
-  100% {
-    transform: translateY(0) rotate(0deg);
+@keyframes auth-folha-fora {
+  from {
+    opacity: 0;
+    transform: translateX(-10%);
   }
-  50% {
-    transform: translateY(-8px) rotate(1deg);
-  }
-}
-
-@keyframes auth-shimmer {
-  0% {
-    background-position: -200% center;
-  }
-  100% {
-    background-position: 200% center;
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
-@keyframes auth-glow-pulse {
-  0%,
-  100% {
-    opacity: 0.3;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.5;
-    transform: scale(1.05);
-  }
+/* Sem `data-sentido` — primeira chegada, ou sem JavaScript — não corre
+   animação nenhuma e o formulário está simplesmente lá. */
+.palco-auth__folha[data-sentido="dentro"] {
+  animation: auth-folha-dentro var(--d-drill) var(--ease-in-out-cubic) both;
 }
 
-@keyframes auth-checkmark-draw {
-  0% {
-    stroke-dashoffset: 50;
-  }
-  100% {
-    stroke-dashoffset: 0;
-  }
+.palco-auth__folha[data-sentido="fora"] {
+  animation: auth-folha-fora var(--d-drill) var(--ease-in-out-cubic) both;
+}
+
+/* --- O que ainda é usado pelo registo --------------------------------------
+ * O `.animate-auth-shimmer` fica com o ciclo desligado, e a razão está no
+ * CLAUDE.md: o ciclo já tinha sido desligado aqui uma vez e voltou por um
+ * `style` em linha no JSX, que ganha sempre a uma classe. Enquanto a classe
+ * for referida pelo `/registar`, é aqui que ela tem de continuar a dizer
+ * `animation: none`.
+ * ------------------------------------------------------------------------ */
+.animate-auth-shimmer {
+  background-size: 200% 100%;
+  animation: none;
 }
 
 @keyframes auth-success-ring {
@@ -118,63 +196,24 @@
   }
 }
 
-@keyframes auth-gradient-shift {
-  0%,
-  100% {
-    background-position: 0% 50%;
+/* O esqueleto da espera não traz fotogramas novos: usa o `animate-pulse` do
+   Tailwind, que é a excepção já aceite no CLAUDE.md para esqueletos de
+   carregamento. Escrever aqui um ciclo próprio seria um quarto ciclo
+   infinito no site, e um quarto custa uma razão escrita — esta não existe,
+   porque a que já está aceite serve exactamente para isto. */
+
+/* O bloco global de `prefers-reduced-motion` já anula tudo isto com
+   `!important`. Estes dois são explícitos à mesma porque são os que fixam
+   geometria: sem eles a altura ficava presa no valor que o JS escreveu se a
+   preferência mudasse a meio de uma troca. */
+@media (prefers-reduced-motion: reduce) {
+  .palco-auth,
+  .palco-auth__folha {
+    animation: none !important;
+    transition: none !important;
   }
-  50% {
-    background-position: 100% 50%;
+
+  .palco-auth {
+    height: auto !important;
   }
-}
-
-@keyframes auth-stat-count {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.animate-auth-fadeInUp {
-  animation: auth-fadeInUp 0.5s ease-out both;
-}
-
-.auth-stagger-1 {
-  animation-delay: 0.05s;
-}
-.auth-stagger-2 {
-  animation-delay: 0.1s;
-}
-.auth-stagger-3 {
-  animation-delay: 0.15s;
-}
-.auth-stagger-4 {
-  animation-delay: 0.2s;
-}
-.auth-stagger-5 {
-  animation-delay: 0.25s;
-}
-.auth-stagger-6 {
-  animation-delay: 0.3s;
-}
-.auth-stagger-7 {
-  animation-delay: 0.35s;
-}
-
-.animate-auth-float {
-  animation: auth-float 4s ease-in-out infinite;
-}
-
-.animate-auth-shimmer {
-  background-size: 200% 100%;
-  animation: auth-shimmer 2s ease-in-out infinite;
-}
-
-.animate-auth-gradient {
-  background-size: 200% 200%;
-  animation: auth-gradient-shift 6s ease-in-out infinite;
 }

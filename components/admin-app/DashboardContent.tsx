@@ -120,8 +120,8 @@ const SortableWidget = ({ id, children }: SortableWidgetProps) => {
         {...listeners}
         className="absolute top-2 right-2 z-10 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
       >
-        <div className="p-2 bg-[#C5A059]/20 hover:bg-[#C5A059]/30 rounded-lg backdrop-blur-sm">
-          <GripVertical className="w-4 h-4 text-[#C5A059]" />
+        <div className="p-2 bg-[var(--gold)]/20 hover:bg-[var(--gold)]/30 rounded-lg backdrop-blur-sm">
+          <GripVertical className="w-4 h-4 text-[var(--gold)]" />
         </div>
       </div>
       {children}
@@ -253,7 +253,7 @@ const QuickStatsWidget = ({ data }: { data: DashboardData["quickStats"] }) => {
     <div className="bg-white/5 border border-white/10 rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-          <Zap className="w-5 h-5 text-[#C5A059]" />
+          <Zap className="w-5 h-5 text-[var(--gold)]" />
           Stats Rápidas
         </h3>
       </div>
@@ -305,7 +305,7 @@ const RecentActivityWidget = ({ data }: { data: DashboardData["recentActivity"] 
     <div className="bg-white/5 border border-white/10 rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-          <Clock className="w-5 h-5 text-[#C5A059]" />
+          <Clock className="w-5 h-5 text-[var(--gold)]" />
           Atividade Recente
         </h3>
         <button className="text-xs text-gray-400 hover:text-white transition-colors">
@@ -364,7 +364,7 @@ const QuickActionsWidget = () => {
   return (
     <div className="bg-white/5 border border-white/10 rounded-xl p-6">
       <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-        <Zap className="w-5 h-5 text-[#C5A059]" />
+        <Zap className="w-5 h-5 text-[var(--gold)]" />
         Quick Actions
       </h3>
 
@@ -406,7 +406,7 @@ const AlertsWidget = () => {
   return (
     <div className="bg-white/5 border border-white/10 rounded-xl p-6">
       <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-        <AlertCircle className="w-5 h-5 text-[#C5A059]" />
+        <AlertCircle className="w-5 h-5 text-[var(--gold)]" />
         Alertas
       </h3>
 
@@ -532,7 +532,7 @@ export default function DashboardContentNew() {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#C5A059] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[var(--gold)] mx-auto mb-4"></div>
           <p className="text-gray-400">A carregar dashboard...</p>
         </div>
       </div>
@@ -542,7 +542,7 @@ export default function DashboardContentNew() {
   const enabledWidgets = widgets.filter((w) => w.enabled);
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-br from-[#050505] via-[#0A0A0A] to-[#050505] p-6">
+    <div className="h-full overflow-y-auto bg-gradient-to-br from-[var(--background)] via-[var(--background-secondary)] to-[var(--background)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -561,7 +561,7 @@ export default function DashboardContentNew() {
 
           <button
             onClick={() => setShowCustomize(!showCustomize)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#C5A059] hover:bg-[#d4b469] text-black font-semibold rounded-lg transition-all"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black font-semibold rounded-lg transition-all"
           >
             <Grid className="w-4 h-4" />
             Personalizar
@@ -594,14 +594,14 @@ export default function DashboardContentNew() {
                   p-4 rounded-lg border-2 transition-all text-left
                   ${
                     widget.enabled
-                      ? "border-[#C5A059] bg-[#C5A059]/10"
+                      ? "border-[var(--gold)] bg-[var(--gold)]/10"
                       : "border-white/10 bg-white/5 hover:bg-white/10"
                   }
                 `}
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-semibold text-white">{widget.title}</span>
-                  {widget.enabled && <CheckCircle2 className="w-5 h-5 text-[#C5A059]" />}
+                  {widget.enabled && <CheckCircle2 className="w-5 h-5 text-[var(--gold)]" />}
                 </div>
                 <span className="text-xs text-gray-400">{widget.category}</span>
               </button>

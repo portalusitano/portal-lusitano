@@ -28,7 +28,11 @@ export default function Image() {
           marginBottom: "24px",
         }}
       >
-        Coudelarias Certificadas
+        {/* A página já tinha deixado de prometer «criadores certificados» nos
+            metadados — ver o comentário em `app/directorio/page.tsx` —, mas a
+            imagem de partilha continuava a dizê-lo, e é ela que aparece quando
+            o link circula. */}
+        Criadores de Lusitanos
       </div>
       <div
         style={{

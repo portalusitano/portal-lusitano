@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import LocalizedLink from "@/components/LocalizedLink";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { useLanguage } from "@/context/LanguageContext";
@@ -12,9 +12,10 @@ export default function RecuperarSenhaPage() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
   const [shaking, setShaking] = useState(false);
+  const emailRef = useRef<HTMLInputElement>(null);
   const { t } = useLanguage();
 
-  const triggerShake = useCallback(() => {
+  const abanar = useCallback(() => {
     setShaking(true);
     setTimeout(() => setShaking(false), 500);
   }, []);
@@ -24,8 +25,9 @@ export default function RecuperarSenhaPage() {
     setError("");
 
     if (!email) {
-      setError("O email é obrigatório.");
-      triggerShake();
+      setError(t.auth.email_required);
+      abanar();
+      emailRef.current?.focus();
       return;
     }
 
@@ -33,60 +35,78 @@ export default function RecuperarSenhaPage() {
 
     try {
       const supabase = createSupabaseBrowserClient();
+      /* Passa pelo `/auth/callback`, e não directamente por `/perfil`.
+         O Supabase só honra um `redirectTo` que esteja na lista de Redirect
+         URLs do projecto; `/perfil` não está lá, e nesse caso ele não falha —
+         cai calado no «Site URL» do projecto. Como esse estava em
+         `http://localhost:3000`, o email de recuperação mandava as pessoas
+         para o computador delas. O link não funcionava para ninguém.
+
+         O `/auth/callback` está na lista, é ele que troca o código pela
+         sessão, e leva o destino no `next` (validado pelo `destinoSeguro`).
+         Assim a recuperação deixa de depender de uma definição no painel. */
+      const destino = new URL("/auth/callback", window.location.origin);
+      destino.searchParams.set("next", "/perfil");
       await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/perfil`,
+        redirectTo: destino.toString(),
       });
-      // Always show success to prevent email enumeration
+      // Mostra-se sempre sucesso, para não revelar quem tem conta.
       setSent(true);
     } catch {
-      // Still show success — prevents enumeration
+      // Idem — o erro não muda a resposta.
       setSent(true);
     } finally {
       setLoading(false);
     }
   };
 
-  // ── Success state ─────────────────────────────────────────────────────────
+  // ── Enviado ───────────────────────────────────────────────────────────────
   if (sent) {
     return (
-      <div className="text-center py-6">
-        <div className="w-16 h-16 bg-[var(--gold)]/10 border border-[var(--gold)]/25 rounded-full flex items-center justify-center mx-auto mb-5">
-          <CheckCircle className="text-[var(--gold)]" size={32} aria-hidden="true" />
+      <div className="py-2 text-center">
+        {/* Uma argola fina com o visto lá dentro. Era um disco cheio de 64px
+            com preenchimento elevado; o resto da página é hairline sobre
+            preto e este era o único sítio com uma bola. */}
+        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-[var(--border)]">
+          <CheckCircle
+            className="text-[var(--ok)]"
+            size={26}
+            strokeWidth={1.5}
+            aria-hidden="true"
+          />
         </div>
-        <h2 className="text-xl font-serif text-[var(--foreground)] mb-2">{t.auth.email_sent}</h2>
-        <p className="text-sm text-[var(--foreground-secondary)] mb-1">
-          Se existir uma conta associada a
-        </p>
-        <p className="text-sm font-medium text-[var(--foreground)] mb-6">{email}</p>
-        <p className="text-xs text-[var(--foreground-muted)] mb-6 max-w-xs mx-auto">
-          Receberá um link de recuperação. Verifique também a pasta de spam.
-        </p>
-        <LocalizedLink
-          href="/login"
-          className="inline-flex items-center gap-2 text-sm text-[var(--gold)] hover:text-[var(--gold-hover)] transition-colors"
-        >
-          <ArrowLeft size={16} aria-hidden="true" />
+        <h2 className="titulo-pagina mb-2">{t.auth.email_sent}</h2>
+        <p className="text-sm text-[var(--foreground-secondary)]">{t.auth.recovery_sent_intro}</p>
+        {/* O email que a pessoa escreveu é um dado, não uma frase: vai na
+            mono, que é o que o sistema reserva para identificadores. */}
+        <p className="mb-5 font-mono text-sm break-all text-[var(--foreground-strong)]">{email}</p>
+        <p className="meta mx-auto mb-6 max-w-xs">{t.auth.recovery_sent_hint}</p>
+        <LocalizedLink href="/login" className="btn btn-subtil btn-sm">
+          <ArrowLeft size={14} aria-hidden="true" />
           {t.auth.back_to_login}
         </LocalizedLink>
       </div>
     );
   }
 
-  // ── Form ──────────────────────────────────────────────────────────────────
+  // ── Formulário ────────────────────────────────────────────────────────────
   return (
     <div>
-      <h1 className="text-2xl font-serif text-[var(--foreground)] mb-1">
-        {t.auth.recover_password}
-      </h1>
-      <p className="text-sm text-[var(--foreground-muted)] mb-6">{t.auth.recover_desc}</p>
+      {/* Era `text-2xl` escrito à mão, ao lado de um `.titulo-pagina` na
+          página de entrada: o mesmo papel com dois tamanhos. */}
+      <h1 className="titulo-pagina mb-1.5">{t.auth.recover_password}</h1>
+      <p className="mb-6 text-sm leading-relaxed text-[var(--foreground-secondary)]">
+        {t.auth.recover_desc}
+      </p>
 
       {error && (
-        <div
-          role="alert"
-          className="mb-5 flex items-start gap-2.5 p-3.5 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-red-400"
-        >
-          <AlertCircle size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
-          <span>{error}</span>
+        <div role="alert" className="resumo-erros mb-5 flex items-start gap-2.5 text-sm">
+          <AlertCircle
+            size={16}
+            className="mt-0.5 shrink-0 text-[var(--erro)]"
+            aria-hidden="true"
+          />
+          <span className="text-[var(--erro)]">{error}</span>
         </div>
       )}
 
@@ -94,23 +114,23 @@ export default function RecuperarSenhaPage() {
         onSubmit={handleSubmit}
         noValidate
         className={`space-y-4 ${shaking ? "animate-auth-shake" : ""}`}
-        aria-label="Formulário de recuperação de palavra-passe"
+        aria-label={t.auth.recovery_form_label}
       >
         <div>
-          <label
-            htmlFor="recovery-email"
-            className="block text-xs text-[var(--foreground-muted)] uppercase tracking-wider mb-2"
-          >
+          {/* Era `text-xs uppercase tracking-wider` escrito à mão — que é o
+              `.rotulo` do sistema, com outras medidas. */}
+          <label htmlFor="recovery-email" className="rotulo mb-2 block">
             {t.auth.email}
           </label>
           <div className="relative">
             <Mail
               size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] pointer-events-none"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]"
               aria-hidden="true"
             />
             <input
               id="recovery-email"
+              ref={emailRef}
               type="email"
               value={email}
               onChange={(e) => {
@@ -119,44 +139,28 @@ export default function RecuperarSenhaPage() {
               }}
               required
               autoComplete="email"
-              placeholder="seu@email.com"
-              aria-label={t.auth.email}
+              placeholder={t.auth.email_placeholder}
               aria-describedby={error ? "recovery-email-error" : undefined}
               aria-invalid={!!error}
-              className={[
-                "w-full bg-[var(--background-card)] border rounded-lg pl-10 pr-4 py-3",
-                "text-[var(--foreground)] placeholder:text-[var(--foreground-muted)]",
-                "outline-none transition-colors",
-                "focus:border-[var(--gold)]/50 focus:ring-1 focus:ring-[var(--gold)]/30",
-                error
-                  ? "border-red-500/60 focus:border-red-500/60 focus:ring-red-500/20"
-                  : "border-[var(--border)]",
-              ].join(" ")}
+              className={`campo bg-transparent pl-10 ${error ? "campo-erro" : ""}`}
             />
           </div>
           {error && (
-            <p
-              id="recovery-email-error"
-              role="alert"
-              className="mt-1.5 flex items-center gap-1.5 text-xs text-red-400"
-            >
-              <AlertCircle size={12} aria-hidden="true" />
+            <p id="recovery-email-error" role="alert" className="erro-campo">
+              <AlertCircle size={12} className="mt-0.5 shrink-0" aria-hidden="true" />
               {error}
             </p>
           )}
         </div>
 
+        {/* Levava `w-full` duas vezes e um `py-3` antes das classes do `.btn`. */}
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 bg-gradient-to-r from-[#C5A059] to-[#B8956F] text-black font-semibold rounded-lg hover:from-[#D4AF6A] hover:to-[#C5A059] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn btn-primario w-full py-3 disabled:cursor-not-allowed"
           aria-busy={loading}
         >
-          {loading ? (
-            <Loader2 size={18} className="animate-spin" aria-hidden="true" />
-          ) : (
-            <Mail size={18} aria-hidden="true" />
-          )}
+          {loading && <Loader2 size={16} className="animate-spin" aria-hidden="true" />}
           {loading ? t.auth.sending : t.auth.send_link}
         </button>
       </form>
@@ -164,7 +168,7 @@ export default function RecuperarSenhaPage() {
       <p className="mt-6 text-center">
         <LocalizedLink
           href="/login"
-          className="text-sm text-[var(--foreground-muted)] hover:text-[var(--gold)] transition-colors inline-flex items-center justify-center gap-2"
+          className="inline-flex items-center justify-center gap-2 text-sm text-[var(--foreground-muted)] transition-colors hover:text-[var(--foreground-strong)]"
         >
           <ArrowLeft size={14} aria-hidden="true" />
           {t.auth.back_to_login}

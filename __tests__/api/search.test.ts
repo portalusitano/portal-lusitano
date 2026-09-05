@@ -96,17 +96,17 @@ describe("GET /api/search", () => {
   });
 
   it("should return matching static pages for valid query", async () => {
-    const request = createGetRequest({ q: "loja" });
+    const request = createGetRequest({ q: "comprar" });
     const response = await GET(request);
     const data = await response.json();
 
     expect(response.status).toBe(200);
     expect(data.results.length).toBeGreaterThan(0);
 
-    const lojaResult = data.results.find((r: { url: string }) => r.url === "/loja");
-    expect(lojaResult).toBeDefined();
-    expect(lojaResult.type).toBe("page");
-    expect(lojaResult.title).toBe("Loja");
+    const resultado = data.results.find((r: { url: string }) => r.url === "/comprar");
+    expect(resultado).toBeDefined();
+    expect(resultado.type).toBe("page");
+    expect(resultado.title).toBe("Comprar cavalo");
   });
 
   it("should return horse results from supabase", async () => {
@@ -132,7 +132,9 @@ describe("GET /api/search", () => {
                   id: "1",
                   nome: "Lusitano Teste",
                   descricao: "Cavalo de teste",
-                  imagens: ["https://example.com/horse.jpg"],
+                  // a coluna chama-se foto_principal — `imagens` não existe
+                  // em cavalos_venda
+                  foto_principal: "https://example.com/horse.jpg",
                   slug: "lusitano-teste",
                 },
               ]);
@@ -153,11 +155,12 @@ describe("GET /api/search", () => {
     expect(horseResult).toBeDefined();
     expect(horseResult.id).toBe("horse-1");
     expect(horseResult.title).toBe("Lusitano Teste");
-    expect(horseResult.url).toBe("/comprar/lusitano-teste");
+    // `/comprar/[id]` procura por `id`, não por slug: ligar pelo slug dava 404.
+    expect(horseResult.url).toBe("/comprar/1");
     expect(horseResult.image).toBe("https://example.com/horse.jpg");
   });
 
-  it("should return event and stud results from supabase", async () => {
+  it("should return stud results from supabase", async () => {
     vi.resetModules();
 
     vi.doMock("@/lib/supabase-admin", () => {
@@ -174,17 +177,6 @@ describe("GET /api/search", () => {
       return {
         supabase: {
           from: vi.fn().mockImplementation((table: string) => {
-            if (table === "eventos") {
-              return createChainWithData([
-                {
-                  id: "ev1",
-                  titulo: "Feira do Cavalo",
-                  descricao: "Grande evento",
-                  slug: "feira-cavalo",
-                  imagem: "https://example.com/event.jpg",
-                },
-              ]);
-            }
             if (table === "coudelarias") {
               return createChainWithData([
                 {
@@ -209,11 +201,9 @@ describe("GET /api/search", () => {
 
     expect(response.status).toBe(200);
 
-    const eventResult = data.results.find((r: { type: string }) => r.type === "event");
-    expect(eventResult).toBeDefined();
-    expect(eventResult.id).toBe("event-ev1");
-    expect(eventResult.title).toBe("Feira do Cavalo");
-    expect(eventResult.url).toBe("/eventos/feira-cavalo");
+    // A secção de eventos saiu do site: a pesquisa não pode voltar a
+    // devolver fichas que já não têm página onde aterrar.
+    expect(data.results.find((r: { type: string }) => r.type === "event")).toBeUndefined();
 
     const studResult = data.results.find((r: { type: string }) => r.type === "stud");
     expect(studResult).toBeDefined();
@@ -233,12 +223,12 @@ describe("GET /api/search", () => {
 
   it("should cap limit at 30", async () => {
     // The route caps limit at 30 via Math.min
-    const request = createGetRequest({ q: "loja", limit: "100" });
+    const request = createGetRequest({ q: "comprar", limit: "100" });
     const response = await GET(request);
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    // The total static pages matching "loja" won't exceed 30,
+    // O total de páginas estáticas que casam com "comprar" não excede 30,
     // but the important thing is it didn't crash
     expect(data.results.length).toBeLessThanOrEqual(30);
   });
@@ -261,7 +251,7 @@ describe("GET /api/search", () => {
     }));
 
     const routeModule = await import("@/app/api/search/route");
-    const request = createGetRequest({ q: "loja" });
+    const request = createGetRequest({ q: "comprar" });
     const response = await routeModule.GET(request);
     const data = await response.json();
 
@@ -269,7 +259,7 @@ describe("GET /api/search", () => {
     // static pages should still return
     expect(response.status).toBe(200);
     expect(data.results).toBeDefined();
-    const lojaResult = data.results.find((r: { url: string }) => r.url === "/loja");
-    expect(lojaResult).toBeDefined();
+    const resultado = data.results.find((r: { url: string }) => r.url === "/comprar");
+    expect(resultado).toBeDefined();
   });
 });

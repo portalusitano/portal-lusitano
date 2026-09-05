@@ -26,7 +26,7 @@ export default function PricingBanner({ selectedTier, onTierChange }: PricingBan
 
   return (
     <div className="max-w-5xl mx-auto mb-8">
-      <h3 className="text-lg font-serif text-center mb-6">
+      <h3 className="text-lg text-center mb-6">
         {tr("Escolha o seu plano", "Choose your plan", "Elija su plan")}
       </h3>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -104,13 +104,13 @@ function TierCard({
       onClick={onClick}
       className={`relative flex flex-col p-4 sm:p-5 rounded-xl border-2 transition-all duration-300 text-left cursor-pointer touch-manipulation ${
         isSelected
-          ? "border-[var(--gold)] bg-[var(--gold)]/10 shadow-[0_0_20px_rgba(197,160,89,0.15)]"
-          : "border-[var(--border)] bg-[var(--background-secondary)]/50 hover:border-[var(--gold)]/40"
+          ? "border-[var(--foreground-strong)] bg-[var(--elevate-1)]"
+          : "border-[var(--border)] bg-[var(--background-secondary)]/50 hover:border-[var(--border-hover)]"
       }`}
     >
       {/* Popular badge */}
       {isPopular && (
-        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-[var(--gold)] text-black text-[10px] font-bold uppercase tracking-wider rounded-full whitespace-nowrap">
+        <span className="selo selo-destaque absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full whitespace-nowrap">
           {tr("Popular", "Popular", "Popular")}
         </span>
       )}
@@ -119,7 +119,7 @@ function TierCard({
       <div
         className={`absolute top-3 right-3 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
           isSelected
-            ? "border-[var(--gold)] bg-[var(--gold)]"
+            ? "border-[var(--foreground-strong)] bg-[var(--foreground-strong)]"
             : "border-[var(--foreground-muted)]/30"
         }`}
       >
@@ -128,20 +128,18 @@ function TierCard({
 
       {/* Icon + Name */}
       <div className="flex items-center gap-2 mb-3 mt-1">
-        <span className={isSelected ? "text-[var(--gold)]" : "text-[var(--foreground-muted)]"}>
-          {icon}
-        </span>
+        <span className="text-[var(--foreground-muted)]">{icon}</span>
         <span className="font-semibold text-sm sm:text-base">{tier.name}</span>
         {tier.badge && (
-          <span className="px-1.5 py-0.5 bg-[var(--gold)]/20 text-[var(--gold)] text-[9px] font-bold uppercase tracking-wider rounded">
-            {tier.badge}
-          </span>
+          <span className="rotulo px-1.5 py-0.5 bg-[var(--elevate-1)] rounded">{tier.badge}</span>
         )}
       </div>
 
       {/* Price */}
       <div className="mb-3">
-        <span className="text-2xl sm:text-3xl font-bold text-[var(--gold)]">{price}€</span>
+        <span className="text-2xl sm:text-3xl font-bold text-[var(--foreground-muted)]">
+          {price}€
+        </span>
         <span className="text-xs text-[var(--foreground-muted)] ml-1">
           {tr("único", "one-time", "único")}
         </span>
@@ -150,22 +148,22 @@ function TierCard({
       {/* Features */}
       <ul className="space-y-1.5 text-xs sm:text-sm text-[var(--foreground-secondary)]">
         <li className="flex items-center gap-2">
-          <Check size={12} className="text-[var(--gold)] flex-shrink-0" />
+          <Check size={12} className="text-[var(--foreground-muted)] flex-shrink-0" />
           {durationLabel}
         </li>
         <li className="flex items-center gap-2">
-          <Check size={12} className="text-[var(--gold)] flex-shrink-0" />
+          <Check size={12} className="text-[var(--foreground-muted)] flex-shrink-0" />
           {photosLabel}
         </li>
         {featuredLabel && (
           <li className="flex items-center gap-2">
-            <Check size={12} className="text-[var(--gold)] flex-shrink-0" />
+            <Check size={12} className="text-[var(--foreground-muted)] flex-shrink-0" />
             {featuredLabel}
           </li>
         )}
         {tierId === "premium" && (
           <li className="flex items-center gap-2">
-            <Check size={12} className="text-[var(--gold)] flex-shrink-0" />
+            <Check size={12} className="text-[var(--foreground-muted)] flex-shrink-0" />
             {tr("Promoção redes sociais", "Social media promotion", "Promoción redes sociales")}
           </li>
         )}

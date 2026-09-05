@@ -6,6 +6,24 @@ import { render, screen, fireEvent } from "@testing-library/react";
 // All mock data must be defined inline within the factory functions.
 // ---------------------------------------------------------------------------
 
+// A página lê o idioma e o sistema de avisos do contexto; sem provider no teste
+// rebentava antes de renderizar o formulário.
+vi.mock("@/context/LanguageContext", () => ({
+  useLanguage: () => ({
+    language: "pt",
+    // As mensagens de validação são lidas de t.form_validation; sem elas a
+    // validação rebenta ao construir a lista de erros.
+    t: {
+      vender_cavalo: {},
+      form_validation: new Proxy({}, { get: (_a, chave: string) => `erro:${String(chave)}` }),
+    },
+  }),
+}));
+
+vi.mock("@/context/ToastContext", () => ({
+  useToast: () => ({ showToast: vi.fn() }),
+}));
+
 vi.mock("@/components/vender-cavalo/types", () => ({
   DocumentType: {},
 }));
@@ -63,25 +81,33 @@ vi.mock("@/components/vender-cavalo/StepIndicator", () => ({
   ),
 }));
 
+// Os erros deixaram de ser frases soltas: cada um sabe de que campo é, para
+// que o resumo possa levar lá quem o lê. O `ref` existe porque é a página que
+// chama o foco ao resumo quando a validação falha.
 vi.mock("@/components/vender-cavalo/FormErrors", () => ({
-  default: ({ errors }: { errors: string[] }) => (
-    <div data-testid="form-errors">{errors.join(", ")}</div>
-  ),
+  default: ({
+    erros,
+    ref,
+  }: {
+    erros: { campo: string; mensagem: string }[];
+    ref?: React.Ref<HTMLDivElement>;
+  }) =>
+    erros.length === 0 ? null : (
+      <div data-testid="form-errors" ref={ref} tabIndex={-1}>
+        {erros.map((e) => `${e.campo}:${e.mensagem}`).join(", ")}
+      </div>
+    ),
 }));
 
+// O «Proximo» é um botão de submissão e não tem `onClick`: quem avança o passo
+// é o `onSubmit` do formulário, que é o mesmo caminho da tecla Enter.
 vi.mock("@/components/vender-cavalo/FormNavigation", () => ({
-  default: ({
-    step: _step,
-    onPrev,
-    onNext,
-  }: {
-    step: number;
-    onPrev: () => void;
-    onNext: () => void;
-  }) => (
+  default: ({ step: _step, onPrev }: { step: number; onPrev: () => void }) => (
     <div data-testid="form-navigation">
-      <button onClick={onPrev}>Anterior</button>
-      <button onClick={onNext}>Proximo</button>
+      <button type="button" onClick={onPrev}>
+        Anterior
+      </button>
+      <button type="submit">Proximo</button>
     </div>
   ),
 }));
@@ -90,15 +116,28 @@ vi.mock("@/components/vender-cavalo/StepProprietario", () => ({
   default: ({
     formData,
     updateField,
+    campo,
   }: {
     formData: Record<string, unknown>;
     updateField: (field: string, value: unknown) => void;
+    campo: { aoFocar: (c: string, v: string) => void; aoSair: (c: string) => void };
   }) => (
     <div data-testid="step-proprietario">
       <input
         placeholder="Nome do proprietario"
         value={formData.proprietario_nome as string}
         onChange={(e) => updateField("proprietario_nome", e.target.value)}
+      />
+      {/* O telefone entra no mock porque é o campo com que se exercita a
+          diferença entre o erro do campo e o resumo do topo. */}
+      <input
+        placeholder="Telefone"
+        value={formData.proprietario_telefone as string}
+        onChange={(e) => updateField("proprietario_telefone", e.target.value)}
+        onFocus={() =>
+          campo.aoFocar("proprietario_telefone", String(formData.proprietario_telefone))
+        }
+        onBlur={() => campo.aoSair("proprietario_telefone")}
       />
     </div>
   ),
@@ -131,18 +170,14 @@ vi.mock("@/components/vender-cavalo/StepPrecoApresentacao", () => ({
 vi.mock("@/components/vender-cavalo/StepPagamento", () => ({
   default: ({
     formData: _formData,
-    opcaoDestaque: _opcaoDestaque,
     termsAccepted,
     onTermsChange,
     loading,
-    onSubmit,
   }: {
     formData: Record<string, unknown>;
-    opcaoDestaque: boolean;
     termsAccepted: boolean;
     onTermsChange: (value: boolean) => void;
     loading: boolean;
-    onSubmit: () => void;
   }) => (
     <div data-testid="step-pagamento">
       <input
@@ -150,7 +185,9 @@ vi.mock("@/components/vender-cavalo/StepPagamento", () => ({
         checked={termsAccepted}
         onChange={(e) => onTermsChange(e.target.checked)}
       />
-      <button onClick={onSubmit} disabled={loading}>
+      {/* Também é de submissão, e por isso não leva `onSubmit`: carregar em
+          pagar e carregar em Enter passam pelo mesmo sítio. */}
+      <button type="submit" disabled={loading}>
         {loading ? "A processar..." : "Finalizar"}
       </button>
     </div>
@@ -163,6 +200,11 @@ import VenderCavaloPage from "@/app/vender-cavalo/page";
 describe("VenderCavaloPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // A página guarda um rascunho no `localStorage` a cada alteração, e o
+    // jsdom partilha-o entre casos. Sem isto, o caso que escreve um nome
+    // deixava-o preenchido para o caso seguinte, que passava a exercer outra
+    // coisa que não a que diz exercer.
+    localStorage.clear();
   });
 
   it("renders page header", () => {
@@ -198,11 +240,12 @@ describe("VenderCavaloPage", () => {
     expect(screen.getByTestId("form-errors")).toBeInTheDocument();
   });
 
-  it("shows StepIdentificacao on step 2", () => {
+  it("junta proprietário e identificação no primeiro passo", () => {
+    // O formulário passou a agrupar os passos: quem publica preenche os dados do
+    // dono e do cavalo de uma vez, em vez de atravessar seis ecrãs.
     render(<VenderCavaloPage />);
-    // Manually navigate to step 2 by clicking next multiple times won't work due to validation
-    // So we just verify that the component would render step 2 when the state changes
-    expect(screen.queryByTestId("step-identificacao")).not.toBeInTheDocument();
+    expect(screen.getByTestId("step-proprietario")).toBeInTheDocument();
+    expect(screen.getByTestId("step-identificacao")).toBeInTheDocument();
   });
 
   it("renders form navigation", () => {
@@ -219,13 +262,35 @@ describe("VenderCavaloPage", () => {
     expect(input).toHaveValue("John Doe");
   });
 
-  it("displays form errors when validation fails", () => {
+  it("não avança de passo com o formulário vazio", () => {
+    // O que interessa é que a validação trava o avanço; a forma como as
+    // mensagens são apresentadas é detalhe do componente FormErrors.
     render(<VenderCavaloPage />);
     fireEvent.click(screen.getByText("Proximo"));
-    const errors = screen.getByTestId("form-errors");
-    expect(errors).toBeInTheDocument();
-    // Should show validation errors
-    expect(errors.textContent).toBeTruthy();
+    expect(screen.getByTestId("step-proprietario")).toBeInTheDocument();
+  });
+
+  it("sair de um campo com erro não abre o resumo do topo", () => {
+    // O resumo é `role="alert"` com `aria-live="assertive"`. Se aparecesse a
+    // cada `blur`, um leitor de ecrã interrompia quem escreve para lhe ler a
+    // lista inteira — e punha um bloco vermelho no topo por causa de um campo
+    // que a pessoa acabou de largar e já vê assinalado ao lado.
+    render(<VenderCavaloPage />);
+    const telefone = screen.getByPlaceholderText("Telefone");
+    fireEvent.focus(telefone);
+    fireEvent.change(telefone, { target: { value: "952345678" } });
+    fireEvent.blur(telefone);
+    expect(screen.queryByTestId("form-errors")).not.toBeInTheDocument();
+  });
+
+  it("mas carregar em Continuar abre-o", () => {
+    render(<VenderCavaloPage />);
+    const telefone = screen.getByPlaceholderText("Telefone");
+    fireEvent.focus(telefone);
+    fireEvent.change(telefone, { target: { value: "952345678" } });
+    fireEvent.blur(telefone);
+    fireEvent.click(screen.getByText("Proximo"));
+    expect(screen.getByTestId("form-errors")).toBeInTheDocument();
   });
 
   it("can navigate back to previous step", () => {

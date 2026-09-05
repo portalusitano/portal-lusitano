@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { Edit, Trash2, Eye, Star, MapPin } from "lucide-react";
 import { CavaloAdmin } from "@/types/cavalo";
+import Seleccao from "@/components/ui/Seleccao";
+import { formatarPrecoCavalo } from "@/lib/format";
+import { LISTING_STATUS_LABEL, LISTING_STATUS_VALUES } from "@/lib/marketplace-listings";
 
 const sexoOptions = [
   { value: "macho", label: "Garanhão" },
@@ -10,11 +13,15 @@ const sexoOptions = [
   { value: "castrado", label: "Castrado" },
 ];
 
+// Ver a nota em `components/admin-app/CavalosContent.tsx`: `pending` faltava
+// nos dois sítios, e é o estado em que um anúncio pago entra.
 const statusColors: Record<string, string> = {
+  pending: "bg-amber-100 text-amber-900",
   active: "bg-green-100 text-green-800",
   vendido: "bg-gray-100 text-gray-800",
   reservado: "bg-amber-100 text-amber-800",
   inativo: "bg-red-100 text-red-800",
+  removido: "bg-red-100 text-red-900",
 };
 
 interface HorseTableProps {
@@ -23,12 +30,6 @@ interface HorseTableProps {
   onEdit: (cavalo: CavaloAdmin) => void;
   onDelete: (id: string) => void;
   onUpdateStatus: (id: string, status: string) => void;
-}
-
-function formatPrice(cavalo: CavaloAdmin) {
-  if (cavalo.preco_sob_consulta) return "Sob consulta";
-  if (!cavalo.preco) return "A definir";
-  return `€${cavalo.preco.toLocaleString("pt-PT")}`;
 }
 
 export default function HorseTable({
@@ -97,26 +98,27 @@ export default function HorseTable({
               </td>
               <td className="px-6 py-4">
                 <span className="font-semibold text-gray-900 flex items-center gap-1">
-                  {formatPrice(cavalo)}
+                  {formatarPrecoCavalo(cavalo)}
                 </span>
               </td>
               <td className="px-6 py-4">
-                <select
+                <Seleccao
                   value={cavalo.status}
                   onChange={(e) => onUpdateStatus(cavalo.id, e.target.value)}
                   className={`px-2 py-1 rounded text-xs font-medium ${statusColors[cavalo.status] || "bg-gray-100"}`}
                 >
-                  <option value="active">Ativo</option>
-                  <option value="reservado">Reservado</option>
-                  <option value="vendido">Vendido</option>
-                  <option value="inativo">Inativo</option>
-                </select>
+                  {LISTING_STATUS_VALUES.map((s) => (
+                    <option key={s} value={s}>
+                      {LISTING_STATUS_LABEL[s]}
+                    </option>
+                  ))}
+                </Seleccao>
               </td>
               <td className="px-6 py-4 text-gray-600">{cavalo.views_count || 0}</td>
               <td className="px-6 py-4 text-right">
                 <div className="flex justify-end gap-2">
                   <Link
-                    href={`/marketplace/${cavalo.slug}`}
+                    href={`/comprar/${cavalo.id}`}
                     className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
                     target="_blank"
                   >

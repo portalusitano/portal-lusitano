@@ -64,7 +64,12 @@ export default function Image() {
             textTransform: "uppercase",
           }}
         >
-          Linhagem Certificada APSL · Verificado
+          {/* Dizia «Linhagem Certificada APSL · Verificado». É a imagem que
+              acompanha o link quando alguém o partilha no WhatsApp ou no
+              Facebook — muita gente vê-a sem chegar a abrir o site, e por isso
+              é o pior sítio possível para uma afirmação que a página por trás
+              não sustenta. */}
+          Criadores e proprietários · Contacto directo
         </div>
         <div style={{ width: "40px", height: "1px", backgroundColor: "#C5A059" }} />
       </div>

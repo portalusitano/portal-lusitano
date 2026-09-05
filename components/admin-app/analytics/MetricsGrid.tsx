@@ -19,7 +19,7 @@ interface MetricsGridProps {
 export default function MetricsGrid({ overview, formatNumber }: MetricsGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-      <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+      <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-medium text-gray-400">Visitantes</h3>
           <Users className="text-blue-500" size={20} />
@@ -28,7 +28,7 @@ export default function MetricsGrid({ overview, formatNumber }: MetricsGridProps
         <p className="text-xs text-gray-500 mt-1">Total visualizações</p>
       </div>
 
-      <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+      <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-medium text-gray-400">Leads</h3>
           <Target className="text-green-500" size={20} />
@@ -39,18 +39,18 @@ export default function MetricsGrid({ overview, formatNumber }: MetricsGridProps
         </p>
       </div>
 
-      <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+      <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-medium text-gray-400">Clientes</h3>
-          <DollarSign className="text-[#C5A059]" size={20} />
+          <DollarSign className="text-[var(--gold)]" size={20} />
         </div>
         <p className="text-3xl font-bold text-white">{formatNumber(overview.uniqueCustomers)}</p>
-        <p className="text-xs text-[#C5A059] mt-1">
+        <p className="text-xs text-[var(--gold)] mt-1">
           {overview.leadToCustomerRate.toFixed(2)}% conversão
         </p>
       </div>
 
-      <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+      <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-medium text-gray-400">LTV por Lead</h3>
           <TrendingUp className="text-purple-500" size={20} />

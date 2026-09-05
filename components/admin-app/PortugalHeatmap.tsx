@@ -226,7 +226,7 @@ export default function PortugalHeatmap({
               <p className="text-white font-bold mb-1">{hoveredDistrict}</p>
               <p className="text-sm text-gray-400">
                 {valueLabel}:{" "}
-                <span className="text-[#C5A059] font-semibold">
+                <span className="text-[var(--gold)] font-semibold">
                   {dataMap.get(hoveredDistrict)?.value.toLocaleString("pt-PT") || "Sem dados"}
                 </span>
               </p>
@@ -246,7 +246,7 @@ export default function PortugalHeatmap({
                   style={{
                     background:
                       colorScheme === "gold"
-                        ? "rgba(197, 160, 89, 0.3)"
+                        ? "rgb(var(--gold-rgb) / 0.3)"
                         : "rgba(59, 130, 246, 0.3)",
                   }}
                 />
@@ -258,7 +258,7 @@ export default function PortugalHeatmap({
                   style={{
                     background:
                       colorScheme === "gold"
-                        ? "rgba(197, 160, 89, 0.6)"
+                        ? "rgb(var(--gold-rgb) / 0.6)"
                         : "rgba(59, 130, 246, 0.6)",
                   }}
                 />
@@ -269,7 +269,7 @@ export default function PortugalHeatmap({
                   className="w-6 h-6 rounded"
                   style={{
                     background:
-                      colorScheme === "gold" ? "rgba(197, 160, 89, 1)" : "rgba(59, 130, 246, 1)",
+                      colorScheme === "gold" ? "rgb(var(--gold-rgb) / 1)" : "rgba(59, 130, 246, 1)",
                   }}
                 />
                 <span className="text-xs text-gray-400">Alta</span>
@@ -290,7 +290,7 @@ export default function PortugalHeatmap({
                 .map((district, index) => (
                   <div key={district.name} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-[#C5A059] font-bold text-sm">{index + 1}.</span>
+                      <span className="text-[var(--gold)] font-bold text-sm">{index + 1}.</span>
                       <span className="text-white text-sm">{district.name}</span>
                     </div>
                     <span className="text-gray-400 text-sm font-semibold">

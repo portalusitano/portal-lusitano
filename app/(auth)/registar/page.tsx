@@ -1,161 +1,109 @@
 "use client";
 
-import { useState, useCallback, Suspense } from "react";
+import { useState, useCallback, useRef, Suspense } from "react";
 import LocalizedLink from "@/components/LocalizedLink";
-import { useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { useLanguage } from "@/context/LanguageContext";
-import { createTranslator } from "@/lib/tr";
 import {
   Mail,
   Lock,
   Eye,
   EyeOff,
   User,
-  UserPlus,
   Loader2,
+  Check,
   CheckCircle,
   AlertCircle,
-  Sparkles,
-  Shield,
   ArrowRight,
 } from "lucide-react";
+import EntrarComConta from "@/components/auth/EntrarComConta";
+import LerParametrosDoUrl from "@/components/auth/LerParametrosDoUrl";
+import { destinoSeguro } from "@/lib/destino-seguro";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function inputClass(hasError: boolean, isFocused?: boolean) {
-  return [
-    "w-full bg-[var(--background-card)] border rounded-xl pl-10 pr-4 py-3.5",
-    "text-[var(--foreground)] placeholder:text-[var(--foreground-muted)]/60",
-    "outline-none transition-all duration-200",
-    "focus:border-[var(--gold)]/60 focus:ring-2 focus:ring-[var(--gold)]/20 focus:bg-[var(--background-card)]/90",
-    isFocused ? "border-[var(--gold)]/40 shadow-sm shadow-[var(--gold)]/5" : "",
-    hasError
-      ? "border-red-500/60 focus:border-red-500/60 focus:ring-red-500/20"
-      : "border-[var(--border)] hover:border-[var(--border-hover)]",
-  ].join(" ");
+// ─── Ajudas ───────────────────────────────────────────────────────────────────
+/* Ver a nota igual no login: o campo é o do sistema, o `pl-10` abre espaço ao
+   ícone e o `bg-transparent` tira-lhe o preenchimento, os dois ganhando ao
+   `.campo` por estarem numa camada posterior. O erro é o `.campo-erro`. */
+function classeCampo(comErro: boolean) {
+  return ["campo bg-transparent pl-10", comErro ? "campo-erro" : ""].join(" ");
 }
 
-function FieldError({ id, message }: { id: string; message: string }) {
+function ErroDoCampo({ id, mensagem }: { id: string; mensagem: string }) {
   return (
-    <p
-      id={id}
-      role="alert"
-      className="mt-1.5 flex items-center gap-1.5 text-xs text-red-400 animate-auth-fadeInUp"
-    >
-      <AlertCircle size={12} aria-hidden="true" />
-      {message}
+    <p id={id} role="alert" className="erro-campo">
+      <AlertCircle size={12} className="mt-0.5 shrink-0" aria-hidden="true" />
+      {mensagem}
     </p>
   );
 }
 
-// ─── Password strength ────────────────────────────────────────────────────────
-type StrengthLevel = "none" | "weak" | "medium" | "strong";
-
-function getPasswordStrength(pw: string): StrengthLevel {
-  if (!pw) return "none";
-  const checks = [pw.length >= 8, /[A-Z]/.test(pw), /[0-9]/.test(pw), /[^A-Za-z0-9]/.test(pw)];
-  const score = checks.filter(Boolean).length;
-  if (score <= 1) return "weak";
-  if (score <= 2) return "medium";
-  return "strong";
-}
-
-const strengthConfig: Record<StrengthLevel, { label: string; color: string; width: string }> = {
-  none: { label: "", color: "bg-[var(--border)]", width: "w-0" },
-  weak: { label: "Fraca", color: "bg-red-500", width: "w-1/3" },
-  medium: { label: "Média", color: "bg-amber-400", width: "w-2/3" },
-  strong: { label: "Forte", color: "bg-emerald-500", width: "w-full" },
-};
-
-function PasswordStrengthBar({ password }: { password: string }) {
-  const { language } = useLanguage();
-  const tr = createTranslator(language);
-  const level = getPasswordStrength(password);
-  const { color } = strengthConfig[level];
-  const strengthLabel: Record<StrengthLevel, string> = {
-    none: "",
-    weak: "Fraca",
-    medium: tr("Média", "Medium", "Media"),
-    strong: "Forte",
-  };
-  const label = strengthLabel[level];
-
+/* Os requisitos da palavra-passe, e mais nada.
+ *
+ * Havia três coisas a dizer o mesmo ao mesmo tempo: uma barra de três
+ * segmentos, a palavra «Força: Fraca» por baixo dela, e esta lista. As três
+ * saíam dos mesmos booleanos, e a barra ainda contradizia o formulário —
+ * contava um quarto teste (um símbolo) que o botão de submeter não exigia,
+ * por isso dizia «Média» sobre uma palavra-passe que era aceite. De um
+ * indicador só quero saber o que me falta escrever; é o que esta lista diz, e
+ * é a única das três que o diz.
+ *
+ * Não há barra colorida a crescer: sobre preto, três estados de cor são um
+ * semáforo a pedir atenção num sítio onde a atenção é para o formulário. */
+function RequisitosDaPalavraPasse({ password }: { password: string }) {
+  const { t } = useLanguage();
   if (!password) return null;
 
-  return (
-    <div className="mt-2.5" aria-live="polite" aria-atomic="true">
-      {/* 3-segment strength bar */}
-      <div className="flex gap-1.5">
-        {(["weak", "medium", "strong"] as const).map((seg) => {
-          const active =
-            (seg === "weak" && level !== "none") ||
-            (seg === "medium" && (level === "medium" || level === "strong")) ||
-            (seg === "strong" && level === "strong");
-          return (
-            <div
-              key={seg}
-              className="h-1.5 flex-1 rounded-full bg-[var(--border)]/50 overflow-hidden"
-            >
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${active ? color : "w-0"}`}
-                style={{ width: active ? "100%" : "0%" }}
-              />
-            </div>
-          );
-        })}
-      </div>
-      {label && (
-        <p
-          className={`mt-1.5 text-xs ${level === "strong" ? "text-emerald-400" : level === "medium" ? "text-amber-400" : "text-red-400"}`}
-        >
-          Força: <span className="font-medium">{label}</span>
-        </p>
-      )}
-    </div>
-  );
-}
-
-// ─── Password requirements checklist ─────────────────────────────────────────
-function PasswordChecks({ password }: { password: string }) {
-  const { language } = useLanguage();
-  const tr = createTranslator(language);
-  if (!password) return null;
-  const checks = [
-    { ok: password.length >= 8, label: tr("Mínimo 8 caracteres", "Minimum 8 characters", "Mínimo 8 caracteres") },
-    { ok: /[A-Z]/.test(password), label: tr("Uma letra maiúscula", "One uppercase letter", "Una letra mayúscula") },
-    { ok: /[0-9]/.test(password), label: tr("Um número", "One number", "Un número") },
+  const testes = [
+    { ok: password.length >= 8, texto: t.auth.req_min_chars },
+    { ok: /[A-Z]/.test(password), texto: t.auth.req_uppercase },
+    { ok: /[0-9]/.test(password), texto: t.auth.req_number },
   ];
+
   return (
-    <ul
-      className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5"
-      aria-label="Requisitos da palavra-passe"
-    >
-      {checks.map(({ ok, label }) => (
+    <ul className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5" aria-label={t.auth.password_reqs_label}>
+      {testes.map(({ ok, texto }) => (
         <li
-          key={label}
-          className={`flex items-center gap-1.5 text-xs transition-colors duration-200 ${ok ? "text-emerald-400" : "text-[var(--foreground-muted)]/60"}`}
+          key={texto}
+          className={`flex items-center gap-1.5 text-xs transition-colors duration-200 ${
+            ok ? "text-[var(--ok)]" : "text-[var(--foreground-muted)]"
+          }`}
         >
-          <div
-            className={`w-3.5 h-3.5 rounded-full flex items-center justify-center transition-all duration-300 ${ok ? "bg-emerald-500/20" : "bg-[var(--border)]/30"}`}
-          >
-            <CheckCircle
-              size={10}
-              aria-hidden="true"
-              className={`transition-all duration-300 ${ok ? "text-emerald-400 scale-100" : "text-[var(--border)] scale-75"}`}
-            />
-          </div>
-          {label}
+          <Check
+            size={12}
+            strokeWidth={2.5}
+            aria-hidden="true"
+            className={ok ? "opacity-100" : "opacity-25"}
+          />
+          {texto}
         </li>
       ))}
     </ul>
   );
 }
 
-// ─── Main content ─────────────────────────────────────────────────────────────
+// ─── Conteúdo ─────────────────────────────────────────────────────────────────
 function RegistarContent() {
-  const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "";
-  const toolParam = searchParams.get("tool") || "";
+  /* O que vem do URL. Chega por um componente à parte, e a razão está escrita
+     nele: o `useSearchParams` suspende numa página estática, e quem o chamasse
+     arrastava o formulário inteiro consigo — o HTML que o servidor mandava não
+     tinha um único `<form>`.
+
+     O `redirect` é **validado à entrada**. Acaba a alimentar o `next` do
+     `/auth/callback` e o `returnUrl` do `/login`, e os dois já o validam — mas
+     validá-lo também aqui fecha a cadeia nas três pontas, e custa uma linha. */
+  const [{ redirect, toolParam }, setParametros] = useState({ redirect: "", toolParam: "" });
+
+  const lerParametros = useCallback(
+    (p: URLSearchParams) => ({
+      redirect: p.get("redirect") ? destinoSeguro(p.get("redirect"), "") : "",
+      toolParam: p.get("tool") || "",
+    }),
+    []
+  );
+  const guardarParametros = useCallback(
+    (v: { redirect: string; toolParam: string }) => setParametros(v),
+    []
+  );
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -177,8 +125,13 @@ function RegistarContent() {
   const [success, setSuccess] = useState(false);
   const [shaking, setShaking] = useState(false);
 
-  const { t, language } = useLanguage();
-  const tr = createTranslator(language);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmRef = useRef<HTMLInputElement>(null);
+  const termsRef = useRef<HTMLInputElement>(null);
+
+  const { t } = useLanguage();
 
   const passwordChecks = {
     length: password.length >= 8,
@@ -187,7 +140,7 @@ function RegistarContent() {
   };
   const passwordValid = Object.values(passwordChecks).every(Boolean);
 
-  const triggerShake = useCallback(() => {
+  const abanar = useCallback(() => {
     setShaking(true);
     setTimeout(() => setShaking(false), 500);
   }, []);
@@ -202,20 +155,31 @@ function RegistarContent() {
     e.preventDefault();
     setGlobalError("");
 
-    // Client-side validation
     const errors: typeof fieldErrors = {};
-    if (!name.trim()) errors.name = tr("O nome é obrigatório.", "Name is required.", "El nombre es obligatorio.");
-    if (!email) errors.email = tr("O email é obrigatório.", "Email is required.", "El email es obligatorio.");
-    if (!password) errors.password = tr("A palavra-passe é obrigatória.", "Password is required.", "La contraseña es obligatoria.");
-    else if (!passwordValid) errors.password = tr("A palavra-passe não cumpre os requisitos.", "Password does not meet requirements.", "La contraseña no cumple los requisitos.");
-    if (!confirmPassword) errors.confirmPassword = "Por favor confirme a palavra-passe.";
-    else if (password !== confirmPassword)
-      errors.confirmPassword = tr("As palavras-passe não coincidem.", "Passwords do not match.", "Las contraseñas no coinciden.");
-    if (!termsAccepted) errors.terms = "Deve aceitar os termos para continuar.";
+    if (!name.trim()) errors.name = t.auth.name_required;
+    if (!email) errors.email = t.auth.email_required;
+    if (!password) errors.password = t.auth.password_required;
+    else if (!passwordValid) errors.password = t.auth.password_reqs_not_met;
+    if (!confirmPassword) errors.confirmPassword = t.auth.confirm_required;
+    else if (password !== confirmPassword) errors.confirmPassword = t.auth.passwords_no_match;
+    if (!termsAccepted) errors.terms = t.auth.terms_required;
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
-      triggerShake();
+      abanar();
+      /* O foco vai para o primeiro campo que falta, pela ordem em que eles
+         estão no ecrã — senão, num formulário de cinco campos, a mensagem
+         aparece onde quem navega por teclado não está a olhar. */
+      const primeiro = errors.name
+        ? nameRef
+        : errors.email
+          ? emailRef
+          : errors.password
+            ? passwordRef
+            : errors.confirmPassword
+              ? confirmRef
+              : termsRef;
+      primeiro.current?.focus();
       return;
     }
 
@@ -238,189 +202,124 @@ function RegistarContent() {
           ? t.errors.error_generic
           : authError.message;
         setGlobalError(msg);
-        triggerShake();
+        abanar();
         return;
       }
 
       setSuccess(true);
     } catch {
       setGlobalError(t.errors.error_generic);
-      triggerShake();
+      abanar();
     } finally {
       setLoading(false);
     }
   };
 
-  // ── Success state ───────────────────────────────────────────────────────────
+  // ── Conta criada ────────────────────────────────────────────────────────────
   if (success) {
-    // Build post-verification login URL — preserve redirect so user lands back on tool page
     const loginUrl = redirect ? `/login?returnUrl=${encodeURIComponent(redirect)}` : "/login";
 
     return (
-      <div className="text-center py-4 relative overflow-hidden">
-        {/* Confetti dots */}
-        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-          {[
-            { color: "#C5A059", left: "15%", delay: "0s" },
-            { color: "#10B981", left: "30%", delay: "0.2s" },
-            { color: "#C5A059", left: "50%", delay: "0.1s" },
-            { color: "#F59E0B", left: "70%", delay: "0.3s" },
-            { color: "#10B981", left: "85%", delay: "0.15s" },
-            { color: "#C5A059", left: "25%", delay: "0.25s" },
-            { color: "#F59E0B", left: "60%", delay: "0.35s" },
-          ].map((dot, i) => (
-            <div
-              key={i}
-              className="absolute top-0 w-2 h-2 rounded-full"
-              style={{
-                background: dot.color,
-                left: dot.left,
-                animation: `auth-confetti-fall 1.5s ease-out ${dot.delay} both`,
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Animated success ring */}
-        <div
-          className="relative w-20 h-20 mx-auto mb-6"
-          style={{ animation: "auth-success-ring 0.5s ease-out both" }}
-        >
-          {/* Outer glow ring */}
-          <div
-            className="absolute inset-0 rounded-full bg-emerald-500/10 animate-ping"
-            style={{ animationDuration: "2s" }}
+      <div className="py-2 text-center">
+        {/* Saíram daqui sete confetes e uma argola a pulsar.
+         *
+         * Os confetes traziam três cores escritas à mão na página —
+         * `#C5A059`, `#10B981`, `#F59E0B` —, e o sistema diz que numa página
+         * não se escreve uma cor literal; uma delas era o dourado da marca,
+         * usado como enfeite, que é exactamente o que o gasta. A argola era um
+         * `animate-ping`. O que aqui aconteceu foi a conta ficar criada e
+         * faltar confirmar o email: é uma instrução, não uma festa, e uma
+         * festa por cima de «vá ao seu email» esconde a instrução. */}
+        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-[var(--border)]">
+          <CheckCircle
+            className="text-[var(--ok)]"
+            size={26}
+            strokeWidth={1.5}
+            aria-hidden="true"
           />
-          {/* Main circle */}
-          <div className="relative w-20 h-20 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border-2 border-emerald-500/40 rounded-full flex items-center justify-center">
-            <CheckCircle
-              className="text-emerald-400"
-              size={36}
-              aria-hidden="true"
-              strokeWidth={1.5}
-            />
-          </div>
         </div>
 
-        <h2 className="text-xl font-serif text-[var(--foreground)] mb-2 animate-auth-fadeInUp auth-stagger-2">
-          Conta Criada com Sucesso!
-        </h2>
-        <p className="text-sm text-[var(--foreground-secondary)] mb-1 animate-auth-fadeInUp auth-stagger-3">
-          Enviámos um email de confirmação para
-        </p>
-        <p className="text-sm font-medium text-[var(--gold)] mb-4 animate-auth-fadeInUp auth-stagger-3">
-          {email}
-        </p>
+        <h2 className="titulo-pagina mb-2">{t.auth.account_created}</h2>
+        <p className="text-sm text-[var(--foreground-secondary)]">{t.auth.confirmation_sent_to}</p>
+        <p className="mb-6 font-mono text-sm break-all text-[var(--foreground-strong)]">{email}</p>
 
-        {/* Info card */}
-        <div className="bg-[var(--background-card)]/60 border border-[var(--border)]/50 rounded-xl p-4 mb-5 text-left animate-auth-fadeInUp auth-stagger-4">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[var(--gold)]/10 flex items-center justify-center shrink-0 mt-0.5">
-              <Mail size={14} className="text-[var(--gold)]" aria-hidden="true" />
-            </div>
-            <div>
-              <p className="text-xs font-medium text-[var(--foreground)] mb-1">
-                Verifique a sua caixa de correio
-              </p>
-              <p className="text-xs text-[var(--foreground-muted)] leading-relaxed">
-                Clique no link de confirmação enviado para o seu email. Verifique também a pasta de
-                spam.
-              </p>
-            </div>
-          </div>
+        <div className="cartao mb-5 p-4 text-left">
+          <p className="rotulo-forte mb-1.5">{t.auth.check_inbox_title}</p>
+          <p className="meta leading-relaxed">{t.auth.check_inbox_desc}</p>
         </div>
 
         {toolParam && redirect && (
-          <div className="bg-[var(--gold)]/5 border border-[var(--gold)]/20 rounded-xl p-3 mb-5 animate-auth-fadeInUp auth-stagger-5">
-            <p className="text-xs text-[var(--foreground-muted)]">
-              Após confirmar o email e iniciar sessão, será redirecionado de volta à ferramenta com{" "}
-              <strong className="text-[var(--gold)]">1 uso gratuito</strong> disponível.
-            </p>
-          </div>
+          <p className="meta mb-5 leading-relaxed">{t.auth.tool_after_confirm}</p>
         )}
 
-        <LocalizedLink
-          href={loginUrl}
-          className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-[#C5A059] to-[#B8956F] text-black font-semibold rounded-xl hover:from-[#D4AF6A] hover:to-[#C5A059] transition-all shadow-lg shadow-[var(--gold)]/20 hover:shadow-[var(--gold)]/30 hover:scale-[1.02] active:scale-[0.98] animate-auth-fadeInUp auth-stagger-5"
-        >
-          Iniciar Sessão
+        <LocalizedLink href={loginUrl} className="btn btn-primario w-full py-3">
+          {t.auth.login_account}
           <ArrowRight size={16} aria-hidden="true" />
         </LocalizedLink>
       </div>
     );
   }
 
-  // ── Form ────────────────────────────────────────────────────────────────────
+  // ── Formulário ──────────────────────────────────────────────────────────────
   return (
     <div>
-      {/* Header with staggered animation */}
-      <div className="animate-auth-fadeInUp">
-        <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-2xl font-serif text-[var(--foreground)]">{t.auth.create_account}</h1>
-          <Sparkles
-            size={18}
-            className="text-[var(--gold)] animate-auth-float"
-            style={{ animationDuration: "3s" }}
-            aria-hidden="true"
-          />
-        </div>
-        <p className="text-sm text-[var(--foreground-muted)] mb-6">
-          Junta-te à maior comunidade equestre de Portugal
-        </p>
-      </div>
+      {/* Fora do fluxo e sem desenho. A fronteira é só dele: é ele que
+          suspende, e o formulário à volta não vai atrás.
 
-      {/* Tool redirect banner */}
+          Basta estar aqui, e não também no ramo de «conta criada»: os
+          parâmetros lêem-se ao montar, e para se chegar a esse ramo é preciso
+          ter submetido este formulário — altura em que o valor já está no
+          estado, que sobrevive ao componente sair do ecrã. */}
+      <Suspense fallback={null}>
+        <LerParametrosDoUrl ler={lerParametros} aoLer={guardarParametros} />
+      </Suspense>
+      <h1 className="titulo-pagina mb-1.5">{t.auth.create_account}</h1>
+      <p className="mb-6 text-sm leading-relaxed text-[var(--foreground-secondary)]">
+        {t.auth.register_desc}
+      </p>
+
+      <EntrarComConta regressarA={redirect || "/"} />
+
       {toolParam && redirect && (
-        <div className="mb-5 flex items-start gap-3 p-3.5 bg-[var(--gold)]/5 border border-[var(--gold)]/20 rounded-xl animate-auth-fadeInUp auth-stagger-1">
-          <div className="w-8 h-8 rounded-lg bg-[var(--gold)]/10 flex items-center justify-center shrink-0 mt-0.5">
-            <Shield size={14} className="text-[var(--gold)]" aria-hidden="true" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-[var(--foreground)] mb-0.5">
-              Acesso à Ferramenta
-            </p>
-            <p className="text-xs text-[var(--foreground-muted)] leading-relaxed">
-              Crie a sua conta para aceder à ferramenta com{" "}
-              <strong className="text-[var(--gold)]">1 uso gratuito</strong>.
-            </p>
-          </div>
+        <div className="cartao mb-5 p-3.5">
+          <p className="rotulo-forte mb-1">{t.auth.tool_access_title}</p>
+          <p className="meta leading-relaxed">{t.auth.tool_access_desc}</p>
         </div>
       )}
 
-      {/* Global error */}
       {globalError && (
-        <div
-          role="alert"
-          className="mb-5 flex items-start gap-2.5 p-3.5 bg-red-500/10 border border-red-500/30 rounded-xl text-sm text-red-400 animate-auth-fadeInUp"
-        >
-          <AlertCircle size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
-          <span>{globalError}</span>
+        <div role="alert" className="resumo-erros mb-5 flex items-start gap-2.5 text-sm">
+          <AlertCircle
+            size={16}
+            className="mt-0.5 shrink-0 text-[var(--erro)]"
+            aria-hidden="true"
+          />
+          <span className="text-[var(--erro)]">{globalError}</span>
         </div>
       )}
 
       <form
         onSubmit={handleSubmit}
         noValidate
-        className={`space-y-5 ${shaking ? "animate-auth-shake" : ""}`}
-        aria-label="Formulário de registo"
+        className={`space-y-4 ${shaking ? "animate-auth-shake" : ""}`}
+        aria-label={t.auth.register_form_label}
       >
-        {/* Name */}
-        <div className="animate-auth-fadeInUp auth-stagger-1">
-          <label
-            htmlFor="reg-name"
-            className="flex items-center gap-1.5 text-xs text-[var(--foreground-muted)] uppercase tracking-wider mb-2 font-medium"
-          >
-            <User size={12} className="text-[var(--gold)]/70" aria-hidden="true" />
+        {/* Nome. Cada etiqueta tinha um ícone à esquerda e o campo por baixo
+            repetia o mesmo ícone lá dentro: o mesmo desenho duas vezes, a
+            quinze pixéis de distância. Fica o do campo. */}
+        <div>
+          <label htmlFor="reg-name" className="rotulo mb-2 block">
             {t.auth.full_name}
           </label>
-          <div className="relative group">
+          <div className="relative">
             <User
               size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] pointer-events-none transition-colors group-focus-within:text-[var(--gold)]"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]"
               aria-hidden="true"
             />
             <input
               id="reg-name"
+              ref={nameRef}
               type="text"
               value={name}
               onChange={(e) => {
@@ -429,33 +328,29 @@ function RegistarContent() {
               }}
               required
               autoComplete="name"
-              placeholder="O seu nome completo"
-              aria-label={t.auth.full_name}
+              placeholder={t.auth.name_placeholder}
               aria-describedby={fieldErrors.name ? "reg-name-error" : undefined}
               aria-invalid={!!fieldErrors.name}
-              className={inputClass(!!fieldErrors.name)}
+              className={classeCampo(!!fieldErrors.name)}
             />
           </div>
-          {fieldErrors.name && <FieldError id="reg-name-error" message={fieldErrors.name} />}
+          {fieldErrors.name && <ErroDoCampo id="reg-name-error" mensagem={fieldErrors.name} />}
         </div>
 
         {/* Email */}
-        <div className="animate-auth-fadeInUp auth-stagger-2">
-          <label
-            htmlFor="reg-email"
-            className="flex items-center gap-1.5 text-xs text-[var(--foreground-muted)] uppercase tracking-wider mb-2 font-medium"
-          >
-            <Mail size={12} className="text-[var(--gold)]/70" aria-hidden="true" />
+        <div>
+          <label htmlFor="reg-email" className="rotulo mb-2 block">
             {t.auth.email}
           </label>
-          <div className="relative group">
+          <div className="relative">
             <Mail
               size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] pointer-events-none transition-colors group-focus-within:text-[var(--gold)]"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]"
               aria-hidden="true"
             />
             <input
               id="reg-email"
+              ref={emailRef}
               type="email"
               value={email}
               onChange={(e) => {
@@ -464,33 +359,29 @@ function RegistarContent() {
               }}
               required
               autoComplete="email"
-              placeholder="seu@email.com"
-              aria-label={t.auth.email}
+              placeholder={t.auth.email_placeholder}
               aria-describedby={fieldErrors.email ? "reg-email-error" : undefined}
               aria-invalid={!!fieldErrors.email}
-              className={inputClass(!!fieldErrors.email)}
+              className={classeCampo(!!fieldErrors.email)}
             />
           </div>
-          {fieldErrors.email && <FieldError id="reg-email-error" message={fieldErrors.email} />}
+          {fieldErrors.email && <ErroDoCampo id="reg-email-error" mensagem={fieldErrors.email} />}
         </div>
 
-        {/* Password */}
-        <div className="animate-auth-fadeInUp auth-stagger-3">
-          <label
-            htmlFor="reg-password"
-            className="flex items-center gap-1.5 text-xs text-[var(--foreground-muted)] uppercase tracking-wider mb-2 font-medium"
-          >
-            <Lock size={12} className="text-[var(--gold)]/70" aria-hidden="true" />
+        {/* Palavra-passe */}
+        <div>
+          <label htmlFor="reg-password" className="rotulo mb-2 block">
             {t.auth.password}
           </label>
-          <div className="relative group">
+          <div className="relative">
             <Lock
               size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] pointer-events-none transition-colors group-focus-within:text-[var(--gold)]"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]"
               aria-hidden="true"
             />
             <input
               id="reg-password"
+              ref={passwordRef}
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => {
@@ -499,23 +390,23 @@ function RegistarContent() {
               }}
               required
               autoComplete="new-password"
-              placeholder="Crie uma palavra-passe forte"
-              aria-label={t.auth.password}
+              placeholder={t.auth.new_password_placeholder}
               aria-describedby={
                 fieldErrors.password
                   ? "reg-password-error"
                   : password
-                    ? "reg-password-strength"
+                    ? "reg-password-reqs"
                     : undefined
               }
               aria-invalid={!!fieldErrors.password}
-              className={`${inputClass(!!fieldErrors.password)} pr-12`}
+              className={`${classeCampo(!!fieldErrors.password)} pr-11`}
             />
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
-              aria-label={showPassword ? "Ocultar palavra-passe" : "Mostrar palavra-passe"}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
+              aria-label={showPassword ? t.auth.hide_password : t.auth.show_password}
+              aria-pressed={showPassword}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] transition-colors hover:text-[var(--foreground-strong)]"
             >
               {showPassword ? (
                 <EyeOff size={16} aria-hidden="true" />
@@ -525,32 +416,28 @@ function RegistarContent() {
             </button>
           </div>
           {fieldErrors.password ? (
-            <FieldError id="reg-password-error" message={fieldErrors.password} />
+            <ErroDoCampo id="reg-password-error" mensagem={fieldErrors.password} />
           ) : (
-            <div id="reg-password-strength">
-              <PasswordStrengthBar password={password} />
-              <PasswordChecks password={password} />
+            <div id="reg-password-reqs">
+              <RequisitosDaPalavraPasse password={password} />
             </div>
           )}
         </div>
 
-        {/* Confirm Password */}
-        <div className="animate-auth-fadeInUp auth-stagger-4">
-          <label
-            htmlFor="reg-confirm"
-            className="flex items-center gap-1.5 text-xs text-[var(--foreground-muted)] uppercase tracking-wider mb-2 font-medium"
-          >
-            <Lock size={12} className="text-[var(--gold)]/70" aria-hidden="true" />
+        {/* Confirmação */}
+        <div>
+          <label htmlFor="reg-confirm" className="rotulo mb-2 block">
             {t.auth.confirm_password}
           </label>
-          <div className="relative group">
+          <div className="relative">
             <Lock
               size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] pointer-events-none transition-colors group-focus-within:text-[var(--gold)]"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]"
               aria-hidden="true"
             />
             <input
               id="reg-confirm"
+              ref={confirmRef}
               type={showConfirm ? "text" : "password"}
               value={confirmPassword}
               onChange={(e) => {
@@ -559,19 +446,19 @@ function RegistarContent() {
               }}
               required
               autoComplete="new-password"
-              placeholder="Repita a palavra-passe"
-              aria-label={t.auth.confirm_password}
+              placeholder={t.auth.confirm_password_placeholder}
               aria-describedby={fieldErrors.confirmPassword ? "reg-confirm-error" : undefined}
               aria-invalid={!!fieldErrors.confirmPassword}
-              className={`${inputClass(
+              className={`${classeCampo(
                 !!fieldErrors.confirmPassword || (!!confirmPassword && confirmPassword !== password)
-              )} pr-12`}
+              )} pr-11`}
             />
             <button
               type="button"
               onClick={() => setShowConfirm((v) => !v)}
-              aria-label={showConfirm ? "Ocultar confirmação" : "Mostrar confirmação"}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
+              aria-label={showConfirm ? t.auth.hide_confirm : t.auth.show_confirm}
+              aria-pressed={showConfirm}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)] transition-colors hover:text-[var(--foreground-strong)]"
             >
               {showConfirm ? (
                 <EyeOff size={16} aria-hidden="true" />
@@ -581,27 +468,24 @@ function RegistarContent() {
             </button>
           </div>
           {fieldErrors.confirmPassword && (
-            <FieldError id="reg-confirm-error" message={fieldErrors.confirmPassword} />
+            <ErroDoCampo id="reg-confirm-error" mensagem={fieldErrors.confirmPassword} />
           )}
           {!fieldErrors.confirmPassword && confirmPassword && confirmPassword === password && (
-            <span className="mt-1.5 flex items-center gap-1.5 text-xs text-emerald-400 animate-auth-fadeInUp">
-              <span className="w-3.5 h-3.5 rounded-full bg-emerald-500/20 flex items-center justify-center inline-flex">
-                <CheckCircle size={10} aria-hidden="true" />
-              </span>
-              Palavras-passe coincidem
-            </span>
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-[var(--ok)]">
+              <Check size={12} strokeWidth={2.5} aria-hidden="true" />
+              {t.auth.passwords_match}
+            </p>
           )}
         </div>
 
-        {/* Separator */}
-        <div className="border-t border-[var(--border)]/30 animate-auth-fadeInUp auth-stagger-5" />
-
-        {/* Terms */}
-        <div className="animate-auth-fadeInUp auth-stagger-5">
-          <label className="flex items-start gap-3 cursor-pointer group">
-            <div className="relative mt-0.5 shrink-0">
+        {/* Termos. A caixa marcada é branca, não dourada — é a regra do
+            sistema para estado escolhido. */}
+        <div className="pt-1">
+          <label className="group flex cursor-pointer items-start gap-3">
+            <span className="relative mt-px shrink-0">
               <input
                 id="reg-terms"
+                ref={termsRef}
                 type="checkbox"
                 checked={termsAccepted}
                 onChange={(e) => {
@@ -610,114 +494,95 @@ function RegistarContent() {
                 }}
                 aria-describedby={fieldErrors.terms ? "reg-terms-error" : undefined}
                 aria-invalid={!!fieldErrors.terms}
-                className="sr-only"
+                className="peer sr-only"
               />
-              <div
-                className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${
-                  termsAccepted
-                    ? "bg-[var(--gold)] border-[var(--gold)] scale-100"
-                    : fieldErrors.terms
-                      ? "border-red-500/60 bg-[var(--background-card)]"
-                      : "border-[var(--border)] bg-[var(--background-card)] group-hover:border-[var(--gold)]/40"
-                }`}
+              <span
                 aria-hidden="true"
+                className={`flex h-[18px] w-[18px] items-center justify-center rounded-[6px] border transition-colors duration-200 peer-focus-visible:outline peer-focus-visible:outline-2 ${
+                  termsAccepted
+                    ? "border-[var(--foreground-strong)] bg-[var(--foreground-strong)]"
+                    : fieldErrors.terms
+                      ? "border-[var(--erro)]"
+                      : "border-[var(--border)] group-hover:border-[var(--border-hover)]"
+                }`}
               >
                 {termsAccepted && (
-                  <svg width="12" height="10" viewBox="0 0 12 10" fill="none" aria-hidden="true">
-                    <path
-                      d="M1 5l3.5 3.5L11 1"
-                      stroke="black"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                  <Check size={12} strokeWidth={3} className="text-[var(--background)]" />
                 )}
-              </div>
-            </div>
-            <span className="text-xs text-[var(--foreground-muted)] leading-relaxed">
-              Aceito os{" "}
+              </span>
+            </span>
+            <span className="text-xs leading-relaxed text-[var(--foreground-muted)]">
+              {t.auth.terms_accept_pre}{" "}
               <LocalizedLink
                 href="/termos"
-                className="text-[var(--gold)] hover:text-[var(--gold-hover)] underline underline-offset-2"
+                className="text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-2 transition-colors hover:decoration-[var(--border-hover)]"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Termos de Serviço
+                {t.auth.terms_of_service}
               </LocalizedLink>{" "}
-              e a{" "}
+              {t.auth.terms_and}{" "}
               <LocalizedLink
                 href="/privacidade"
-                className="text-[var(--gold)] hover:text-[var(--gold-hover)] underline underline-offset-2"
+                className="text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-2 transition-colors hover:decoration-[var(--border-hover)]"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Política de Privacidade
+                {t.auth.privacy_policy}
               </LocalizedLink>
             </span>
           </label>
-          {fieldErrors.terms && <FieldError id="reg-terms-error" message={fieldErrors.terms} />}
+          {fieldErrors.terms && <ErroDoCampo id="reg-terms-error" mensagem={fieldErrors.terms} />}
         </div>
 
-        {/* Submit — premium button with shimmer */}
-        <div className="animate-auth-fadeInUp auth-stagger-6 pt-1">
-          <button
-            type="submit"
-            disabled={loading || !passwordValid}
-            className="relative w-full py-3.5 bg-gradient-to-r from-[#C5A059] to-[#B8956F] text-black font-semibold rounded-xl hover:from-[#D4AF6A] hover:to-[#C5A059] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[var(--gold)]/15 hover:shadow-[var(--gold)]/25 hover:scale-[1.01] active:scale-[0.99] overflow-hidden group/btn"
-            aria-busy={loading}
-          >
-            {/* Shimmer overlay */}
-            <div
-              className="absolute inset-0 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"
-              style={{
-                background:
-                  "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%)",
-                backgroundSize: "200% 100%",
-                animation: "auth-shimmer 1.5s ease-in-out infinite",
-              }}
-              aria-hidden="true"
-            />
-            <span className="relative flex items-center gap-2">
-              {loading ? (
-                <Loader2 size={18} className="animate-spin" aria-hidden="true" />
-              ) : (
-                <UserPlus size={18} aria-hidden="true" />
-              )}
-              {loading ? t.auth.creating_account : t.auth.create_account}
-            </span>
-          </button>
-        </div>
+        {/* Submeter.
+         *
+         * Havia aqui um brilho a varrer o botão sem parar. Saiu, e são duas
+         * razões, cada uma suficiente: ninguém o via (dependia de um
+         * `group-hover/btn` sem `group/btn` nenhum nesta página, logo esteve a
+         * `opacity: 0` desde sempre), e animava `background-position`, que o
+         * compositor não sabe animar — cada quadro repintava o botão.
+         * Infinito, invisível, e a pintar. O `.animate-auth-shimmer` do
+         * `auth.css` já tinha o ciclo desligado por escrito; o estilo em linha
+         * passava-lhe à frente, porque um estilo em linha ganha sempre a uma
+         * classe.
+         *
+         * O botão também deixou de estar desactivado enquanto a palavra-passe
+         * não cumpre os requisitos. Um botão apagado não diz o que falta:
+         * quem lá chegasse com uma palavra-passe curta ficava a olhar para um
+         * botão morto sem mensagem nenhuma. Agora carrega-se sempre, e é a
+         * validação que responde — com o foco a ir para o campo em falta. */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="btn btn-primario w-full py-3 disabled:cursor-not-allowed"
+          aria-busy={loading}
+        >
+          {loading && <Loader2 size={16} className="animate-spin" aria-hidden="true" />}
+          {loading ? t.auth.creating_account : t.auth.create_account}
+        </button>
       </form>
 
-      {/* Login link */}
-      <div className="animate-auth-fadeInUp auth-stagger-7">
-        <div className="flex items-center gap-3 my-6">
-          <div className="flex-1 h-px bg-[var(--border)]/30" />
-          <span className="text-xs text-[var(--foreground-muted)]/50 uppercase tracking-wider">
-            ou
-          </span>
-          <div className="flex-1 h-px bg-[var(--border)]/30" />
-        </div>
+      {/* Sem um segundo «ou»: o de cima já separa as duas maneiras de entrar,
+          e dois seguidos deixam de separar seja o que for. */}
+      <div className="my-5 h-px bg-[var(--border-soft)]" />
 
-        <p className="text-center text-sm text-[var(--foreground-muted)]">
-          {t.auth.already_have_account}{" "}
-          <LocalizedLink
-            href={redirect ? `/login?returnUrl=${encodeURIComponent(redirect)}` : "/login"}
-            className="text-[var(--gold)] hover:text-[var(--gold-hover)] font-medium transition-colors"
-          >
-            {t.auth.login_account}
-          </LocalizedLink>
-        </p>
-      </div>
+      <p className="text-center text-sm text-[var(--foreground-muted)]">
+        {t.auth.already_have_account}{" "}
+        <LocalizedLink
+          href={redirect ? `/login?returnUrl=${encodeURIComponent(redirect)}` : "/login"}
+          className="text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-2 transition-colors hover:decoration-[var(--border-hover)]"
+        >
+          {t.auth.login_account}
+        </LocalizedLink>
+      </p>
     </div>
   );
 }
 
+/* Sem fronteira à volta da página: a que aqui estava não tinha `fallback`, e
+ * numa rota estática o que o servidor emite é o fallback. Quem suspende agora
+ * é o leitor dos parâmetros, lá dentro, e o formulário fica de fora. */
 export default function RegistarPage() {
-  return (
-    <Suspense>
-      <RegistarContent />
-    </Suspense>
-  );
+  return <RegistarContent />;
 }

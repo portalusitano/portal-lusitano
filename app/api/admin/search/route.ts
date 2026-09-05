@@ -35,10 +35,11 @@ export async function GET(req: NextRequest) {
           .limit(limit),
 
         // Eventos
+        // `eventos` não tem `nome`; a coluna é `titulo`.
         supabase
           .from("eventos")
-          .select("id, nome, data_inicio, tipo, created_at")
-          .or(`nome.ilike.%${searchTerm}%,descricao.ilike.%${searchTerm}%`)
+          .select("id, titulo, data_inicio, tipo, created_at")
+          .or(`titulo.ilike.%${searchTerm}%,descricao.ilike.%${searchTerm}%`)
           .limit(limit),
 
         // Mensagens
@@ -53,7 +54,7 @@ export async function GET(req: NextRequest) {
         // Coudelarias
         supabase
           .from("coudelarias")
-          .select("id, nome, localizacao, plano, created_at")
+          .select("id, nome, localizacao, plan, created_at")
           .or(
             `nome.ilike.%${searchTerm}%,descricao.ilike.%${searchTerm}%,localizacao.ilike.%${searchTerm}%`
           )
@@ -62,15 +63,18 @@ export async function GET(req: NextRequest) {
         // Profissionais
         supabase
           .from("profissionais")
-          .select("id, nome, categoria, localizacao, status, created_at")
+          .select("id, nome, tipo, cidade, distrito, status, created_at")
           .or(`nome.ilike.%${searchTerm}%,especialidade.ilike.%${searchTerm}%`)
           .limit(limit),
 
         // Reviews
+        // A tabela chama-se `reviews`, e as colunas `autor_nome` e `avaliacao`.
+        // `reviews_cavalos` não existe: esta categoria da pesquisa nunca
+        // devolveu um único resultado.
         supabase
-          .from("reviews_cavalos")
-          .select("id, nome_avaliador, comentario, rating, created_at")
-          .or(`nome_avaliador.ilike.%${searchTerm}%,comentario.ilike.%${searchTerm}%`)
+          .from("reviews")
+          .select("id, autor_nome, comentario, avaliacao, created_at")
+          .or(`autor_nome.ilike.%${searchTerm}%,comentario.ilike.%${searchTerm}%`)
           .limit(limit),
       ]);
 
@@ -100,7 +104,7 @@ export async function GET(req: NextRequest) {
         icon: "📅",
         items: eventosRes.data.map((item) => ({
           id: item.id,
-          title: item.nome,
+          title: item.titulo,
           subtitle: `${new Date(item.data_inicio).toLocaleDateString("pt-PT")} • ${item.tipo}`,
           type: "evento",
           link: `/admin-app?tab=eventos&id=${item.id}`,
@@ -133,7 +137,7 @@ export async function GET(req: NextRequest) {
         items: coudelariasRes.data.map((item) => ({
           id: item.id,
           title: item.nome,
-          subtitle: `${item.localizacao} • Plano ${item.plano}`,
+          subtitle: `${item.localizacao} • Plano ${item.plan}`,
           type: "coudelaria",
           link: `/admin-app?tab=coudelarias&id=${item.id}`,
           timestamp: item.created_at,
@@ -149,7 +153,7 @@ export async function GET(req: NextRequest) {
         items: profissionaisRes.data.map((item) => ({
           id: item.id,
           title: item.nome,
-          subtitle: `${item.categoria} • ${item.localizacao} • ${item.status}`,
+          subtitle: `${item.tipo} • ${[item.cidade, item.distrito].filter(Boolean).join(", ")} • ${item.status}`,
           type: "profissional",
           link: `/admin-app?tab=profissionais&id=${item.id}`,
           timestamp: item.created_at,
@@ -164,8 +168,8 @@ export async function GET(req: NextRequest) {
         icon: "⭐",
         items: reviewsRes.data.map((item) => ({
           id: item.id,
-          title: item.nome_avaliador,
-          subtitle: `${item.rating}/5 estrelas`,
+          title: item.autor_nome,
+          subtitle: `${item.avaliacao}/5 estrelas`,
           type: "review",
           link: `/admin-app?tab=reviews&id=${item.id}`,
           timestamp: item.created_at,

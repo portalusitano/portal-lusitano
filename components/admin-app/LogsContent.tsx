@@ -16,6 +16,7 @@ import {
   FileText,
   Search,
 } from "lucide-react";
+import Seleccao from "@/components/ui/Seleccao";
 
 interface Log {
   id: string;
@@ -159,7 +160,7 @@ export default function LogsContent() {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#C5A059] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[var(--gold)] mx-auto mb-4"></div>
           <p className="text-gray-400">A carregar logs...</p>
         </div>
       </div>
@@ -167,12 +168,12 @@ export default function LogsContent() {
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-br from-[#050505] via-[#0A0A0A] to-[#050505] p-6">
+    <div className="h-full overflow-y-auto bg-gradient-to-br from-[var(--background)] via-[var(--background-secondary)] to-[var(--background)] p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold text-white mb-1 flex items-center gap-3">
-            <Activity className="w-8 h-8 text-[#C5A059]" />
+            <Activity className="w-8 h-8 text-[var(--gold)]" />
             Logs de Atividade
           </h1>
           <p className="text-gray-400">
@@ -183,7 +184,7 @@ export default function LogsContent() {
         <button
           onClick={fetchLogs}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-[#C5A059] hover:bg-[#d4b469] text-black font-semibold rounded-lg transition-all disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black font-semibold rounded-lg transition-all disabled:opacity-50"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
           Atualizar
@@ -193,7 +194,7 @@ export default function LogsContent() {
       {/* Filtros */}
       <div className="bg-white/5 border border-white/10 rounded-xl p-6 mb-6">
         <div className="flex items-center gap-2 mb-4">
-          <Filter className="w-5 h-5 text-[#C5A059]" />
+          <Filter className="w-5 h-5 text-[var(--gold)]" />
           <h3 className="text-lg font-semibold text-white">Filtros</h3>
         </div>
 
@@ -206,28 +207,28 @@ export default function LogsContent() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Pesquisar..."
-              className="w-full bg-black/30 border border-white/10 pl-10 pr-4 py-2 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#C5A059]"
+              className="w-full bg-black/30 border border-white/10 pl-10 pr-4 py-2 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[var(--gold)]"
             />
           </div>
 
           {/* Tipo de Ação */}
-          <select
+          <Seleccao
             value={filters.action_type}
             onChange={(e) => setFilters({ ...filters, action_type: e.target.value })}
-            className="bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+            className="bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
           >
             <option value="all">Todas as Ações</option>
             <option value="create">Criar</option>
             <option value="update">Atualizar</option>
             <option value="delete">Eliminar</option>
             <option value="approve">Aprovar</option>
-          </select>
+          </Seleccao>
 
           {/* Tipo de Entidade */}
-          <select
+          <Seleccao
             value={filters.entity_type}
             onChange={(e) => setFilters({ ...filters, entity_type: e.target.value })}
-            className="bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+            className="bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
           >
             <option value="all">Todas as Entidades</option>
             <option value="cavalo">Cavalos</option>
@@ -236,13 +237,13 @@ export default function LogsContent() {
             <option value="contact">Contactos</option>
             <option value="coudelaria">Coudelarias</option>
             <option value="profissional">Profissionais</option>
-          </select>
+          </Seleccao>
 
           {/* Admin */}
-          <select
+          <Seleccao
             value={filters.admin_email}
             onChange={(e) => setFilters({ ...filters, admin_email: e.target.value })}
-            className="bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+            className="bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
           >
             <option value="all">Todos os Admins</option>
             {availableAdmins.map((admin) => (
@@ -250,14 +251,14 @@ export default function LogsContent() {
                 {admin}
               </option>
             ))}
-          </select>
+          </Seleccao>
         </div>
       </div>
 
       {/* Timeline */}
       <div className="relative">
         {/* Linha vertical da timeline */}
-        <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#C5A059] via-[#C5A059]/50 to-transparent"></div>
+        <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[var(--gold)] via-[var(--gold)]/50 to-transparent"></div>
 
         {/* Logs */}
         <div className="space-y-6">
@@ -305,7 +306,7 @@ export default function LogsContent() {
                   {log.entity_id && (
                     <div className="text-sm text-gray-400 mb-2">
                       ID:{" "}
-                      <code className="bg-black/30 px-2 py-1 rounded text-[#C5A059]">
+                      <code className="bg-black/30 px-2 py-1 rounded text-[var(--gold)]">
                         {log.entity_id}
                       </code>
                     </div>

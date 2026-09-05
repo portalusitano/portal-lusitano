@@ -1,1602 +1,946 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
-import dynamic from "next/dynamic";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import LocalizedLink from "@/components/LocalizedLink";
-import { useLanguage } from "@/context/LanguageContext";
-import { createTranslator } from "@/lib/tr";
-import TextSplit from "@/components/TextSplit";
-import RevealOnScroll from "@/components/ui/RevealOnScroll";
+import { useMaquinaDeEscrever } from "@/components/ui/useMaquinaDeEscrever";
+import Revelar from "@/components/Revelar";
+import PainelEscrito from "@/components/ui/PainelEscrito";
+import GrelhaHolofote from "@/components/ui/GrelhaHolofote";
+import { usePassoVivo } from "@/components/ui/usePassoVivo";
+import { ImageIcon, Search } from "lucide-react";
+import type { SellerListing } from "@/lib/marketplace-listings";
 
-// Dynamic imports for below-fold interactive components — reduces initial JS bundle
-const MagneticButton = dynamic(() => import("@/components/ui/MagneticButton"));
-const ParallaxSection = dynamic(() => import("@/components/ui/ParallaxSection"));
-import {
-  ShoppingCart,
-  Crown,
-  Calculator,
-  BookOpen,
-  Gift,
-  Newspaper,
-  ArrowRight,
-  MapPin,
-  Trophy,
-  Shield,
-  ChevronDown,
-  Sparkles,
-  Star,
-  Heart,
-  Check,
-  CheckCircle,
-  Zap,
-  Euro,
-  ShoppingBag,
-  Package,
-} from "lucide-react";
-import type { ProductListing } from "@/types/product";
-
-export interface HomeProfissional {
-  id: string;
-  nome: string;
-  especialidade: string;
-  categoria: string;
-  localizacao: string;
-  avaliacao: number;
-  numAvaliacoes: number;
-  fotoUrl?: string | null;
-  nivelVerificacao: string;
-  destaque?: boolean;
-  slug?: string;
+interface Props {
+  destaques: SellerListing[];
+  recentes: SellerListing[];
+  totalAtivos: number;
 }
 
-// StickyCTA — componente isolado para o CTA mobile que aparece após scroll.
-// Separado do HomeContent para que o scroll state não force re-render de toda a página.
-function StickyCTA({ featuredProductHandle }: { featuredProductHandle?: string | null }) {
-  const { language } = useLanguage();
-  const tr = useMemo(() => createTranslator(language), [language]);
-  const [show, setShow] = useState(false);
+/**
+ * Coudelarias históricas, escritas cada uma à sua maneira.
+ *
+ * São nomes, não logótipos: um muro de imagens obrigava a ter ficheiros de
+ * marca que não temos e que cada coudelaria teria de autorizar. Composto em
+ * texto, o muro lê-se igual e não pede nada a ninguém.
+ */
+/** O que se escreve mesmo num campo destes: um nome, uma linhagem, uma raça. */
+const EXEMPLOS_DE_BUSCA = [
+  "Coudelaria Veiga",
+  "Linhagem Andrade",
+  "Éguas de ventre",
+  "Equitação de trabalho",
+  "Poldros até 3 anos",
+];
 
-  useEffect(() => {
-    let rafId = 0;
-    const onScroll = () => {
-      cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => setShow(window.scrollY > 380));
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(rafId);
-    };
-  }, []);
+const COUDELARIAS = [
+  { nome: "Coudelaria do Vale", classe: "font-medium tracking-wide" },
+  { nome: "Herdade da Ribeira", classe: "font-semibold tracking-tight" },
+  { nome: "Monte Branco", classe: "font-mono uppercase tracking-[0.18em] text-base" },
+  { nome: "QUINTA DO FREIXO", classe: "font-normal tracking-[0.12em]" },
+  { nome: "Casal dos Pinheiros", classe: "italic" },
+  { nome: "ALENTEJO SUL", classe: "font-bold tracking-tighter" },
+  { nome: "Torre da Azinheira", classe: "font-medium" },
+  { nome: "Vale do Sorraia", classe: "font-mono tracking-tight text-base" },
+];
 
+function formatarPreco(a: SellerListing): string {
+  if (a.precoSobConsulta || a.preco === null) return "Sob consulta";
+  return new Intl.NumberFormat("pt-PT", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(a.preco);
+}
+
+/**
+ * Cartão de anúncio na homepage.
+ *
+ * Segue a anatomia do `HorseCard` da grelha — fotografia, preço, nome,
+ * metadados — para a homepage e o /comprar se lerem como o mesmo site.
+ * Continua separado porque só aqui há "sob consulta" e "reservado".
+ */
+function CartaoAnuncio({ a, grande = false }: { a: SellerListing; grande?: boolean }) {
   return (
-    <div
-      className={`sm:hidden fixed bottom-16 left-0 right-0 z-30 bg-[var(--background)]/96 backdrop-blur-md border-t border-[var(--border)] px-3 py-2.5 flex gap-2 transition-transform duration-300 ${
-        show ? "translate-y-0" : "translate-y-full"
-      }`}
+    <LocalizedLink
+      href={`/comprar/${a.id}`}
+      className="cartao cartao-interactivo group block overflow-hidden"
     >
-      <LocalizedLink
-        href="/comprar"
-        className="flex-1 flex items-center justify-center py-3 text-[11px] uppercase tracking-[0.1em] font-semibold text-[var(--foreground-secondary)] border border-[var(--border)] active:scale-95 touch-manipulation transition-transform"
-      >
-        {tr("Cavalos", "Horses", "Caballos")}
-      </LocalizedLink>
-      <LocalizedLink
-        href={featuredProductHandle ? `/loja/${featuredProductHandle}` : "/loja"}
-        className="flex-1 flex items-center justify-center gap-1 py-3 text-[11px] uppercase tracking-[0.1em] font-semibold text-[var(--foreground-secondary)] border border-[var(--border)] active:scale-95 touch-manipulation transition-transform"
-      >
-        <ShoppingBag size={11} strokeWidth={2.5} />
-        {tr("Loja", "Shop", "Tienda")}
-      </LocalizedLink>
-      <LocalizedLink
-        href="/vender-cavalo"
-        className="flex-[1.4] flex items-center justify-center gap-1.5 py-3 text-[11px] uppercase tracking-[0.1em] font-bold bg-[var(--gold)] text-black active:scale-95 touch-manipulation transition-transform shadow-[0_0_12px_rgba(197,160,89,0.25)]"
-      >
-        <Euro size={11} strokeWidth={2.5} />
-        {tr("Vender", "Sell", "Vender")}
-      </LocalizedLink>
+      <div className="relative aspect-[4/3] overflow-hidden bg-[var(--background-elevated)]">
+        {a.fotoPrincipal ? (
+          <Image
+            src={a.fotoPrincipal}
+            alt={a.nome}
+            fill
+            sizes={grande ? "(max-width:768px) 50vw, 33vw" : "(max-width:768px) 50vw, 25vw"}
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <ImageIcon size={20} className="text-[var(--foreground-muted)]" />
+          </div>
+        )}
+
+        <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+          {a.destaque && <span className="selo selo-destaque">Destaque</span>}
+          {a.status === "reservado" && (
+            <span className="selo" style={{ background: "#fbbf24", color: "#000" }}>
+              Reservado
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="p-3 space-y-1">
+        <p className={`preco ${grande ? "text-lg" : "text-base"}`}>{formatarPreco(a)}</p>
+        <h3 className="text-sm font-medium text-[var(--foreground)] line-clamp-1 group-hover:text-[var(--foreground-strong)] transition-colors">
+          {a.nome}
+        </h3>
+        <p className="meta line-clamp-1">
+          {[a.idade ? `${a.idade} anos` : null, a.sexo, a.localizacao].filter(Boolean).join(" · ")}
+        </p>
+      </div>
+    </LocalizedLink>
+  );
+}
+
+/** Cartão assinatura: costura de luz no topo e laterais dissolvidas no fundo. */
+function CartaoSeco({ children }: { children: React.ReactNode }) {
+  return (
+    <article className="cartao-seco h-full">
+      <div className="cartao-seco__costura" />
+      <div className="cartao-seco__esbatido" />
+      {children}
+    </article>
+  );
+}
+
+/** Cabeçalho de um preview em HTML dentro de um cartão. */
+function Preview({
+  children,
+  colunas,
+  atraso = 0,
+  duracao,
+  chave,
+  escrever = true,
+}: {
+  children: React.ReactNode;
+  colunas: string;
+  atraso?: number;
+  duracao?: number;
+  chave?: string | number;
+  /** Falso nas tabelas: aí quem se escreve é cada linha, no seu tempo. */
+  escrever?: boolean;
+}) {
+  return (
+    <div className="relative z-10 h-[280px] overflow-hidden rounded-t-[24px] px-5 pt-5">
+      {/* Esbate o preview para o fundo em vez de o cortar a direito. */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-40 bg-gradient-to-t from-[var(--background)] to-transparent" />
+      <div className="w-full overflow-hidden" style={{ ["--cols" as string]: colunas }}>
+        {escrever ? (
+          <PainelEscrito atraso={atraso} duracao={duracao} chave={chave}>
+            {children}
+          </PainelEscrito>
+        ) : (
+          children
+        )}
+      </div>
     </div>
   );
 }
 
-export default function HomeContent({
-  featuredProduct,
-  profissionais = [],
+function CorpoCartao({
+  titulo,
+  texto,
+  etiquetas,
 }: {
-  featuredProduct?: ProductListing | null;
-  profissionais?: HomeProfissional[];
+  titulo: string;
+  texto: string;
+  etiquetas: string[];
 }) {
-  const { language, t } = useLanguage();
-  // createTranslator returns a pure function of language — memoize it so
-  // the same reference is reused across renders when language is unchanged.
-  const tr = useMemo(() => createTranslator(language), [language]);
-
-  // Memoize all static data arrays so they are not recreated on every render.
-  // These only need to change when `language` changes (tr/t depend on it).
-  const pillars = useMemo(
-    () => [
-      {
-        icon: BookOpen,
-        title: tr("Conhecimento", "Knowledge", "Conocimiento"),
-        desc: tr(
-          "Arquivo editorial com investigação sobre a raça",
-          "Editorial archive with research about the breed",
-          "Archivo editorial con investigación sobre la raza"
-        ),
-      },
-      {
-        icon: Shield,
-        title: tr("Verificação", "Verification", "Verificación"),
-        desc: tr(
-          "Dados verificados e fontes credíveis",
-          "Verified data and credible sources",
-          "Datos verificados y fuentes creíbles"
-        ),
-      },
-      {
-        icon: Crown,
-        title: tr("Tradição", "Tradition", "Tradición"),
-        desc: tr(
-          "Herança equestre portuguesa de excelência",
-          "Portuguese equestrian heritage of excellence",
-          "Herencia ecuestre portuguesa de excelencia"
-        ),
-      },
-      {
-        icon: Gift,
-        title: tr("Comunidade", "Community", "Comunidad"),
-        desc: tr(
-          "Uma rede de cavaleiros, criadores e entusiastas",
-          "A network of riders, breeders and enthusiasts",
-          "Una red de jinetes, criadores y entusiastas"
-        ),
-      },
-    ],
-    [tr]
+  return (
+    <div className="relative z-10 flex flex-col gap-4 px-5 pb-8 md:px-8">
+      <h3 className="text-[1.5rem] font-normal leading-tight tracking-tight text-[var(--foreground)]">
+        {titulo}
+      </h3>
+      <p className="text-sm leading-relaxed text-[var(--foreground-secondary)]">{texto}</p>
+      <div className="flex flex-wrap items-center gap-2 pt-1">
+        {etiquetas.map((e) => (
+          <span
+            key={e}
+            className="rounded-md border px-2 py-1 text-[11px] text-[var(--foreground-muted)]"
+            style={{ borderColor: "var(--border-soft)" }}
+          >
+            {e}
+          </span>
+        ))}
+      </div>
+    </div>
   );
+}
 
-  const testimonials = useMemo(
-    () => [
-      {
-        quote: tr(
-          "O Portal Lusitano ajudou-me a encontrar o garanhão perfeito para a minha coudelaria. Processo simples e seguro.",
-          "Portal Lusitano helped me find the perfect stallion for my stud farm. Simple and secure process.",
-          "Portal Lusitano me ayudó a encontrar el semental perfecto para mi haras. Proceso simple y seguro."
-        ),
-        name: tr("João Ribeiro", "João Ribeiro", "João Ribeiro"),
-        role: tr(
-          "Criador, Coudelaria Vale do Tejo",
-          "Breeder, Vale do Tejo Stud Farm",
-          "Criador, Haras Vale do Tejo"
-        ),
-      },
-      {
-        quote: tr(
-          "As ferramentas Pro são indispensáveis. A calculadora de valor poupou-me horas de pesquisa de mercado.",
-          "The Pro tools are indispensable. The value calculator saved me hours of market research.",
-          "Las herramientas Pro son indispensables. La calculadora de valor me ahorró horas de investigación."
-        ),
-        name: tr("Ana Santos", "Ana Santos", "Ana Santos"),
-        role: tr("Veterinária Equina", "Equine Veterinarian", "Veterinaria Equina"),
-      },
-      {
-        quote: tr(
-          "Vendi o meu Lusitano em menos de duas semanas. Os compradores qualificados fazem toda a diferença.",
-          "I sold my Lusitano in less than two weeks. The qualified buyers make all the difference.",
-          "Vendí mi Lusitano en menos de dos semanas. Los compradores calificados marcan la diferencia."
-        ),
-        name: tr("Miguel Costa", "Miguel Costa", "Miguel Costa"),
-        role: tr("Proprietário, Alentejo", "Owner, Alentejo", "Propietario, Alentejo"),
-      },
-    ],
-    [tr]
-  );
+/* ── Os painéis vivos ──────────────────────────────────────────────────────
+   Os três previews não mostram sempre a mesma coisa: rodam entre conjuntos
+   e reescrevem-se a cada mudança. É o terceiro ciclo infinito do site — os
+   outros dois são o ponto verde da contagem e o muro de coudelarias — e a
+   razão escrita é esta: aqui o que se mexe é o conteúdo, não um adorno. Um
+   painel que mostra sempre as mesmas cinco linhas parece uma captura de
+   ecrã; a rodar, lê-se como o produto a funcionar. Pára fora do ecrã, pára
+   com o separador escondido e não arranca com `prefers-reduced-motion`. */
 
-  const tickerItems = useMemo(
-    () => [
-      "● " + tr("23 compradores activos", "23 active buyers", "23 compradores activos"),
-      tr("Última transação há 4h", "Last sale 4h ago", "Última transacción hace 4h"),
-      tr("16 novos anúncios esta semana", "16 new listings this week", "16 nuevos anuncios esta semana"),
-      tr("Procura: Garanhões 5–8 anos", "Demand: Stallions 5–8 yrs", "Demanda: Sementales 5–8 años"),
-      tr("97 cavalos disponíveis", "97 horses available", "97 caballos disponibles"),
-      "● " + tr("Mercado activo", "Market active", "Mercado activo"),
+const ANUNCIOS: string[][][] = [
+  [
+    ["Ícaro do Vale", "Vale", "6 anos", "Activo"],
+    ["Nobreza da Ribeira", "Ribeira", "4 anos", "Activo"],
+    ["Quixote MB", "M. Branco", "9 anos", "Reservado"],
+    ["Zambujeiro do Freixo", "Freixo", "3 anos", "Activo"],
+    ["Duquesa dos Pinheiros", "Pinheiros", "11 anos", "Vendido"],
+  ],
+  [
+    ["Bailarina de Alter", "Alter", "5 anos", "Activo"],
+    ["Sultão da Coudelaria", "Veiga", "8 anos", "Activo"],
+    ["Miragem do Tejo", "Tejo", "2 anos", "Activo"],
+    ["Cavaleiro de Évora", "Évora", "7 anos", "Reservado"],
+    ["Estrela da Golegã", "Golegã", "10 anos", "Vendido"],
+  ],
+  [
+    ["Firmamento MV", "M. Veiga", "4 anos", "Activo"],
+    ["Aurora do Sorraia", "Sorraia", "6 anos", "Activo"],
+    ["Trovador da Chamusca", "Chamusca", "9 anos", "Activo"],
+    ["Infanta de Arraiolos", "Arraiolos", "3 anos", "Reservado"],
+    ["Barroco do Ribatejo", "Ribatejo", "12 anos", "Vendido"],
+  ],
+  [
+    ["Vaidoso de Alpiarça", "Alpiarça", "7 anos", "Activo"],
+    ["Princesa do Sado", "Sado", "5 anos", "Activo"],
+    ["Guerreiro da Azinhaga", "Azinhaga", "10 anos", "Reservado"],
+    ["Alegria de Estremoz", "Estremoz", "2 anos", "Activo"],
+    ["Marquês do Couço", "Couço", "13 anos", "Vendido"],
+  ],
+  [
+    ["Sereno da Coruche", "Coruche", "6 anos", "Activo"],
+    ["Fidalga de Monforte", "Monforte", "4 anos", "Activo"],
+    ["Corisco do Tejo", "Tejo", "8 anos", "Activo"],
+    ["Donaire de Beja", "Beja", "3 anos", "Reservado"],
+    ["Ilustre da Chamusca", "Chamusca", "14 anos", "Vendido"],
+  ],
+];
+
+type Mensagem = {
+  de: string;
+  texto: string;
+  cavalo: string;
+  orcamento: string;
+  disciplina: string;
+};
+
+const MENSAGENS: Mensagem[] = [
+  {
+    de: "Ana Ferreira · Sevilha",
+    cavalo: "Ícaro do Vale",
+    texto: "Procuro cavalo para equitação de trabalho, nível médio.",
+    orcamento: "15–25 k€",
+    disciplina: "Trabalho",
+  },
+  {
+    de: "Pieter de Vries · Utreque",
+    cavalo: "Bailarina de Alter",
+    texto: "Égua para dressage, com provas feitas. Posso ver esta semana?",
+    orcamento: "30–45 k€",
+    disciplina: "Dressage",
+  },
+  {
+    de: "Marta Ribeiro · Golegã",
+    cavalo: "Firmamento MV",
+    texto: "Poldro para criação, linhagem Veiga. Tem radiografias?",
+    orcamento: "8–14 k€",
+    disciplina: "Criação",
+  },
+  {
+    de: "Sofia Marques · Cascais",
+    cavalo: "Princesa do Sado",
+    texto: "Primeira compra. Procuro um cavalo calmo, para passeio.",
+    orcamento: "6–10 k€",
+    disciplina: "Passeio",
+  },
+  {
+    de: "Klaus Berger · Munique",
+    cavalo: "Corisco do Tejo",
+    texto: "Atrelagem a pares. Preciso de dois com a mesma capa.",
+    orcamento: "20–35 k€",
+    disciplina: "Atrelagem",
+  },
+];
+
+const PEDIGREES: [string, string, string, boolean][][] = [
+  [
+    ["Pai — Vencedor MB", "Veiga", "Ouro", true],
+    ["Mãe — Aurora do Vale", "Andrade", "Prata", true],
+    ["Avô paterno — Falcão", "Veiga", "Ouro", false],
+    ["Avó paterna — Nau", "Veiga", "—", false],
+    ["Avô materno — Zambujeiro", "Andrade", "Prata", false],
+  ],
+  [
+    ["Pai — Nicolau XII", "Alter Real", "Ouro", true],
+    ["Mãe — Bailarina", "Veiga", "Ouro", true],
+    ["Avô paterno — Regedor", "Alter Real", "Prata", false],
+    ["Avó paterna — Fidalga", "Alter Real", "—", false],
+    ["Avô materno — Ídolo", "Veiga", "Ouro", false],
+  ],
+  [
+    ["Pai — Trovador", "Andrade", "Prata", true],
+    ["Mãe — Infanta do Tejo", "Coimbra", "Ouro", true],
+    ["Avô paterno — Batuque", "Andrade", "—", false],
+    ["Avó paterna — Serena", "Andrade", "Prata", false],
+    ["Avô materno — Cartucho", "Coimbra", "Ouro", false],
+  ],
+  [
+    ["Pai — Corisco", "Veiga", "Ouro", true],
+    ["Mãe — Donaire", "Alter Real", "Prata", true],
+    ["Avô paterno — Novilheiro", "Veiga", "Ouro", false],
+    ["Avó paterna — Garbosa", "Veiga", "Prata", false],
+    ["Avô materno — Legionário", "Alter Real", "—", false],
+  ],
+  [
+    ["Pai — Marquês", "Coimbra", "Prata", true],
+    ["Mãe — Alegria", "Andrade", "Ouro", true],
+    ["Avô paterno — Vaidoso", "Coimbra", "Ouro", false],
+    ["Avó paterna — Formosa", "Coimbra", "—", false],
+    ["Avô materno — Sereno", "Andrade", "Prata", false],
+  ],
+];
+
+/* ── «Publique com confiança» ──────────────────────────────────────────────
+   Cada cartão leva um pedaço de interface a 10px em vez de ficar só com
+   texto: é a terceira receita do sistema — previews em HTML, nunca capturas
+   de ecrã. Pesam zero, ficam nítidos em qualquer ecrã, e cada um conta em
+   movimento aquilo que a frase diz por palavras. Compõem-se uma vez, quando
+   o cartão entra no ecrã. */
+
+/* Cada cartão leva um pedaço de interface a 11px que se escreve sozinho e
+   vai mudando — a mesma ideia dos três previews lá de cima, à escala de um
+   cartão. As barras abstractas que aqui estavam eram bonitas e não diziam
+   nada; isto diz o que a frase do cartão promete, com números a sério. */
+
+type Cartao = {
+  t: string;
+  d: string;
+  /** Cinco estados possíveis; cada cartão anda no seu tempo. */
+  estados: { texto: string; forte?: string }[];
+  acento?: React.ReactNode;
+};
+
+const CONFIANCA: Cartao[] = [
+  {
+    t: "Anúncios moderados",
+    d: "Cada anúncio é aprovado antes de ficar visível, e qualquer pessoa pode denunciar o que estiver errado.",
+    estados: [
+      { texto: "Ícaro do Vale", forte: "aprovado" },
+      { texto: "Nobreza da Ribeira", forte: "em revisão" },
+      { texto: "Quixote MB", forte: "aprovado" },
+      { texto: "Sultão da Coudelaria", forte: "denunciado" },
+      { texto: "Aurora do Sorraia", forte: "aprovado" },
     ],
-    [tr]
-  );
+  },
+  {
+    t: "Mensagens no portal",
+    d: "Fale com o vendedor sem publicar o seu número. O contacto só é partilhado se quiser.",
+    estados: [
+      { texto: "Ana Ferreira · Sevilha", forte: "por ler" },
+      { texto: "Pieter de Vries · Utreque", forte: "respondida" },
+      { texto: "Marta Ribeiro · Golegã", forte: "por ler" },
+      { texto: "Klaus Berger · Munique", forte: "respondida" },
+      { texto: "Sofia Marques · Cascais", forte: "por ler" },
+    ],
+  },
+  {
+    t: "Alertas de pesquisa",
+    d: "O cavalo certo raramente está à venda hoje. Guarde a pesquisa e avisamos quando aparecer.",
+    estados: [
+      { texto: "égua · Alentejo · até 20 k€", forte: "1 novo" },
+      { texto: "poldro · Veiga · 2 a 4 anos", forte: "3 novos" },
+      { texto: "dressage · nível médio", forte: "2 novos" },
+      { texto: "atrelagem · pares", forte: "1 novo" },
+      { texto: "castanho · até 15 k€", forte: "4 novos" },
+    ],
+  },
+  {
+    t: "Prazo que conta",
+    d: "O anúncio pago tem fim, e o vendedor é avisado antes. Nada fica na montra depois de acabar.",
+    estados: [
+      { texto: "Ícaro do Vale", forte: "faltam 12 dias" },
+      { texto: "Bailarina de Alter", forte: "faltam 5 dias" },
+      { texto: "Corisco do Tejo", forte: "acaba amanhã" },
+      { texto: "Firmamento MV", forte: "faltam 28 dias" },
+      { texto: "Sereno da Coruche", forte: "faltam 3 dias" },
+    ],
+  },
+  {
+    t: "Anúncio em minutos",
+    d: "Formulário curto, fotografias direct do telemóvel, publicação assim que for validado.",
+    estados: [
+      { texto: "identificação · linhagem", forte: "2 de 4" },
+      { texto: "fotografias · 6 carregadas", forte: "3 de 4" },
+      { texto: "preço e apresentação", forte: "4 de 4" },
+      { texto: "em validação", forte: "quase" },
+      { texto: "publicado", forte: "pronto" },
+    ],
+  },
+  {
+    t: "Sabe o que resultou",
+    d: "Visualizações e mensagens por anúncio. Percebe que cavalo interessa a quem.",
+    estados: [
+      { texto: "142 visualizações", forte: "7 mensagens" },
+      { texto: "89 visualizações", forte: "3 mensagens" },
+      { texto: "310 visualizações", forte: "16 mensagens" },
+      { texto: "57 visualizações", forte: "1 mensagem" },
+      { texto: "204 visualizações", forte: "9 mensagens" },
+    ],
+  },
+];
+
+export default function HomeContent({ destaques, recentes, totalAtivos }: Props) {
+  const router = useRouter();
+  const [termo, setTermo] = useState("");
+  const [campoActivo, setCampoActivo] = useState(false);
+
+  // A máquina pára mal alguém toque no campo — texto a mexer por baixo do que
+  // se está a escrever é ruído, não é adorno.
+  const aEscrever = useMaquinaDeEscrever(EXEMPLOS_DE_BUSCA, {
+    parado: campoActivo || termo.length > 0,
+  });
+
+  /* O campo de pesquisa é **não controlado**, de propósito.
+     Controlado (`value={termo}`), quem escrevesse antes de a hidratação
+     acontecer via o texto desaparecer-lhe à frente: o React repõe o `value`
+     das props ao pegar no campo, e o termo ia com ele. A submissão seguia
+     para o marketplace sem filtro nenhum e sem sinal do que se perdera. Em
+     WebKit isto acontecia com facilidade suficiente para falhar no CI.
+     Agora quem manda é o campo; o estado só serve para saber se a máquina
+     de escrever se deve calar. */
+  const campo = useRef<HTMLInputElement>(null);
+
+  // E se alguém escreveu antes de nós chegarmos, adoptamos o que lá está.
+  useEffect(() => {
+    const jaEscrito = campo.current?.value ?? "";
+    if (!jaEscrito) return;
+    const id = setTimeout(() => setTermo(jaEscrito), 0);
+    return () => clearTimeout(id);
+  }, []);
+
+  const pesquisar = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = (campo.current?.value ?? termo).trim();
+    router.push(q ? `/comprar?search=${encodeURIComponent(q)}` : "/comprar");
+  };
+
+  const semAnuncios = destaques.length === 0 && recentes.length === 0;
+  const grelhaCols = "1fr 96px 74px 62px";
+
+  /* Quem muda é **cada linha**, não o painel inteiro.
+     Escrever o painel todo de uma vez e depois segurar é sempre pausado:
+     por muito que se apertem os tempos, fica um bloco a compor-se e um
+     silêncio a seguir. Assim cada linha tem o seu relógio, desencontrado
+     do das vizinhas — de 4 em 4 segundos, mas cada uma no seu tempo —, de
+     modo que a cada 800ms há uma a escrever-se algures. E como as linhas
+     se combinam livremente, a tabela que se vê nunca é a mesma duas vezes:
+     cinco variantes por linha dão 3125 tabelas diferentes, não cinco. */
+  const { passo, alvo: painelVivo } = usePassoVivo(800);
+
+  /** A variante da linha `k`, no relógio próprio dessa linha. */
+  const variante = <T,>(conjuntos: T[][], k: number): T =>
+    conjuntos[(Math.floor((passo + k) / 5) + k) % conjuntos.length][k];
+
+  const anuncios = [0, 1, 2, 3, 4].map((k) => variante(ANUNCIOS, k));
+  const pedigree = [0, 1, 2, 3, 4].map((k) => variante(PEDIGREES, k));
+  const mensagem = MENSAGENS[Math.floor(passo / 4) % MENSAGENS.length];
+
+  /* A grelha «Publique com confiança» tem o seu relógio: fica noutra parte
+     da página e não faz sentido andar ao ritmo de painéis que já saíram do
+     ecrã. Mesma regra — cada cartão desencontrado dos vizinhos. */
+  const { passo: passoCartoes, alvo: cartoesVivos } = usePassoVivo(900);
 
   return (
-    <>
-      {/* ===== HERO — Full Screen with Parallax ===== */}
-      <section className="relative min-h-[100svh] sm:min-h-screen flex flex-col items-center justify-center text-center px-4 overflow-hidden noise-overlay">
-        {/* Background Image — art direction via CSS + next/image optimization */}
-        {/* Mobile: portrait hero  |  Desktop (≥1024px): landscape hero  */}
+    <div className="bg-[var(--background)]">
+      {/* ── HERO ─────────────────────────────────────────────────────────── */}
+      {/* Sem fotografia de fundo: o gradiente radial dá profundidade sem
+          disputar atenção com o texto, e não paga o custo de uma imagem
+          grande no caminho crítico. */}
+      <section className="relative overflow-hidden px-4 pt-24 pb-16 sm:px-6 md:pt-36 md:pb-24">
         <div
-          className="absolute inset-0 z-0"
           aria-hidden="true"
-        >
-          {/* Mobile hero (hidden on lg+) */}
-          <Image
-            src="/images/home/mobile/hero.png"
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover lg:hidden"
-            style={{ objectPosition: "center 20%", opacity: 0.65 }}
-          />
-          {/* Desktop hero (hidden below lg) */}
-          <Image
-            src="/images/home/desktop/hero.png"
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover hidden lg:block"
-            style={{ objectPosition: "center 20%", opacity: 0.65 }}
-          />
-        </div>
-
-        {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)] via-[var(--background)]/50 to-black/40 z-[1]" />
-
-        {/* Floating Gold Orbs */}
-        <div
-          className="gradient-orb w-[500px] h-[500px] bg-[var(--gold)] top-1/4 -left-64 z-[1]"
-          aria-hidden="true"
-        />
-        <div
-          className="gradient-orb w-[400px] h-[400px] bg-[var(--gold)] bottom-1/4 -right-48 z-[1]"
-          aria-hidden="true"
-          style={{ animationDelay: "-3s" }}
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage:
+              "radial-gradient(ellipse 60% 50% at 50% 40%, rgba(40,40,40,.75) 0%, rgba(20,20,20,.4) 38%, rgba(0,0,0,1) 100%)",
+          }}
         />
 
-        {/* Content */}
-        <div className="relative z-10 max-w-4xl mx-auto space-y-6 sm:space-y-8">
-          {/* Brand identity — always visible */}
-          <div
-            className="opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
-            style={{ animationDelay: "0.05s" }}
-          >
-            <p className="text-[11px] sm:text-xs uppercase tracking-[0.45em] text-[var(--gold)] font-semibold drop-shadow-md">
-              Portal Lusitano
+        <div className="relative z-10 mx-auto max-w-6xl text-center">
+          <Revelar duracao={600}>
+            <h1 className="titulo-gradiente mx-auto mb-8 flex flex-col gap-2 text-4xl font-normal leading-[100%] tracking-[-0.01em] sm:text-5xl md:mb-12 md:text-[4rem]">
+              <span>O mercado do Lusitano.</span>
+              <span>Num só sítio.</span>
+            </h1>
+          </Revelar>
+
+          <Revelar duracao={600} atraso={100}>
+            <p className="mx-auto mb-10 max-w-xl px-2 text-sm leading-relaxed text-[var(--foreground-secondary)] sm:text-base md:mb-16 md:text-lg">
+              {/* Dizia «Cavalos de criadores verificados». É a primeira frase
+                  do site, e não havia verificação nenhuma por trás dela —
+                  qualquer pessoa que pague publica. A segunda metade da frase
+                  já dizia a verdade («sem intermediários»), e é precisamente
+                  por não haver intermediário que também não há quem verifique:
+                  as duas metades contradiziam-se. Fica o que a página entrega
+                  mesmo. */}
+              Cavalos anunciados directamente por criadores e proprietários, com genealogia,
+              fotografia e contacto directo.
+              <br className="hidden sm:block" /> Sem intermediários, sem comissões.
             </p>
-            <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.3em] sm:tracking-[0.5em] text-[var(--foreground-muted)]/70 mt-1">
-              {t.home.est}
-            </p>
-          </div>
+          </Revelar>
 
-          <h1 className="text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-serif text-[var(--foreground)] leading-[0.9] drop-shadow-lg">
-            <TextSplit text={t.home.title_main} baseDelay={0.15} wordDelay={0.06} />
-          </h1>
-
-          {/* Decorative line */}
-          <div
-            className="w-24 h-[1px] bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent mx-auto opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
-            style={{ animationDelay: "0.3s" }}
-          />
-
-          <p
-            className="text-sm md:text-base font-serif italic text-[var(--foreground)]/80 max-w-lg mx-auto leading-relaxed drop-shadow-md opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
-            style={{ animationDelay: "0.35s" }}
-          >
-            &ldquo;{t.home.hero_text}&rdquo;
-          </p>
-
-          <div
-            className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
-            style={{ animationDelay: "0.45s" }}
-          >
-            {/* Mobile: solid gold primary CTA | Desktop: shimmer border */}
-            <MagneticButton strength={0.2}>
-              <LocalizedLink
-                href="/vender-cavalo"
-                className="ripple-btn inline-flex items-center gap-2 sm:gap-0 bg-[var(--gold)] sm:bg-black/20 text-black sm:text-[var(--foreground)] border border-[var(--gold)] sm:border-[var(--gold)]/30 sm:backdrop-blur-md shimmer-gold px-10 py-4 text-[11px] uppercase tracking-[0.25em] hover:bg-[var(--gold)] hover:text-black transition-[background-color,color] duration-500 font-semibold sm:font-normal w-full sm:w-auto justify-center"
-              >
-                {tr("Vender Cavalo", "Sell a Horse", "Vender Caballo")}
-              </LocalizedLink>
-            </MagneticButton>
-            <MagneticButton strength={0.15}>
-              <LocalizedLink
-                href="/comprar"
-                className="inline-flex items-center justify-center w-full sm:w-auto px-10 py-4 text-[11px] uppercase tracking-[0.25em] text-[var(--foreground-secondary)] border border-[var(--foreground-muted)]/40 sm:border-transparent hover:text-[var(--foreground)] hover:border-[var(--foreground-muted)]/50 transition-[color,border-color] duration-300 line-draw"
-              >
-                {tr("Comprar Cavalo", "Buy a Horse", "Comprar Caballo")} →
-              </LocalizedLink>
-            </MagneticButton>
-          </div>
-        </div>
-
-        {/* Scroll Indicator */}
-        <div
-          className="absolute bottom-28 lg:bottom-10 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 opacity-0 animate-[fadeSlideIn_0.3s_ease-out_forwards]"
-          style={{ animationDelay: "0.6s" }}
-        >
-          <span className="text-[9px] tracking-[0.3em] uppercase text-[var(--foreground-muted)]">
-            {t.home.scroll}
-          </span>
-          <ChevronDown size={14} className="text-[var(--gold)] animate-bounce" />
-        </div>
-      </section>
-
-      {/* ===== CONVERSION HUB ===== */}
-      <section className="bg-[var(--background)]" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-
-        {/* ── [1] ACTIVITY TICKER ─────────────────────────────────────── */}
-        <div
-          className="overflow-hidden"
-          style={{ borderBottom: "1px solid rgba(197,160,89,0.08)", background: "rgba(197,160,89,0.015)" }}
-        >
-          <div
-            className="flex whitespace-nowrap py-2"
-            style={{ animation: "marquee 45s linear infinite" }}
-          >
-            {[0, 1].map((di) => (
-              <div key={di} className="flex shrink-0">
-                {tickerItems.map((item, i) => (
-                  <span
-                    key={i}
-                    className="inline-flex items-center text-[8px] font-mono uppercase tracking-[0.28em] text-[var(--foreground-muted)]/40 px-5 whitespace-nowrap"
-                  >
-                    {item}
-                    <span className="ml-5 text-[var(--gold)]/15 select-none" aria-hidden>·</span>
-                  </span>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── CONVERSION HUB — 3 painéis com identidade clara ──────────── */}
-        <div
-          className="grid grid-cols-1 lg:grid-cols-3"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
-        >
-
-          {/* ══ [A] LOJA ═════════════════════════════════════════════════════ */}
-          {/* bg image: public/images/home/loja/bg.jpg  — OR product image is used as bg */}
-          <LocalizedLink
-            href="/loja"
-            className="group relative flex flex-col order-1 lg:order-1 overflow-hidden bg-[#06060a]"
-            style={{ borderRight: "1px solid rgba(255,255,255,0.06)", minHeight: "400px" }}
-          >
-            {/* Background image — full-bleed, cap centred in upper portion */}
-            <Image
-              src={featuredProduct?.images[0]?.url ?? "/images/home/loja/bg.jpg"}
-              alt=""
-              aria-hidden
-              fill
-              sizes="(min-width: 1024px) 33vw, 100vw"
-              style={{ objectFit: "cover", objectPosition: "center 65%", opacity: 0.72 }}
-            />
-            {/* Dark vignette — only at bottom for text readability */}
-            <div className="absolute inset-0 z-[1] pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(6,6,10,0.08) 0%, rgba(6,6,10,0.32) 50%, rgba(6,6,10,0.88) 100%)" }} aria-hidden />
-
-            {/* Content */}
-            <div className="relative z-[2] flex flex-col h-full">
-              {/* Panel label */}
-              <div
-                className="flex items-center justify-between px-6 py-4 flex-shrink-0"
-                style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}
-              >
-                <div className="flex items-center gap-2.5">
-                  <ShoppingBag size={12} className="text-[var(--gold)]" />
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[var(--foreground-secondary)]">
-                    {tr("Loja", "Shop", "Tienda")}
-                  </span>
+          <Revelar duracao={600} atraso={200}>
+            <form
+              onSubmit={pesquisar}
+              action="/comprar"
+              method="get"
+              className="mx-auto w-full max-w-xl px-2 sm:px-0"
+            >
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <div className="relative flex-1">
+                  <Search
+                    size={16}
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]"
+                  />
+                  <input
+                    ref={campo}
+                    type="search"
+                    name="search"
+                    defaultValue=""
+                    onChange={(e) => setTermo(e.target.value)}
+                    onFocus={() => setCampoActivo(true)}
+                    onBlur={() => setCampoActivo(false)}
+                    // No servidor e antes de o JS arrancar mostra-se a frase
+                    // inteira; a máquina só assume depois de montada. Assim o
+                    // campo nunca aparece vazio nem gera erro de hidratação.
+                    placeholder={
+                      aEscrever === null ? "Linhagem, coudelaria, disciplina ou nome" : aEscrever
+                    }
+                    aria-label="Procurar cavalos"
+                    className="campo h-10 pl-10 text-sm"
+                  />
                 </div>
-                <span
-                  className="text-[7px] font-mono uppercase tracking-[0.3em] px-2 py-1"
-                  style={{ color: "var(--gold)", border: "1px solid rgba(197,160,89,0.22)", background: "rgba(5,5,7,0.55)" }}
-                >
-                  {tr("Nova Colecção", "New Collection", "Nueva Colección")}
-                </span>
+                <button type="submit" className="btn btn-primario h-10 shrink-0 px-6 text-sm">
+                  Procurar
+                </button>
               </div>
+            </form>
+          </Revelar>
 
-              {/* Main content */}
-              <div className="flex-1 flex flex-col justify-center px-7 py-10">
-                <p className="text-[8px] uppercase tracking-[0.55em] text-[var(--gold)]/65 mb-4 font-medium">
-                  {tr("Artesanal · Edição Limitada", "Handcrafted · Limited Edition", "Artesanal · Edición Limitada")}
-                </p>
-                <h2
-                  className="font-serif text-white leading-tight mb-4"
-                  style={{ fontSize: "clamp(2rem, 4.5vw, 3.4rem)" }}
-                >
-                  {tr("Compra na", "Shop the", "Compra en")}
-                  <br />
-                  <span style={{ color: "var(--gold)" }}>{tr("Nossa Loja.", "Our Store.", "Nuestra Tienda.")}</span>
-                </h2>
-                <p className="text-[13px] text-white/55 mb-8 leading-relaxed max-w-[320px]">
-                  {tr(
-                    "Produtos artesanais portugueses. Qualidade premium, edição limitada.",
-                    "Portuguese handcrafted products. Premium quality, limited edition.",
-                    "Productos artesanales portugueses. Calidad premium, edición limitada."
-                  )}
-                </p>
-                <div className="inline-flex items-center gap-3 bg-[var(--gold)] text-black px-7 py-4 text-[10px] uppercase tracking-[0.25em] font-bold group-hover:bg-[var(--gold-hover)] transition-colors duration-200 w-fit shadow-[0_4px_30px_rgba(197,160,89,0.2)]">
-                  {tr("Ver Colecção", "View Collection", "Ver Colección")}
-                  <ArrowRight size={12} aria-hidden />
+          <Revelar duracao={600} atraso={300}>
+            <div className="mb-16 mt-16 md:mb-24 md:mt-24">
+              <p className="mb-10 text-center text-sm text-[var(--foreground-secondary)]">
+                Coudelarias que já publicam no Portal
+              </p>
+              {/* A lista vai duplicada e a pista anda -50%: quando lá chega,
+                  a segunda cópia está exactamente onde a primeira começou e
+                  o salto de volta a zero não se vê. A segunda cópia fica
+                  fora da árvore de acessibilidade, que os nomes já lá estão
+                  uma vez. */}
+              <div className="muro">
+                <div className="muro__pista">
+                  {[0, 1].map((copia) => (
+                    <div
+                      key={copia}
+                      className="flex shrink-0 items-center"
+                      aria-hidden={copia === 1 ? "true" : undefined}
+                    >
+                      {COUDELARIAS.map((c) => (
+                        <LocalizedLink
+                          key={c.nome}
+                          href="/directorio"
+                          tabIndex={copia === 1 ? -1 : undefined}
+                          className="group flex h-16 shrink-0 items-center justify-center px-6 md:px-9"
+                        >
+                          <span
+                            className={`whitespace-nowrap text-lg text-[var(--foreground)]/90 transition-colors duration-300 group-hover:text-[var(--foreground-strong)] ${c.classe}`}
+                          >
+                            {c.nome}
+                          </span>
+                        </LocalizedLink>
+                      ))}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
-          </LocalizedLink>
+          </Revelar>
 
-          {/* ══ [B] MARKETPLACE — Vender Cavalo ════════════════════════════ */}
-          {/* bg image: public/images/home/marketplace/bg.jpg (900×700px recomendado) */}
-          <div
-            className="relative flex flex-col order-2 lg:order-2 overflow-hidden bg-[#06060a]"
-            style={{ borderRight: "1px solid rgba(255,255,255,0.06)", minHeight: "400px" }}
-          >
-            {/* Background image */}
-            <Image
-              src="/images/home/marketplace/bg.jpg"
-              alt=""
-              aria-hidden
-              fill
-              sizes="(min-width: 1024px) 33vw, 100vw"
-              style={{ objectFit: "cover", objectPosition: "center", opacity: 0.72 }}
-            />
-            {/* Dark vignette — only at bottom for text readability */}
-            <div className="absolute inset-0 z-[1] pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(6,6,10,0.08) 0%, rgba(6,6,10,0.32) 50%, rgba(6,6,10,0.88) 100%)" }} aria-hidden />
-
-            {/* Content */}
-            <div className="relative z-[2] flex flex-col h-full">
-              {/* Panel label */}
-              <div
-                className="flex items-center justify-between px-6 py-4 flex-shrink-0"
-                style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Crown size={12} className="text-[var(--gold)]" />
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[var(--foreground-secondary)]">
-                    Marketplace
-                  </span>
-                </div>
-                <span className="flex items-center gap-1.5 text-[7px] font-mono uppercase tracking-[0.25em]" style={{ color: "#ef4444" }}>
-                  <span
-                    className="w-[5px] h-[5px] rounded-full flex-shrink-0"
-                    style={{ background: "#ef4444", animation: "pulse-scale 2s ease-in-out infinite" }}
-                    aria-hidden
-                  />
-                  {tr("Activo", "Live", "Activo")}
-                </span>
-              </div>
-
-              {/* Main content */}
-              <div className="flex-1 flex flex-col justify-center px-7 py-10">
-                <p className="text-[8px] uppercase tracking-[0.55em] text-[var(--gold)]/65 mb-4 font-medium">
-                  {tr("Vender o seu Cavalo", "Sell Your Horse", "Vender su Caballo")}
-                </p>
-                <h2
-                  className="font-serif text-white leading-tight mb-4"
-                  style={{ fontSize: "clamp(2rem, 4.5vw, 3.4rem)" }}
-                >
-                  {tr("Vende o teu", "Sell your", "Vende tu")}
-                  <br />
-                  <span style={{ color: "var(--gold)" }}>{tr("Cavalo.", "Horse.", "Caballo.")}</span>
-                </h2>
-                <p className="text-[13px] text-white/55 mb-8 leading-relaxed max-w-[320px]">
-                  {tr(
-                    "Sem comissão. Compradores verificados. Publicado em menos de 5 minutos.",
-                    "No commission. Verified buyers. Live in under 5 minutes.",
-                    "Sin comisión. Compradores verificados. Publicado en menos de 5 minutos."
-                  )}
-                </p>
+          {totalAtivos > 0 && (
+            <Revelar duracao={600} atraso={400}>
+              <div className="flex justify-center">
                 <LocalizedLink
-                  href="/vender-cavalo"
-                  className="inline-flex items-center gap-3 bg-[var(--gold)] text-black px-7 py-4 text-[10px] uppercase tracking-[0.25em] font-bold hover:bg-[var(--gold-hover)] transition-colors duration-200 w-fit shadow-[0_4px_30px_rgba(197,160,89,0.2)]"
+                  href="/comprar"
+                  className="botao-vidro group inline-flex items-center gap-2.5 rounded-full px-5 py-2.5 text-sm font-medium text-[var(--foreground-strong)]"
                 >
-                  {tr("Anunciar Agora", "List Now", "Anunciar Ahora")}
-                  <ArrowRight size={12} aria-hidden />
+                  <span className="relative flex h-2 w-2">
+                    <span
+                      className="anim-pulsar absolute inline-flex h-full w-full rounded-full opacity-75"
+                      style={{ background: "var(--ok)" }}
+                    />
+                    <span
+                      className="relative inline-flex h-2 w-2 rounded-full"
+                      style={{ background: "var(--ok)" }}
+                    />
+                  </span>
+                  {totalAtivos} {totalAtivos === 1 ? "cavalo à venda" : "cavalos à venda"}
+                  <span className="text-[var(--foreground-secondary)] transition-transform duration-200 group-hover:translate-x-0.5">
+                    →
+                  </span>
                 </LocalizedLink>
               </div>
-            </div>
-          </div>
-
-          {/* ══ [C] FERRAMENTAS ══════════════════════════════════════════════ */}
-          {/* bg image: public/images/home/ferramentas/bg.jpg (900×700px recomendado) */}
-          <LocalizedLink
-            href="/ferramentas"
-            className="group relative flex flex-col order-3 overflow-hidden bg-[#06060a]"
-            style={{ minHeight: "400px" }}
-          >
-            {/* Background image */}
-            <Image
-              src="/images/home/ferramentas/bg.jpg"
-              alt=""
-              aria-hidden
-              fill
-              sizes="(min-width: 1024px) 33vw, 100vw"
-              style={{ objectFit: "cover", objectPosition: "center", opacity: 0.72 }}
-            />
-            {/* Dark vignette — only at bottom for text readability */}
-            <div className="absolute inset-0 z-[1] pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(6,6,10,0.08) 0%, rgba(6,6,10,0.32) 50%, rgba(6,6,10,0.88) 100%)" }} aria-hidden />
-
-            {/* Content */}
-            <div className="relative z-[2] flex flex-col h-full">
-              {/* Panel label */}
-              <div
-                className="flex items-center justify-between px-6 py-4 flex-shrink-0"
-                style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Zap size={12} className="text-[var(--gold)]" />
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[var(--foreground-secondary)]">
-                    {tr("Ferramentas", "Tools", "Herramientas")}
-                  </span>
-                </div>
-                <span
-                  className="text-[7px] font-mono uppercase tracking-[0.3em] px-2 py-1"
-                  style={{ color: "#22c55e", border: "1px solid rgba(34,197,94,0.25)", background: "rgba(34,197,94,0.06)" }}
-                >
-                  Pro
-                </span>
-              </div>
-
-              {/* Main content */}
-              <div className="flex-1 flex flex-col justify-center px-7 py-10">
-                <p className="text-[8px] uppercase tracking-[0.55em] text-[var(--gold)]/65 mb-4 font-medium">
-                  {tr("Ferramentas Premium", "Premium Tools", "Herramientas Premium")}
-                </p>
-                <h3
-                  className="font-serif text-white leading-tight mb-4"
-                  style={{ fontSize: "clamp(1.8rem, 4vw, 3rem)" }}
-                >
-                  {tr("Decisões mais", "Make smarter", "Decisiones más")}
-                  <br />
-                  <span style={{ color: "var(--gold)" }}>{tr("inteligentes.", "decisions.", "inteligentes.")}</span>
-                </h3>
-                <p className="text-[13px] text-white/55 mb-8 leading-relaxed max-w-[320px]">
-                  {tr(
-                    "Calculadora de valor · Comparador · Análise de perfil.",
-                    "Value calculator · Comparator · Profile analysis.",
-                    "Calculadora de valor · Comparador · Análisis de perfil."
-                  )}
-                </p>
-                <div className="inline-flex items-center gap-3 border border-[var(--gold)]/50 text-[var(--gold)] px-7 py-4 text-[10px] uppercase tracking-[0.25em] font-bold group-hover:bg-[var(--gold)] group-hover:text-black group-hover:border-[var(--gold)] transition-[background-color,color,border-color] duration-300 w-fit">
-                  {tr("Explorar Ferramentas", "Explore Tools", "Explorar Herramientas")}
-                  <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform duration-300" aria-hidden />
-                </div>
-              </div>
-            </div>
-          </LocalizedLink>
-        </div>
-
-        {/* ── QUICK LINKS STRIP ─────────────────────────────────────────── */}
-        <div
-          className="grid grid-cols-4 gap-px"
-          style={{ background: "rgba(197,160,89,0.07)" }}
-        >
-          {[
-            { href: "/comprar",      icon: ShoppingCart, label: tr("Cavalos",     "Horses",  "Caballos"),      count: "97" },
-            { href: "/directorio",   icon: Crown,        label: tr("Coudelarias", "Studs",   "Haras"),         count: "52" },
-            { href: "/jornal",       icon: Newspaper,    label: tr("Jornal",      "Journal", "Revista"),       count: "34" },
-            { href: "/ebook-gratis", icon: Gift,         label: tr("Ebook",       "Ebook",   "Ebook"),         count: tr("Grátis", "Free", "Gratis") },
-          ].map((item) => (
-            <LocalizedLink
-              key={item.href}
-              href={item.href}
-              className="group flex items-center justify-between px-3 sm:px-5 py-3.5 bg-[var(--background)] hover:bg-[var(--gold)]/[0.04] active:bg-[var(--gold)]/[0.07] transition-colors duration-200 touch-manipulation"
-            >
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <item.icon size={11} strokeWidth={1.5} className="text-[var(--foreground-muted)] group-hover:text-[var(--gold)] transition-colors duration-200 flex-shrink-0" />
-                <span className="text-[7px] sm:text-[8px] uppercase tracking-[0.18em] sm:tracking-[0.22em] text-[var(--foreground-muted)] group-hover:text-[var(--foreground-secondary)] transition-colors duration-200">
-                  {item.label}
-                </span>
-              </div>
-              <span className="text-[7px] font-mono text-[var(--gold)]/40 group-hover:text-[var(--gold)]/70 transition-colors duration-200">
-                {item.count}
-              </span>
-            </LocalizedLink>
-          ))}
+            </Revelar>
+          )}
         </div>
       </section>
 
+      {/* ── A PLATAFORMA ─────────────────────────────────────────────────── */}
+      {/* A margem negativa e o canto redondo fazem esta secção encaixar na
+          anterior em vez de ficar empilhada em cima dela. */}
+      <section
+        className="separador-brilho relative z-30 -mt-12 mx-auto max-w-7xl rounded-t-[24px] border-t px-4 pt-10 pb-10 sm:pt-24 sm:pb-24 md:px-6"
+        style={{ borderColor: "var(--border)" }}
+      >
+        <Revelar duracao={600}>
+          <h2 className="titulo-gradiente mb-3 text-center text-[2rem] font-normal leading-[120%] tracking-tighter md:text-[3.5rem]">
+            Tudo o que é preciso para vender um cavalo
+          </h2>
+          <p className="mx-auto mb-8 max-w-2xl text-center text-sm text-[var(--foreground-secondary)] md:mb-12 md:text-lg">
+            Anúncio, genealogia e contacto directo — numa plataforma feita só para o Lusitano.
+          </p>
+        </Revelar>
 
-      {/* ===== PILLARS ===== */}
-      <section className="py-10 sm:py-28 border-t border-[var(--border)] relative overflow-hidden">
-        {/* Background orb */}
-        <div className="gradient-orb w-[600px] h-[600px] bg-[var(--gold)] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+        <div ref={painelVivo} className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+          <Revelar y={20} atraso={0}>
+            <CartaoSeco>
+              <Preview colunas={grelhaCols} escrever={false}>
+                <div className="cabeca-ui" style={{ gridTemplateColumns: grelhaCols }}>
+                  <span>Cavalo</span>
+                  <span>Coudelaria</span>
+                  <span>Idade</span>
+                  <span className="text-right">Estado</span>
+                </div>
+                {anuncios.map(([nome, coudelaria, idade, estado], k) => (
+                  <PainelEscrito key={k} chave={nome} duracao={520}>
+                    <div className="linha-ui" style={{ gridTemplateColumns: grelhaCols }}>
+                      <span className="truncate pr-2 text-[11px] font-medium text-[var(--foreground-strong)]">
+                        {nome}
+                      </span>
+                      <span className="truncate text-[11px] text-[var(--foreground-muted)]">
+                        {coudelaria}
+                      </span>
+                      <span className="font-mono text-[11px] text-[var(--foreground-muted)]">
+                        {idade}
+                      </span>
+                      <span
+                        className="text-right text-[10px]"
+                        style={{
+                          color: estado === "Activo" ? "var(--ok)" : "var(--foreground-muted)",
+                        }}
+                      >
+                        {estado}
+                      </span>
+                    </div>
+                  </PainelEscrito>
+                ))}
+              </Preview>
+              <CorpoCartao
+                titulo="Anúncios completos"
+                texto="Fotografia, medidas, disciplina e histórico. Cada anúncio é uma ficha, não um classificado de três linhas."
+                etiquetas={["Galeria", "Medidas", "Pedigree"]}
+              />
+            </CartaoSeco>
+          </Revelar>
 
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10">
-          <RevealOnScroll variant="fade-scale" className="text-center mb-8 sm:mb-16">
-            <span className="text-[11px] uppercase tracking-[0.2em] text-[var(--gold)] mb-4 block">
-              {tr("Os Nossos Pilares", "Our Pillars", "Nuestros Pilares")}
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-serif text-[var(--foreground)] mb-4 leading-tight">
-              {tr("Porquê o Portal Lusitano", "Why Portal Lusitano", "Por Qué Portal Lusitano")}
-            </h2>
-          </RevealOnScroll>
-
-          {/* Desktop: 4-col grid with gap-px hairlines */}
-          <div
-            className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-px"
-            style={{ background: "rgba(197,160,89,0.08)" }}
-          >
-            {pillars.map((pillar, i) => (
-              <RevealOnScroll key={pillar.title} delay={i * 120} variant="fade-up">
+          <Revelar y={20} atraso={100}>
+            <CartaoSeco>
+              <Preview colunas="1fr" duracao={1400} chave={mensagem.de}>
                 <div
-                  className="relative group overflow-hidden flex flex-col p-7 lg:p-9"
-                  style={{ background: "var(--background)" }}
+                  className="rounded-xl border p-3"
+                  style={{ borderColor: "var(--border-soft)" }}
                 >
-                  {/* Hover fill */}
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: "rgba(197,160,89,0.025)" }} />
-                  {/* Top gold accent */}
-                  <div className="absolute top-0 left-0 right-0 h-[1px]" style={{ background: "linear-gradient(90deg, rgba(197,160,89,0.5) 0%, rgba(197,160,89,0.1) 60%, transparent 100%)" }} />
-                  {/* Bottom hover sweep */}
-                  <div className="absolute bottom-0 left-0 h-[1px] w-0 group-hover:w-full transition-[width] duration-500 bg-[var(--gold)]/30 pointer-events-none" />
-
-                  {/* Ordinal */}
-                  <p className="text-[9px] uppercase tracking-[0.4em] text-[var(--gold)]/35 mb-4 font-medium relative z-10">
-                    {String(i + 1).padStart(2, "0")}
-                  </p>
-
-                  {/* Icon — square geometric */}
                   <div
-                    className="w-11 h-11 flex items-center justify-center mb-6 relative z-10 glow-pulse group-hover:border-[var(--gold)]/40 transition-[border-color] duration-300"
-                    style={{ border: "1px solid rgba(197,160,89,0.2)", background: "rgba(197,160,89,0.05)" }}
+                    className="bloco-ui mb-3 flex items-center gap-2 border-b pb-2"
+                    style={{ borderColor: "var(--border-soft)" }}
                   >
-                    <pillar.icon size={19} className="text-[var(--gold)]" />
-                  </div>
-
-                  <h3 className="font-serif text-[var(--foreground)] mb-2 text-lg relative z-10">
-                    {pillar.title}
-                  </h3>
-                  <p className="text-[var(--foreground-muted)] text-sm leading-relaxed relative z-10">
-                    {pillar.desc}
-                  </p>
-
-                  {/* Ghost watermark */}
-                  <span
-                    className="absolute bottom-1 right-2 font-serif select-none pointer-events-none"
-                    aria-hidden="true"
-                    style={{ fontSize: "64px", color: "rgba(197,160,89,0.04)", lineHeight: 1 }}
-                  >
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                </div>
-              </RevealOnScroll>
-            ))}
-          </div>
-
-          {/* Mobile: 2-col tight grid */}
-          <div
-            className="sm:hidden grid grid-cols-2 gap-px"
-            style={{ background: "rgba(197,160,89,0.1)" }}
-          >
-            {pillars.map((pillar, i) => (
-              <RevealOnScroll key={pillar.title} delay={i * 80} variant="fade-up">
-                <div
-                  className="relative overflow-hidden flex flex-col p-5 active:scale-[0.97] touch-manipulation transition-transform"
-                  style={{ background: "var(--background)", minHeight: "180px" }}
-                >
-                  {/* Top gold accent */}
-                  <div className="absolute top-0 left-0 right-0 h-[1px]" style={{ background: "linear-gradient(90deg, rgba(197,160,89,0.55) 0%, rgba(197,160,89,0.08) 60%, transparent 100%)" }} />
-
-                  {/* Ordinal */}
-                  <p className="text-[8px] uppercase tracking-[0.35em] text-[var(--gold)]/35 mb-3 font-medium">
-                    {String(i + 1).padStart(2, "0")}
-                  </p>
-
-                  {/* Icon */}
-                  <div
-                    className="w-10 h-10 flex items-center justify-center mb-4 glow-pulse"
-                    style={{ border: "1px solid rgba(197,160,89,0.25)", background: "rgba(197,160,89,0.06)" }}
-                  >
-                    <pillar.icon size={17} className="text-[var(--gold)]" />
-                  </div>
-
-                  <h3 className="font-serif text-[var(--foreground)] text-base mb-1.5 leading-tight">
-                    {pillar.title}
-                  </h3>
-                  <p className="text-[var(--foreground-muted)] text-xs leading-relaxed">
-                    {pillar.desc}
-                  </p>
-
-                  {/* Ghost watermark */}
-                  <span
-                    className="absolute bottom-0 right-1 font-serif select-none pointer-events-none"
-                    aria-hidden="true"
-                    style={{ fontSize: "52px", color: "rgba(197,160,89,0.05)", lineHeight: 1 }}
-                  >
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                </div>
-              </RevealOnScroll>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===== SOCIAL PROOF — Testimonials ===== */}
-      <section className="py-10 sm:py-28 border-t border-[var(--border)] bg-[var(--background-secondary)]/30">
-        <div className="max-w-5xl mx-auto">
-          <div className="px-4 sm:px-6">
-          <RevealOnScroll variant="fade-up" className="mb-8 sm:mb-14">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-6 h-[1px] bg-[var(--gold)]" />
-              <span className="text-[9px] uppercase tracking-[0.55em] text-[var(--gold)]">
-                {tr("Testemunhos", "Testimonials", "Testimonios")}
-              </span>
-            </div>
-            <h2
-              className="font-serif text-[var(--foreground)] leading-none"
-              style={{ fontSize: "clamp(1.6rem, 3.5vw, 2.6rem)" }}
-            >
-              {tr(
-                "O Que Dizem os Nossos Utilizadores",
-                "What Our Users Say",
-                "Lo Que Dicen Nuestros Usuarios"
-              )}
-            </h2>
-          </RevealOnScroll>
-          </div>
-
-          {/* Mobile: horizontal scroll — Desktop: grid */}
-          <div className="sm:hidden overflow-x-auto scrollbar-hide px-4 pb-4 snap-x snap-mandatory">
-            <div className="flex gap-3" style={{ width: "max-content" }}>
-              {testimonials.map((item, i) => (
-                <div key={item.name} className="w-[80vw] max-w-[300px] flex-none snap-start bg-[var(--background-card)] border border-[var(--border)] p-5 relative overflow-hidden">
-                  {/* Top accent */}
-                  <div
-                    className="absolute top-0 left-0 right-0 h-[1px]"
-                    style={{ background: "linear-gradient(90deg, rgba(197,160,89,0.45) 0%, rgba(197,160,89,0.08) 55%, transparent 100%)" }}
-                    aria-hidden
-                  />
-                  {/* Ordinal */}
-                  <p className="text-[7px] font-mono uppercase tracking-[0.4em] text-[var(--gold)]/30 mb-3 leading-none">
-                    {String(i + 1).padStart(2, "0")}
-                  </p>
-                  <span
-                    className="text-[var(--gold)]/20 text-4xl font-serif leading-none select-none block mb-1"
-                    aria-hidden="true"
-                  >
-                    &ldquo;
-                  </span>
-                  <p className="text-[var(--foreground-secondary)] text-xs leading-relaxed mb-4 italic">
-                    {item.quote}
-                  </p>
-                  <div className="border-t border-[var(--border)] pt-3">
-                    <p className="text-[var(--foreground)] font-serif text-sm">{item.name}</p>
-                    <p className="text-[8px] uppercase tracking-[0.2em] text-[var(--foreground-muted)] mt-0.5">{item.role}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="hidden sm:grid sm:grid-cols-3 gap-6 px-6">
-            {testimonials.map((item, i) => (
-              <RevealOnScroll key={item.name} delay={i * 120} variant="fade-up">
-                <div className="bg-[var(--background-card)] border border-[var(--border)] p-6 sm:p-8 relative overflow-hidden hover:border-[var(--gold)]/20 transition-[border-color] duration-500">
-                  {/* Top accent */}
-                  <div
-                    className="absolute top-0 left-0 right-0 h-[1px]"
-                    style={{ background: "linear-gradient(90deg, rgba(197,160,89,0.45) 0%, rgba(197,160,89,0.08) 55%, transparent 100%)" }}
-                    aria-hidden
-                  />
-                  {/* Ordinal */}
-                  <p className="text-[8px] font-mono uppercase tracking-[0.4em] text-[var(--gold)]/30 mb-4 leading-none">
-                    {String(i + 1).padStart(2, "0")}
-                  </p>
-                  <span
-                    className="text-[var(--gold)]/20 text-4xl font-serif leading-none select-none block mb-1"
-                    aria-hidden="true"
-                  >
-                    &ldquo;
-                  </span>
-                  <p className="text-[var(--foreground-secondary)] text-sm leading-relaxed mb-6 italic">
-                    {item.quote}
-                  </p>
-                  <div className="border-t border-[var(--border)] pt-4">
-                    <p className="text-[var(--foreground)] font-serif text-sm">{item.name}</p>
-                    <p className="text-[9px] uppercase tracking-[0.2em] text-[var(--foreground-muted)] mt-0.5">{item.role}</p>
-                  </div>
-                </div>
-              </RevealOnScroll>
-            ))}
-          </div>
-
-          {/* Trust badges */}
-          <RevealOnScroll className="mt-10 sm:mt-12">
-            <div
-              className="grid grid-cols-2 sm:grid-cols-4 gap-px"
-              style={{ background: "rgba(197,160,89,0.07)" }}
-            >
-              {[
-                { value: "5.000+", label: tr("Leads Ebook", "Ebook Leads", "Leads Ebook") },
-                { value: "100+",   label: tr("Cavalos Listados", "Horses Listed", "Caballos Listados") },
-                { value: "50+",    label: tr("Coudelarias", "Stud Farms", "Haras") },
-                { value: "98%",    label: tr("Satisfação", "Satisfaction", "Satisfacción") },
-              ].map((badge, i) => (
-                <div
-                  key={i}
-                  className="flex flex-col items-center justify-center py-6 sm:py-8 px-4"
-                  style={{ background: "var(--background-secondary)" }}
-                >
-                  <p className="text-2xl sm:text-3xl font-serif text-[var(--gold)] mb-1 tabular-nums">{badge.value}</p>
-                  <p className="text-[9px] uppercase tracking-[0.2em] text-[var(--foreground-muted)] text-center leading-snug">
-                    {badge.label}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </RevealOnScroll>
-        </div>
-      </section>
-
-      {/* ===== PROFISSIONAIS VERIFICADOS ===== */}
-      {profissionais.length > 0 && (
-        <section className="py-10 sm:py-24 border-t border-[var(--border)]">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <RevealOnScroll variant="fade-up">
-              <div className="flex items-end justify-between mb-8 sm:mb-12">
-                <div>
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-6 h-[1px] bg-[var(--gold)]" />
-                    <span className="text-[9px] uppercase tracking-[0.55em] text-[var(--gold)]">
-                      {tr("Comunidade", "Community", "Comunidad")}
+                    <span className="ponto" style={{ background: "var(--gold)" }} />
+                    <span className="font-mono text-[11px] text-[var(--foreground-secondary)]">
+                      mensagem-nova
+                    </span>
+                    <span
+                      className="ml-auto rounded border px-1.5 py-0.5 font-mono text-[11px] text-[var(--foreground-muted)]"
+                      style={{ borderColor: "var(--border-soft)" }}
+                    >
+                      por ler
                     </span>
                   </div>
-                  <h2
-                    className="font-serif text-[var(--foreground)] leading-none"
-                    style={{ fontSize: "clamp(1.6rem, 3.5vw, 2.6rem)" }}
-                  >
-                    {tr("Profissionais Verificados", "Verified Professionals", "Profesionales Verificados")}
-                  </h2>
+                  <p className="bloco-ui mb-1 text-[11px] font-medium text-[var(--foreground-strong)]">
+                    {mensagem.de}
+                  </p>
+                  <p className="bloco-ui mb-3 text-[11px] leading-relaxed text-[var(--foreground-muted)]">
+                    Interessado no{" "}
+                    <span className="text-[var(--foreground-strong)]">{mensagem.cavalo}</span>.{" "}
+                    {mensagem.texto}
+                  </p>
+                  <div className="bloco-ui mb-3 grid grid-cols-2 gap-2">
+                    {[
+                      ["Orçamento", mensagem.orcamento],
+                      ["Disciplina", mensagem.disciplina],
+                    ].map(([rot, val]) => (
+                      <div
+                        key={rot}
+                        className="rounded-lg border p-2"
+                        style={{ borderColor: "var(--border-soft)" }}
+                      >
+                        <p className="font-mono text-[11px] uppercase tracking-wider text-[var(--foreground-muted)]">
+                          {rot}
+                        </p>
+                        <p className="text-[11px] text-[var(--foreground-strong)]">{val}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="bloco-ui flex gap-2">
+                    <span className="rounded-md bg-[var(--foreground-strong)] px-2.5 py-1 text-[10px] font-semibold text-black">
+                      Responder
+                    </span>
+                    <span
+                      className="rounded-md border px-2.5 py-1 text-[10px] text-[var(--foreground-muted)]"
+                      style={{ borderColor: "var(--border-soft)" }}
+                    >
+                      Ver perfil
+                    </span>
+                  </div>
                 </div>
-                <LocalizedLink
-                  href="/profissionais"
-                  className="hidden sm:flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-[var(--foreground-muted)] hover:text-[var(--gold)] transition-colors duration-300"
-                >
-                  {tr("Ver todos", "View all", "Ver todos")}
-                  <ArrowRight size={13} />
-                </LocalizedLink>
-              </div>
-            </RevealOnScroll>
+              </Preview>
+              <CorpoCartao
+                titulo="Contacto directo"
+                texto="O comprador fala com o vendedor dentro do portal. Sem comissões e sem expor o número de telefone a quem não devia."
+                etiquetas={["Mensagens", "Alertas", "Denúncias"]}
+              />
+            </CartaoSeco>
+          </Revelar>
 
-            {/* Desktop: sharp editorial cards */}
-            <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-px" style={{ background: "rgba(197,160,89,0.07)" }}>
-              {profissionais.map((prof, i) => (
-                <RevealOnScroll key={prof.id} delay={i * 80} variant="fade-up">
-                  <LocalizedLink href={`/profissionais/${prof.slug}`} className="group block h-full">
-                    <div
-                      className="relative h-full overflow-hidden flex flex-col p-6"
-                      style={{ background: "var(--background)" }}
-                    >
-                      {/* Top gold sweep */}
-                      <div className="absolute top-0 left-0 h-[1px] w-0 group-hover:w-full bg-[var(--gold)]/40 transition-[width] duration-500 pointer-events-none" />
-                      {/* Left gold bar */}
-                      <div className="absolute left-0 top-0 w-[2px] h-0 group-hover:h-full bg-[var(--gold)]/50 transition-[height] duration-500 pointer-events-none" />
-
-                      {/* Avatar */}
-                      <div className="flex items-start justify-between mb-5">
-                        {prof.fotoUrl ? (
-                          <Image
-                            src={prof.fotoUrl}
-                            alt={prof.nome}
-                            width={52}
-                            height={52}
-                            className="object-cover flex-shrink-0"
-                            style={{ borderRadius: 0 }}
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div
-                            className="w-[52px] h-[52px] flex items-center justify-center font-serif text-lg text-[var(--gold)] flex-shrink-0 select-none"
-                            style={{ background: "rgba(197,160,89,0.08)", border: "1px solid rgba(197,160,89,0.2)" }}
-                          >
-                            {prof.nome.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
-                          </div>
-                        )}
-                        {prof.nivelVerificacao === "verificado" && (
-                          <span
-                            className="text-[7px] uppercase tracking-[0.2em] px-1.5 py-0.5 font-semibold flex-shrink-0"
-                            style={{ background: "rgba(197,160,89,0.12)", color: "var(--gold)", border: "1px solid rgba(197,160,89,0.2)" }}
-                          >
-                            ✓ {tr("Verificado", "Verified", "Verificado")}
-                          </span>
-                        )}
-                        {prof.destaque && !prof.nivelVerificacao && (
-                          <Sparkles size={12} className="text-[var(--gold)] flex-shrink-0" />
-                        )}
-                      </div>
-
-                      {/* Name + specialty */}
-                      <p className="font-serif text-[var(--foreground)] group-hover:text-[var(--gold)] transition-colors duration-300 leading-tight mb-1 text-[0.95rem]">
-                        {prof.nome}
-                      </p>
-                      <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--gold)]/60 mb-3 truncate">
-                        {prof.especialidade}
-                      </p>
-
-                      {/* Location */}
-                      <div className="flex items-center gap-1.5 mb-3">
-                        <MapPin size={10} className="text-[var(--foreground-muted)] flex-shrink-0" />
-                        <span className="text-[10px] text-[var(--foreground-muted)] truncate">
-                          {prof.localizacao}
-                        </span>
-                      </div>
-
-                      {/* Stars */}
-                      {prof.avaliacao > 0 && (
-                        <div className="flex items-center gap-1.5 mt-auto">
-                          <div className="flex gap-0.5">
-                            {[1, 2, 3, 4, 5].map((s) => (
-                              <Star
-                                key={s}
-                                size={10}
-                                className={
-                                  s <= Math.round(prof.avaliacao)
-                                    ? "text-[var(--gold)] fill-[var(--gold)]"
-                                    : "text-[var(--foreground-muted)]/20"
-                                }
-                              />
-                            ))}
-                          </div>
-                          <span className="text-[10px] text-[var(--foreground-muted)]">
-                            ({prof.numAvaliacoes})
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Explore line */}
-                      <div className="flex items-center gap-2 mt-4 text-[9px] uppercase tracking-[0.3em] text-[var(--gold)]/25 group-hover:text-[var(--gold)] transition-colors duration-300">
-                        <div className="h-[1px] w-3 group-hover:w-6 bg-current transition-[width] duration-400" />
-                        {tr("Ver perfil", "View profile", "Ver perfil")}
-                      </div>
+          <Revelar y={20} atraso={200}>
+            <CartaoSeco>
+              <Preview colunas="1fr 84px 64px" escrever={false}>
+                <div className="cabeca-ui" style={{ gridTemplateColumns: "1fr 84px 64px" }}>
+                  <span>Ascendência</span>
+                  <span>Linhagem</span>
+                  <span className="text-right">Grau</span>
+                </div>
+                {pedigree.map(([nome, linhagem, grau, forte], k) => (
+                  <PainelEscrito key={k} chave={String(nome)} duracao={520}>
+                    <div className="linha-ui" style={{ gridTemplateColumns: "1fr 84px 64px" }}>
+                      <span
+                        className={`truncate pr-2 text-[11px] ${forte ? "font-medium text-[var(--foreground-strong)]" : "text-[var(--foreground-secondary)]"}`}
+                      >
+                        {nome}
+                      </span>
+                      <span className="truncate text-[11px] text-[var(--foreground-muted)]">
+                        {linhagem}
+                      </span>
+                      <span
+                        className="text-right font-mono text-[11px]"
+                        style={{ color: forte ? "var(--gold)" : "var(--foreground-muted)" }}
+                      >
+                        {grau}
+                      </span>
                     </div>
-                  </LocalizedLink>
-                </RevealOnScroll>
-              ))}
-            </div>
-
-            {/* Mobile: horizontal snap scroll */}
-            <div className="sm:hidden overflow-x-auto scrollbar-hide -mx-4 px-4 pb-3 snap-x snap-mandatory">
-              <div className="flex gap-3" style={{ width: "max-content" }}>
-                {profissionais.map((prof) => (
-                  <LocalizedLink
-                    key={prof.id}
-                    href={`/profissionais/${prof.slug}`}
-                    className="flex-none snap-start w-[190px] active:scale-[0.97] touch-manipulation transition-transform"
-                  >
-                    <div
-                      className="w-full p-4 relative overflow-hidden"
-                      style={{ background: "#0a0a0a", border: "1px solid rgba(197,160,89,0.12)" }}
-                    >
-                      <div className="flex items-center gap-3 mb-3">
-                        {prof.fotoUrl ? (
-                          <Image
-                            src={prof.fotoUrl}
-                            alt={prof.nome}
-                            width={40}
-                            height={40}
-                            className="object-cover flex-shrink-0"
-                            style={{ borderRadius: 0 }}
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div
-                            className="w-10 h-10 flex items-center justify-center font-serif text-sm text-[var(--gold)] flex-shrink-0 select-none"
-                            style={{ background: "rgba(197,160,89,0.08)", border: "1px solid rgba(197,160,89,0.18)" }}
-                          >
-                            {prof.nome.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()}
-                          </div>
-                        )}
-                        <div className="min-w-0">
-                          <p className="font-serif text-white text-sm leading-tight truncate">{prof.nome}</p>
-                          <p className="text-[9px] uppercase tracking-[0.15em] text-[var(--gold)]/50 truncate mt-0.5">
-                            {prof.especialidade}
-                          </p>
-                        </div>
-                      </div>
-                      {prof.avaliacao > 0 && (
-                        <div className="flex items-center gap-0.5">
-                          {[1, 2, 3, 4, 5].map((s) => (
-                            <Star
-                              key={s}
-                              size={9}
-                              className={
-                                s <= Math.round(prof.avaliacao)
-                                  ? "text-[var(--gold)] fill-[var(--gold)]"
-                                  : "text-white/10"
-                              }
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </LocalizedLink>
+                  </PainelEscrito>
                 ))}
-              </div>
-            </div>
+              </Preview>
+              <CorpoCartao
+                titulo="Genealogia à vista"
+                texto="Três gerações de ascendência em cada ficha, com linhagem e classificações. É o que os compradores estrangeiros perguntam sempre."
+                etiquetas={["3 gerações", "Stud-book"]}
+              />
+            </CartaoSeco>
+          </Revelar>
+        </div>
 
-            {/* Mobile CTA */}
-            <div className="sm:hidden mt-4">
-              <LocalizedLink
-                href="/profissionais"
-                className="flex items-center justify-center gap-2 py-3 w-full text-[11px] uppercase tracking-[0.2em] text-[var(--foreground-muted)] border border-[var(--border)] active:scale-[0.98] touch-manipulation transition-transform"
-              >
-                {tr("Ver todos os profissionais", "View all professionals", "Ver todos los profesionales")}
-                <ArrowRight size={12} />
-              </LocalizedLink>
+        <Revelar duracao={600} atraso={300}>
+          <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
+            <LocalizedLink href="/vender-cavalo" className="btn btn-primario h-12 px-6">
+              Publicar anúncio
+            </LocalizedLink>
+            <LocalizedLink href="/comprar" className="btn btn-subtil h-12 px-6">
+              Ver cavalos →
+            </LocalizedLink>
+          </div>
+        </Revelar>
+      </section>
+
+      {/* ── DESTAQUES ────────────────────────────────────────────────────── */}
+      {destaques.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 py-12 sm:py-20 md:px-6">
+          <Revelar duracao={600} className="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <p className="rotulo-forte">Em destaque</p>
+              <h2 className="titulo-gradiente mt-2 text-[1.75rem] font-normal leading-[120%] tracking-tighter md:text-[2.5rem]">
+                Exemplares seleccionados
+              </h2>
             </div>
+            <LocalizedLink
+              href="/comprar"
+              className="btn btn-subtil btn-sm hidden shrink-0 sm:inline-flex"
+            >
+              Ver todos →
+            </LocalizedLink>
+          </Revelar>
+
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            {destaques.map((a, i) => (
+              <Revelar key={a.id} y={20} atraso={i * 100}>
+                <CartaoAnuncio a={a} grande />
+              </Revelar>
+            ))}
           </div>
         </section>
       )}
 
-      {/* ===== VENDER CAVALO CTA ===== */}
-      <section className="border-t border-[var(--border)] relative overflow-hidden">
-        {/* Left accent bar */}
-        <div
-          className="absolute left-0 top-0 bottom-0 w-[3px]"
-          style={{ background: "linear-gradient(to bottom, var(--gold), rgba(197,160,89,0.15))" }}
-          aria-hidden
-        />
-        {/* Right ambient */}
-        <div
-          className="absolute right-0 top-0 w-1/2 h-full pointer-events-none"
-          style={{ background: "linear-gradient(to left, rgba(197,160,89,0.03), transparent)" }}
-          aria-hidden
-        />
-        {/* Gold orb */}
-        <div
-          className="absolute right-[10%] top-1/2 -translate-y-1/2 w-72 h-72 bg-[var(--gold)]/[0.04] blur-[100px] pointer-events-none"
-          aria-hidden
-        />
-
-        <div className="max-w-6xl mx-auto px-6 sm:px-10 py-10 sm:py-20">
-          <RevealOnScroll variant="fade-right">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-12">
-              <div className="flex-1 text-center sm:text-left">
-                <div className="flex items-center gap-3 mb-3 justify-center sm:justify-start">
-                  <div className="w-6 h-[1px] bg-[var(--gold)]" />
-                  <span className="text-[9px] uppercase tracking-[0.55em] text-[var(--gold)]">
-                    {tr("Para Proprietários", "For Owners", "Para Propietarios")}
-                  </span>
-                </div>
-                <h2
-                  className="font-serif text-[var(--foreground)] leading-tight mb-3"
-                  style={{ fontSize: "clamp(1.7rem, 3.5vw, 2.8rem)" }}
-                >
-                  {tr(
-                    "Tem um Cavalo para Vender?",
-                    "Have a Horse to Sell?",
-                    "¿Tiene un Caballo para Vender?"
-                  )}
-                </h2>
-                <p className="text-[var(--foreground-muted)] text-sm sm:text-base leading-relaxed max-w-md mx-auto sm:mx-0">
-                  {tr(
-                    "Publique o seu anúncio e alcance compradores qualificados em Portugal e no mundo.",
-                    "Publish your listing and reach qualified buyers in Portugal and worldwide.",
-                    "Publique su anuncio y alcance compradores calificados en Portugal y en el mundo."
-                  )}
-                </p>
-              </div>
-
-              <MagneticButton strength={0.15}>
-                <LocalizedLink
-                  href="/vender-cavalo"
-                  className="ripple-btn shimmer-gold inline-flex items-center gap-3 border border-[var(--border-hover)] text-[var(--foreground)] px-8 py-4 text-[11px] uppercase tracking-[0.15em] hover:bg-[var(--gold)] hover:text-black hover:border-[var(--gold)] transition-[background-color,color,border-color] duration-300 whitespace-nowrap"
-                >
-                  {tr("Anunciar Cavalo", "List Your Horse", "Anunciar Caballo")}
-                  <ArrowRight size={14} aria-hidden="true" />
-                </LocalizedLink>
-              </MagneticButton>
+      {/* ── RECENTES ─────────────────────────────────────────────────────── */}
+      {recentes.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 py-12 sm:py-20 md:px-6">
+          <Revelar duracao={600} className="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <p className="rotulo-forte">Últimos anúncios</p>
+              <h2 className="titulo-gradiente mt-2 text-[1.75rem] font-normal leading-[120%] tracking-tighter md:text-[2.5rem]">
+                Acabados de publicar
+              </h2>
             </div>
-          </RevealOnScroll>
-        </div>
+            <LocalizedLink
+              href="/comprar"
+              className="btn btn-subtil btn-sm hidden shrink-0 sm:inline-flex"
+            >
+              Ver todos →
+            </LocalizedLink>
+          </Revelar>
 
-        {/* Bottom hairline */}
-        <div
-          className="absolute bottom-0 left-0 right-0 h-[1px]"
-          style={{ background: "linear-gradient(to right, rgba(197,160,89,0.3), rgba(197,160,89,0.05) 50%, transparent)" }}
-          aria-hidden
-        />
-      </section>
-
-      {/* ===== EBOOK CTA — cinematic editorial ===== */}
-      <section className="relative overflow-hidden" style={{ borderTop: "1px solid rgba(197,160,89,0.08)" }}>
-        {/* Background atmospheric */}
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 30% 50%, rgba(197,160,89,0.04) 0%, transparent 60%)" }} aria-hidden />
-        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 70% 80%, rgba(197,160,89,0.03) 0%, transparent 50%)" }} aria-hidden />
-
-        {/* Gold tech grid */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage: "linear-gradient(rgba(197,160,89,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(197,160,89,0.015) 1px, transparent 1px)",
-            backgroundSize: "80px 80px",
-          }}
-          aria-hidden
-        />
-
-        <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-20 sm:py-32 lg:py-40 relative z-10">
-          <div className="grid lg:grid-cols-[0.85fr_1.15fr] gap-12 lg:gap-20 items-center">
-
-            {/* Left — Book with 3D perspective */}
-            <RevealOnScroll variant="fade-up" delay={100}>
-              <div className="flex justify-center lg:justify-end">
-                <div className="relative" style={{ perspective: "1200px" }}>
-                  {/* Glow behind book */}
-                  <div
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-                    style={{ width: "350px", height: "450px", background: "radial-gradient(ellipse, rgba(197,160,89,0.1) 0%, transparent 60%)" }}
-                    aria-hidden
-                  />
-
-                  {/* Book container with subtle 3D tilt */}
-                  <div
-                    className="relative w-[220px] sm:w-[260px] lg:w-[280px] float-gentle"
-                    style={{ transformStyle: "preserve-3d", transform: "rotateY(-4deg)" }}
-                  >
-                    {/* Spine */}
-                    <div
-                      className="absolute -left-5 top-3 bottom-3 w-7 shadow-2xl"
-                      style={{
-                        background: "linear-gradient(to right, #1A0E02, #7A5A1E 40%, #8B6B2E 70%, #5A4010)",
-                        transform: "rotateY(90deg) translateZ(14px)",
-                      }}
-                    />
-
-                    {/* Page edges */}
-                    <div className="absolute -right-1 top-4 bottom-4 w-2" style={{ background: "linear-gradient(to left, transparent, rgba(232,213,160,0.06))" }} />
-
-                    {/* Cover */}
-                    <div className="relative bg-gradient-to-b from-[#0E0B04] via-[#0A0803] to-[#060401] border border-[#2A1E08] shadow-[0_40px_100px_rgba(0,0,0,0.8),0_0_60px_rgba(197,160,89,0.06)] aspect-[3/4] overflow-hidden flex flex-col">
-
-                      {/* Texture diagonal */}
-                      <svg className="absolute inset-0 w-full h-full opacity-[0.022]" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                          <pattern id="ebook-grain-home" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                            <line x1="0" y1="0" x2="0" y2="6" stroke="#C5A059" strokeWidth="0.5"/>
-                          </pattern>
-                        </defs>
-                        <rect width="100%" height="100%" fill="url(#ebook-grain-home)"/>
-                      </svg>
-
-                      {/* Top gold bars */}
-                      <div className="absolute top-0 left-0 right-0 z-10">
-                        <div className="h-[2px] bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent" />
-                        <div className="h-px mt-[3px] bg-gradient-to-r from-transparent via-[var(--gold)]/25 to-transparent" />
-                      </div>
-
-                      {/* Ornamental borders */}
-                      <div className="absolute inset-3 border border-[var(--gold)]/20 pointer-events-none z-10" />
-                      <div className="absolute inset-[18px] border border-[var(--gold)]/10 pointer-events-none z-10" />
-
-                      {/* SVG Corners */}
-                      <div className="absolute top-3 left-3 z-10">
-                        <svg width="22" height="22" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg"><path d="M22 0 L0 0 L0 22" fill="none" stroke="var(--gold)" strokeWidth="1.2" strokeOpacity="0.45"/><path d="M22 5 L5 5 L5 22" fill="none" stroke="var(--gold)" strokeWidth="0.6" strokeOpacity="0.2"/><circle cx="5" cy="5" r="1.5" fill="var(--gold)" fillOpacity="0.4"/></svg>
-                      </div>
-                      <div className="absolute top-3 right-3 z-10">
-                        <svg width="22" height="22" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg"><path d="M0 0 L22 0 L22 22" fill="none" stroke="var(--gold)" strokeWidth="1.2" strokeOpacity="0.45"/><path d="M0 5 L17 5 L17 22" fill="none" stroke="var(--gold)" strokeWidth="0.6" strokeOpacity="0.2"/><circle cx="17" cy="5" r="1.5" fill="var(--gold)" fillOpacity="0.4"/></svg>
-                      </div>
-                      <div className="absolute bottom-3 left-3 z-10">
-                        <svg width="22" height="22" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg"><path d="M22 22 L0 22 L0 0" fill="none" stroke="var(--gold)" strokeWidth="1.2" strokeOpacity="0.45"/><path d="M22 17 L5 17 L5 0" fill="none" stroke="var(--gold)" strokeWidth="0.6" strokeOpacity="0.2"/><circle cx="5" cy="17" r="1.5" fill="var(--gold)" fillOpacity="0.4"/></svg>
-                      </div>
-                      <div className="absolute bottom-3 right-3 z-10">
-                        <svg width="22" height="22" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg"><path d="M0 22 L22 22 L22 0" fill="none" stroke="var(--gold)" strokeWidth="1.2" strokeOpacity="0.45"/><path d="M0 17 L17 17 L17 0" fill="none" stroke="var(--gold)" strokeWidth="0.6" strokeOpacity="0.2"/><circle cx="17" cy="17" r="1.5" fill="var(--gold)" fillOpacity="0.4"/></svg>
-                      </div>
-
-                      {/* Interior content */}
-                      <div className="relative z-10 flex flex-col items-center justify-between flex-1 py-8 px-7 text-center">
-                        <div className="flex flex-col items-center gap-2">
-                          <p className="text-[var(--gold)]/50 text-[8px] uppercase tracking-[0.4em]">Portal Lusitano</p>
-                          <div className="flex items-center gap-2">
-                            <div className="h-px w-8 bg-gradient-to-r from-transparent to-[var(--gold)]/25" />
-                            <svg width="5" height="5" viewBox="0 0 5 5" xmlns="http://www.w3.org/2000/svg">
-                              <rect x="0.5" y="0.5" width="4" height="4" transform="rotate(45 2.5 2.5)" fill="none" stroke="var(--gold)" strokeWidth="0.8" strokeOpacity="0.4"/>
-                            </svg>
-                            <div className="h-px w-8 bg-gradient-to-l from-transparent to-[var(--gold)]/25" />
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-center flex-1 py-2">
-                          <div className="relative flex flex-col items-center">
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(197,160,89,0.12)_0%,transparent_65%)] scale-[2.5]" />
-                            <svg className="absolute inset-[-40%] w-[180%] h-[180%]" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                              <circle cx="50" cy="50" r="44" fill="none" stroke="var(--gold)" strokeWidth="0.5" strokeOpacity="0.15" strokeDasharray="2 3"/>
-                            </svg>
-                            <Image src="/logo.webp" alt="Portal Lusitano" width={140} height={38} className="opacity-70 object-contain relative z-10" />
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col items-center">
-                          <div className="flex items-center gap-2.5 mb-3">
-                            <div className="h-px w-10 bg-gradient-to-r from-transparent to-[var(--gold)]/35" />
-                            <svg width="7" height="7" viewBox="0 0 7 7" xmlns="http://www.w3.org/2000/svg">
-                              <rect x="0.5" y="0.5" width="6" height="6" transform="rotate(45 3.5 3.5)" fill="none" stroke="var(--gold)" strokeWidth="0.9" strokeOpacity="0.55"/>
-                            </svg>
-                            <div className="h-px w-10 bg-gradient-to-l from-transparent to-[var(--gold)]/35" />
-                          </div>
-                          <p className="text-[var(--foreground-secondary)]/65 text-[8px] tracking-[0.45em] uppercase mb-2">{tr("Introdução ao", "Introduction to", "Introducción al")}</p>
-                          <h3 className="font-serif text-[var(--gold)] text-[1.35rem] sm:text-[1.55rem] tracking-[0.12em] leading-none uppercase">{tr("Cavalo", "Lusitano", "Caballo")}</h3>
-                          <h3 className="font-serif text-[var(--gold)] text-[1.35rem] sm:text-[1.55rem] tracking-[0.12em] leading-none uppercase mb-3">{tr("Lusitano", "Horse", "Lusitano")}</h3>
-                          <div className="flex items-center mb-2">
-                            <div className="h-px w-12 bg-gradient-to-r from-transparent to-[var(--gold)]/18" />
-                            <div className="h-px w-12 bg-gradient-to-l from-transparent to-[var(--gold)]/18" />
-                          </div>
-                          <p className="text-[var(--foreground-muted)]/55 text-[7px] tracking-[0.3em] uppercase">{tr("O Guia Essencial", "The Essential Guide", "La Guía Esencial")} · 2026</p>
-                        </div>
-                      </div>
-
-                      {/* Bottom gold bars */}
-                      <div className="absolute bottom-0 left-0 right-0 z-10">
-                        <div className="h-px mb-[3px] bg-gradient-to-r from-transparent via-[var(--gold)]/25 to-transparent" />
-                        <div className="h-[2px] bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* GRATIS badge — refined */}
-                  <div
-                    className="absolute -top-4 -right-4 sm:-top-5 sm:-right-5 z-20 bg-[var(--gold)] text-black px-4 sm:px-6 py-2 sm:py-3 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] shadow-[0_8px_30px_rgba(197,160,89,0.3)]"
-                  >
-                    {tr("Grátis", "Free", "Gratis")}
-                  </div>
-
-                  {/* Star rating — refined */}
-                  <div
-                    className="absolute -bottom-4 -left-4 sm:-bottom-5 sm:-left-5 z-20 flex items-center gap-2.5 px-4 sm:px-5 py-2.5 sm:py-3 shadow-[0_12px_40px_rgba(0,0,0,0.4)]"
-                    style={{ background: "var(--background)", border: "1px solid rgba(197,160,89,0.12)" }}
-                  >
-                    <div className="flex gap-0.5">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} size={11} className="fill-[var(--gold)] text-[var(--gold)]" />
-                      ))}
-                    </div>
-                    <span className="text-[var(--foreground)] text-[10px] sm:text-xs font-medium">4.9/5</span>
-                    <span className="text-[var(--foreground-muted)] text-[9px]">(234)</span>
-                  </div>
-                </div>
-              </div>
-            </RevealOnScroll>
-
-            {/* Right — Editorial content */}
-            <RevealOnScroll variant="fade-up" delay={250}>
-              <div className="text-center lg:text-left">
-                {/* Section label */}
-                <div className="flex items-center justify-center lg:justify-start gap-3 mb-6">
-                  <div className="w-6 h-px" style={{ background: "rgba(197,160,89,0.55)" }} aria-hidden />
-                  <span className="text-[8px] font-mono uppercase tracking-[0.6em] text-[var(--gold)]/70">
-                    Ebook {tr("Gratuito", "Free", "Gratuito")}
-                  </span>
-                  <div className="w-6 h-px hidden lg:block" style={{ background: "linear-gradient(to right, rgba(197,160,89,0.55), transparent)" }} aria-hidden />
-                </div>
-
-                {/* Title */}
-                <h2
-                  className="font-serif text-[var(--foreground)] leading-[0.95] mb-6"
-                  style={{ fontSize: "clamp(1.8rem, 4vw, 3rem)" }}
-                >
-                  {tr(
-                    "O Guia Essencial do Lusitano",
-                    "The Essential Lusitano Guide",
-                    "La Guía Esencial del Lusitano"
-                  )}
-                </h2>
-
-                {/* Gold accent line */}
-                <div
-                  className="mb-8 mx-auto lg:mx-0"
-                  style={{
-                    width: "clamp(50px, 10vw, 100px)",
-                    height: "1px",
-                    background: "linear-gradient(to right, rgba(197,160,89,0.7), transparent)",
-                  }}
-                  aria-hidden
-                />
-
-                {/* Description */}
-                <p className="text-[var(--foreground-secondary)] text-sm sm:text-base leading-[1.85] mb-10 max-w-lg mx-auto lg:mx-0">
-                  {tr(
-                    "Descobre a história, as características e o que torna esta raça única. 30 páginas de conhecimento gratuito para entusiastas e profissionais.",
-                    "Discover the history, characteristics and what makes this breed unique. 30 pages of free knowledge for enthusiasts and professionals.",
-                    "Descubre la historia, las características y lo que hace única a esta raza. 30 páginas de conocimiento gratuito para entusiastas y profesionales."
-                  )}
-                </p>
-
-                {/* What you'll learn — editorial list */}
-                <div className="mb-10 space-y-3 text-left max-w-md mx-auto lg:mx-0">
-                  {[
-                    tr("Origens e evolução da raça", "Origins and breed evolution", "Orígenes y evolución de la raza"),
-                    tr("Características físicas e temperamento", "Physical traits and temperament", "Características físicas y temperamento"),
-                    tr("Disciplinas e aptidões naturais", "Disciplines and natural abilities", "Disciplinas y aptitudes naturales"),
-                    tr("Guia de aquisição responsável", "Responsible acquisition guide", "Guía de adquisición responsable"),
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-3 group/item">
-                      <div
-                        className="w-5 h-5 flex items-center justify-center flex-shrink-0 group-hover/item:bg-[var(--gold)]/10 transition-colors duration-300"
-                        style={{ border: "1px solid rgba(197,160,89,0.2)" }}
-                      >
-                        <Check size={10} className="text-[var(--gold)]" />
-                      </div>
-                      <span className="text-[var(--foreground-secondary)] text-sm group-hover/item:text-[var(--foreground)] transition-colors duration-300">
-                        {item}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* CTA */}
-                <div className="flex justify-center lg:justify-start">
-                  <MagneticButton>
-                    <LocalizedLink
-                      href="/ebook-gratis"
-                      className="ripple-btn inline-flex items-center gap-3 bg-[var(--gold)] text-black px-10 py-4.5 text-[9px] uppercase tracking-[0.3em] font-bold hover:bg-white transition-[background-color] duration-300 shadow-[0_8px_32px_rgba(197,160,89,0.2)] group/cta"
-                    >
-                      <Gift size={15} aria-hidden />
-                      {tr("Descarregar Grátis", "Download Free", "Descargar Gratis")}
-                      <ArrowRight size={11} className="group-hover/cta:translate-x-1 transition-transform duration-300" aria-hidden />
-                    </LocalizedLink>
-                  </MagneticButton>
-                </div>
-
-                {/* Micro-copy */}
-                <p className="text-[7px] font-mono uppercase tracking-[0.4em] text-[var(--foreground-muted)]/35 mt-5 text-center lg:text-left">
-                  {tr("PDF · 30 páginas · Sem registo obrigatório", "PDF · 30 pages · No registration required", "PDF · 30 páginas · Sin registro obligatorio")}
-                </p>
-              </div>
-            </RevealOnScroll>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {recentes.map((a, i) => (
+              <Revelar key={a.id} y={20} atraso={i * 100}>
+                <CartaoAnuncio a={a} />
+              </Revelar>
+            ))}
           </div>
-        </div>
 
-        {/* Bottom hairline */}
-        <div className="absolute bottom-0 inset-x-0 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(197,160,89,0.15), transparent)" }} aria-hidden />
-      </section>
+          <div className="mt-8 text-center sm:hidden">
+            <LocalizedLink href="/comprar" className="btn btn-secundario">
+              Ver todos os cavalos
+            </LocalizedLink>
+          </div>
+        </section>
+      )}
 
-      {/* ===== STICKY SCROLL CTA — componente isolado para evitar re-render da página ===== */}
-      <StickyCTA featuredProductHandle={featuredProduct?.handle} />
-
-      {/* ===== PRODUTO EM DESTAQUE ===== */}
-      <section className="border-t border-[var(--border)] overflow-hidden">
-        {featuredProduct ? (
-          <RevealOnScroll variant="fade-up">
-            {/* ══ MOBILE — luxury editorial card ══ */}
-            <div className="lg:hidden bg-[#080808]">
-              {/* Image stage */}
-              <div className="relative w-full" style={{ height: "72vh", minHeight: "380px" }}>
-                {featuredProduct.images[0]?.url ? (
-                  <Image
-                    src={featuredProduct.images[0].url}
-                    alt={featuredProduct.title}
-                    fill
-                    sizes="100vw"
-                    className="object-contain"
-                    style={{ padding: "28px 24px 56px" }}
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Package size={48} className="text-[var(--gold)]/20" />
-                  </div>
-                )}
-                {/* Edge vignette (not bottom — keeps product visible) */}
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{ background: "radial-gradient(ellipse at center, transparent 50%, rgba(8,8,8,0.9) 100%)" }}
-                  aria-hidden
-                />
-                {/* Bottom fade only from 70% down */}
-                <div
-                  className="absolute inset-x-0 bottom-0 h-24 pointer-events-none"
-                  style={{ background: "linear-gradient(to bottom, transparent, #080808)" }}
-                  aria-hidden
-                />
-                {/* Corner ornaments */}
-                <div className="absolute top-5 left-5 w-7 h-7 border-t border-l border-[var(--gold)]/25 pointer-events-none" />
-                <div className="absolute top-5 right-5 w-7 h-7 border-t border-r border-[var(--gold)]/25 pointer-events-none" />
-                {/* Label badge */}
-                <div className="absolute top-5 left-1/2 -translate-x-1/2 flex items-center gap-2">
-                  <div className="w-4 h-[1px] bg-[var(--gold)]/40" />
-                  <span className="text-[7px] uppercase tracking-[0.5em] text-[var(--gold)]/70">
-                    {tr("Destaque", "Featured", "Destacado")}
-                  </span>
-                  <div className="w-4 h-[1px] bg-[var(--gold)]/40" />
-                </div>
-                {/* Ghost lot number */}
-                <div
-                  className="absolute bottom-8 right-4 font-serif leading-none select-none pointer-events-none"
-                  style={{ fontSize: "clamp(5rem, 22vw, 9rem)", color: "rgba(197,160,89,0.04)" }}
-                  aria-hidden
-                >
-                  01
-                </div>
-              </div>
-
-              {/* Info panel */}
-              <div className="relative px-5 pb-10 pt-0" style={{ background: "#080808" }}>
-                {/* Gold hairline */}
-                <div className="w-full h-[1px] mb-5" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(197,160,89,0.45) 35%, rgba(197,160,89,0.45) 65%, transparent 100%)" }} />
-
-                {/* Title + price row */}
-                <div className="flex items-start justify-between gap-4 mb-5">
-                  <h2 className="text-[clamp(1.6rem,7vw,2.2rem)] font-serif text-white leading-tight flex-1">
-                    {featuredProduct.title}
-                  </h2>
-                  <div className="flex-shrink-0 text-right">
-                    <p className="text-[7px] uppercase tracking-[0.3em] text-white/25 mb-0.5">
-                      {tr("Preço", "Price", "Precio")}
-                    </p>
-                    <p className="text-2xl font-serif text-[var(--gold)] tabular-nums">
-                      {Number(featuredProduct.priceRange?.minVariantPrice.amount || 0).toFixed(2)} €
-                    </p>
-                  </div>
-                </div>
-
-                {featuredProduct.description && (
-                  <p className="text-[13px] text-white/45 leading-relaxed mb-6">
-                    {featuredProduct.description.length > 110
-                      ? featuredProduct.description.slice(0, 107) + "..."
-                      : featuredProduct.description}
-                  </p>
-                )}
-
-                {/* Full-width CTA */}
-                <LocalizedLink
-                  href={`/loja/${featuredProduct.handle}`}
-                  className="flex items-center justify-center gap-2.5 w-full py-4 bg-[var(--gold)] text-black text-[10px] uppercase tracking-[0.3em] font-bold active:scale-[0.98] touch-manipulation transition-transform shadow-[0_4px_40px_rgba(197,160,89,0.28)] mb-4"
-                >
-                  <ShoppingBag size={13} strokeWidth={2.5} />
-                  {tr("Comprar Agora", "Buy Now", "Comprar Ahora")}
-                </LocalizedLink>
-
-                <LocalizedLink
-                  href="/loja"
-                  className="flex items-center justify-center gap-1.5 text-[9px] uppercase tracking-[0.25em] text-white/25 active:text-[var(--gold)] transition-colors"
-                >
-                  {tr("Ver toda a coleção", "View full collection", "Ver colección completa")}
-                  <ArrowRight size={9} />
-                </LocalizedLink>
-              </div>
-            </div>
-
-            {/* ══ DESKTOP — editorial split, full-bleed ══ */}
-            <div className="hidden lg:grid lg:grid-cols-[62%_38%]" style={{ minHeight: "580px" }}>
-              {/* Left: atmospheric dark image panel */}
-              <LocalizedLink
-                href={`/loja/${featuredProduct.handle}`}
-                className="group relative overflow-hidden block"
-                style={{ background: "#080808" }}
-              >
-                {featuredProduct.images[0]?.url ? (
-                  <Image
-                    src={featuredProduct.images[0].url}
-                    alt={featuredProduct.title}
-                    fill
-                    sizes="62vw"
-                    className="object-contain transition-transform duration-1000 ease-out group-hover:scale-[1.03]"
-                    style={{ objectPosition: "center 40%", padding: "32px 40px" }}
-                    loading="lazy"
-                    quality={90}
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Package size={80} className="text-[var(--gold)]/10" />
-                  </div>
-                )}
-                {/* Right edge fade */}
-                <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to right, transparent 75%, #080808)" }} />
-                {/* Top-left corner ornament */}
-                <div className="absolute top-8 left-8 w-10 h-10 border-t border-l border-[var(--gold)]/25 pointer-events-none" />
+      {/* ── ESTADO VAZIO ─────────────────────────────────────────────────── */}
+      {semAnuncios && (
+        <section className="mx-auto max-w-7xl px-4 py-20 text-center md:px-6">
+          <Revelar duracao={600}>
+            <h2 className="titulo-gradiente text-[1.75rem] font-normal leading-[120%] tracking-tighter md:text-[2.5rem]">
+              Ainda não há cavalos publicados
+            </h2>
+            <p className="mx-auto mt-3 max-w-md text-sm text-[var(--foreground-secondary)]">
+              Seja o primeiro a anunciar. O seu cavalo fica visível para todo o país.
+            </p>
+            <div className="mt-8">
+              <LocalizedLink href="/vender-cavalo" className="btn btn-acento h-12 px-6">
+                Publicar anúncio
               </LocalizedLink>
+            </div>
+          </Revelar>
+        </section>
+      )}
 
-              {/* Right: premium info panel */}
-              <div
-                className="relative flex flex-col justify-center px-14 xl:px-18 py-16"
-                style={{ background: "var(--background)" }}
-              >
-                {/* Vertical gold accent on left edge */}
-                <div
-                  className="absolute top-0 left-0 w-[1px] h-full"
-                  style={{ background: "linear-gradient(to bottom, transparent, rgba(197,160,89,0.25) 25%, rgba(197,160,89,0.25) 75%, transparent)" }}
-                />
-                {/* Corner ornaments */}
-                <div className="absolute top-8 right-8 w-12 h-12 border-t border-r border-[var(--gold)]/20" aria-hidden="true" />
-                <div className="absolute bottom-8 right-8 w-12 h-12 border-b border-r border-[var(--gold)]/20" aria-hidden="true" />
+      {/* ── PUBLICAR COM CONFIANÇA ───────────────────────────────────────── */}
+      <section
+        className="separador-brilho relative mx-auto mt-8 max-w-7xl rounded-t-[24px] border-t px-4 pt-10 pb-10 sm:pt-24 sm:pb-24 md:px-6"
+        style={{ borderColor: "var(--border)" }}
+      >
+        <Revelar duracao={600}>
+          <h2 className="titulo-gradiente mb-3 max-w-2xl text-[2rem] font-normal leading-[120%] tracking-tighter md:text-[3.5rem]">
+            Publique com confiança
+          </h2>
+          <p className="mb-8 max-w-2xl text-sm text-[var(--foreground-secondary)] md:mb-16 md:text-lg">
+            Um mercado onde o comprador confia no que vê — e o vendedor não perde tempo com
+            curiosos.
+          </p>
+        </Revelar>
 
-                {/* Label */}
-                <div className="flex items-center gap-3 mb-8">
-                  <div className="w-8 h-[1px] bg-[var(--gold)]" />
-                  <span className="text-[9px] uppercase tracking-[0.45em] text-[var(--gold)]">
-                    {tr("Produto em Destaque", "Featured Product", "Producto Destacado")}
-                  </span>
-                </div>
-
-                {/* Title */}
-                <h2 className="text-4xl xl:text-5xl font-serif text-[var(--foreground)] leading-[1.1] mb-5">
-                  {featuredProduct.title}
-                </h2>
-
-                {/* Animated gold underline */}
-                <div className="h-[1px] mb-6 w-16" style={{ background: "linear-gradient(90deg, var(--gold), transparent)" }} />
-
-                {/* Description */}
-                {featuredProduct.description && (
-                  <p className="text-[var(--foreground-secondary)] text-sm leading-relaxed mb-8 max-w-[300px]">
-                    {featuredProduct.description.length > 160
-                      ? featuredProduct.description.slice(0, 157) + "..."
-                      : featuredProduct.description}
-                  </p>
-                )}
-
-                {/* Feature list with bar accents */}
-                <div className="flex flex-col gap-3.5 mb-10">
-                  {[
-                    tr("Qualidade premium portuguesa", "Premium Portuguese quality", "Calidad premium portuguesa"),
-                    tr("Envio para todo o mundo", "Worldwide shipping", "Envío a todo el mundo"),
-                    tr("Design equestre exclusivo", "Exclusive equestrian design", "Diseño ecuestre exclusivo"),
-                  ].map((feat) => (
-                    <div key={feat} className="flex items-center gap-3">
-                      <div className="w-[3px] h-4 bg-[var(--gold)]/50 flex-shrink-0 rounded-full" />
-                      <span className="text-xs text-[var(--foreground-muted)] tracking-wide">{feat}</span>
+        <div ref={cartoesVivos}>
+          <GrelhaHolofote className="grelha-holofote grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {CONFIANCA.map((c, i) => {
+              const estado = c.estados[(Math.floor((passoCartoes + i) / 3) + i) % c.estados.length];
+              return (
+                <Revelar key={c.t} y={20} atraso={i * 120}>
+                  <CartaoSeco>
+                    <div className="cartao-holofote flex h-full flex-col gap-4 rounded-[24px] p-8">
+                      <div className="relative z-10">
+                        <PainelEscrito chave={estado.texto} duracao={700}>
+                          <div className="linha-viva">
+                            <span className="linha-viva__ponto" />
+                            <span className="linha-viva__texto">{estado.texto}</span>
+                            <span className="linha-viva__forte">{estado.forte}</span>
+                          </div>
+                        </PainelEscrito>
+                      </div>
+                      <h4 className="relative z-10 text-xl font-normal text-[var(--foreground-strong)]">
+                        {c.t}
+                      </h4>
+                      <p className="relative z-10 text-sm leading-relaxed text-[var(--foreground-secondary)]">
+                        {c.d}
+                      </p>
                     </div>
-                  ))}
-                </div>
-
-                {/* Price */}
-                <div className="mb-7">
-                  <p className="text-[9px] uppercase tracking-[0.35em] text-[var(--foreground-muted)] mb-1.5">
-                    {tr("Preço", "Price", "Precio")}
-                  </p>
-                  <p className="text-4xl font-serif text-[var(--gold)]">
-                    {Number(featuredProduct.priceRange?.minVariantPrice.amount || 0).toFixed(2)} €
-                  </p>
-                </div>
-
-                {/* CTA */}
-                <MagneticButton strength={0.2}>
-                  <LocalizedLink
-                    href={`/loja/${featuredProduct.handle}`}
-                    className="ripple-btn group inline-flex items-center justify-center gap-3 bg-[var(--gold)] text-black px-10 py-5 text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-white transition-[background-color] duration-300 shadow-[0_16px_50px_rgba(197,160,89,0.35)] w-full max-w-[280px]"
-                  >
-                    <ShoppingBag size={14} strokeWidth={2.5} />
-                    {tr("Comprar Agora", "Buy Now", "Comprar Ahora")}
-                    <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform ml-auto" />
-                  </LocalizedLink>
-                </MagneticButton>
-
-                <LocalizedLink
-                  href="/loja"
-                  className="inline-flex items-center gap-1.5 mt-5 text-[10px] uppercase tracking-[0.2em] text-[var(--foreground-muted)] hover:text-[var(--gold)] transition-colors group/link w-fit"
-                >
-                  {tr("Ver toda a coleção", "View full collection", "Ver colección completa")}
-                  <ArrowRight size={10} className="group-hover/link:translate-x-1 transition-transform" />
-                </LocalizedLink>
-              </div>
-            </div>
-          </RevealOnScroll>
-        ) : (
-          <div className="py-10 sm:py-28">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
-              <RevealOnScroll variant="fade-scale">
-                <span className="text-[11px] uppercase tracking-[0.2em] text-[var(--gold)] mb-4 block">
-                  {tr("Loja", "Shop", "Tienda")}
-                </span>
-                <h2 className="text-3xl sm:text-4xl font-serif text-[var(--foreground)] mb-4">
-                  {tr("Vestuário & Acessórios Equestres", "Equestrian Clothing & Accessories", "Ropa y Accesorios Ecuestres")}
-                </h2>
-                <p className="text-[var(--foreground-muted)] max-w-lg mx-auto mb-10">
-                  {tr(
-                    "Peças que celebram a herança equestre portuguesa. Design contemporâneo, tradição secular.",
-                    "Pieces that celebrate Portuguese equestrian heritage. Contemporary design, secular tradition.",
-                    "Piezas que celebran el patrimonio ecuestre portugués. Diseño contemporáneo, tradición secular."
-                  )}
-                </p>
-                <MagneticButton>
-                  <LocalizedLink
-                    href="/loja"
-                    className="ripple-btn shimmer-gold inline-block border border-[var(--border-hover)] px-10 py-4 text-[10px] uppercase tracking-[0.3em] text-[var(--foreground)] hover:bg-[var(--gold)] hover:text-black hover:border-[var(--gold)] transition-[background-color,color,border-color] duration-500"
-                  >
-                    {t.home.cta}
-                  </LocalizedLink>
-                </MagneticButton>
-              </RevealOnScroll>
-            </div>
-          </div>
-        )}
+                  </CartaoSeco>
+                </Revelar>
+              );
+            })}
+          </GrelhaHolofote>
+        </div>
       </section>
-    </>
+
+      {/* ── CTA FINAL ────────────────────────────────────────────────────── */}
+      <section className="relative mx-auto max-w-7xl px-4 pb-20 pt-16 text-center sm:pt-32 md:px-6">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage:
+              "radial-gradient(ellipse 80% 60% at 50% 0%, var(--elevate-2), transparent 70%)",
+          }}
+        />
+        <div className="relative">
+          <Revelar duracao={600}>
+            <h2 className="titulo-gradiente mb-3 text-[2rem] font-normal leading-[120%] tracking-tighter md:text-[3.5rem]">
+              Publique o seu cavalo hoje
+            </h2>
+            <p className="mx-auto mb-8 max-w-lg text-sm text-[var(--foreground-secondary)] md:text-lg">
+              Crie a ficha, adicione fotografias e genealogia, e receba contactos em dias.
+            </p>
+          </Revelar>
+          <Revelar duracao={600} atraso={100}>
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <LocalizedLink href="/vender-cavalo" className="btn btn-acento h-12 px-7 text-base">
+                Publicar anúncio
+              </LocalizedLink>
+              <LocalizedLink href="/comprar" className="btn btn-subtil h-12 px-6 text-base">
+                Ver cavalos →
+              </LocalizedLink>
+            </div>
+          </Revelar>
+        </div>
+      </section>
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { linguaDoPedido } from "@/lib/lingua-do-pedido";
 import type { NextRequest } from "next/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
@@ -100,12 +101,28 @@ const CSP_STRING = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${IS_DEV ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://*.googlesyndication.com https://*.google.com https://*.doubleclick.net`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "img-src 'self' data: blob: https://images.unsplash.com https://cdn.shopify.com https://cdn.sanity.io https://www.google-analytics.com https://www.facebook.com https://*.googlesyndication.com https://*.doubleclick.net https://*.google.com https://*.googleusercontent.com https://*.basemaps.cartocdn.com https://*.supabase.co",
+  "img-src 'self' data: blob: https://tiles.openfreemap.org https://images.unsplash.com https://cdn.shopify.com https://cdn.sanity.io https://www.google-analytics.com https://www.facebook.com https://*.googlesyndication.com https://*.doubleclick.net https://*.google.com https://*.googleusercontent.com https://*.supabase.co",
   "font-src 'self' https://fonts.gstatic.com",
-  `connect-src 'self'${IS_DEV ? " ws://localhost:* ws://127.0.0.1:*" : ""} https://www.google-analytics.com https://www.facebook.com https://*.supabase.co https://*.shopify.com https://*.sanity.io https://*.googlesyndication.com https://*.google.com https://*.doubleclick.net https://*.adtrafficquality.google`,
+  `connect-src 'self'${IS_DEV ? " ws://localhost:* ws://127.0.0.1:*" : ""} https://www.google-analytics.com https://www.facebook.com https://*.supabase.co https://*.shopify.com https://*.sanity.io https://*.googlesyndication.com https://*.google.com https://*.doubleclick.net https://*.adtrafficquality.google https://tiles.openfreemap.org`,
   "frame-src 'self' blob: https://js.stripe.com https://*.googlesyndication.com https://*.doubleclick.net https://*.google.com",
+  // O MapLibre corre os seus trabalhadores a partir de um blob; sem isto o
+  // globo nem chega a montar.
+  "worker-src 'self' blob:",
+  "child-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",
+  // Nenhuma destas duas depende de nonces, e é por isso que estão aqui: com
+  // `'unsafe-inline'` no `script-src`, o que a CSP ainda pode fazer é limitar
+  // o estrago de qualquer coisa injectada.
+  //
+  // `frame-ancestors` não é o mesmo que o `X-Frame-Options: DENY` do
+  // next.config.js. O cabeçalho antigo não se aplica a `<embed>` nem a
+  // `<object>`, e não é reconhecido por todos os browsers actuais.
+  "frame-ancestors 'none'",
+  // Sem isto, HTML injectado numa página pode submeter um formulário para um
+  // servidor de fora — que é como se apanham credenciais sem precisar de
+  // executar um único script.
+  "form-action 'self'",
 ].join("; ");
 
 function applySecurityHeaders(response: NextResponse, contentLanguage = "pt") {
@@ -236,6 +253,53 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 301);
   }
 
+  /* A área de cliente, quando não há sessão nenhuma.
+   *
+   * **Isto não é a autenticação, e não a substitui.** A verificação a sério
+   * continua onde estava — `app/minha-conta/**` chama `supabase.auth.getUser()`
+   * e faz `redirect("/login")`. O que aqui se corta é o caso mais comum e mais
+   * barato: quem não traz sequer um cookie de sessão não precisa de acordar o
+   * servidor de autenticação para ouvir o que já se sabe.
+   *
+   * A razão de existir é medida, e é de experiência e não de desempenho.
+   * Carregar no ícone da conta sem sessão eram **duas navegações**: primeiro
+   * para `/minha-conta`, que renderizava o esqueleto de carregamento durante
+   * ~370ms, e só depois para `/login`. Medido no browser, a partir do rodapé
+   * da página inicial: a página da conta aterrava a meio (`scrollY=380`),
+   * rolava sozinha até ao topo, e só então mudava para o login. Via-se a
+   * viagem toda.
+   *
+   * Com isto é uma navegação só, decidida no limite, sem esqueleto e sem
+   * página pelo meio.
+   *
+   * **Só se recusa a ausência, nunca a invalidez.** Um cookie presente mas
+   * expirado, adulterado ou de outro projecto passa por aqui e vai bater na
+   * verificação de verdade, que é quem sabe dizer que não presta. Julgar aqui
+   * a validade de um token seria pôr uma segunda ideia de autenticação no
+   * caminho — e a que ficasse errada seria sempre esta. */
+  const semPrefixo = pathname.replace(/^\/(en|es)/, "") || "/";
+  if (semPrefixo.startsWith("/minha-conta")) {
+    // O Supabase guarda a sessão em `sb-<projecto>-auth-token`, e parte-a em
+    // `.0`, `.1` quando não cabe num cookie. Basta um pedaço para não podermos
+    // afirmar que não há sessão.
+    const temCookieDeSessao = request.cookies
+      .getAll()
+      .some((c) => /^sb-.+-auth-token(\.\d+)?$/.test(c.name));
+
+    if (!temCookieDeSessao) {
+      const prefixo = pathname.match(/^\/(en|es)/)?.[0] ?? "";
+      const destino = request.nextUrl.clone();
+      destino.pathname = `${prefixo}/login`;
+      /* Por onde voltar depois de entrar. É o nome que a página de login já
+         conhece, e vai o caminho sem o anfitrião — validado do outro lado pelo
+         `destinoSeguro`, porque um regresso que aceite um endereço inteiro
+         vindo do URL é uma porta aberta para mandar quem acabou de entrar
+         para fora do site. */
+      destino.searchParams.set("returnUrl", semPrefixo);
+      return NextResponse.redirect(destino);
+    }
+  }
+
   // i18n: Rewrite /en/* and /es/* routes to serve the same pages with locale cookie
   // Isto permite que o Google indexe /en/comprar, /en/loja, /es/comprar, /es/loja, etc.
   const i18nMatch = pathname.match(/^\/(en|es)(\/|$)/);
@@ -252,16 +316,20 @@ export async function middleware(request: NextRequest) {
     return rewriteResponse;
   }
 
-  // i18n: Auto-detect language from Accept-Language for first-time visitors (no locale cookie)
+  /* Língua de quem chega pela primeira vez, sem cookie.
+     Ver `linguaDoPedido`: isto era um `match(/\b(en|es)\b/)` sobre o
+     cabeçalho inteiro, e como quase todos os browsers portugueses trazem o
+     inglês como recurso, um visitante português apanhava o site em inglês
+     numa rota portuguesa. Agora lêem-se os pesos, como o protocolo manda. */
   if (
     !request.cookies.get("locale")?.value &&
     !pathname.startsWith("/api/") &&
     !pathname.startsWith("/admin")
   ) {
-    const acceptLang = request.headers.get("accept-language") || "";
-    const detected = acceptLang.match(/\b(en|es)\b/);
-    if (detected) {
-      response.cookies.set("locale", detected[1], { path: "/", sameSite: "lax" });
+    const escolhida = linguaDoPedido(request.headers.get("accept-language"));
+    // O português é a omissão; não vale a pena gastar um cookie a dizê-lo.
+    if (escolhida !== "pt") {
+      response.cookies.set("locale", escolhida, { path: "/", sameSite: "lax" });
     }
   }
 

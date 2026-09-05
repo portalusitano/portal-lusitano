@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: "20"
 
 jobs:
   # ===== QUALITY CHECKS =====
@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -51,7 +51,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -73,7 +73,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -82,13 +82,6 @@ jobs:
         run: npm run build
         env:
           NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: build
-          path: .next/
-          retention-days: 7
 
   # ===== LIGHTHOUSE =====
   lighthouse:
@@ -105,21 +98,33 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Download build
-        uses: actions/download-artifact@v4
-        with:
-          name: build
-          path: .next/
+      # A auditoria constrói o que precisa, em vez de receber o `.next` por
+      # artefacto.
+      #
+      # Esse caminho não pode funcionar aqui: o Turbopack gera chunks com dois
+      # pontos no nome (`[externals]_node:inspector_….js`) e o
+      # `upload-artifact` recusa dois pontos, por compatibilidade com sistemas
+      # de ficheiros da Microsoft. Antes de se ver isso, o passo de carregar
+      # não apanhava ficheiro nenhum — `.next` começa por ponto e a acção
+      # ignora ocultos por omissão — por isso dava sucesso em zero segundos e
+      # o defeito só aparecia aqui, três trabalhos à frente, com uma mensagem
+      # a apontar para o sítio errado.
+      #
+      # Construir outra vez custa uns quarenta segundos e tira do caminho um
+      # modo de falha inteiro. É o que o workflow autónomo do Lighthouse já
+      # fazia.
+      - name: Build application
+        run: npm run build
 
       - name: Run Lighthouse CI
         uses: treosh/lighthouse-ci-action@v11
         with:
-          configPath: './lighthouserc.json'
+          configPath: "./lighthouserc.json"
           uploadArtifacts: true
           temporaryPublicStorage: true
         continue-on-error: true
@@ -161,5 +166,5 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
+          vercel-args: "--prod"
           working-directory: ./

@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import { strictLimiter } from "@/lib/rate-limit";
 import { getListingTier } from "@/lib/listing-tiers";
+import { getAuthenticatedUser } from "@/lib/seller-auth";
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,6 +30,12 @@ export async function POST(req: NextRequest) {
     if (!formData || !formData.nomeCavalo) {
       return NextResponse.json({ error: "Dados do formulário inválidos" }, { status: 400 });
     }
+
+    // Se o vendedor estiver autenticado, o anúncio fica desde já ligado à conta
+    // dele. O webhook não tem sessão, por isso o id viaja nos metadados Stripe.
+    // Publicar sem conta continua a funcionar: nesse caso o anúncio é reclamado
+    // mais tarde por correspondência de email (ver lib/seller-auth).
+    const user = await getAuthenticatedUser();
 
     // Guardar contacto em BD antes de criar sessão Stripe
     const isDestaque = tier === "destaque" || tier === "premium";
@@ -87,6 +94,7 @@ export async function POST(req: NextRequest) {
         duration_days: String(tierData.durationDays),
         destaque: isDestaque ? "true" : "false",
         nome: formData.nomeCavalo.substring(0, 100),
+        ...(user ? { user_id: user.id } : {}),
       },
       billing_address_collection: "auto",
     });

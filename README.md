@@ -12,6 +12,7 @@ Portal Lusitano é uma aplicação web moderna e profissional dedicada ao univer
 ## ✨ Funcionalidades
 
 ### 🎯 Funcionalidades Core
+
 - **Plataforma PRO**: 3 níveis de subscrição (Aficionado €9.99, Criador €49.99, Elite €199)
 - **Biblioteca de Ebooks**: Coleção completa de 6+ ebooks profissionais
 - **Leitor Interativo**: Dark mode, ajuste de fonte, marcadores, navegação por capítulos, progress tracking
@@ -22,6 +23,7 @@ Portal Lusitano é uma aplicação web moderna e profissional dedicada ao univer
 ### 🚀 Funcionalidades Enterprise
 
 #### Performance & UX
+
 - ⚡ **Next.js 16** com App Router e React Server Components
 - 🎨 **Skeleton Loaders** para todos os estados de loading
 - 🔔 **Toast Notifications** sistema profissional de notificações
@@ -31,6 +33,7 @@ Portal Lusitano é uma aplicação web moderna e profissional dedicada ao univer
 - 🎭 **Framer Motion** animações fluidas e profissionais
 
 #### Segurança
+
 - 🔒 **Security Headers** completos (HSTS, CSP, X-Frame-Options, X-Content-Type-Options)
 - 🛡️ **Rate Limiting** configurável por endpoint com LRU cache
 - ✅ **Validação Robusta** email, telefone, NIF, cartões de crédito
@@ -39,6 +42,7 @@ Portal Lusitano é uma aplicação web moderna e profissional dedicada ao univer
 - 🔑 **Password Strength** meter com feedback em tempo real
 
 #### DevOps & Qualidade
+
 - 🐳 **Docker** multi-stage build otimizado
 - 🔄 **CI/CD** completo com GitHub Actions
 - 📊 **Sentry** error tracking e performance monitoring
@@ -49,6 +53,7 @@ Portal Lusitano é uma aplicação web moderna e profissional dedicada ao univer
 - 🎯 **Lighthouse CI** performance monitoring
 
 #### Acessibilidade & SEO
+
 - ♿ **WCAG 2.1** AA compliant
 - 🎯 **Skip Links** navegação acessível por teclado
 - 🌐 **SEO** otimizado com meta tags dinâmicas
@@ -59,21 +64,22 @@ Portal Lusitano é uma aplicação web moderna e profissional dedicada ao univer
 
 ## 🛠️ Tech Stack
 
-| Categoria | Tecnologias |
-|-----------|-------------|
-| **Frontend** | Next.js 16, React 19, TypeScript 5 |
-| **Styling** | Tailwind CSS 3, Framer Motion 11 |
-| **Backend** | Next.js API Routes, Stripe SDK |
-| **Database** | Sanity CMS v3 |
-| **Auth & Payments** | Stripe Checkout, Stripe Webhooks |
-| **Deployment** | Docker, Vercel, standalone mode |
-| **Monitoring** | Sentry, Web Vitals, Custom Analytics |
-| **CI/CD** | GitHub Actions, Lighthouse CI |
-| **Linting** | ESLint, Prettier, Husky |
+| Categoria           | Tecnologias                          |
+| ------------------- | ------------------------------------ |
+| **Frontend**        | Next.js 16, React 19, TypeScript 5   |
+| **Styling**         | Tailwind CSS 3, Framer Motion 11     |
+| **Backend**         | Next.js API Routes, Stripe SDK       |
+| **Database**        | Sanity CMS v3                        |
+| **Auth & Payments** | Stripe Checkout, Stripe Webhooks     |
+| **Deployment**      | Docker, Vercel, standalone mode      |
+| **Monitoring**      | Sentry, Web Vitals, Custom Analytics |
+| **CI/CD**           | GitHub Actions, Lighthouse CI        |
+| **Linting**         | ESLint, Prettier, Husky              |
 
 ## 📦 Instalação
 
 ### Pré-requisitos
+
 - Node.js 18.18+ e npm/yarn
 - Conta Stripe (modo test disponível)
 - Conta Sanity (plano gratuito disponível)
@@ -82,22 +88,26 @@ Portal Lusitano é uma aplicação web moderna e profissional dedicada ao univer
 ### Setup Rápido
 
 1. **Clone o repositório**
+
 ```bash
 git clone https://github.com/seu-usuario/portal-lusitano.git
 cd portal-lusitano
 ```
 
 2. **Instale as dependências**
+
 ```bash
 npm install
 ```
 
 3. **Configure as variáveis de ambiente**
+
 ```bash
 cp .env.example .env.local
 ```
 
 Edite `.env.local` com as suas credenciais:
+
 ```env
 # Stripe Keys
 STRIPE_SECRET_KEY=sk_test_51...
@@ -129,6 +139,7 @@ NODE_ENV=development
 ```
 
 4. **Configure o Stripe CLI** (para webhooks locais)
+
 ```bash
 # Instalar Stripe CLI
 stripe login
@@ -140,11 +151,13 @@ stripe listen --forward-to localhost:3000/api/stripe/webhook
 ```
 
 5. **Inicie o servidor de desenvolvimento**
+
 ```bash
 npm run dev
 ```
 
 6. **Aceda à aplicação**
+
 ```
 🌐 http://localhost:3000
 ```
@@ -292,6 +305,7 @@ portal-lusitano/
 ## 🔐 Segurança
 
 ### Security Headers Implementados
+
 ```javascript
 X-DNS-Prefetch-Control: on
 X-Frame-Options: DENY
@@ -303,12 +317,14 @@ Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-eval'
 ```
 
 ### Rate Limiting Configurado
+
 - **API Geral**: 60 requests por minuto
 - **Autenticação**: 5 tentativas por 15 minutos
 - **Webhooks**: 100 requests por minuto
 - **Strict endpoints**: 10 requests por minuto
 
 ### Validações Implementadas
+
 ```typescript
 ✅ Email validation (RFC 5322)
 ✅ Telefone português (+351)
@@ -324,6 +340,7 @@ Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-eval'
 ## 📊 Monitoring & Analytics
 
 ### Sentry Configuration
+
 ```typescript
 // Automatic error tracking
 - JavaScript errors
@@ -335,6 +352,7 @@ Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-eval'
 ```
 
 ### Web Vitals Tracking
+
 ```typescript
 ✓ LCP - Largest Contentful Paint < 2.5s
 ✓ FID - First Input Delay < 100ms
@@ -344,21 +362,22 @@ Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-eval'
 ```
 
 ### Custom Analytics Events
+
 ```typescript
 // E-commerce
-trackEvent.viewProduct()
-trackEvent.addToCart()
-trackEvent.beginCheckout()
-trackEvent.purchase()
+trackEvent.viewProduct();
+trackEvent.addToCart();
+trackEvent.beginCheckout();
+trackEvent.purchase();
 
 // Engagement
-trackEvent.readArticle()
-trackEvent.downloadEbook()
-trackEvent.shareContent()
-trackEvent.timeOnPage()
+trackEvent.readArticle();
+trackEvent.downloadEbook();
+trackEvent.shareContent();
+trackEvent.timeOnPage();
 
 // Subscriptions
-trackEvent.subscribe()
+trackEvent.subscribe();
 ```
 
 ## 🚀 Deployment
@@ -366,6 +385,7 @@ trackEvent.subscribe()
 ### Deploy no Vercel (Recomendado)
 
 1. **Push para GitHub**
+
 ```bash
 git add .
 git commit -m "Ready for production"
@@ -373,12 +393,14 @@ git push origin main
 ```
 
 2. **Connect no Vercel**
+
 - Visita [vercel.com](https://vercel.com)
 - Import repository
 - Adiciona environment variables
 - Deploy!
 
 3. **Configure Domínio**
+
 - Adiciona domínio personalizado
 - Configura DNS records
 - SSL automático ativado
@@ -403,6 +425,7 @@ docker run -d -p 3000:3000 --name portal-lusitano portal-lusitano:v1.0.0
 ## 🧪 Testing & Quality
 
 ### Executar Tests
+
 ```bash
 # Unit tests
 npm run test
@@ -415,6 +438,7 @@ npm run test:coverage
 ```
 
 ### Lighthouse CI
+
 ```bash
 # Run lighthouse locally
 npm run lighthouse
@@ -423,6 +447,7 @@ npm run lighthouse
 ```
 
 ### Code Quality Checks
+
 ```bash
 # Type checking
 npm run type-check
@@ -437,29 +462,31 @@ npm run format:check
 ## 🎨 Design System
 
 ### Paleta de Cores
+
 ```css
 /* Primary */
---gold: #C5A059;        /* Dourado principal - CTAs */
---gold-dark: #8B6914;   /* Dourado escuro - Hover states */
+--gold: #c5a059; /* Dourado principal - CTAs */
+--gold-dark: #8b6914; /* Dourado escuro - Hover states */
 
 /* Backgrounds */
---black: #050505;       /* Background principal */
---zinc-900: #18181b;    /* Cards e containers */
---zinc-800: #27272a;    /* Borders e divisores */
+--black: #050505; /* Background principal */
+--zinc-900: #18181b; /* Cards e containers */
+--zinc-800: #27272a; /* Borders e divisores */
 
 /* Text */
---white: #ffffff;       /* Texto principal */
---zinc-400: #a1a1aa;    /* Texto secundário */
---zinc-600: #52525b;    /* Texto terciário */
+--white: #ffffff; /* Texto principal */
+--zinc-400: #a1a1aa; /* Texto secundário */
+--zinc-600: #52525b; /* Texto terciário */
 
 /* Semantic */
---green: #22c55e;       /* Success states */
---red: #ef4444;         /* Error states */
---yellow: #eab308;      /* Warning states */
---blue: #3b82f6;        /* Info states */
+--green: #22c55e; /* Success states */
+--red: #ef4444; /* Error states */
+--yellow: #eab308; /* Warning states */
+--blue: #3b82f6; /* Info states */
 ```
 
 ### Tipografia
+
 ```css
 /* Headings - Playfair Display (Serif) */
 font-family: 'Playfair Display', serif;
@@ -475,6 +502,7 @@ Tiny: 12px / 16px - Medium
 ```
 
 ### Breakpoints Tailwind
+
 ```javascript
 sm: '640px'   // Small devices
 md: '768px'   // Tablets
@@ -484,6 +512,7 @@ xl: '1280px'  // Large desktops
 ```
 
 ### Spacing Scale
+
 ```css
 0.5 = 2px    | 6  = 24px  | 20 = 80px
 1   = 4px    | 8  = 32px  | 24 = 96px
@@ -501,17 +530,20 @@ Este software é propriedade privada e confidencial. Cópia, distribuição ou u
 ## 🤝 Contribuir
 
 Este é um projeto privado/comercial. Para contribuições ou parcerias, contacte:
+
 - 📧 Email: dev@portal-lusitano.pt
 - 🌐 Website: https://portal-lusitano.pt
 
 ## 📞 Suporte
 
 ### Suporte Técnico
+
 - 📧 Email: suporte@portal-lusitano.pt
 - 💬 Chat: Disponível no site
 - 📱 Telefone: +351 XXX XXX XXX
 
 ### Documentação
+
 - API Docs: `/docs/api`
 - Component Library: `/docs/components`
 - Style Guide: `/docs/design`
@@ -519,18 +551,21 @@ Este é um projeto privado/comercial. Para contribuições ou parcerias, contact
 ## 🎯 Roadmap
 
 ### v1.1 (Q1 2026)
+
 - [ ] Sistema de comentários nos ebooks
 - [ ] Modo dark/light toggle global
 - [ ] Notificações push PWA
 - [ ] Chat ao vivo para suporte
 
 ### v1.2 (Q2 2026)
+
 - [ ] App mobile nativo (React Native)
 - [ ] Sistema de referral com rewards
 - [ ] Cursos em vídeo streaming
 - [ ] Webinars ao vivo integrados
 
 ### v2.0 (Q3 2026)
+
 - [ ] Marketplace de cavalos
 - [ ] Sistema de leilões online
 - [ ] Rede social para membros
@@ -560,6 +595,7 @@ Total: < 250 kB gzipped
 ## 🙏 Agradecimentos
 
 Desenvolvido com dedicação usando:
+
 - [Next.js](https://nextjs.org) - Framework React
 - [Tailwind CSS](https://tailwindcss.com) - Utility-first CSS
 - [Framer Motion](https://www.framer.com/motion/) - Animações
@@ -574,7 +610,7 @@ Desenvolvido com dedicação usando:
 
 **Desenvolvido com ❤️ e 🐴 por Claude Sonnet 4.5**
 
-*Revolucionando o mundo do Cavalo Lusitano, uma linha de código de cada vez.*
+_Revolucionando o mundo do Cavalo Lusitano, uma linha de código de cada vez._
 
 [Website](https://portal-lusitano.pt) · [Documentação](https://docs.portal-lusitano.pt) · [Suporte](mailto:suporte@portal-lusitano.pt)
 

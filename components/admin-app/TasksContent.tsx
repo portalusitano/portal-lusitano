@@ -27,6 +27,7 @@ import {
   useDroppable,
   useDraggable,
 } from "@dnd-kit/core";
+import Seleccao from "@/components/ui/Seleccao";
 // arrayMove not used currently
 
 // ========================================
@@ -269,13 +270,13 @@ const KanbanColumnComponent = ({ column, tasks, onEdit, onDelete }: KanbanColumn
     <div
       ref={setNodeRef}
       className={`bg-black/20 rounded-xl border-2 ${column.color} p-4 flex flex-col h-full min-h-[600px] transition-all ${
-        isOver ? "border-[#C5A059] bg-[#C5A059]/5 scale-105" : ""
+        isOver ? "border-[var(--gold)] bg-[var(--gold)]/5 scale-105" : ""
       }`}
     >
       {/* Column Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Icon className="w-5 h-5 text-[#C5A059]" />
+          <Icon className="w-5 h-5 text-[var(--gold)]" />
           <h3 className="text-white font-semibold">{column.title}</h3>
           <span className="text-sm text-gray-400 bg-white/5 px-2 py-0.5 rounded-full">
             {tasks.length}
@@ -350,7 +351,7 @@ const TaskModal = ({ isOpen, onClose, task, onSave, adminUsers }: TaskModalProps
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-[#0A0A0A] border border-white/20 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-[var(--background-secondary)] border border-white/20 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <h2 className="text-xl font-bold text-white">{task ? "Editar Tarefa" : "Nova Tarefa"}</h2>
@@ -371,7 +372,7 @@ const TaskModal = ({ isOpen, onClose, task, onSave, adminUsers }: TaskModalProps
               required
               value={formData.title || ""}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-[#C5A059] transition-colors"
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-[var(--gold)] transition-colors"
               placeholder="Ex: Contactar cliente sobre proposta"
             />
           </div>
@@ -383,7 +384,7 @@ const TaskModal = ({ isOpen, onClose, task, onSave, adminUsers }: TaskModalProps
               value={formData.description || ""}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-[#C5A059] transition-colors resize-none"
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-[var(--gold)] transition-colors resize-none"
               placeholder="Detalhes da tarefa..."
             />
           </div>
@@ -397,7 +398,7 @@ const TaskModal = ({ isOpen, onClose, task, onSave, adminUsers }: TaskModalProps
                 list="admin-users"
                 value={formData.assigned_to || ""}
                 onChange={(e) => setFormData({ ...formData, assigned_to: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-[#C5A059] transition-colors"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-[var(--gold)] transition-colors"
                 placeholder="email@exemplo.com"
               />
               <datalist id="admin-users">
@@ -409,18 +410,18 @@ const TaskModal = ({ isOpen, onClose, task, onSave, adminUsers }: TaskModalProps
 
             <div>
               <label className="block text-sm font-semibold text-gray-300 mb-2">Prioridade</label>
-              <select
+              <Seleccao
                 value={formData.priority}
                 onChange={(e) =>
                   setFormData({ ...formData, priority: e.target.value as Task["priority"] })
                 }
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#C5A059] transition-colors"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--gold)] transition-colors"
               >
                 <option value="baixa">Baixa</option>
                 <option value="normal">Normal</option>
                 <option value="alta">Alta</option>
                 <option value="urgente">Urgente</option>
-              </select>
+              </Seleccao>
             </div>
           </div>
 
@@ -435,24 +436,24 @@ const TaskModal = ({ isOpen, onClose, task, onSave, adminUsers }: TaskModalProps
                 required
                 value={formData.due_date || ""}
                 onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#C5A059] transition-colors"
+                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--gold)] transition-colors"
               />
             </div>
 
             {task && (
               <div>
                 <label className="block text-sm font-semibold text-gray-300 mb-2">Estado</label>
-                <select
+                <Seleccao
                   value={formData.status}
                   onChange={(e) =>
                     setFormData({ ...formData, status: e.target.value as Task["status"] })
                   }
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#C5A059] transition-colors"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[var(--gold)] transition-colors"
                 >
                   <option value="pendente">Pendente</option>
                   <option value="em_andamento">Em Andamento</option>
                   <option value="concluida">Concluída</option>
-                </select>
+                </Seleccao>
               </div>
             )}
           </div>
@@ -468,7 +469,7 @@ const TaskModal = ({ isOpen, onClose, task, onSave, adminUsers }: TaskModalProps
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-[#C5A059] hover:bg-[#d4b469] text-black font-semibold rounded-lg transition-colors"
+              className="px-6 py-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black font-semibold rounded-lg transition-colors"
             >
               {task ? "Guardar" : "Criar Tarefa"}
             </button>
@@ -691,7 +692,7 @@ export default function TasksContent() {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#C5A059] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[var(--gold)] mx-auto mb-4"></div>
           <p className="text-gray-400">A carregar tarefas...</p>
         </div>
       </div>
@@ -699,7 +700,7 @@ export default function TasksContent() {
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-br from-[#050505] via-[#0A0A0A] to-[#050505] p-6">
+    <div className="h-full overflow-y-auto bg-gradient-to-br from-[var(--background)] via-[var(--background-secondary)] to-[var(--background)] p-6">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
@@ -710,7 +711,7 @@ export default function TasksContent() {
 
           <button
             onClick={handleNewTask}
-            className="flex items-center gap-2 px-6 py-3 bg-[#C5A059] hover:bg-[#d4b469] text-black font-semibold rounded-lg transition-all hover:scale-105"
+            className="flex items-center gap-2 px-6 py-3 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black font-semibold rounded-lg transition-all hover:scale-105"
           >
             <Plus className="w-5 h-5" />
             Nova Tarefa
@@ -756,7 +757,7 @@ export default function TasksContent() {
                 placeholder="Pesquisar tarefas..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-[#C5A059] transition-colors"
+                className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-[var(--gold)] transition-colors"
               />
             </div>
           </div>
@@ -764,26 +765,26 @@ export default function TasksContent() {
           {/* Priority Filter */}
           <div className="relative">
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-            <select
+            <Seleccao
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
-              className="bg-white/5 border border-white/10 rounded-lg pl-10 pr-8 py-2 text-white appearance-none focus:outline-none focus:border-[#C5A059] transition-colors cursor-pointer"
+              className="bg-white/5 border border-white/10 rounded-lg pl-10 pr-8 py-2 text-white appearance-none focus:outline-none focus:border-[var(--gold)] transition-colors cursor-pointer"
             >
               <option value="all">Todas Prioridades</option>
               <option value="urgente">Urgente</option>
               <option value="alta">Alta</option>
               <option value="normal">Normal</option>
               <option value="baixa">Baixa</option>
-            </select>
+            </Seleccao>
           </div>
 
           {/* Assigned Filter */}
           <div className="relative">
             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-            <select
+            <Seleccao
               value={filterAssigned}
               onChange={(e) => setFilterAssigned(e.target.value)}
-              className="bg-white/5 border border-white/10 rounded-lg pl-10 pr-8 py-2 text-white appearance-none focus:outline-none focus:border-[#C5A059] transition-colors cursor-pointer"
+              className="bg-white/5 border border-white/10 rounded-lg pl-10 pr-8 py-2 text-white appearance-none focus:outline-none focus:border-[var(--gold)] transition-colors cursor-pointer"
             >
               <option value="all">Todos Atribuídos</option>
               {Array.from(
@@ -793,21 +794,21 @@ export default function TasksContent() {
                   {email}
                 </option>
               ))}
-            </select>
+            </Seleccao>
           </div>
 
           {/* Sort */}
           <div className="relative">
             <SortAsc className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-            <select
+            <Seleccao
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as "due_date" | "created_at" | "priority")}
-              className="bg-white/5 border border-white/10 rounded-lg pl-10 pr-8 py-2 text-white appearance-none focus:outline-none focus:border-[#C5A059] transition-colors cursor-pointer"
+              className="bg-white/5 border border-white/10 rounded-lg pl-10 pr-8 py-2 text-white appearance-none focus:outline-none focus:border-[var(--gold)] transition-colors cursor-pointer"
             >
               <option value="due_date">Ordenar por Vencimento</option>
               <option value="created_at">Ordenar por Criação</option>
               <option value="priority">Ordenar por Prioridade</option>
-            </select>
+            </Seleccao>
           </div>
         </div>
       </div>

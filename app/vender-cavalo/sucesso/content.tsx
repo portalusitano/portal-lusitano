@@ -1,90 +1,89 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import LocalizedLink from "@/components/LocalizedLink";
-import { CheckCircle, ArrowRight, Mail, Clock, Eye } from "lucide-react";
+import { CheckCircle, ArrowRight, Mail, ShieldCheck, Eye } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { limparRascunho } from "@/components/vender-cavalo/rascunho";
 
+/**
+ * O anúncio foi pago.
+ *
+ * Duas coisas mudaram aqui, e as duas são sobre quem manda na página.
+ *
+ * 1. **É aqui que o rascunho se apaga, e não antes.** Estava a ser apagado no
+ *    instante anterior ao salto para o Stripe. Quem desistisse no Stripe — ou
+ *    a quem o cartão fosse recusado — voltava pelo `cancel_url` a um
+ *    formulário vazio, com quatro passos de trabalho perdidos e o pagamento
+ *    por fazer. Só nesta página é que se sabe que o anúncio existe.
+ * 2. **Deixou de haver reencaminhamento automático.** Havia uma contagem de
+ *    cinco segundos que levava a pessoa para `/comprar` — para longe do
+ *    identificador da transacção que acabara de pagar e das três coisas que
+ *    lhe explicam o que se segue. Sair da página é uma decisão de quem paga;
+ *    os dois botões estão aqui em baixo.
+ */
 export default function VenderCavaloSucessoContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const sessionId = searchParams.get("session_id");
-  const [countdown, setCountdown] = useState(5);
   const { t } = useLanguage();
 
   useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-    router.push("/comprar");
-  }, [countdown, router]);
+    limparRascunho();
+  }, []);
+
+  const passos = [
+    {
+      icone: Mail,
+      titulo: t.success_pages.confirmation_email,
+      texto: t.success_pages.confirmation_email_desc,
+    },
+    {
+      // Um relógio dizia «isto tem um prazo». Não tem: o passo é a revisão,
+      // não a espera, e o texto ao lado deixou de prometer horas.
+      icone: ShieldCheck,
+      titulo: t.success_pages.approval_review,
+      texto: t.success_pages.approval_review_desc,
+    },
+    {
+      icone: Eye,
+      titulo: t.success_pages.validity_30_days,
+      texto: t.success_pages.validity_30_days_desc,
+    },
+  ];
 
   return (
-    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-24 md:pt-32 pb-32 px-4 sm:px-6 md:px-12">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-24 md:pt-32 pb-32 px-4 sm:px-6 md:px-12">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-500/20 mb-6">
-            <CheckCircle className="w-12 h-12 text-green-500" />
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[var(--elevate-1)] border border-[var(--border-soft)] mb-6">
+            <CheckCircle className="w-10 h-10 text-[var(--ok)]" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">
-            {t.success_pages.payment_confirmed}
-          </h1>
-          <p className="text-[var(--foreground-secondary)] text-lg">
+          <h1 className="titulo-pagina mb-4">{t.success_pages.payment_confirmed}</h1>
+          <p className="text-[var(--foreground-secondary)]">
             {t.success_pages.confirmation_email_desc}
           </p>
         </div>
 
         <div className="space-y-4 mb-8">
-          <div className="bg-[var(--background-secondary)] border border-[var(--border)] rounded-xl p-6">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--gold)]/20 flex items-center justify-center">
-                <Mail className="w-5 h-5 text-[var(--gold)]" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold mb-2">{t.success_pages.confirmation_email}</h3>
-                <p className="text-sm text-[var(--foreground-secondary)]">
-                  {t.success_pages.confirmation_email_desc}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-[var(--background-secondary)] border border-[var(--border)] rounded-xl p-6">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--gold)]/20 flex items-center justify-center">
-                <Clock className="w-5 h-5 text-[var(--gold)]" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold mb-2">{t.success_pages.approval_24h}</h3>
-                <p className="text-sm text-[var(--foreground-secondary)]">
-                  {t.success_pages.approval_24h_desc}
-                </p>
+          {passos.map(({ icone: Icone, titulo, texto }) => (
+            <div key={titulo} className="bg-[var(--background-secondary)] cartao p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--elevate-1)] flex items-center justify-center">
+                  <Icone className="w-5 h-5 text-[var(--foreground-muted)]" aria-hidden="true" />
+                </div>
+                <div className="flex-1">
+                  <h2 className="titulo-seccao mb-2">{titulo}</h2>
+                  <p className="text-sm text-[var(--foreground-secondary)]">{texto}</p>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="bg-[var(--background-secondary)] border border-[var(--border)] rounded-xl p-6">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--gold)]/20 flex items-center justify-center">
-                <Eye className="w-5 h-5 text-[var(--gold)]" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold mb-2">{t.success_pages.validity_30_days}</h3>
-                <p className="text-sm text-[var(--foreground-secondary)]">
-                  {t.success_pages.validity_30_days_desc}
-                </p>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
 
         {sessionId && (
-          <div className="bg-[var(--background-secondary)]/50 border border-[var(--border)] rounded-lg p-4 mb-8">
-            <p className="text-xs text-[var(--foreground-muted)] mb-1">
-              {t.success_pages.transaction_id}:
-            </p>
+          <div className="bg-[var(--background-secondary)]/50 cartao p-4 mb-8">
+            <p className="rotulo mb-1">{t.success_pages.transaction_id}</p>
             <p className="text-xs text-[var(--foreground-secondary)] font-mono break-all">
               {sessionId}
             </p>
@@ -92,29 +91,16 @@ export default function VenderCavaloSucessoContent() {
         )}
 
         <div className="space-y-4">
-          <LocalizedLink
-            href="/comprar"
-            className="flex items-center justify-center gap-2 w-full bg-[var(--gold)] hover:bg-[#B39049] text-black font-bold py-4 rounded-xl transition-all"
-          >
+          <LocalizedLink href="/comprar" className="btn btn-primario w-full gap-2 rounded-full">
             <span>{t.success_pages.view_marketplace}</span>
-            <ArrowRight size={18} />
+            <ArrowRight size={18} aria-hidden="true" />
           </LocalizedLink>
 
-          <LocalizedLink
-            href="/"
-            className="flex items-center justify-center gap-2 w-full bg-[var(--background-secondary)] hover:bg-[var(--surface-hover)] text-[var(--foreground)] font-bold py-4 rounded-xl transition-all border border-[var(--border)]"
-          >
+          <LocalizedLink href="/" className="btn btn-secundario w-full rounded-full">
             <span>{t.success_pages.back_home}</span>
           </LocalizedLink>
         </div>
-
-        {countdown > 0 && (
-          <p className="text-center text-sm text-[var(--foreground-muted)] mt-6">
-            {t.success_pages.redirecting_to} {countdown}s...
-          </p>
-        )}
-
       </div>
-    </main>
+    </div>
   );
 }

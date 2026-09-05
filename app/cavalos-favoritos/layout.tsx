@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Cavalos Favoritos",
-  description:
-    "Os seus cavalos Lusitanos favoritos guardados no Portal Lusitano.",
+  description: "Os seus cavalos Lusitanos favoritos guardados no Portal Lusitano.",
   keywords: [],
   robots: {
     index: false,

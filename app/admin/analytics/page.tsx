@@ -123,9 +123,9 @@ export default function AdminAnalyticsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C5A059] mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--foreground-strong)] mx-auto"></div>
           <p className="text-gray-400 mt-4">A carregar analytics...</p>
         </div>
       </div>
@@ -133,9 +133,9 @@ export default function AdminAnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505]">
+    <div className="min-h-screen bg-[var(--background)]">
       {/* Header */}
-      <div className="border-b border-white/10 bg-[#0A0A0A]">
+      <div className="border-b border-white/10 bg-[var(--background-secondary)]">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
@@ -161,7 +161,7 @@ export default function AdminAnalyticsPage() {
             <MetricsGrid overview={conversions.overview} formatNumber={formatNumber} />
 
             {/* Funil Visual */}
-            <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-8 mb-12">
+            <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-8 mb-12">
               <h3 className="text-lg font-semibold text-white mb-6">Visualização do Funil</h3>
               <div className="space-y-4">
                 {conversions.funnel.map((stage, index) => (
@@ -173,14 +173,14 @@ export default function AdminAnalyticsPage() {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-white font-bold">{formatNumber(stage.count)}</span>
-                        <span className="text-[#C5A059] text-sm font-semibold">
+                        <span className="text-[var(--foreground-muted)] text-sm font-semibold">
                           {stage.percentage.toFixed(1)}%
                         </span>
                       </div>
                     </div>
                     <div className="h-12 bg-white/5 rounded-lg overflow-hidden relative">
                       <div
-                        className="h-full bg-gradient-to-r from-[#C5A059] to-[#d4b469] transition-all duration-1000 flex items-center justify-end pr-4"
+                        className="h-full bg-[var(--foreground-strong)] transition-all duration-1000 flex items-center justify-end pr-4"
                         style={{ width: `${stage.percentage}%` }}
                       >
                         <span className="text-black font-bold text-sm">
@@ -206,11 +206,11 @@ export default function AdminAnalyticsPage() {
             <h2 className="text-2xl font-bold text-white mb-6">💰 ROI por Canal de Marketing</h2>
 
             {sources.bestChannel && (
-              <div className="bg-gradient-to-r from-[#C5A059]/20 to-[#C5A059]/5 border-2 border-[#C5A059]/30 rounded-lg p-6 mb-6">
+              <div className="bg-gradient-to-r from-[var(--elevate-1)] to-[var(--elevate-1)] border-2 border-[var(--border-soft)] rounded-lg p-6 mb-6">
                 <div className="flex items-start gap-4">
                   <div className="text-4xl">🏆</div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-[#C5A059] mb-2">
+                    <h3 className="text-xl font-bold text-[var(--foreground-muted)] mb-2">
                       Melhor Canal: {sources.bestChannel.source}
                     </h3>
                     <div className="grid grid-cols-2 gap-4">
@@ -234,7 +234,7 @@ export default function AdminAnalyticsPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
               {/* Tabela ROI */}
-              <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+              <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-white mb-4">ROI Detalhado por Canal</h3>
                 <div className="space-y-3">
                   {sources.roiByChannel.slice(0, 5).map((channel, index) => (
@@ -272,7 +272,7 @@ export default function AdminAnalyticsPage() {
               </div>
 
               {/* Distribuição de Fontes */}
-              <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+              <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-white mb-4">Distribuição de Tráfego</h3>
                 <div className="space-y-4">
                   {sources.trafficSources.slice(0, 6).map((source, index) => {
@@ -323,7 +323,7 @@ export default function AdminAnalyticsPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
               {/* Top Cavalos */}
-              <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+              <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-white mb-4">
                   🐴 Top 10 Cavalos Mais Vistos
                 </h3>
@@ -334,7 +334,9 @@ export default function AdminAnalyticsPage() {
                       className="flex items-center justify-between p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-[#C5A059] font-bold w-6">#{index + 1}</span>
+                        <span className="text-[var(--foreground-muted)] font-bold w-6">
+                          #{index + 1}
+                        </span>
                         <span className="text-white">{cavalo.name}</span>
                       </div>
                       <span className="text-gray-400 text-sm">
@@ -346,7 +348,7 @@ export default function AdminAnalyticsPage() {
               </div>
 
               {/* Top Eventos */}
-              <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+              <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-white mb-4">
                   📅 Top 10 Eventos Mais Vistos
                 </h3>

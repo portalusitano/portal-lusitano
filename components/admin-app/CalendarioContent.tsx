@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Calendar, Plus, X, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import Seleccao from "@/components/ui/Seleccao";
 
 interface Task {
   id: string;
@@ -205,8 +206,8 @@ export default function CalendarioContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C5A059]"></div>
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--gold)]"></div>
       </div>
     );
   }
@@ -215,12 +216,12 @@ export default function CalendarioContent() {
   const monthName = currentDate.toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
 
   return (
-    <div className="min-h-screen bg-[#050505] p-6">
+    <div className="min-h-screen bg-[var(--background)] p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <Calendar className="text-[#C5A059]" size={32} />
+            <Calendar className="text-[var(--gold)]" size={32} />
             <div>
               <h1 className="text-3xl font-bold text-white">Calendário de Follow-ups</h1>
               <p className="text-gray-400">Gerir tarefas e lembretes de clientes</p>
@@ -311,14 +312,14 @@ export default function CalendarioContent() {
                     onClick={() => setSelectedDate(date)}
                     className={`aspect-square p-2 rounded-lg border transition-all relative ${
                       isToday
-                        ? "border-[#C5A059] bg-[#C5A059]/10"
+                        ? "border-[var(--gold)] bg-[var(--gold)]/10"
                         : isSelected
                           ? "border-white/30 bg-white/5"
                           : "border-white/10 hover:border-white/20 hover:bg-white/5"
                     }`}
                   >
                     <span
-                      className={`text-sm font-medium ${isToday ? "text-[#C5A059]" : "text-white"}`}
+                      className={`text-sm font-medium ${isToday ? "text-[var(--gold)]" : "text-white"}`}
                     >
                       {day}
                     </span>
@@ -361,7 +362,7 @@ export default function CalendarioContent() {
               </h3>
               <button
                 onClick={() => openModal()}
-                className="p-2 bg-[#C5A059] hover:bg-[#d4b469] rounded-lg transition-colors"
+                className="p-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] rounded-lg transition-colors"
               >
                 <Plus className="text-black" size={16} />
               </button>
@@ -446,7 +447,7 @@ export default function CalendarioContent() {
       {/* Modal de Criar/Editar Tarefa */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-lg max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-white">
                 {editingTask ? "Editar Tarefa" : "Nova Tarefa"}
@@ -467,7 +468,7 @@ export default function CalendarioContent() {
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                  className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
                   placeholder="Ex: Follow-up cliente João"
                 />
               </div>
@@ -477,7 +478,7 @@ export default function CalendarioContent() {
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059] resize-none"
+                  className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)] resize-none"
                   rows={3}
                   placeholder="Detalhes adicionais..."
                 />
@@ -486,31 +487,31 @@ export default function CalendarioContent() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Tipo</label>
-                  <select
+                  <Seleccao
                     value={formData.task_type}
                     onChange={(e) => setFormData({ ...formData, task_type: e.target.value })}
-                    className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                    className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
                   >
                     <option value="follow_up">Follow-up</option>
                     <option value="call">Chamada</option>
                     <option value="email">Email</option>
                     <option value="meeting">Reunião</option>
                     <option value="other">Outro</option>
-                  </select>
+                  </Seleccao>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Prioridade</label>
-                  <select
+                  <Seleccao
                     value={formData.priority}
                     onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                    className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                    className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
                   >
                     <option value="baixa">Baixa</option>
                     <option value="normal">Normal</option>
                     <option value="alta">Alta</option>
                     <option value="urgente">Urgente</option>
-                  </select>
+                  </Seleccao>
                 </div>
               </div>
 
@@ -523,7 +524,7 @@ export default function CalendarioContent() {
                   required
                   value={formData.due_date}
                   onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-                  className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                  className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
                 />
               </div>
 
@@ -535,7 +536,7 @@ export default function CalendarioContent() {
                   type="email"
                   value={formData.related_email}
                   onChange={(e) => setFormData({ ...formData, related_email: e.target.value })}
-                  className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                  className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
                   placeholder="cliente@exemplo.com"
                 />
               </div>
@@ -547,7 +548,7 @@ export default function CalendarioContent() {
                 <textarea
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059] resize-none"
+                  className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)] resize-none"
                   rows={2}
                   placeholder="Notas privadas..."
                 />
@@ -563,7 +564,7 @@ export default function CalendarioContent() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-[#C5A059] hover:bg-[#d4b469] text-black font-semibold rounded-lg transition-colors"
+                  className="flex-1 px-4 py-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black font-semibold rounded-lg transition-colors"
                 >
                   {editingTask ? "Guardar" : "Criar Tarefa"}
                 </button>

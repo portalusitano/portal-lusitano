@@ -9,20 +9,18 @@ export default async function FAQPage() {
   const faqs = faqData[language] ?? faqData.pt;
 
   return (
-    <main className="min-h-screen bg-[var(--background)] pt-20 sm:pt-32 pb-20 px-4 sm:px-6">
+    <div className="min-h-screen bg-[var(--background)] pt-20 sm:pt-32 pb-20 px-4 sm:px-6">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
-          <div className="w-16 h-16 bg-[var(--gold)]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <HelpCircle className="text-[var(--gold)]" size={32} />
+          <div className="w-16 h-16 bg-[var(--elevate-1)] rounded-full flex items-center justify-center mx-auto mb-6">
+            <HelpCircle className="text-[var(--foreground-muted)]" size={32} aria-hidden="true" />
           </div>
-          <span className="text-xs uppercase tracking-[0.3em] text-[var(--gold)] block mb-4">
-            {tr("Suporte", "Support", "Soporte")}
-          </span>
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-serif text-[var(--foreground)] mb-4">
+          <span className="rotulo block mb-4">{tr("Suporte", "Support", "Soporte")}</span>
+          <h1 className="text-2xl sm:text-4xl md:text-5xl text-[var(--foreground)] mb-4">
             {tr("Perguntas Frequentes", "Frequently Asked Questions", "Preguntas Frecuentes")}
           </h1>
-          <p className="text-[var(--foreground-secondary)] font-serif italic">
+          <p className="text-[var(--foreground-secondary)] font-normal">
             {tr(
               "Encontre respostas as duvidas mais comuns",
               "Find answers to the most common questions",
@@ -46,14 +44,11 @@ export default async function FAQPage() {
               "¿No encontró lo que buscaba?"
             )}
           </p>
-          <a
-            href={`mailto:${CONTACT_EMAIL}`}
-            className="inline-block text-[var(--gold)] hover:text-[var(--foreground)] transition-colors text-sm uppercase tracking-widest"
-          >
+          <a href={`mailto:${CONTACT_EMAIL}`} className="btn btn-secundario rounded-full text-sm">
             {tr("Contacte-nos", "Contact us", "Contáctenos")} →
           </a>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

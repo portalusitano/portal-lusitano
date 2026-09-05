@@ -1,125 +1,143 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import LocalizedLink from "@/components/LocalizedLink";
 import { useLanguage } from "@/context/LanguageContext";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
+import {
+  CHAVE_CONSENTIMENTO,
+  CHAVE_PREFERENCIAS,
+  EVENTO_ABRIR_CONSENTIMENTO,
+} from "@/lib/consentimento";
 
-interface CookiePreferences {
+interface Preferencias {
   essential: boolean;
   analytics: boolean;
   marketing: boolean;
 }
 
-const COOKIE_CONSENT_KEY = "cookie-consent";
-const COOKIE_PREFS_KEY = "cookie-preferences";
+const SO_ESSENCIAIS: Preferencias = { essential: true, analytics: false, marketing: false };
+const TUDO: Preferencias = { essential: true, analytics: true, marketing: true };
 
-function Toggle({
-  checked,
-  onChange,
-  disabled,
+function Interruptor({
+  ligado,
+  aoMudar,
+  bloqueado,
+  rotulo,
 }: {
-  checked: boolean;
-  onChange?: () => void;
-  disabled?: boolean;
+  ligado: boolean;
+  aoMudar?: () => void;
+  bloqueado?: boolean;
+  rotulo: string;
 }) {
   return (
     <button
-      onClick={onChange}
-      disabled={disabled}
+      type="button"
+      onClick={aoMudar}
+      disabled={bloqueado}
       role="switch"
-      aria-checked={checked}
-      className={`relative w-10 h-[22px] flex-shrink-0 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--gold)] ${
-        disabled ? "cursor-not-allowed opacity-40" : "cursor-pointer"
-      } ${checked ? "bg-[var(--gold)]" : "bg-[var(--background-elevated)]"}`}
-      style={{ border: "1px solid", borderColor: checked ? "var(--gold)" : "var(--border)" }}
+      aria-checked={ligado}
+      aria-label={rotulo}
+      // Estado escolhido é branco, não dourado: quem assinala uma escolha
+      // sobre preto é o contraste.
+      className={`relative h-[22px] w-10 flex-shrink-0 rounded-full border transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--foreground-strong)] ${
+        bloqueado ? "cursor-not-allowed opacity-40" : "cursor-pointer"
+      } ${
+        ligado
+          ? "border-transparent bg-[var(--foreground-strong)]"
+          : "border-[var(--border)] bg-[var(--background-elevated)]"
+      }`}
     >
       <span
-        className={`absolute top-[3px] w-[14px] h-[14px] bg-white transition-all duration-200 ${
-          checked ? "left-[20px]" : "left-[3px]"
+        aria-hidden="true"
+        className={`absolute top-[3px] h-[14px] w-[14px] rounded-full transition-all duration-200 ${
+          ligado ? "left-[20px] bg-black" : "left-[3px] bg-[var(--foreground-muted)]"
         }`}
       />
     </button>
   );
 }
 
+/**
+ * Pedido de consentimento.
+ *
+ * É um diálogo modal, e não uma barra pousada em baixo. Duas razões, e a
+ * segunda é a que decide:
+ *
+ * 1. Recusar tem de ser tão fácil como aceitar. A barra anterior punha
+ *    «Aceitar Todos» em destaque e escondia a recusa dentro de
+ *    «Personalizar» — dois cliques contra um. Aqui as duas respostas são
+ *    botões gémeos, do mesmo tamanho e do mesmo peso, na primeira camada.
+ *
+ * 2. Uma barra fixa em baixo é mobiliário permanente: fica lá enquanto não
+ *    for respondida e come uma faixa do ecrã que **todas** as páginas
+ *    passam a ter de conhecer. Media-se: no `/mapa`, tapava 9 das 29
+ *    etiquetas de coudelaria em 1400×950 e 6 em 390×780. Reservar o espaço
+ *    com uma variável CSS obrigava cada página a saber que existe um aviso
+ *    de cookies — e o motor de etiquetas do globo não tem nada que aprender
+ *    isso. Um modal responde-se uma vez e desaparece: não há faixa que
+ *    reservar, não há contrato de layout, e a classe inteira de defeitos
+ *    deixa de existir.
+ *
+ * Depois de respondido não volta sozinho. Quem quiser mudar de ideias entra
+ * pelo rodapé, que dispara `EVENTO_ABRIR_CONSENTIMENTO` — retirar o
+ * consentimento é tão fácil como tê-lo dado, que é o que a lei pede.
+ */
+function lerGuardado(): { respondido: boolean; preferencias: Preferencias } {
+  try {
+    const respondido = Boolean(localStorage.getItem(CHAVE_CONSENTIMENTO));
+    const anteriores = localStorage.getItem(CHAVE_PREFERENCIAS);
+    return {
+      respondido,
+      preferencias: anteriores
+        ? { ...SO_ESSENCIAIS, ...JSON.parse(anteriores), essential: true }
+        : SO_ESSENCIAIS,
+    };
+  } catch {
+    // Sem localStorage (janela privada, armazenamento bloqueado) o pedido
+    // aparece à mesma: mais vale perguntar duas vezes do que assumir.
+    return { respondido: false, preferencias: SO_ESSENCIAIS };
+  }
+}
+
 export default function CookieConsent() {
-  const [isVisible, setIsVisible] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
-  const [preferences, setPreferences] = useState<CookiePreferences>({
-    essential: true,
-    analytics: false,
-    marketing: false,
-  });
-  const { language } = useLanguage();
+  // Lido no arranque, não num efeito: o componente é carregado com
+  // `ssr: false`, por isso o primeiro render já é no browser e já tem
+  // `localStorage`. Num efeito, quem nunca respondeu via um render vazio
+  // antes do pedido — e quem já respondeu via o pedido antes de ele
+  // desaparecer.
+  const [estado] = useState(lerGuardado);
+  const [aberto, setAberto] = useState(!estado.respondido);
+  const [detalhes, setDetalhes] = useState(false);
+  const [preferencias, setPreferencias] = useState<Preferencias>(estado.preferencias);
+  const painelRef = useRef<HTMLDivElement>(null);
+  const { t } = useLanguage();
+  const c = t.cookies;
 
-  const text = {
-    pt: {
-      label: "Privacidade & Cookies",
-      title: "Experiência Personalizada",
-      description:
-        "Usamos cookies para garantir o funcionamento do site e melhorar a sua experiência de navegação.",
-      policy: "Política de Privacidade",
-      accept_all: "Aceitar Todos",
-      accept_selected: "Guardar Seleção",
-      decline: "Recusar Opcionais",
-      customize: "Personalizar",
-      hide_details: "Ocultar",
-      essential: "Essenciais",
-      essential_desc: "Sessão, idioma, consentimento. Sempre activos.",
-      analytics: "Analíticos",
-      analytics_desc: "Google Analytics — uso anónimo do site.",
-      marketing: "Marketing",
-      marketing_desc: "Google AdSense · Meta Pixel — anúncios relevantes.",
-    },
-    en: {
-      label: "Privacy & Cookies",
-      title: "Personalised Experience",
-      description:
-        "We use cookies to ensure the website works properly and to improve your browsing experience.",
-      policy: "Privacy Policy",
-      accept_all: "Accept All",
-      accept_selected: "Save Selection",
-      decline: "Decline Optional",
-      customize: "Customize",
-      hide_details: "Hide",
-      essential: "Essential",
-      essential_desc: "Session, language, consent. Always active.",
-      analytics: "Analytics",
-      analytics_desc: "Google Analytics — anonymous site usage.",
-      marketing: "Marketing",
-      marketing_desc: "Google AdSense · Meta Pixel — relevant ads.",
-    },
-    es: {
-      label: "Privacidad & Cookies",
-      title: "Experiencia Personalizada",
-      description:
-        "Usamos cookies para garantizar el funcionamiento del sitio y mejorar su experiencia de navegación.",
-      policy: "Política de Privacidad",
-      accept_all: "Aceptar Todas",
-      accept_selected: "Guardar Selección",
-      decline: "Rechazar Opcionales",
-      customize: "Personalizar",
-      hide_details: "Ocultar",
-      essential: "Esenciales",
-      essential_desc: "Sesión, idioma, consentimiento. Siempre activos.",
-      analytics: "Analíticas",
-      analytics_desc: "Google Analytics — uso anónimo del sitio.",
-      marketing: "Marketing",
-      marketing_desc: "Google AdSense · Meta Pixel — anuncios relevantes.",
-    },
-  };
-
-  const t = text[language];
+  const fechar = useCallback(() => setAberto(false), []);
+  useFocusTrap(painelRef, aberto, fechar);
 
   useEffect(() => {
-    const consent = localStorage.getItem(COOKIE_CONSENT_KEY);
-    if (!consent) {
-      const timer = setTimeout(() => setIsVisible(true), 2000);
-      return () => clearTimeout(timer);
-    }
+    const reabrir = () => {
+      setDetalhes(true);
+      setAberto(true);
+    };
+    window.addEventListener(EVENTO_ABRIR_CONSENTIMENTO, reabrir);
+    return () => window.removeEventListener(EVENTO_ABRIR_CONSENTIMENTO, reabrir);
   }, []);
 
-  const applyConsent = useCallback((prefs: CookiePreferences) => {
+  // Com o diálogo aberto a página por baixo não rola.
+  useEffect(() => {
+    if (!aberto) return;
+    const anterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = anterior;
+    };
+  }, [aberto]);
+
+  const registar = useCallback((prefs: Preferencias, decisao: string) => {
     if (typeof window !== "undefined" && window.gtag) {
       window.gtag("consent", "update", {
         ad_storage: prefs.marketing ? "granted" : "denied",
@@ -130,169 +148,142 @@ export default function CookieConsent() {
         personalization_storage: "granted",
       });
     }
-    localStorage.setItem(COOKIE_PREFS_KEY, JSON.stringify(prefs));
+    try {
+      localStorage.setItem(CHAVE_CONSENTIMENTO, decisao);
+      localStorage.setItem(CHAVE_PREFERENCIAS, JSON.stringify(prefs));
+    } catch {
+      // Sem armazenamento a escolha vale só para esta visita. É o mais que
+      // se pode fazer sem guardar nada — e guardar era justamente o que se
+      // estava a pedir autorização para fazer.
+    }
+    setPreferencias(prefs);
+    setAberto(false);
   }, []);
 
-  const handleAcceptAll = () => {
-    const allAccepted: CookiePreferences = { essential: true, analytics: true, marketing: true };
-    localStorage.setItem(COOKIE_CONSENT_KEY, "accepted");
-    applyConsent(allAccepted);
-    setIsVisible(false);
-  };
+  if (!aberto || typeof document === "undefined") return null;
 
-  const handleAcceptSelected = () => {
-    localStorage.setItem(COOKIE_CONSENT_KEY, "custom");
-    applyConsent(preferences);
-    setIsVisible(false);
-  };
+  const categorias = [
+    {
+      chave: "essential" as const,
+      titulo: c.essential,
+      texto: c.essential_desc,
+      bloqueado: true,
+      valor: true,
+    },
+    {
+      chave: "analytics" as const,
+      titulo: c.analytics,
+      texto: c.analytics_desc,
+      bloqueado: false,
+      valor: preferencias.analytics,
+    },
+    {
+      chave: "marketing" as const,
+      titulo: c.marketing,
+      texto: c.marketing_desc,
+      bloqueado: false,
+      valor: preferencias.marketing,
+    },
+  ];
 
-  const handleDecline = () => {
-    const declined: CookiePreferences = { essential: true, analytics: false, marketing: false };
-    localStorage.setItem(COOKIE_CONSENT_KEY, "declined");
-    applyConsent(declined);
-    setIsVisible(false);
-  };
-
-  if (!isVisible) return null;
-
-  return (
+  // Num portal para o `body`: o pedido não pertence a nenhuma secção da
+  // página e não pode ficar preso a um antecessor com `transform`.
+  return createPortal(
     <div
+      id="aviso-cookies"
       role="dialog"
-      aria-label={
-        language === "en"
-          ? "Cookie consent"
-          : language === "es"
-            ? "Consentimiento de cookies"
-            : "Consentimento de cookies"
-      }
-      className="fixed bottom-0 left-0 right-0 md:left-auto md:right-6 md:bottom-6 z-[9998] md:w-[360px] pb-[72px] md:pb-0 opacity-0 animate-[slideUp_0.5s_cubic-bezier(0.22,1,0.36,1)_forwards]"
-      style={{ willChange: "transform, opacity" }}
+      aria-modal="true"
+      aria-label={c.aria_label}
+      className="fixed inset-0 z-[9997] flex items-end justify-center bg-black/[0.64] p-3 backdrop-blur-[24px] sm:items-center sm:p-6"
     >
-      <div className="relative bg-[var(--background)] border-t border-l border-r border-[var(--border)] md:border shadow-[0_-8px_50px_rgba(0,0,0,0.7)] md:shadow-[0_12px_60px_rgba(0,0,0,0.8)]">
+      <div
+        ref={painelRef}
+        className="anim-crescer w-full max-w-xl rounded-[28px] border border-[var(--border-soft)] bg-[var(--background-elevated)] p-5 shadow-[0_12px_60px_rgba(0,0,0,0.8)] sm:p-6"
+        style={{ marginBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <h2 className="titulo-seccao">{c.title}</h2>
+        <p className="mt-2 text-sm leading-relaxed text-[var(--foreground-secondary)]">
+          {c.description}{" "}
+          <LocalizedLink
+            href="/privacidade"
+            className="text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-2 hover:decoration-[var(--border-hover)]"
+          >
+            {c.policy}
+          </LocalizedLink>
+          .
+        </p>
 
-        {/* Gold accent top line */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent" />
-
-        {/* SVG grain texture */}
-        <svg className="absolute inset-0 w-full h-full opacity-[0.025] pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <filter id="cookie-noise">
-              <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
-              <feColorMatrix type="saturate" values="0" />
-            </filter>
-          </defs>
-          <rect width="100%" height="100%" filter="url(#cookie-noise)" />
-        </svg>
-
-        <div className="relative p-5 md:p-6">
-
-          {/* Header */}
-          <div className="mb-5">
-            <div className="flex items-center gap-2 mb-3">
-              {/* Gold ornament */}
-              <div className="flex items-center gap-1.5">
-                <div className="w-4 h-px bg-gradient-to-r from-transparent to-[var(--gold)]/60" />
-                <svg width="5" height="5" viewBox="0 0 5 5" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="0.5" y="0.5" width="4" height="4" transform="rotate(45 2.5 2.5)" fill="none" stroke="var(--gold)" strokeWidth="0.8" strokeOpacity="0.7"/>
-                </svg>
-                <div className="w-4 h-px bg-gradient-to-l from-transparent to-[var(--gold)]/60" />
-              </div>
-              <p className="text-[var(--gold)] text-[9px] uppercase tracking-[0.35em]">{t.label}</p>
-            </div>
-
-            <h3 className="font-serif text-[var(--foreground)] text-[1.15rem] leading-snug mb-2.5">
-              {t.title}
-            </h3>
-            <p className="text-[var(--foreground-muted)] text-[11px] leading-relaxed">
-              {t.description}{" "}
-              <LocalizedLink
-                href="/privacidade"
-                className="text-[var(--gold)]/70 hover:text-[var(--gold)] transition-colors underline underline-offset-2 decoration-[var(--gold)]/30"
+        {/* As escolhas por categoria. Aparecem a pedido, mas a recusa não
+            depende delas — está na linha de baixo, a um clique. */}
+        {detalhes && (
+          <div className="mt-4 flex flex-col gap-2">
+            {categorias.map((cat) => (
+              <div
+                key={cat.chave}
+                className="flex items-start justify-between gap-3 rounded-2xl border border-[var(--border-soft)] p-3"
               >
-                {t.policy}
-              </LocalizedLink>
-              .
-            </p>
-          </div>
-
-          {/* Expandable details */}
-          {showDetails && (
-            <div className="mb-4 border border-[var(--border)]">
-              {[
-                { key: "essential", label: t.essential, desc: t.essential_desc, disabled: true, value: true },
-                { key: "analytics", label: t.analytics, desc: t.analytics_desc, disabled: false, value: preferences.analytics },
-                { key: "marketing", label: t.marketing, desc: t.marketing_desc, disabled: false, value: preferences.marketing },
-              ].map(({ key, label, desc, disabled, value }, i, arr) => (
-                <div
-                  key={key}
-                  className={`flex items-center justify-between gap-4 px-4 py-3 ${i < arr.length - 1 ? "border-b border-[var(--border)]" : ""}`}
-                >
-                  <div className="flex-1 min-w-0">
-                    <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--foreground)] font-medium block mb-0.5">
-                      {label}
-                    </span>
-                    <span className="text-[10px] text-[var(--foreground-muted)] leading-snug block">{desc}</span>
-                  </div>
-                  <Toggle
-                    checked={value}
-                    disabled={disabled}
-                    onChange={
-                      disabled
-                        ? undefined
-                        : () => setPreferences((p) => ({ ...p, [key]: !p[key as keyof CookiePreferences] }))
-                    }
-                  />
+                <div className="min-w-0">
+                  <span className="block text-sm text-[var(--foreground)]">{cat.titulo}</span>
+                  <span className="meta mt-0.5 block leading-snug">{cat.texto}</span>
                 </div>
-              ))}
-            </div>
-          )}
-
-          {/* Action buttons */}
-          <div className="space-y-2">
-            {/* Primary CTA */}
-            <button
-              onClick={handleAcceptAll}
-              className="w-full py-3 bg-[var(--gold)] text-black text-[10px] uppercase tracking-[0.22em] font-bold hover:bg-white transition-colors duration-200 shimmer-gold"
-            >
-              {t.accept_all}
-            </button>
-
-            {/* Secondary row */}
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => setShowDetails((s) => !s)}
-                className="py-2.5 border border-[var(--border)] hover:border-[var(--gold)]/40 text-[var(--foreground-muted)] hover:text-[var(--foreground)] text-[9px] uppercase tracking-[0.18em] transition-colors duration-200"
-              >
-                {showDetails ? t.hide_details : t.customize}
-              </button>
-              <button
-                onClick={showDetails ? handleAcceptSelected : handleDecline}
-                className="py-2.5 border border-[var(--border)] hover:border-[var(--border-hover)] text-[var(--foreground-muted)] hover:text-[var(--foreground)] text-[9px] uppercase tracking-[0.18em] transition-colors duration-200"
-              >
-                {showDetails ? t.accept_selected : t.decline}
-              </button>
-            </div>
+                <Interruptor
+                  ligado={cat.valor}
+                  bloqueado={cat.bloqueado}
+                  rotulo={cat.bloqueado ? `${cat.titulo} — ${c.always_on}` : cat.titulo}
+                  aoMudar={
+                    cat.bloqueado
+                      ? undefined
+                      : () => setPreferencias((p) => ({ ...p, [cat.chave]: !p[cat.chave] }))
+                  }
+                />
+              </div>
+            ))}
           </div>
+        )}
 
+        {/* Recusar e aceitar são gémeos: mesma classe, mesma largura, mesma
+            linha. É o que faz de recusar uma resposta tão fácil como
+            aceitar, e não uma saída escondida. */}
+        <div className="mt-5 flex flex-col gap-2.5 sm:flex-row">
+          <button
+            type="button"
+            onClick={() => registar(SO_ESSENCIAIS, "declined")}
+            className="btn btn-primario flex-1 rounded-full"
+          >
+            {c.reject_all}
+          </button>
+          <button
+            type="button"
+            onClick={() => registar(TUDO, "accepted")}
+            className="btn btn-primario flex-1 rounded-full"
+          >
+            {c.accept_all}
+          </button>
         </div>
 
-        {/* Ornamental bottom-right corner */}
-        <div className="absolute bottom-3 right-3 pointer-events-none opacity-[0.18]">
-          <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 20 L20 20 L20 0" fill="none" stroke="var(--gold)" strokeWidth="1"/>
-            <path d="M0 15 L15 15 L15 0" fill="none" stroke="var(--gold)" strokeWidth="0.5"/>
-          </svg>
+        <div className="mt-2.5 flex flex-col gap-2.5 sm:flex-row">
+          {detalhes ? (
+            <button
+              type="button"
+              onClick={() => registar({ ...preferencias, essential: true }, "custom")}
+              className="btn btn-secundario flex-1 rounded-full"
+            >
+              {c.accept_selected}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => setDetalhes((v) => !v)}
+            aria-expanded={detalhes}
+            className="btn btn-subtil flex-1 rounded-full"
+          >
+            {detalhes ? c.hide_details : c.customize}
+          </button>
         </div>
 
-        {/* Ornamental top-left corner */}
-        <div className="absolute top-3 left-3 pointer-events-none opacity-[0.18]">
-          <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 0 L0 0 L0 20" fill="none" stroke="var(--gold)" strokeWidth="1"/>
-            <path d="M20 5 L5 5 L5 20" fill="none" stroke="var(--gold)" strokeWidth="0.5"/>
-          </svg>
-        </div>
-
+        <p className="meta mt-4 text-center">{c.reopen_hint}</p>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
