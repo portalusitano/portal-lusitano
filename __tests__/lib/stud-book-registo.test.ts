@@ -457,6 +457,26 @@ describe("a linha e o valor", () => {
       tentativas: 1,
       consultadoEm: new Date(T0).toISOString(),
     };
+    // A origem volta preenchida mesmo quando não se escreveu: a base tem-na com
+    // omissão `automatica`, e a leitura diz o mesmo. Uma linha antiga, escrita
+    // antes de a coluna existir, é uma linha automática — ler a ausência de
+    // outra maneira fazia dela uma observação sem autor.
+    expect(consultaDaLinha(linhaDaConsulta("cavalo-9", consulta))).toEqual({
+      ...consulta,
+      origem: "automatica",
+    });
+  });
+
+  it("a origem e o autor fazem a volta inteira", () => {
+    const consulta: ConsultaGuardada = {
+      estado: "confirmado",
+      identificador: "numero_registo",
+      chave: CHAVE,
+      tentativas: 0,
+      consultadoEm: new Date(T0).toISOString(),
+      origem: "assistida",
+      por: "revisor@portallusitano.pt",
+    };
     expect(consultaDaLinha(linhaDaConsulta("cavalo-9", consulta))).toEqual(consulta);
   });
 

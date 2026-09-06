@@ -85,6 +85,26 @@ Reprodutor`. O `NIN / Chip / UELN` é **um campo só** para os três
 > encher-se, mas quem consulta é uma pessoa — um administrador a usar um
 > formulário público como qualquer cidadão — e o painel guarda o que ela viu.
 > Inteiramente legítimo, e o registo cresce na mesma.
+>
+> **Está feita, a 6 de Setembro de 2026.** A ficha de revisão de cada documento
+> (`/admin/documentos/[id]`) tem uma secção «O Livro Genealógico» que mostra o
+> número por que procurar, o copia para a área de transferência e abre a página
+> pública num separador. De volta, três botões: **consta** · **não consta** ·
+> **não consegui ver**. O que se responde vai para a `consultas_stud_book`, com
+> a origem `assistida` e o e-mail de quem viu — e a base recusa a linha sem
+> autor, tal como recusa um documento `verificado` sem ele.
+>
+> A terceira resposta é a que sustenta as outras duas: sem ela, quem não
+> conseguisse abrir a página tinha de escolher entre não responder e escrever
+> «não consta», que é uma afirmação sobre um cavalo que nunca chegou a ver.
+>
+> Nada disto verifica documento nenhum. A palavra continua a ter um sítio só.
+>
+> **O que ainda falta**, e é a pergunta abaixo: o endereço do motor de pesquisa
+> e os nomes dos parâmetros. Sem eles o botão abre a página de entrada e não a
+> pesquisa já feita — por isso é que o número vai na área de transferência em
+> vez de ir no endereço. Um `?nin=…` inventado levava quem revê a uma página de
+> erro, ou pior, a uma pesquisa que não é a que ele pensa que é.
 
 Em <https://www.cavalo-lusitano.com/pt/stud-book/acesso-publico-ao-stud-book>:
 

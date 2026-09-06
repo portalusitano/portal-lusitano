@@ -1,13 +1,16 @@
 /**
  * A consulta ao stud-book da APSL. Aqui é só a porta.
  *
- * ## O estado disto, em duas frases
+ * ## O estado disto, em três frases
  *
  * Tudo o que rodeia a consulta está feito e testado: o interruptor, o ritmo, a
  * identificação, o cruzamento com o anúncio e a forma dos factos. **O
  * analisador da resposta está escrito contra um formato suposto**, porque
  * nenhuma resposta real da APSL foi vista — ver o cabeçalho do `analisador.ts`,
- * que explica porquê e o que muda no dia em que a primeira chegar.
+ * que explica porquê e o que muda no dia em que a primeira chegar. E o
+ * interruptor está em baixo, porque a consulta pública tem um reCAPTCHA: o que
+ * corre hoje é a **consulta assistida** (`assistida.ts`), onde quem vai ver é
+ * uma pessoa e o registo guarda o que ela viu.
  *
  * ## Como se usa, do lado de quem submete um anúncio
  *
@@ -40,6 +43,7 @@ export {
   IDENTIFICADORES_DE_CONSULTA,
   MOTIVOS_DE_INDISPONIVEL,
   ORDEM_DOS_IDENTIFICADORES,
+  ORIGENS_DA_CONSULTA,
   reduzirParaGuardar,
   temRegistoConfirmadoNoStudBook,
 } from "./contrato";
@@ -48,11 +52,26 @@ export type {
   EstadoDaConsulta,
   IdentificadorDeConsulta,
   MotivoDeIndisponivel,
+  OrigemDaConsulta,
   PedidoDeConsulta,
   RegistoGuardado,
   RegistoNoStudBook,
   ResultadoDaConsulta,
 } from "./contrato";
+
+export {
+  CAMPO_DA_PESQUISA,
+  consultaAssistida,
+  PAGINA_PUBLICA_DO_STUD_BOOK,
+  RESPOSTAS_ASSISTIDAS,
+  respostaAssistidaValida,
+} from "./assistida";
+export type {
+  PedidoAssistido,
+  RecusaAssistida,
+  RespostaAssistida,
+  VistoNoStudBook,
+} from "./assistida";
 
 export {
   INTERVALO_MINIMO_MS,

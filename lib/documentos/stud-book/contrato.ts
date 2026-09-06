@@ -183,8 +183,32 @@ export const MOTIVOS_DE_INDISPONIVEL = [
   "tecto_diario",
   /** A vez na fila não chegava a tempo do orçamento da submissão. */
   "sem_vez_a_tempo",
+  /**
+   * Uma pessoa foi ver e não conseguiu — a consulta pública estava em baixo, o
+   * CAPTCHA não passou, a página não abriu.
+   *
+   * É o sexto porque a consulta assistida existe (ver `assistida.ts`), e é do
+   * mesmo tipo dos outros cinco: diz o que correu mal **do nosso lado**, e não
+   * diz nada sobre o cavalo. É por existir este motivo que quem revê tem uma
+   * terceira resposta a dar; sem ele, «não consegui ver» só cabia em «não
+   * consta», que é uma afirmação sobre um cavalo que ninguém fez.
+   */
+  "nao_se_conseguiu_ver",
 ] as const;
 export type MotivoDeIndisponivel = (typeof MOTIVOS_DE_INDISPONIVEL)[number];
+
+/**
+ * De onde veio a resposta que está na linha.
+ *
+ * - `automatica` — saiu um pedido nosso ao servidor da APSL. É o que acontece
+ *   com o interruptor em cima, e hoje não acontece a ninguém.
+ * - `assistida` — uma pessoa abriu a consulta pública, escreveu o número e
+ *   escreveu aqui o que viu. É o caminho que existe **enquanto** o interruptor
+ *   estiver em baixo, e é inteiramente legítimo: um administrador a usar um
+ *   formulário público como qualquer cidadão.
+ */
+export const ORIGENS_DA_CONSULTA = ["automatica", "assistida"] as const;
+export type OrigemDaConsulta = (typeof ORIGENS_DA_CONSULTA)[number];
 
 /**
  * O resultado de uma consulta, tal como se guarda com o anúncio.
@@ -219,6 +243,25 @@ export interface ResultadoDaConsulta {
  */
 export interface ConsultaGuardada extends ResultadoDaConsulta {
   tentativas: number;
+  /**
+   * Quem respondeu: o nosso pedido, ou uma pessoa que foi ver.
+   *
+   * Ausente lê-se como `automatica`, que é o que estava lá antes desta coluna
+   * existir. **Não é decoração:** um `confirmado` escrito por uma pessoa e um
+   * `confirmado` vindo de um pedido nosso sustentam a mesma frase por razões
+   * diferentes, e a linha tem de dizer qual delas é. Sem isto, o dia em que
+   * alguém ligar `temRegistoConfirmadoNoStudBook` a uma página pública fá-lo
+   * sem saber que metade das linhas foram escritas à mão.
+   */
+  origem?: OrigemDaConsulta;
+  /**
+   * O e-mail de quem foi ver, e só com `origem: "assistida"`.
+   *
+   * A mesma conta que o `verificado_por` paga no documento: uma observação sem
+   * autor é indistinguível de uma que um programa escreveu. A base exige-o —
+   * há um `check` que recusa a linha assistida sem autor.
+   */
+  por?: string;
 }
 
 /**

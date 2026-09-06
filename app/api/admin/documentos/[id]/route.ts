@@ -18,8 +18,16 @@ import type {
   CampoConfrontado,
   DuplicadoVizinho,
   FichaDeDocumento,
+  StudBookNaFicha,
 } from "@/app/admin/documentos/tipos";
 import { ROTULO_DO_CAMPO } from "@/app/admin/documentos/tipos";
+import {
+  CAMPO_DA_PESQUISA,
+  escolherIdentificador,
+  lerConfiguracao,
+  lerConsultaDoCavalo,
+  PAGINA_PUBLICA_DO_STUD_BOOK,
+} from "@/lib/documentos/stud-book";
 import {
   COLUNAS_DO_ANUNCIO,
   TABELA,
@@ -206,6 +214,12 @@ export async function GET(_pedido: NextRequest, { params }: { params: Promise<{ 
       verificacao = { notas: [], analise: "por_correr", recolhaFalhou: true };
     }
 
+    // ── O Livro Genealógico ─────────────────────────────────────────────────
+    //
+    // O número por que se procura, e o que já se sabe sobre ele. Não decide
+    // nada — como tudo o resto nesta rota, é matéria para quem revê ler.
+    const studBook = await reunirStudBook({ anuncio, cavaloId, leitura });
+
     const ficha: FichaDeDocumento = {
       id,
       tipo: linha.tipo as FichaDeDocumento["tipo"],
@@ -228,6 +242,7 @@ export async function GET(_pedido: NextRequest, { params }: { params: Promise<{ 
       conflitos,
       duplicados,
       verificacao,
+      studBook,
       motivoRecusa: (linha.motivo_recusa as string | null) ?? null,
       verificadoPor: (linha.verificado_por as string | null) ?? null,
       verificadoEm: (linha.verificado_em as string | null) ?? null,
@@ -238,4 +253,57 @@ export async function GET(_pedido: NextRequest, { params }: { params: Promise<{ 
     logger.error("[admin/documentos/id] erro inesperado", e);
     return NextResponse.json({ erro: "Erro interno" }, { status: 500 });
   }
+}
+
+/**
+ * O que a ficha diz sobre o Livro Genealógico.
+ *
+ * O número que se mostra é o **do anúncio**, e a razão está escrita na rota que
+ * regista a resposta: é o do anúncio que a consulta automática compara no dia
+ * em que o interruptor subir, e uma observação guardada contra outro número
+ * fazia-a perguntar tudo outra vez.
+ *
+ * Antes do pagamento não há anúncio, e aí mostra-se o que a leitura do ficheiro
+ * encontrou — **para procurar, não para registar**. A resposta não tem onde
+ * ficar (a linha do registo é por anúncio), e tanto o painel como a rota o
+ * dizem, cada um por sua conta.
+ *
+ * Se a leitura do registo falhar, `registado` fica `null` e o painel comporta-se
+ * como quem nunca perguntou — que é o lado que não afirma nada. O
+ * `lerConsultaDoCavalo` já não lança por si.
+ */
+async function reunirStudBook(entrada: {
+  anuncio: Record<string, unknown> | undefined;
+  cavaloId: string | null;
+  leitura: ReturnType<typeof leituraDaLinha>;
+}): Promise<StudBookNaFicha> {
+  const { anuncio, cavaloId, leitura } = entrada;
+
+  const doAnuncio = escolherIdentificador({
+    numeroRegisto: (anuncio?.registro_apsl as string | null) ?? null,
+    ueln: (anuncio?.passaporte_equino as string | null) ?? null,
+    microchip: (anuncio?.microchip as string | null) ?? null,
+  });
+  const doDocumento = doAnuncio
+    ? null
+    : escolherIdentificador({
+        numeroRegisto: leitura.numeroRegisto,
+        ueln: leitura.ueln,
+        microchip: leitura.microchip,
+      });
+  const escolha = doAnuncio ?? doDocumento;
+
+  return {
+    automaticaLigada: lerConfiguracao().ligado,
+    paginaPublica: PAGINA_PUBLICA_DO_STUD_BOOK,
+    campoDaPesquisa: CAMPO_DA_PESQUISA,
+    identificador: escolha?.identificador ?? null,
+    valor: escolha?.valor ?? null,
+    // A chave só volta ao painel quando ele a pode devolver — ou seja, quando
+    // há anúncio. Mandá-la no caso do documento era convidar a uma resposta que
+    // a rota vai recusar de qualquer maneira.
+    chave: doAnuncio?.chave ?? null,
+    origemDoValor: doAnuncio ? "anuncio" : doDocumento ? "documento" : "nenhuma",
+    registado: cavaloId ? await lerConsultaDoCavalo(cavaloId, baseDeDados) : null,
+  };
 }

@@ -75,7 +75,8 @@ export const TABELA_CONSULTAS = "consultas_stud_book";
 
 /** As colunas que se leem. Não há `select("*")`: o que não se lê não se traz. */
 const COLUNAS =
-  "cavalo_id, estado, motivo, identificador, chave, registo, tentativas, consultado_em";
+  "cavalo_id, estado, motivo, identificador, chave, registo, tentativas, consultado_em, " +
+  "origem, por";
 
 // ─── Da linha para o valor, e do valor para a linha ──────────────────────────
 
@@ -104,6 +105,11 @@ export function consultaDaLinha(linha: unknown): ConsultaGuardada | null {
   }
   if (typeof l.chave === "string") consulta.chave = l.chave;
   if (typeof l.consultado_em === "string") consulta.consultadoEm = l.consultado_em;
+  // A origem ausente é `automatica`: é o que estava em todas as linhas antes de
+  // a coluna existir, e é o que a base escreve por omissão. Ler a ausência como
+  // «assistida» faria de cada linha antiga uma observação sem autor.
+  consulta.origem = l.origem === "assistida" ? "assistida" : "automatica";
+  if (typeof l.por === "string" && l.por !== "") consulta.por = l.por;
   if (typeof l.registo === "object" && l.registo !== null && !Array.isArray(l.registo)) {
     consulta.registo = l.registo as RegistoGuardado;
   }
@@ -130,6 +136,11 @@ export function linhaDaConsulta(
     registo: consulta.registo ?? null,
     tentativas: consulta.tentativas,
     consultado_em: consulta.consultadoEm ?? null,
+    origem: consulta.origem ?? "automatica",
+    // Só a linha assistida tem autor, e a base recusa uma que não tenha. Um
+    // `por` colado a uma linha automática seria pior do que não haver nenhum:
+    // dizia que uma pessoa viu o que só um pedido nosso viu.
+    por: consulta.origem === "assistida" ? (consulta.por ?? null) : null,
     actualizado_em: new Date().toISOString(),
   };
 }
@@ -151,10 +162,17 @@ export function linhaDaConsulta(
  * Repare-se no que **não** está aqui: nenhum caminho transforma um
  * `indisponivel` num `desconhecido`. O estado que se escreve é o que a resposta
  * trouxe, e desistir de perguntar deixa a linha exactamente como estava.
+ *
+ * A resposta pode trazer origem e autor — é o caso da consulta assistida, onde
+ * quem respondeu foi uma pessoa (ver `assistida.ts`). A contagem é a mesma para
+ * as duas, e é a mesma de propósito: ela mede quantas vezes esta pergunta ficou
+ * por responder, não quantos pedidos saíram. Uma pessoa que não conseguiu ver
+ * deixa a pergunta tão por responder como um servidor que não respondeu, e no
+ * dia em que o interruptor subir é bom que o ritmo saiba disso.
  */
 export function assentarResultado(
   anterior: ConsultaGuardada | null | undefined,
-  resultado: ResultadoDaConsulta
+  resultado: ResultadoDaConsulta & Partial<Pick<ConsultaGuardada, "origem" | "por">>
 ): ConsultaGuardada {
   const mesmaPergunta =
     anterior != null && anterior.chave !== undefined && anterior.chave === resultado.chave;

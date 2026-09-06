@@ -36,6 +36,7 @@ import {
   ROTULO_DO_TIPO,
   type FichaDeDocumento,
 } from "../tipos";
+import LivroGenealogico from "./LivroGenealogico";
 
 /** Lê o erro de qualquer das duas convenções em jogo — a da API e a do middleware. */
 function mensagemDeErro(corpo: unknown, alternativa: string): string {
@@ -503,6 +504,13 @@ export default function Ficha({ id }: { id: string }) {
           </div>
         </section>
       </div>
+
+      {/* ── O Livro Genealógico ────────────────────────────────────────────
+          Depois do confronto e antes do que os motores sabem. É a única secção
+          desta página onde quem revê sai daqui para ir ver uma coisa a outro
+          sítio, e por isso não está enfiada na coluna da decisão: é um passo,
+          não uma nota de rodapé. */}
+      <LivroGenealogico documentoId={ficha.id} studBook={ficha.studBook} />
 
       <Verificacao vista={ficha.verificacao} />
 

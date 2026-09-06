@@ -19,6 +19,15 @@ import type {
   MimeDeDocumento,
   TipoDeDocumento,
 } from "@/lib/documentos/contrato";
+// Dos módulos, e não do `index.ts` do stud-book: é `import type` e desaparece
+// na compilação de qualquer maneira, mas o barril reexporta **valores** — e a
+// nota lá em cima diz porque é que este ficheiro não os quer por perto.
+import type {
+  ConsultaGuardada,
+  EstadoDaConsulta,
+  IdentificadorDeConsulta,
+} from "@/lib/documentos/stud-book/contrato";
+import type { RespostaAssistida } from "@/lib/documentos/stud-book/assistida";
 import type { Nota, OrigemDaNota, VistaDeVerificacao } from "@/lib/documentos/verificacao";
 
 export type { Nota, OrigemDaNota, VistaDeVerificacao };
@@ -144,6 +153,88 @@ export interface DuplicadoVizinho {
   referencia: string;
 }
 
+// ─── O Livro Genealógico ─────────────────────────────────────────────────────
+
+/**
+ * Como se escreve cada identificador na ficha.
+ *
+ * Não é o `ROTULO_DO_CAMPO`: aquele nomeia colunas de um confronto, este
+ * nomeia o número por que se **procura** no formulário da APSL. Ficam a dizer
+ * quase o mesmo, e ficam separados na mesma — o dia em que a APSL passar a
+ * aceitar um quarto número é um dia em que só um dos dois muda.
+ */
+export const ROTULO_DO_IDENTIFICADOR: Readonly<Record<IdentificadorDeConsulta, string>> = {
+  numero_registo: "NIN (número de registo)",
+  ueln: "UELN",
+  microchip: "Microchip",
+};
+
+/** As três respostas, tal como aparecem nos botões. */
+export const ROTULO_DA_RESPOSTA: Readonly<Record<RespostaAssistida, string>> = {
+  consta: "Consta",
+  nao_consta: "Não consta",
+  nao_consegui_ver: "Não consegui ver",
+};
+
+/**
+ * O estado do registo, por extenso e **na primeira pessoa do que se sabe**.
+ *
+ * «Não consta» e «não consegui saber» são frases diferentes de propósito: a
+ * primeira é o que a APSL respondeu, a segunda é o que nos aconteceu a nós. Um
+ * painel que as escrevesse do mesmo modo — «sem resultado», digamos — fazia de
+ * uma avaria nossa uma sombra sobre um cavalo.
+ */
+export const ROTULO_DO_ESTADO_DA_CONSULTA: Readonly<Record<EstadoDaConsulta, string>> = {
+  confirmado: "Consta do Livro Genealógico",
+  desconhecido: "A APSL respondeu e não o tem",
+  indisponivel: "Não se conseguiu saber",
+  desligado: "Não se chegou a perguntar",
+  sem_identificador: "Não havia número por que perguntar",
+};
+
+/**
+ * O que a ficha diz sobre a consulta ao Livro Genealógico.
+ *
+ * Repare-se no que **não** está aqui: não há um booleano `valido`, não há uma
+ * nota e não há nada que o painel possa pintar de verde ou de vermelho por
+ * cima do documento. Há o número por que se procura, o que já ficou registado,
+ * e quem o registou.
+ */
+export interface StudBookNaFicha {
+  /**
+   * A consulta automática está ligada?
+   *
+   * Hoje, não — a consulta pública da APSL tem um reCAPTCHA. Vai na resposta
+   * para que o painel possa dizer **porquê** em vez de mostrar um formulário
+   * manual sem explicação nenhuma.
+   */
+  automaticaLigada: boolean;
+  /** A porta da consulta pública, para o browser de quem revê abrir. */
+  paginaPublica: string;
+  /** O nome do campo do formulário da APSL onde os três números se escrevem. */
+  campoDaPesquisa: string;
+  /** Por que número se procura, ou `null` se o anúncio não traz nenhum. */
+  identificador: IdentificadorDeConsulta | null;
+  /** O valor, tal como está guardado. É este que se copia. */
+  valor: string | null;
+  /**
+   * A forma comparável do valor. Volta no corpo da resposta para se apanhar o
+   * caso de o vendedor ter corrigido o número entretanto.
+   */
+  chave: string | null;
+  /**
+   * De onde saiu o número que se mostra.
+   *
+   * `anuncio` é o caso normal e o único em que a resposta se pode registar —
+   * a linha do registo é por anúncio. `documento` acontece antes do pagamento,
+   * quando o anúncio ainda não existe: aí o número serve para procurar, e o
+   * painel diz que a resposta ainda não tem onde ficar.
+   */
+  origemDoValor: "anuncio" | "documento" | "nenhuma";
+  /** O que já está registado sobre este anúncio, ou `null`. */
+  registado: ConsultaGuardada | null;
+}
+
 export interface FichaDeDocumento {
   id: string;
   tipo: TipoDeDocumento;
@@ -177,6 +268,13 @@ export interface FichaDeDocumento {
    * duas ideias da mesma coisa acabam sempre com uma delas desactualizada.
    */
   verificacao: VistaDeVerificacao;
+  /**
+   * O Livro Genealógico: por que número se procura e o que já se sabe.
+   *
+   * Nunca é `null` — o painel tem sempre alguma coisa a dizer, nem que seja
+   * que este anúncio não traz número nenhum por que perguntar.
+   */
+  studBook: StudBookNaFicha;
   motivoRecusa: string | null;
   verificadoPor: string | null;
   verificadoEm: string | null;
