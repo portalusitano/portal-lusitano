@@ -148,7 +148,22 @@ de ecrã, nem PDF, nem copiar-colar o texto: preciso das marcas.
 
 ---
 
-## 4. A lista de códigos UELN — destrava a validação do passaporte
+## 4. ~~A lista de códigos UELN~~ — **chegou a 6 de Setembro de 2026**
+
+> A lista foi colada e está em `dados/oficiais/ueln-bases.csv`, com a
+> proveniência escrita ao lado. O `npm run oficiais:gerar` transforma-a em
+> `lib/documentos/ueln-bases.ts` — **720 códigos** — e rebenta se houver dois
+> códigos iguais com organizações diferentes.
+>
+> O da APSL é o **`620003`**. Eu tinha adivinhado `620015`, e a lista prova que
+> esse não existe; há um teste que exige que continue a não existir, para o caso
+> de a adivinhação voltar por outra porta.
+>
+> Um código desconhecido continua a ser **desconhecido, nunca inválido**: a
+> lista pode estar velha, e recusar um passaporte verdadeiro é o erro caro
+> deste sistema.
+
+O que abaixo se pediu, e que já não é preciso:
 
 <https://www.ueln.net/ueln-code-database/>
 
@@ -184,7 +199,23 @@ adivinhar.
 
 ---
 
-## 6. Os rótulos oficiais do passaporte — a alternativa ao ponto 5
+## 6. ~~Os rótulos oficiais do passaporte~~ — **chegaram a 6 de Setembro de 2026**
+
+> Os rótulos do Anexo II estão em `dados/oficiais/passaporte-anexo-ii.csv`, nas
+> três línguas, e o mesmo script gera deles
+> `lib/documentos/vocabulario-passaporte.ts` — **64 rótulos**, com a secção do
+> regulamento a que cada um pertence.
+>
+> O leitor passou a conhecê-los, **somados aos inferidos e não em vez deles**:
+> um Livro Azul não é um passaporte europeu, e deitar fora o vocabulário
+> inferido era trocar um documento por outro.
+>
+> **Isto não substitui o ponto 5.** O que o regulamento fixa é o vocabulário;
+> o que continua por ver é como um documento real o imprime — a ordem, o que
+> está em maiúsculas, o que a digitalização come. É a diferença entre saber as
+> palavras e saber ler a página.
+
+O que abaixo se pediu, e que já não é preciso:
 
 Se não conseguir um documento real, isto é o segundo melhor:
 
@@ -216,6 +247,49 @@ Isto é diferente dos outros: não destrava nada, **mede** o que já existe.
 
 Vinte ou trinta anúncios reais, ainda que antigos, mudam isto de «testado» para
 «medido».
+
+---
+
+## 8. O que está construído e ainda ninguém vê
+
+Isto não depende de si — depende de uma decisão sua, que é outra coisa.
+
+O sistema todo de verificação **não aparece em lado nenhum do site público**.
+O `temDocumentacaoVerificada` está escrito, tem um sítio só e é lido pelos
+sinais da fila de revisão; o `temRegistoConfirmadoNoStudBook` idem. Nenhum dos
+dois chega a uma página de cavalo. Quer dizer: um vendedor que mande o Livro
+Azul, espere pela revisão e seja verificado fica exactamente com o mesmo
+anúncio de quem não mandou nada.
+
+Falta a decisão de **o que é que o comprador vê**, e é uma decisão de produto,
+não de código:
+
+- Um selo no cartão do anúncio e na ficha? Só na ficha?
+- Diz «Documentação verificada» ou diz o que foi verificado?
+- E o que diz um anúncio **sem** documentação — nada, ou «documentação por
+  confirmar»? A segunda hipótese transforma a ausência num aviso, e é uma
+  escolha com consequências: quem não tem os papéis à mão hoje passa a parecer
+  suspeito amanhã.
+
+A quarta regra do contrato já fecha uma porta: **nunca se mostra o inverso**.
+«Confirmado no Livro Genealógico» só quando a APSL confirmou; nunca «não
+consta», que é uma afirmação sobre um cavalo que não temos como sustentar.
+
+---
+
+## 9. O aviso de recusa que falha não é retentado
+
+Também não depende de si, e é um buraco a sério.
+
+A coluna `aviso_recusa_em` foi acrescentada precisamente para que uma varredura
+apanhasse os avisos que não saíram — o serviço de email em baixo, um erro de
+rede. **Essa varredura não existe.** Quem escreve a coluna é só a rota que
+recusa; nada lê os nulos.
+
+Consequência: um vendedor que pagou, cujo Livro Azul foi recusado e cujo aviso
+falhou, fica à espera para sempre — que é exactamente o defeito que todo este
+trabalho existe para acabar. Há três `cron` no site (`alertas`, `email-drip`,
+`expiracao`); falta o quarto.
 
 ---
 
