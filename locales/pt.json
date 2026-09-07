@@ -1444,7 +1444,12 @@
     "source_fei": "Escala FEI",
     "source_mercado": "Mercado PT",
     "source_modelo": "Modelo estimativo",
-    "source_vet": "Veterinário"
+    "source_vet": "Veterinário",
+    "pwa_titulo": "Instalar o Portal Lusitano",
+    "pwa_desc": "Funciona sem ligação à internet.",
+    "pwa_instalar": "Instalar",
+    "pwa_agora_nao": "Agora não",
+    "pwa_fechar": "Dispensar"
   },
   "search": {
     "type_labels": {

@@ -1444,7 +1444,12 @@
     "source_fei": "FEI Scale",
     "source_mercado": "PT Market",
     "source_modelo": "Estimation model",
-    "source_vet": "Veterinary"
+    "source_vet": "Veterinary",
+    "pwa_titulo": "Install Portal Lusitano",
+    "pwa_desc": "Works without an internet connection.",
+    "pwa_instalar": "Install",
+    "pwa_agora_nao": "Not now",
+    "pwa_fechar": "Dismiss"
   },
   "search": {
     "type_labels": {

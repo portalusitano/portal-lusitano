@@ -29,6 +29,10 @@ const FICHEIROS_CROMADO = [
   "components/Navbar.tsx",
   "components/Footer.tsx",
   "components/CookieConsent.tsx",
+  // A barra de instalar a app. Entrou por ter o texto escrito a mao em
+  // portugues dentro do JSX — «Cavalos Lusitanos sempre consigo» — num
+  // componente que aparece em todas as paginas de um site com tres linguas.
+  "components/PWAInstallPrompt.tsx",
   "components/Search.tsx",
   "components/SkipLinks.tsx",
   "components/navbar/DesktopMenu.tsx",
