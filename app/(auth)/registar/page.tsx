@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, Suspense } from "react";
+import { useState, useCallback, useRef, Suspense, type CSSProperties } from "react";
 import LocalizedLink from "@/components/LocalizedLink";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { useLanguage } from "@/context/LanguageContext";
@@ -12,7 +12,6 @@ import {
   User,
   Loader2,
   Check,
-  CheckCircle,
   AlertCircle,
   ArrowRight,
 } from "lucide-react";
@@ -122,7 +121,8 @@ function RegistarContent() {
     terms?: string;
   }>({});
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  /** `null` enquanto o formulário está aberto. Ver o comentário no `signUp`. */
+  const [success, setSuccess] = useState<"confirmar" | "dentro" | null>(null);
   const [shaking, setShaking] = useState(false);
 
   const nameRef = useRef<HTMLInputElement>(null);
@@ -188,7 +188,7 @@ function RegistarContent() {
     try {
       const supabase = createSupabaseBrowserClient();
       const redirectTo = `${window.location.origin}/auth/callback${redirect ? `?next=${encodeURIComponent(redirect)}` : ""}`;
-      const { error: authError } = await supabase.auth.signUp({
+      const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -206,7 +206,29 @@ function RegistarContent() {
         return;
       }
 
-      setSuccess(true);
+      /* ██ O que o `signUp` garante, e o que não garante ██
+       *
+       * O ecrã dizia «Enviámos um email de confirmação para X» sempre que esta
+       * chamada não devolvia erro. **Não devolver erro não quer dizer que
+       * tenha saído um email.** Quando o endereço já tem conta, o Supabase
+       * responde com sucesso e não envia nada — de propósito, para que um
+       * formulário de registo não sirva para descobrir quem tem conta no site.
+       *
+       * Foi assim que apareceu: o dono do site registou-se com o endereço
+       * dele, que já tinha conta desde Março e já estava confirmada. A página
+       * afirmou que o email tinha saído. Nunca saiu, e ele ficou à espera.
+       *
+       * Uma página que afirma o que não sabe é a mesma falsidade que este
+       * portal existe para acabar, e não fica melhor por ser sobre um email em
+       * vez de um cavalo. Por isso o texto passa a cobrir os dois casos sem
+       * mentir em nenhum — e sem dizer qual deles é, que é a parte que o
+       * Supabase esconde por uma boa razão. É a mesma voz do ecrã de
+       * recuperação de senha, que já dizia «Se existir uma conta associada a».
+       *
+       * Há um caso em que se sabe: com a confirmação de email desligada no
+       * projecto, a resposta traz sessão. Aí não há email nenhum por confirmar
+       * e dizê-lo seria mandar a pessoa esperar por uma coisa que não existe. */
+      setSuccess(data.session ? "dentro" : "confirmar");
     } catch {
       setGlobalError(t.errors.error_generic);
       abanar();
@@ -215,47 +237,82 @@ function RegistarContent() {
     }
   };
 
-  // ── Conta criada ────────────────────────────────────────────────────────────
+  // ── Feito ───────────────────────────────────────────────────────────────────
+  //
+  // Dois desfechos, e a diferença entre eles não é de tom: um manda esperar por
+  // um email e o outro diz que já está dentro. Escrevê-los com o mesmo texto
+  // era mandar metade das pessoas esperar por uma coisa que não vem.
   if (success) {
     const loginUrl = redirect ? `/login?returnUrl=${encodeURIComponent(redirect)}` : "/login";
+    const dentro = success === "dentro";
 
     return (
       <div className="py-2 text-center">
-        {/* Saíram daqui sete confetes e uma argola a pulsar.
-         *
-         * Os confetes traziam três cores escritas à mão na página —
-         * `#C5A059`, `#10B981`, `#F59E0B` —, e o sistema diz que numa página
-         * não se escreve uma cor literal; uma delas era o dourado da marca,
-         * usado como enfeite, que é exactamente o que o gasta. A argola era um
-         * `animate-ping`. O que aqui aconteceu foi a conta ficar criada e
-         * faltar confirmar o email: é uma instrução, não uma festa, e uma
-         * festa por cima de «vá ao seu email» esconde a instrução. */}
-        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-[var(--border)]">
-          <CheckCircle
-            className="text-[var(--ok)]"
-            size={26}
-            strokeWidth={1.5}
-            aria-hidden="true"
-          />
+        {/* O sinal desenha-se à frente de quem chega — a argola fecha-se, o
+            visto risca-se por dentro. Um ícone que já lá está quando a página
+            aparece não assinala nada: é decoração. Este diz «acabou agora», e
+            é a única coisa nesta página que se move sozinha.
+
+            Saíram daqui, antes disto, sete confetes e uma argola a pulsar. Os
+            confetes traziam três cores escritas à mão na página, uma delas o
+            dourado da marca usado como enfeite — que é exactamente o que o
+            gasta. E uma festa por cima de «vá ao seu email» esconde a
+            instrução, que é a única coisa que aqui interessa. */}
+        <div className="selo-feito mb-6" aria-hidden="true">
+          <svg viewBox="0 0 48 48" className="selo-feito__argola">
+            <circle cx="24" cy="24" r="21" />
+          </svg>
+          <svg viewBox="0 0 48 48" width="48" height="48" className="selo-feito__visto">
+            <path d="M16 24.5 21.5 30 32 18.5" />
+          </svg>
         </div>
 
-        <h2 className="titulo-pagina mb-2">{t.auth.account_created}</h2>
-        <p className="text-sm text-[var(--foreground-secondary)]">{t.auth.confirmation_sent_to}</p>
-        <p className="mb-6 font-mono text-sm break-all text-[var(--foreground-strong)]">{email}</p>
+        <h2 className="titulo-pagina nascer-linha mb-3" style={{ "--ordem": 1 } as CSSProperties}>
+          {dentro ? t.auth.account_ready : t.auth.confirm_email_title}
+        </h2>
 
-        <div className="cartao mb-5 p-4 text-left">
-          <p className="rotulo-forte mb-1.5">{t.auth.check_inbox_title}</p>
-          <p className="meta leading-relaxed">{t.auth.check_inbox_desc}</p>
-        </div>
-
-        {toolParam && redirect && (
-          <p className="meta mb-5 leading-relaxed">{t.auth.tool_after_confirm}</p>
+        {dentro ? (
+          <p
+            className="nascer-linha mx-auto mb-8 max-w-sm text-sm leading-relaxed text-[var(--foreground-secondary)]"
+            style={{ "--ordem": 2 } as CSSProperties}
+          >
+            {t.auth.account_ready_desc}
+          </p>
+        ) : (
+          /* O endereço é o que a pessoa veio confirmar, e por isso é ele que
+             leva o peso: mono, a branco, no meio da frase. À volta, uma frase
+             só — a caixa com o rótulo em maiúsculas que aqui estava gritava um
+             título («VERIFIQUE A SUA CAIXA DE CORREIO») por cima da mesma
+             instrução que dava a seguir, em ponto mais pequeno. Era dizer duas
+             vezes a mesma coisa e sublinhar a menos importante. */
+          <p
+            className="nascer-linha mx-auto mb-8 max-w-sm text-sm leading-relaxed text-[var(--foreground-secondary)]"
+            style={{ "--ordem": 2 } as CSSProperties}
+          >
+            {t.auth.confirm_email_body_pre}{" "}
+            <span className="font-mono break-all text-[var(--foreground-strong)]">{email}</span>{" "}
+            {t.auth.confirm_email_body_post}
+          </p>
         )}
 
-        <LocalizedLink href={loginUrl} className="btn btn-primario w-full py-3">
-          {t.auth.login_account}
-          <ArrowRight size={16} aria-hidden="true" />
-        </LocalizedLink>
+        {toolParam && redirect && (
+          <p
+            className="meta nascer-linha mx-auto mb-6 max-w-sm leading-relaxed"
+            style={{ "--ordem": 3 } as CSSProperties}
+          >
+            {t.auth.tool_after_confirm}
+          </p>
+        )}
+
+        <div className="nascer-linha" style={{ "--ordem": 4 } as CSSProperties}>
+          <LocalizedLink
+            href={dentro ? redirect || "/" : loginUrl}
+            className="btn btn-primario w-full py-3"
+          >
+            {dentro ? t.common.continue : t.auth.login_account}
+            <ArrowRight size={16} aria-hidden="true" />
+          </LocalizedLink>
+        </div>
       </div>
     );
   }

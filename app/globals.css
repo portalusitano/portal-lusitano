@@ -5167,3 +5167,105 @@ html.light .barra-dir__seccao[data-busca]::after {
     display: block !important;
   }
 }
+
+/* ==========================================================================
+ * O momento em que uma coisa fica feita
+ *
+ * Um ecrã de confirmação é uma frase e um sinal, e o sinal tem de se **fazer**
+ * à frente de quem chega. Um ícone que já lá está quando a página aparece não
+ * assinala nada — é decoração. Um que se desenha diz «acabou agora».
+ *
+ * São dois movimentos e não três: a argola fecha-se à volta, o visto risca-se
+ * por dentro, e o texto nasce por baixo em cascata. Nenhum deles se repete, e
+ * o conjunto acaba em menos de um segundo e meio.
+ *
+ * As durações são as do sistema. O `--d-nascer` é o tempo de uma coisa nascer
+ * sobre uma cena composta, e é exactamente isto; a cascata usa o mesmo, com um
+ * atraso por ordem. Não se inventa aqui um tempo próprio.
+ * ========================================================================== */
+
+@layer components {
+  .selo-feito {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+    margin-inline: auto;
+  }
+
+  /* A argola fecha-se. É um traço a rodar e a encher, não um círculo a
+     aparecer: o que se lê é o gesto de fechar, e é ele que diz «está
+     completo». Começa no topo (o `-90deg`) porque é onde o olho a espera. */
+  .selo-feito__argola {
+    position: absolute;
+    inset: 0;
+    fill: none;
+    stroke: var(--ok);
+    stroke-width: 1.25;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    stroke-dasharray: 132;
+    stroke-dashoffset: 132;
+    animation: selo-argola var(--d-nascer) var(--ease-out) forwards;
+  }
+
+  /* O visto entra depois de a argola ir a meio. Ao mesmo tempo, os dois riscos
+     competiam pelo mesmo olhar e nenhum se via a desenhar. */
+  .selo-feito__visto {
+    position: relative;
+    fill: none;
+    stroke: var(--ok);
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 24;
+    stroke-dashoffset: 24;
+    animation: selo-visto 380ms var(--ease-out) 340ms forwards;
+  }
+
+  @keyframes selo-argola {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes selo-visto {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  /* A cascata por baixo. Oito pixéis de deslocação e não dois rem: aqui o
+     conteúdo não está a entrar no ecrã — já cá está, e o que se assinala é a
+     ordem por que se lê. Uma distância de entrada de secção num cartão de
+     quatro linhas lê-se como a página a carregar devagar. */
+  .nascer-linha {
+    animation: nascer-linha var(--d-nascer) var(--ease-out) calc(var(--ordem, 0) * 70ms) backwards;
+  }
+
+  @keyframes nascer-linha {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 8px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Sem movimento, o sinal está feito e o texto está lá. O que se perde é o
+     gesto; o que não se pode perder é a informação. */
+  @media (prefers-reduced-motion: reduce) {
+    .selo-feito__argola,
+    .selo-feito__visto {
+      animation: none;
+      stroke-dashoffset: 0;
+    }
+
+    .nascer-linha {
+      animation: none;
+    }
+  }
+}
