@@ -3816,21 +3816,38 @@ body {
    * origem à esquerda é o que a faz crescer da esquerda para a direita em vez
    * de a partir do meio.
    */
-  .passo-barra {
-    position: relative;
-    height: 2px;
-    margin: 0 1rem 0.5rem;
-    background: var(--background-card);
+  /* ── O carril ────────────────────────────────────────────────────────────
+     Era uma barra solta por cima dos quatro discos, com um recuo de 1rem que
+     não batia certo com nada, e os discos ficavam a flutuar por baixo dela sem
+     nada a ligá-los — quatro círculos numa fila, e não um caminho.
+
+     Passa a correr **atrás dos discos**, do centro do primeiro ao centro do
+     último. Com quatro passos iguais, cada um ocupa 25% e o centro do primeiro
+     está a 12,5% da esquerda: é daí a onde o carril começa e acaba, e por isso
+     não sobra risco nenhum para lá das pontas.
+
+     O `role="progressbar"` continua no mesmo elemento e a dizer o mesmo — a
+     mudança é de sítio, não de significado. */
+  .passo-carril {
+    position: absolute;
+    top: 1rem; /* metade da altura do disco: passa-lhe pelo meio */
+    left: 12.5%;
+    right: 12.5%;
+    height: 1px;
+    background: var(--border-soft);
     overflow: hidden;
   }
 
-  .passo-barra__cheio {
+  .passo-carril__cheio {
     position: absolute;
     inset: 0;
     transform-origin: left center;
     background: var(--foreground-strong);
     transform: scaleX(var(--parte, 0));
-    transition: transform var(--d-fast) var(--ease-out);
+    /* Avançar um passo é entrar num sítio, e o tempo disso já tem nome no
+       sistema: é o `--d-drill`, o mesmo dos submenus e da pilha de regiões.
+       Estava no `--d-fast`, que é o tempo de um hover. */
+    transition: transform var(--d-drill) var(--ease-in-out-cubic);
   }
 
   .passo-marco {
@@ -3847,6 +3864,7 @@ body {
   }
 
   .passo-marco__disco {
+    position: relative;
     display: flex;
     width: 2rem;
     height: 2rem;
@@ -3872,6 +3890,71 @@ body {
     background: var(--foreground-strong);
     border-color: var(--foreground-strong);
     color: #000;
+  }
+
+  /* ── A argola que assinala a chegada ─────────────────────────────────────
+     O disco branco diz «é aqui», mas não diz **que se acabou de chegar**: ao
+     avançar um passo, a única coisa que acontecia era duas cores a trocar em
+     200ms, e num ecrã com noventa e cinco campos isso passa despercebido.
+
+     A argola abre-se do tamanho do disco para fora e apaga-se — o mesmo
+     movimento com que o `<GloboTerra>` assinala a coudelaria escolhida, e pela
+     mesma razão: _este, e mais nenhum_. Corre uma vez, com a `key` do React a
+     obrigá-la a repetir a cada passo novo (sem ela o nó é reaproveitado e a
+     animação, que já correu, não volta a correr — a mesma regra da
+     `.vista-troca`).
+
+     É um `::after` e não um elemento: não entra na medida do disco, logo não
+     empurra nada. */
+  .passo-marco[aria-current="step"] .passo-marco__disco::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    border: 1px solid var(--foreground-strong);
+    animation: passo-chegada var(--d-drill) var(--ease-out) forwards;
+  }
+
+  @keyframes passo-chegada {
+    from {
+      opacity: 0.9;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(1.9);
+    }
+  }
+
+  /* O visto risca-se, como o do ecrã de «feito». Um visto que aparece pousado
+     não assinala que se acabou de fechar o passo. */
+  .passo-marco__visto {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.25;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 22;
+    stroke-dashoffset: 22;
+    animation: passo-visto 320ms var(--ease-out) forwards;
+  }
+
+  @keyframes passo-visto {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .passo-marco[aria-current="step"] .passo-marco__disco::after {
+      animation: none;
+      opacity: 0;
+    }
+
+    .passo-marco__visto {
+      animation: none;
+      stroke-dashoffset: 0;
+    }
   }
 
   /* Fechado quer dizer **respondido até ao fim**, e não «já passei por aqui».
@@ -5240,8 +5323,13 @@ html.light .barra-dir__seccao[data-busca]::after {
      conteúdo não está a entrar no ecrã — já cá está, e o que se assinala é a
      ordem por que se lê. Uma distância de entrada de secção num cartão de
      quatro linhas lê-se como a página a carregar devagar. */
+  /* O `--atraso-base` é para quem tem uma coisa a acontecer antes: na secção
+     do preço, os quatro itens só nascem depois de o número acabar de contar,
+     porque durante a contagem o olho está no número e quatro linhas a nascer
+     ao mesmo tempo disputavam-lho. Por omissão é zero, e a cascata começa já. */
   .nascer-linha {
-    animation: nascer-linha var(--d-nascer) var(--ease-out) calc(var(--ordem, 0) * 70ms) backwards;
+    animation: nascer-linha var(--d-nascer) var(--ease-out)
+      calc(var(--atraso-base, 0ms) + var(--ordem, 0) * 70ms) backwards;
   }
 
   @keyframes nascer-linha {

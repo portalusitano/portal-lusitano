@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, type CSSProperties } from "react";
 import LocalizedLink from "@/components/LocalizedLink";
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { useLanguage } from "@/context/LanguageContext";
-import { Mail, ArrowLeft, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { Mail, ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 
 export default function RecuperarSenhaPage() {
   const [email, setEmail] = useState("");
@@ -61,30 +61,61 @@ export default function RecuperarSenhaPage() {
   };
 
   // ── Enviado ───────────────────────────────────────────────────────────────
+  //
+  // O mesmo momento do ecrã de registo, e por isso o mesmo desenho. São as duas
+  // vezes em que este site diz «fomos ver do seu lado»; escritas com dois
+  // vocabulários, liam-se como dois sítios diferentes.
   if (sent) {
     return (
       <div className="py-2 text-center">
-        {/* Uma argola fina com o visto lá dentro. Era um disco cheio de 64px
-            com preenchimento elevado; o resto da página é hairline sobre
-            preto e este era o único sítio com uma bola. */}
-        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-[var(--border)]">
-          <CheckCircle
-            className="text-[var(--ok)]"
-            size={26}
-            strokeWidth={1.5}
-            aria-hidden="true"
-          />
+        {/* O sinal desenha-se: a argola fecha-se, o visto risca-se por dentro
+            quando ela vai a meio. Era um `CheckCircle` estático dentro de uma
+            argola — um ícone que já lá está quando a página aparece não
+            assinala nada, é decoração. */}
+        <div className="selo-feito mb-6" aria-hidden="true">
+          <svg viewBox="0 0 48 48" className="selo-feito__argola">
+            <circle cx="24" cy="24" r="21" />
+          </svg>
+          <svg viewBox="0 0 48 48" width="48" height="48" className="selo-feito__visto">
+            <path d="M16 24.5 21.5 30 32 18.5" />
+          </svg>
         </div>
-        <h2 className="titulo-pagina mb-2">{t.auth.email_sent}</h2>
-        <p className="text-sm text-[var(--foreground-secondary)]">{t.auth.recovery_sent_intro}</p>
-        {/* O email que a pessoa escreveu é um dado, não uma frase: vai na
-            mono, que é o que o sistema reserva para identificadores. */}
-        <p className="mb-5 font-mono text-sm break-all text-[var(--foreground-strong)]">{email}</p>
-        <p className="meta mx-auto mb-6 max-w-xs">{t.auth.recovery_sent_hint}</p>
-        <LocalizedLink href="/login" className="btn btn-subtil btn-sm">
-          <ArrowLeft size={14} aria-hidden="true" />
-          {t.auth.back_to_login}
-        </LocalizedLink>
+
+        {/* ██ O título dizia «Email enviado!» ██
+            E logo por baixo, «Se existir uma conta associada a…». O título
+            afirmava o que a frase seguinte tinha o cuidado de não afirmar — e
+            entre uma exclamação em corpo 40 e uma condicional em corpo 14, quem
+            lê fica com a primeira. É a mesma contradição que estava no ecrã de
+            registo, e resolve-se do mesmo modo: o título passa a ser uma
+            instrução, que é o que aqui há para dar, e a condição vive na frase
+            onde sempre esteve, sozinha.
+
+            Repare-se em que não se pode dizer mais: quem não tem conta neste
+            site também vê este ecrã, e tem de o ver, senão o formulário de
+            recuperação servia para descobrir quem tem conta. */}
+        <h2 className="titulo-pagina nascer-linha mb-3" style={{ "--ordem": 1 } as CSSProperties}>
+          {t.auth.email_sent}
+        </h2>
+
+        {/* O endereço é o que a pessoa veio confirmar, e leva o peso: mono, a
+            branco, no meio da frase. */}
+        <p
+          className="nascer-linha mx-auto mb-8 max-w-sm text-sm leading-relaxed text-[var(--foreground-secondary)]"
+          style={{ "--ordem": 2 } as CSSProperties}
+        >
+          {t.auth.recovery_sent_corpo_pre}{" "}
+          <span className="font-mono break-all text-[var(--foreground-strong)]">{email}</span>,{" "}
+          {t.auth.recovery_sent_corpo_pos}
+        </p>
+
+        {/* Era um `btn-subtil btn-sm` — a acção que resta numa página onde não
+            há mais nada a fazer não é uma nota de rodapé. */}
+        <div className="nascer-linha" style={{ "--ordem": 3 } as CSSProperties}>
+          <LocalizedLink href="/login" className="btn btn-primario w-full py-3">
+            <ArrowLeft size={16} aria-hidden="true" />
+            {t.auth.back_to_login}
+          </LocalizedLink>
+        </div>
       </div>
     );
   }

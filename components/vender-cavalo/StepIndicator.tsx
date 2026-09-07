@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { Check } from "lucide-react";
 import { TOTAL_STEPS } from "@/components/vender-cavalo/data";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
@@ -103,104 +102,125 @@ export default function StepIndicator({
       className="mb-10"
       aria-label={tr("Passos do formulário", "Form steps", "Pasos del formulario")}
     >
-      <div
-        className="passo-barra"
-        role="progressbar"
-        aria-valuenow={progressPercent}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label={contagem}
-      >
-        <div className="passo-barra__cheio" style={{ "--parte": parte } as React.CSSProperties} />
-      </div>
-
-      <p className="meta text-center mb-6 tabular-nums">{contagem}</p>
+      <p className="meta mb-6 text-center tabular-nums">{contagem}</p>
 
       {/* O anúncio do passo para quem ouve a página. */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {stepText} — {contagem}
       </div>
 
-      <ol className="flex items-start justify-between list-none p-0 m-0">
-        {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((s) => {
-          const label = stepLabels[s - 1] ?? `${s}`;
-          const feitosNoPasso = feitos[s - 1] ?? 0;
-          const totalNoPasso = totais[s - 1] ?? 0;
-          const isCurrent = s === currentStep;
-          // Fechado é ter as respostas todas, e não ter passado por aqui.
-          const fechado = totalNoPasso > 0 && feitosNoPasso >= totalNoPasso;
-          // Só se escreve a conta de um passo onde já se mexeu ou onde se
-          // está. Antes disso é o tamanho da tarefa e mais nada.
-          const mostraConta = totalNoPasso > 0 && (isCurrent || feitosNoPasso > 0);
-          const alcancado = s <= maiorPasso;
-          const navegavel = alcancado && !isCurrent;
+      {/* O carril corre **atrás** dos discos, e é o que faz dos quatro passos
+          um caminho em vez de quatro círculos numa fila. Estava por cima, solto,
+          com um recuo que não batia certo com a posição de nenhum deles. */}
+      <div className="relative">
+        <div
+          className="passo-carril"
+          role="progressbar"
+          aria-valuenow={progressPercent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={contagem}
+        >
+          <div
+            className="passo-carril__cheio"
+            style={{ "--parte": parte } as React.CSSProperties}
+          />
+        </div>
 
-          // O nome do botão diz a frase toda, que é o que a fila de números
-          // soltos não conseguia dizer.
-          const nomeAcessivel = [
-            t.vender_cavalo.step_counter
-              .replace("{current}", String(s))
-              .replace("{total}", String(TOTAL_STEPS)),
-            label,
-            mostraConta
-              ? tr(
-                  `${feitosNoPasso} de ${totalNoPasso} respostas`,
-                  `${feitosNoPasso} of ${totalNoPasso} answers`,
-                  `${feitosNoPasso} de ${totalNoPasso} respuestas`
-                )
-              : null,
-          ]
-            .filter(Boolean)
-            .join(", ");
+        <ol className="relative m-0 flex list-none items-start justify-between p-0">
+          {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((s) => {
+            const label = stepLabels[s - 1] ?? `${s}`;
+            const feitosNoPasso = feitos[s - 1] ?? 0;
+            const totalNoPasso = totais[s - 1] ?? 0;
+            const isCurrent = s === currentStep;
+            // Fechado é ter as respostas todas, e não ter passado por aqui.
+            const fechado = totalNoPasso > 0 && feitosNoPasso >= totalNoPasso;
+            // Só se escreve a conta de um passo onde já se mexeu ou onde se
+            // está. Antes disso é o tamanho da tarefa e mais nada.
+            const mostraConta = totalNoPasso > 0 && (isCurrent || feitosNoPasso > 0);
+            const alcancado = s <= maiorPasso;
+            const navegavel = alcancado && !isCurrent;
 
-          const interior = (
-            <>
-              <span className="passo-marco__disco" aria-hidden="true">
-                {fechado && !isCurrent ? <Check size={13} strokeWidth={2.5} /> : s}
-              </span>
-              <span className="rotulo passo-marco__nome hidden sm:block" aria-hidden="true">
-                {label}
-              </span>
-              {mostraConta && (
-                <span className="meta passo-marco__conta" aria-hidden="true">
-                  {feitosNoPasso}/{totalNoPasso}
-                </span>
-              )}
-            </>
-          );
+            // O nome do botão diz a frase toda, que é o que a fila de números
+            // soltos não conseguia dizer.
+            const nomeAcessivel = [
+              t.vender_cavalo.step_counter
+                .replace("{current}", String(s))
+                .replace("{total}", String(TOTAL_STEPS)),
+              label,
+              mostraConta
+                ? tr(
+                    `${feitosNoPasso} de ${totalNoPasso} respostas`,
+                    `${feitosNoPasso} of ${totalNoPasso} answers`,
+                    `${feitosNoPasso} de ${totalNoPasso} respuestas`
+                  )
+                : null,
+            ]
+              .filter(Boolean)
+              .join(", ");
 
-          return (
-            <li key={s} className="flex flex-1">
-              {navegavel ? (
-                <button
-                  type="button"
-                  onClick={() => onIrParaPasso(s)}
-                  className="passo-marco"
-                  data-passo={s}
-                  data-fechado={fechado ? "sim" : "nao"}
-                  aria-label={nomeAcessivel}
-                >
-                  {interior}
-                </button>
-              ) : (
-                // O `aria-current` está no marco inteiro e não no círculo: o
-                // que é «o passo actual» é o passo, e não o algarismo dentro
-                // dele. Quem quiser saber qual é lê o `data-passo`, que é um
-                // número e não um texto de onde é preciso pescá-lo.
+            const interior = (
+              <>
+                {/* A `key` no disco é o que faz a argola da chegada repetir-se:
+                  sem ela o React reaproveita o nó e a animação, que já correu,
+                  não volta a correr. É a mesma regra da `.vista-troca`. */}
                 <span
-                  className="passo-marco"
-                  data-passo={s}
-                  data-fechado={fechado ? "sim" : "nao"}
-                  aria-current={isCurrent ? "step" : undefined}
+                  key={isCurrent ? "aqui" : "la"}
+                  className="passo-marco__disco"
+                  aria-hidden="true"
                 >
-                  <span className="sr-only">{nomeAcessivel}</span>
-                  {interior}
+                  {fechado && !isCurrent ? (
+                    <svg viewBox="0 0 16 16" width="13" height="13" className="passo-marco__visto">
+                      <path d="M3.5 8.5 6.5 11.5 12.5 4.5" />
+                    </svg>
+                  ) : (
+                    s
+                  )}
                 </span>
-              )}
-            </li>
-          );
-        })}
-      </ol>
+                <span className="rotulo passo-marco__nome hidden sm:block" aria-hidden="true">
+                  {label}
+                </span>
+                {mostraConta && (
+                  <span className="meta passo-marco__conta" aria-hidden="true">
+                    {feitosNoPasso}/{totalNoPasso}
+                  </span>
+                )}
+              </>
+            );
+
+            return (
+              <li key={s} className="flex flex-1">
+                {navegavel ? (
+                  <button
+                    type="button"
+                    onClick={() => onIrParaPasso(s)}
+                    className="passo-marco"
+                    data-passo={s}
+                    data-fechado={fechado ? "sim" : "nao"}
+                    aria-label={nomeAcessivel}
+                  >
+                    {interior}
+                  </button>
+                ) : (
+                  // O `aria-current` está no marco inteiro e não no círculo: o
+                  // que é «o passo actual» é o passo, e não o algarismo dentro
+                  // dele. Quem quiser saber qual é lê o `data-passo`, que é um
+                  // número e não um texto de onde é preciso pescá-lo.
+                  <span
+                    className="passo-marco"
+                    data-passo={s}
+                    data-fechado={fechado ? "sim" : "nao"}
+                    aria-current={isCurrent ? "step" : undefined}
+                  >
+                    <span className="sr-only">{nomeAcessivel}</span>
+                    {interior}
+                  </span>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      </div>
 
       {/* Contador do passo, em telemóvel — onde os nomes dos passos não cabem. */}
       <p className="sm:hidden text-center text-xs text-[var(--foreground-muted)] mt-3">

@@ -31,13 +31,20 @@ export default function PageHeader() {
           que ninguém verifica é do mesmo tipo dos números inventados que já
           se tiraram do directório, e quem a lê antes de pagar 49 € lê-a como
           parte do negócio. */}
+      {/* E saiu também o subtítulo — «Anuncie o seu cavalo no maior marketplace
+          de Lusitanos em Portugal. A documentação que enviar é revista por nós
+          antes de o anúncio ser publicado.»
+
+          Duas frases, e as duas ditas melhor logo a seguir: «o maior
+          marketplace» é uma afirmação sobre nós própria, à cabeça da página, do
+          mesmo tipo das três promessas que já daqui saíram; e a revisão da
+          documentação é o passo 02 do «Como funciona», que está três centímetros
+          abaixo com o nome e o número. Um subtítulo que repete o que a secção
+          seguinte explica é um obstáculo entre o título e ela. */}
       <div className="text-center">
-        <h1 className="mb-4 text-2xl font-normal sm:text-3xl md:text-4xl">
+        <h1 className="text-2xl font-normal sm:text-3xl md:text-4xl">
           {t.vender_cavalo.page_title}
         </h1>
-        <p className="mx-auto max-w-xl text-sm text-[var(--foreground-secondary)]">
-          {t.vender_cavalo.page_desc}
-        </p>
       </div>
     </div>
   );

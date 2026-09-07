@@ -35,7 +35,7 @@
  * número está lá, pousado, desde o primeiro quadro.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { PLANO } from "@/lib/listing-tiers";
 
@@ -89,10 +89,24 @@ export default function PricingBanner() {
   const [aContar, setAContar] = useState(false);
   const [duracao, setDuracao] = useState(700);
 
+  /**
+   * Quem não quer movimento vê tudo pousado desde o primeiro quadro.
+   *
+   * Lido no arranque e não num efeito: a preferência já existe antes do
+   * primeiro desenho, e escrevê-la num `setState` de montagem é um render a
+   * mais para dizer uma coisa que se sabia de véspera. No servidor não há
+   * `matchMedia`, e aí a resposta é «há movimento» — o que se pinta a seguir é
+   * o estado inicial da cascata, que é invisível, e o cliente corrige-o no
+   * primeiro desenho dele.
+   */
+  const [semMovimento] = useState(
+    () =>
+      typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+
   useEffect(() => {
-    const quer = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const el = caixa.current;
-    if (quer || !el) return;
+    if (semMovimento || !el) return;
 
     /* Conta quando chega ao ecrã, e uma vez só. O `disconnect` no primeiro
        cruzamento é o que garante que não volta a contar ao rolar para trás —
@@ -113,15 +127,28 @@ export default function PricingBanner() {
     );
     observador.observe(el);
     return () => observador.disconnect();
-  }, []);
+  }, [semMovimento]);
 
   const mostrado = useContagem(EUROS, duracao, aContar);
+
+  /**
+   * Já se pode entrar em cena?
+   *
+   * Com movimento, é quando o preço entra no ecrã. Sem movimento — ou antes de
+   * o observador disparar — tudo tem de estar visível na mesma: uma cascata que
+   * nunca arranca é conteúdo que nunca aparece, e isso não é uma animação
+   * ausente, é uma página partida.
+   */
+  const emCena = aContar || semMovimento;
 
   const incluido = [v.preco_dias, v.preco_fotos, v.preco_comissao, v.preco_revisao];
 
   return (
-    <div ref={caixa} className="mx-auto mb-12 max-w-xl px-4 text-center">
-      <h2 className="rotulo mb-5">{v.preco_titulo}</h2>
+    <div ref={caixa} className="mx-auto mb-12 max-w-2xl px-4 text-center">
+      {/* Havia aqui um rótulo — «UM PREÇO, E MAIS NADA» — por cima do número.
+          Dizia por palavras o que o número diz sozinho: há um preço, é este, e
+          não há mais nada no ecrã. Um letreiro a anunciar a ausência de
+          letreiros é o contrário do que se queria. Saiu. */}
 
       {/* O número. `aria-hidden` na contagem e o valor final no rótulo: um
           leitor de ecrã que anunciasse 0, 14, 47, 79 lia um preço a mudar. */}
@@ -131,21 +158,47 @@ export default function PricingBanner() {
           className="preco text-6xl leading-none text-[var(--foreground-strong)] sm:text-7xl"
         >
           {mostrado}
-          <span className="text-[0.5em] align-super">€</span>
+          <span className="align-super text-[0.5em]">€</span>
         </span>
         <span className="sr-only">{EUROS} €</span>
       </p>
-      <p className="meta mb-7">{v.preco_sufixo}</p>
+      <p className="meta mb-8">{v.preco_sufixo}</p>
 
-      <ul className="mx-auto mb-6 grid max-w-md gap-y-2 text-sm text-[var(--foreground-secondary)] sm:grid-cols-2 sm:gap-x-8">
-        {incluido.map((linha) => (
-          <li key={linha} className="text-left">
+      {/* ── O que está incluído ────────────────────────────────────────────
+          Eram quatro linhas numa grelha de duas colunas, alinhadas à esquerda,
+          com um vazio a separar as colunas: lia-se como duas listas de dois e
+          não como uma lista de quatro. Passa a ser **uma linha só**, com um
+          fio de luz entre cada par — a mesma hairline fria que separa tudo o
+          resto no site. Em telemóvel encosta a duas colunas, que é onde uma
+          fila de quatro deixa de caber sem partir palavras.
+
+          Chegam escalonadas, 70ms entre elas, **depois** de o preço acabar de
+          contar: durante a contagem o olho está no número, e quatro linhas a
+          nascer ao mesmo tempo disputavam-lho. O atraso é a duração da
+          contagem mais a ordem de cada uma. */}
+      <ul
+        className="mx-auto mb-7 grid grid-cols-2 gap-y-4 text-sm text-[var(--foreground-secondary)] sm:flex sm:items-center sm:justify-center sm:gap-0"
+        style={{ "--atraso-base": `${duracao}ms` } as CSSProperties}
+      >
+        {incluido.map((linha, i) => (
+          <li
+            key={linha}
+            className={`px-4 leading-snug sm:border-l sm:border-[var(--border-soft)] sm:first:border-l-0 ${
+              emCena ? "nascer-linha" : "opacity-0"
+            }`}
+            style={{ "--ordem": i + 1 } as CSSProperties}
+          >
             {linha}
           </li>
         ))}
       </ul>
 
-      <p className="meta mx-auto max-w-md leading-relaxed">{v.preco_nota}</p>
+      <p
+        className={`meta mx-auto max-w-md leading-relaxed ${emCena ? "nascer-linha" : "opacity-0"}`}
+        style={{ "--ordem": incluido.length + 1 } as CSSProperties}
+      >
+        {v.preco_nota}
+      </p>
     </div>
   );
 }
