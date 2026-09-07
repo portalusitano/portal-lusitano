@@ -248,18 +248,93 @@ diferentes. Com a busca a funcionar:
 três factos verdadeiros. Onde a dúvida é sobre a _fonte_ e não sobre o _facto_,
 confirma-se antes de cortar.
 
+## Os «duplicados», e porque é que só um deles era um
+
+Aplicado a 7 de Setembro de 2026, depois de confirmar cada caso. **Os dois pares
+deram respostas diferentes, e nenhuma foi «fundir».**
+
+### Jupiter Classical Dressage e Coudelaria Vila Viçosa — **não são duplicados**
+
+Partilham o nome da herdade e mais nada. São duas empresas, dois donos e dois
+conjuntos de contactos:
+
+|          | Coudelaria Vila Viçosa                                               | Jupiter Classical Dressage                              |
+| -------- | -------------------------------------------------------------------- | ------------------------------------------------------- |
+| desde    | 1995                                                                 | sociedade constituída em 05/04/2022                     |
+| quem     | Thomas e Michaela Kleba (ela veterinária), com Pedro e Luís Azeitona | Jürgen Grüneis e Alexander Wickl                        |
+| morada   | Herdade do Ameal — Apartado 42, 7160-999 Vila Viçosa                 | Herdade do Ameal S/N 1, 7160-101 Ciladas, Vila Viçosa   |
+| contacto | thomaskleba@magratex.pt · +351 917 212 823                           | contact@jupiterclassicaldressage.com · +351 915 408 866 |
+
+E a Vila Viçosa **continua registada e a operar** sob os Kleba, com a morada
+inscrita no registo da raça. Uma herdade de 600 hectares comporta duas
+explorações. **Fundi-las apagaria o anúncio de um criador activo** — não se
+tocou em nenhuma das duas.
+
+Fica um defeito real, esse sim: as duas coordenadas apontam para o centro da
+vila e não para a herdade, e são diferentes uma da outra apesar de o sítio ser
+o mesmo. Sem uma coordenada da herdade, não se escreve uma.
+
+### A casa d'Andrade — não eram dois registos, eram **três**
+
+O `coudelaria-andrade` (inactivo) não é duplicado do `coudelaria-sa`: é o
+**antepassado comum de pelo menos dois registos activos**.
+
+A casa foi fundada em 1894 pelo Arq. Alfredo d'Andrade, desenvolvida a partir de
+1901 por Ruy d'Andrade, herdada pelo Eng.º Fernando Sommer d'Andrade e, à morte
+deste em 1991, **dividida pelos quatro filhos**. Neste directório estão dois
+desses ramos: a **Coudelaria SA** é o de Maria d'Andrade de Oliveira e Sousa, na
+Herdade da Agolada de Baixo, em Coruche; a **Herdade do Azinhal** é outro, em
+Portalegre.
+
+**Fundir a casa histórica num dos ramos daria a esse ramo títulos que foram
+ganhos pela casa inteira, antes de existirem ramos** — e é o mesmo erro que se
+acabou de corrigir no Alter Real, ao contrário. Por isso não se fundiu; disse-se
+cada coisa pelo nome:
+
+- O registo histórico passou a chamar-se **«Coudelaria d'Andrade (casa
+  histórica, 1894–1991)»**, com um parágrafo final a dizer que existe para a
+  história não ficar pendurada num só herdeiro, e a nomear os dois ramos que a
+  continuam. Continua inactivo, logo invisível no site.
+- A **Coudelaria SA** estava sem linhagem, sem ano e **sem prémio nenhum**, ao
+  lado de um ramo irmão que tinha os três. Não era falta de herança — era falta
+  de alguém lha escrever. Ganhou `ano_fundacao` 1894 (a manada passou por
+  descendência directa, não é uma marca recomprada), as linhagens Andrade e
+  Oliveira e Sousa, e dois prémios que **dizem de quem foram**.
+- A **Herdade do Azinhal** já dizia tudo na história, mas os prémios não diziam
+  que eram anteriores à divisão. Dois ramos a listar «Campeã Ibérica 1970» sem
+  essa nota leem-se como dois ramos a disputar o mesmo título. Agora não.
+
+## O `num_cavalos`
+
+**O campo não está mal desenhado.** O formulário de registo pergunta «Número de
+Cavalos (aproximado)» — o contrato é o efectivo inteiro. O que estava errado
+eram **valores**, e o defeito não é cosmético: o directório tem uma ordenação
+«Mais cavalos» construída em cima deste campo.
+
+✅ **Casa Cadaval: 15 → 60.** O «15» era a conta das éguas. As fontes dão «cerca
+de 60 animais, incluindo garanhões, éguas reprodutoras e poldros», e uma delas
+70; ficou o número conservador, que é também o único descrito explicitamente
+como o efectivo inteiro. Com «15», uma das mais antigas coudelarias da Península
+Ibérica — 5.400 hectares, criação desde 1660 — aparecia no fundo da lista,
+empatada com uma casa de férias equestres.
+
+**Quatro que são a conta das éguas e ficam como estão**, porque nenhuma fonte
+publica o efectivo total e um número inventado é pior do que um número em
+baixo: Ortigão Costa (72 = 58 éguas PSL + 14 PSD, e a própria descrição o diz),
+Luís Bastos (12 éguas), João Lynce (20 éguas), Pedro Passanha (30 éguas). São
+**limites inferiores**, não erros — a descrição de cada uma já diz que são
+éguas, que é mais preciso do que o número sozinho.
+
+**E dois que se confirmaram certos** ao ser conferidos: Torres Vaz Freire tem 65
+com 45 éguas (logo o 65 é o efectivo, não a eguada), e a Herdade do Azinhal tem
+17, que é exactamente o «8 cavalos e uma manada de 9 éguas» da história dela.
+
 ## Fica por decidir, e precisa de uma pessoa
 
-- **Coudelaria Andrade (inactiva) e Coudelaria SA (activa)** na mesma Herdade da
-  Agolada de Baixo. Fundir dois registos de produção apaga história; e a
-  Andrade não fechou, dividiu-se em 1991. Os prémios históricos (Marialva II,
-  Campeão Ibérico 1970/1972) estão no registo inactivo e o activo tem a lista
-  vazia. **Não toquei.**
-- **Jupiter Classical Dressage e Coudelaria Vila Viçosa** na mesma Herdade do
-  Ameal, sem fonte que descreva sucessão ou venda. **Não toquei.**
-- **`num_cavalos` parece contar éguas** em pelo menos quatro fichas. Ou o campo
-  muda de nome, ou os valores estão sistematicamente subavaliados — e a segunda
-  hipótese faz coudelarias grandes parecerem pequenas.
+- **As coordenadas de Jupiter e Vila Viçosa** apontam as duas para o centro da
+  vila. A herdade é a mesma; falta a coordenada dela.
+- **O efectivo total de quatro casas** cujo `num_cavalos` é hoje a conta das
+  éguas. Resolve-se com um telefonema a cada uma, não com uma busca.
 - **O par de colunas que ninguém lê.** As quatro coordenadas corrigidas ficaram
   iguais nos dois pares. Faltam as outras: só depois de todas baterem certo é
   que `latitude`/`longitude` pode ser apagada em segurança.
