@@ -37,12 +37,16 @@ export default function Loading() {
           seguir, e é isso que impede o salto no instante em que ela chega. */}
       <div className="mapa-lona animate-pulse bg-[var(--background-elevated)]" />
 
-      {/* A pílula de cima: os dois chips da vista e a caixa de pesquisa. */}
+      {/* A pílula de cima: os dois chips da vista, a hairline que os separa da
+          pesquisa, e a pesquisa — com a mesma medida que a `.mapa-procura` lhe
+          dá na página, para a caixa não mudar de largura no instante em que o
+          conteúdo chega. */}
       <div className="mapa-barra">
         <div className="mapa-pilula animate-pulse">
           <div className="h-8 w-20 shrink-0 rounded-full bg-[var(--background-elevated)]" />
           <div className="h-8 w-20 shrink-0 rounded-full bg-[var(--background-elevated)]" />
-          <div className="h-10 w-36 rounded-lg bg-[var(--background-elevated)] sm:w-56" />
+          <div className="mapa-pilula__risco" />
+          <div className="mapa-procura h-10 rounded-lg bg-[var(--background-elevated)]" />
         </div>
       </div>
 
