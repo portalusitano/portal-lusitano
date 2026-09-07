@@ -120,10 +120,23 @@ describe("consentimento de cookies", () => {
     expect(screen.getByRole("button", { name: c.hide_details })).toBeInTheDocument();
   });
 
-  it("é um diálogo modal com nome, não uma barra qualquer", () => {
+  /**
+   * É uma barra com nome, e **não** um modal.
+   *
+   * Chegou a ser um cartão ao meio do ecrã, com véu por cima do site e o rolo
+   * da página bloqueado. Um pedido de cookies não é uma pergunta que valha
+   * parar o site para fazer, e o `aria-modal` num aviso que não tapa nada é
+   * dizer ao leitor de ecrã que o resto da página está inerte quando não está.
+   *
+   * O nome fica: um `role="dialog"` sem nome é anunciado como «diálogo» e mais
+   * nada.
+   */
+  it("é uma barra com nome, e não um modal que trave o site", () => {
     render(<CookieConsent />);
     const dialogo = screen.getByRole("dialog");
-    expect(dialogo).toHaveAttribute("aria-modal", "true");
     expect(dialogo).toHaveAttribute("aria-label", c.aria_label);
+    expect(dialogo).not.toHaveAttribute("aria-modal");
+    // Com a barra aberta, a página por baixo continua a rolar.
+    expect(document.body.style.overflow).not.toBe("hidden");
   });
 });

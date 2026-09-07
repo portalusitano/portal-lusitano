@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import LocalizedLink from "@/components/LocalizedLink";
 import { useLanguage } from "@/context/LanguageContext";
-import { useFocusTrap } from "@/hooks/useFocusTrap";
 import {
   CHAVE_CONSENTIMENTO,
   CHAVE_PREFERENCIAS,
@@ -116,7 +115,24 @@ export default function CookieConsent() {
   const c = t.cookies;
 
   const fechar = useCallback(() => setAberto(false), []);
-  useFocusTrap(painelRef, aberto, fechar);
+
+  /**
+   * O Escape fecha, e mais nada prende o teclado.
+   *
+   * A armadilha de foco saiu com o véu: prender o Tab dentro de uma barra que
+   * não tapa o site é dizer ao leitor de ecrã que o resto da página está
+   * inerte quando não está. O Escape fica — é a metade que servia — e fechar
+   * sem responder não regista consentimento nenhum: a barra volta na visita
+   * seguinte, que é o que tem de acontecer a quem não respondeu.
+   */
+  useEffect(() => {
+    if (!aberto) return;
+    const aoTeclar = (e: KeyboardEvent) => {
+      if (e.key === "Escape") fechar();
+    };
+    document.addEventListener("keydown", aoTeclar);
+    return () => document.removeEventListener("keydown", aoTeclar);
+  }, [aberto, fechar]);
 
   useEffect(() => {
     const reabrir = () => {
@@ -126,16 +142,6 @@ export default function CookieConsent() {
     window.addEventListener(EVENTO_ABRIR_CONSENTIMENTO, reabrir);
     return () => window.removeEventListener(EVENTO_ABRIR_CONSENTIMENTO, reabrir);
   }, []);
-
-  // Com o diálogo aberto a página por baixo não rola.
-  useEffect(() => {
-    if (!aberto) return;
-    const anterior = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = anterior;
-    };
-  }, [aberto]);
 
   const registar = useCallback((prefs: Preferencias, decisao: string) => {
     if (typeof window !== "undefined" && window.gtag) {
@@ -192,14 +198,19 @@ export default function CookieConsent() {
     <div
       id="aviso-cookies"
       role="dialog"
-      aria-modal="true"
       aria-label={c.aria_label}
-      className="fixed inset-0 z-[9997] flex items-end justify-center bg-black/[0.64] p-3 backdrop-blur-[24px] sm:items-center sm:p-6"
+      // Barra em baixo, e não um cartão ao meio do ecrã com o site apagado por
+      // trás. Um pedido de cookies não é uma pergunta que valha parar o site
+      // para fazer: chegou a ser uma barra, passou a modal sem que ninguém o
+      // pedisse — no meio de um trabalho sobre outra coisa — e volta ao que
+      // era. Com ela em baixo, quem chega vê o site primeiro, que é a ordem
+      // certa das duas coisas.
+      className="fixed inset-x-3 bottom-3 z-[9998] mx-auto max-w-3xl opacity-0 animate-[slideUp_0.4s_cubic-bezier(0.22,1,0.36,1)_forwards] lg:inset-x-6 lg:bottom-6"
+      style={{ willChange: "transform, opacity", marginBottom: "env(safe-area-inset-bottom)" }}
     >
       <div
         ref={painelRef}
-        className="anim-crescer w-full max-w-xl rounded-[28px] border border-[var(--border-soft)] bg-[var(--background-elevated)] p-5 shadow-[0_12px_60px_rgba(0,0,0,0.8)] sm:p-6"
-        style={{ marginBottom: "env(safe-area-inset-bottom)" }}
+        className="rounded-[28px] border border-[var(--border-soft)] bg-black/80 p-5 shadow-[0_12px_60px_rgba(0,0,0,0.7)] backdrop-blur-xl sm:p-6"
       >
         <h2 className="titulo-seccao">{c.title}</h2>
         <p className="mt-2 text-sm leading-relaxed text-[var(--foreground-secondary)]">
