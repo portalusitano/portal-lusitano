@@ -74,15 +74,21 @@ const TOPO_AR = 1.02;
  *  As bordas caem no mar ou bem longe da mira, e o peso esbate-se num grau
  *  antes de lá chegar. */
 const JANELA_RELEVO = { lonMin: -13, lonMax: -2, latMin: 35, latMax: 45 };
-/** Lat/lon → ponto na esfera. */
-function naEsfera(lat: number, lon: number, raio: number) {
+/** Lat/lon → ponto na esfera, escrito num vector que já existe. */
+function naEsferaEm(saida: THREE.Vector3, lat: number, lon: number, raio: number) {
   const phi = (90 - lat) * (Math.PI / 180);
   const theta = (lon + 180) * (Math.PI / 180);
-  return new THREE.Vector3(
-    -raio * Math.sin(phi) * Math.cos(theta),
+  const senoPhi = Math.sin(phi);
+  return saida.set(
+    -raio * senoPhi * Math.cos(theta),
     raio * Math.cos(phi),
-    raio * Math.sin(phi) * Math.sin(theta)
+    raio * senoPhi * Math.sin(theta)
   );
+}
+
+/** Lat/lon → ponto na esfera. Faz um vector: só para quem o vai guardar. */
+function naEsfera(lat: number, lon: number, raio: number) {
+  return naEsferaEm(new THREE.Vector3(), lat, lon, raio);
 }
 
 /* O Sol ao largo, a oeste da Península.
@@ -890,6 +896,16 @@ export default function GloboTerra({
        verdade, em vez de não se ler nada. */
     let topoUtil = 0;
     let baseUtil = altura;
+    /** O globo é o ecrã inteiro e a página tem para onde descer? Ver
+        `verSePrende`, lá em baixo, que é quem responde e quem explica. Vive
+        aqui em cima com os outros pela mesma razão que eles: o `aoRodar`
+        lê-a, e é registado como ouvinte antes de a linha do `verSePrende`
+        chegar a correr. */
+    let globoEhOEcra = false;
+    /** A última medida a que essa pergunta foi feita, para não a repetir a
+        cada quadro de rolo — o `scrollHeight` lá dentro é uma leitura de
+        layout. */
+    let medidaDaPrisao = "";
     /** Ponteiros em baixo, por id. Um arrasta; dois fazem pinça. */
     const ponteiros = new Map<number, { x: number; y: number }>();
     let pinca = 0;
@@ -1057,16 +1073,56 @@ export default function GloboTerra({
            esta guarda ficavam aqui uma geometria e um material sem dono,
            criados já depois da limpeza e portanto nunca descartados. */
         if (desmontado) return;
-        const vertices: number[] = [];
+        /* ── Onze mil pontos, e cada um contado uma vez ────────────────────
+           Isto fazia duas coisas a mais, as duas na altura pior: a seguir ao
+           `fetch`, na linha principal, entre a página aparecer e o globo
+           ficar bom.
+
+           A primeira era contar cada ponto **duas** vezes — como fim de um
+           segmento e como princípio do seguinte —, e cada conta são dois
+           senos e dois cossenos. A segunda era um `THREE.Vector3` novo por
+           conta: vinte e duas mil vidas curtas para escrever sessenta e seis
+           mil números, mais um array de JavaScript a crescer aos empurrões
+           antes de ser copiado para o Float32Array final.
+
+           Agora o anel percorre-se uma vez, a trigonometria de cada ponto
+           faz-se uma vez, e escreve-se directamente no depósito com o
+           tamanho certo — que se sabe de antemão, porque um anel de n pontos
+           dá n−1 segmentos. Zero objectos. O desenho que sai é o mesmo, ao
+           bit. */
+        let nSegmentos = 0;
+        for (const anel of aneis) if (anel.length > 1) nSegmentos += anel.length - 1;
+        const vertices = new Float32Array(nSegmentos * 6);
+        const RAIO_LINHA = RAIO * 1.0012;
+        let v = 0;
         for (const anel of aneis) {
-          for (let i = 1; i < anel.length; i++) {
-            const a = naEsfera(anel[i - 1][1], anel[i - 1][0], RAIO * 1.0012);
-            const b = naEsfera(anel[i][1], anel[i][0], RAIO * 1.0012);
-            vertices.push(a.x, a.y, a.z, b.x, b.y, b.z);
+          if (anel.length < 2) continue;
+          // O ponto anterior, guardado em três números em vez de um objecto.
+          let px = 0;
+          let py = 0;
+          let pz = 0;
+          for (let i = 0; i < anel.length; i++) {
+            const phi = (90 - anel[i][1]) * grau;
+            const theta = (anel[i][0] + 180) * grau;
+            const senoPhi = Math.sin(phi);
+            const x = -RAIO_LINHA * senoPhi * Math.cos(theta);
+            const y = RAIO_LINHA * Math.cos(phi);
+            const z = RAIO_LINHA * senoPhi * Math.sin(theta);
+            if (i > 0) {
+              vertices[v++] = px;
+              vertices[v++] = py;
+              vertices[v++] = pz;
+              vertices[v++] = x;
+              vertices[v++] = y;
+              vertices[v++] = z;
+            }
+            px = x;
+            py = y;
+            pz = z;
           }
         }
         const geo = new THREE.BufferGeometry();
-        geo.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
+        geo.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
         grupoContornos.add(
           new THREE.LineSegments(
             geo,
@@ -1380,7 +1436,8 @@ export default function GloboTerra({
       /* O sub-ponto é a mira empurrada para sul pelo seu próprio meridiano.
          Muda com a altura; a mira não muda nunca — é o que faz o país ficar
          no centro do quadro em todo o curso do zoom. */
-      posCam.copy(naEsfera(MIRA.lat - sep / grau, MIRA.lon, 1)).multiplyScalar(1 + alturaVoo);
+      // Sem objecto por quadro: escreve-se no `posCam`, que já existe.
+      naEsferaEm(posCam, MIRA.lat - sep / grau, MIRA.lon, 1).multiplyScalar(1 + alturaVoo);
       camara.position.copy(posCam);
       frente.copy(miraDir).sub(posCam).normalize();
       /* `up` perpendicular ao eixo e dentro do plano do meridiano: está
@@ -3267,6 +3324,10 @@ export default function GloboTerra({
     };
 
     const aoRodar = (e: WheelEvent) => {
+      /* Quando o globo é o ecrã inteiro, a roda é da página — ver
+         `verSePrende`. Sai antes do `preventDefault`, e o ouvinte que a
+         entrega já foi registado como passivo. */
+      if (globoEhOEcra) return;
       e.preventDefault();
       /* Multiplicativo e proporcional ao deslocamento: um dente de roda
          (deltaY ≈ 120) muda a altura 22%, e um trackpad, que manda muitos
@@ -3621,6 +3682,88 @@ export default function GloboTerra({
       return null;
     };
 
+    /* ── A roda e o dedo não podem prender a página ───────────────────────
+     *
+     * O globo escuta a roda com `passive: false` e chama sempre
+     * `preventDefault`, e a caixa leva `touch-none`. Enquanto o globo foi um
+     * bloco no meio de uma página isso era o que devia ser: a roda em cima
+     * dele aproxima, o dedo em cima dele roda, e há página à volta por onde
+     * se desce.
+     *
+     * Deixou de ser verdade quando o globo passou a ocupar o ecrã todo. Aí
+     * não há «à volta»: a lona é o primeiro ecrã inteiro, e um ouvinte não
+     * passivo em cima dele é exactamente a armadilha que o CLAUDE.md descreve
+     * a propósito do Lenis — o browser fica proibido de deslocar a página no
+     * compositor porque tem de esperar que o JavaScript decida.
+     *
+     * Medido nesta construção, com a lona a cobrir 100% do quadro: doze
+     * dentes de roda em cima do globo deslocavam a página **0 px** dos 380
+     * que ela tinha para descer no computador, e um arrasto de dedo deslocava
+     * **0 px** dos 832 do telemóvel. O que estava por baixo do globo — que
+     * é o resto da página — só se alcançava pela nesga de cabeçalho que a
+     * lona não tapa.
+     *
+     * A regra passa a sair da medida e não de um pressuposto, que é a mesma
+     * honestidade do `medirEstorvos` aqui ao lado: pergunta-se **quanto do
+     * ecrã é que a lona ocupa** e **se a página tem para onde descer**. Se o
+     * globo é o ecrã e há página por baixo, o gesto de deslocar é da página:
+     * a roda passa a um ouvinte passivo e o dedo ganha `pan-y`. Aproximar
+     * continua a haver — os três botões do canto, as teclas `+`, `-` e `0`, e
+     * o arrasto horizontal continua a rodar o globo. Se o globo voltar a ser
+     * um bloco, tudo volta ao que era, sem que ninguém tenha de se lembrar
+     * de o desfazer.
+     *
+     * O que se perde no caso preso é a inclinação por dedo vertical, que
+     * passa a ser deslocamento da página. É menos do que uma página que não
+     * se pode largar.
+     *
+     * ── E porque é que isto **não** corre dentro do `medirEstorvos` ────────
+     * Corria, e custou caro. A resposta muda uma vez por carregamento e a
+     * mudança escreve um estilo em linha na caixa que é antepassada da camada
+     * dos nomes; feita dentro do quadro que a seguir mede as etiquetas e as
+     * coloca, apanhava a medição a meio. Medido, em pares interleaved contra
+     * a mesma construção sem esta alteração: o original ficou 5 vezes em 5
+     * com as 29 coudelarias contadas no ecrã, e com isto lá dentro ficaram 2
+     * em 5 com **25 de 29** — quatro pontos sem nome e sem algarismo, que é
+     * precisamente a promessa que o CLAUDE.md faz sobre este globo.
+     *
+     * Por isso corre onde a resposta pode mudar e onde não há colocação a
+     * meio: no `ResizeObserver`, que é quem sabe que a caixa mudou, e em três
+     * tarefas depois de montar, que é para apanhar a página a acabar de
+     * crescer por baixo. Nunca dentro de um quadro. */
+    const verSePrende = () => {
+      if (desmontado) return;
+      const c = el.getBoundingClientRect();
+      if (c.width < 1 || c.height < 1) return;
+      const assinatura = `${Math.round(c.width)}x${Math.round(c.height)}@${window.innerWidth}x${window.innerHeight}`;
+      if (assinatura === medidaDaPrisao) return;
+      medidaDaPrisao = assinatura;
+      /* Mede-se a **caixa**, não a parte dela que se vê agora. Medir a parte
+         visível fazia a regra depender do rolo, e portanto desfazer-se a si
+         própria: bastava a página descer um dente para o globo deixar de
+         cobrir o ecrã, a roda voltar a ser dele e o deslocamento parar ali.
+         Medido antes de o perceber: dos 380px que a página tinha para descer
+         no computador, descia 120 — um dente — e prendia outra vez. */
+      const cobreOEcra =
+        c.width >= window.innerWidth * 0.98 && c.height >= window.innerHeight * 0.92;
+      /* O `scrollHeight` só se pergunta se a primeira metade passar: é a
+         leitura cara das duas, e na esmagadora maioria dos casos — um globo
+         que é um bloco no meio de uma página — não é preciso perguntar. */
+      const prende =
+        cobreOEcra && document.documentElement.scrollHeight - window.innerHeight > 24;
+      if (prende === globoEhOEcra) return;
+      globoEhOEcra = prende;
+      /* Um ouvinte não passivo prende o deslocamento mesmo que nunca chegue a
+         chamar `preventDefault`: quem decide é o registo, não a chamada. Por
+         isso não basta sair mais cedo do `aoRodar` — o ouvinte tem de voltar
+         a ser registado. */
+      el.removeEventListener("wheel", aoRodar);
+      el.addEventListener("wheel", aoRodar, { passive: prende });
+      /* Em linha, e não por classe: a classe `touch-none` é o estado por
+         omissão e vale antes de isto correr. */
+      el.style.touchAction = prende ? "pan-y" : "";
+    };
+
     const medirEstorvos = () => {
       estorvoPedido = 0;
       if (desmontado || !noEcra || escondido) return;
@@ -3738,6 +3881,10 @@ export default function GloboTerra({
     document.addEventListener("transitionend", talvezEstorvo, true);
     document.addEventListener("click", aoClicarAlgures, true);
     const relogiosEstorvo = [0, 700, 2600].map((t) => window.setTimeout(pedirEstorvos, t));
+    /* A mesma cadência dos estorvos e pelo mesmo motivo — a página ainda está
+       a crescer por baixo do globo —, mas em tarefas próprias: o que esta
+       pergunta escreve não pode cair dentro de um quadro de colocação. */
+    const relogiosPrisao = [0, 700, 2600].map((t) => window.setTimeout(verSePrende, t));
 
     const observador = new ResizeObserver(() => {
       esquecerCaixa();
@@ -3768,6 +3915,9 @@ export default function GloboTerra({
          Enquanto não se remede, vale a lona inteira — nunca menos, para que
          uma medida por fazer não apague nomes. */
       baseUtil = Math.min(baseUtil, a);
+      /* Aqui sim, e não dentro de um quadro: o observador já é o sítio onde
+         tudo o que depende do tamanho se refaz de uma vez. */
+      verSePrende();
       pedirEstorvos();
       pedirQuadro();
     });
@@ -3791,6 +3941,7 @@ export default function GloboTerra({
       cancelarContornos.abort();
       window.clearTimeout(relogioRevelar);
       for (const r of relogiosEstorvo) window.clearTimeout(r);
+      for (const r of relogiosPrisao) window.clearTimeout(r);
       window.clearTimeout(relogioClique);
       window.removeEventListener("scroll", aoRolar);
       document.removeEventListener("animationend", talvezEstorvo, true);
@@ -3859,10 +4010,16 @@ export default function GloboTerra({
        Esse motor entretanto saiu do site, e o `preventDefault()` passou a
        bastar. O atributo fica na mesma: é uma palavra, é o contrato público
        de uma família inteira de bibliotecas de deslocamento, e diz o que
-       aqui é verdade — **a roda em cima do globo não rola a página**. Se
-       algum dia voltar a entrar uma, o globo já está defendido, e sem
-       precisar de saber que ela existe. Fica na caixa de fora e não na lona,
-       para valer também para a camada dos nomes e para os comandos. */
+       aqui é verdade — **a roda em cima do globo aproxima, não rola a
+       página**. Se algum dia voltar a entrar uma, o globo já está defendido,
+       e sem precisar de saber que ela existe. Fica na caixa de fora e não na
+       lona, para valer também para a camada dos nomes e para os comandos.
+
+       Uma ressalva, e está medida em `verSePrende`: quando a lona ocupa o
+       ecrã inteiro e a página tem para onde descer, é a página que fica com
+       a roda e com o dedo vertical — senão não há maneira de chegar ao que
+       está por baixo do globo. Nesse caso o globo não disputa nada e este
+       atributo também não tem nada a impedir. */
     <div className="relative h-full w-full" data-lenis-prevent>
       <div
         ref={caixa}

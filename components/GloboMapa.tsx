@@ -445,6 +445,26 @@ export default function GloboMapa({ coudelarias, flyTo, onMarkerClick }: Props) 
     [pintar]
   );
 
+  /* O laço de pintura visto por referência.
+     A `assinatura` existe para a entrada correr **uma vez** — está escrito
+     aqui em cima —, e não corria: o efeito da entrada dependia também de
+     `pintar`, e `pintar` muda de identidade sempre que `alfinetes` muda, que
+     é sempre que quem nos chama passa um array novo. No directório isso é a
+     cada filtro, a cada ordenação e a cada página: o globo voltava a partir
+     de 48° a oeste e refazia o voo de 1400ms, a meio de uma lista que a
+     pessoa estava a percorrer — e a entrada, que só se lê como entrada
+     porque acontece uma vez, passava a acontecer a cada gesto.
+
+     A cura é a mesma que o `irPara` aqui em baixo já usa: o efeito lê a
+     função pela referência e deixa de a ter nas dependências. Quem manda na
+     entrada volta a ser só a geometria e o enquadramento. */
+  const pintarRef = useRef(pintar);
+  const pedirPinturaRef = useRef(pedirPintura);
+  useEffect(() => {
+    pintarRef.current = pintar;
+    pedirPinturaRef.current = pedirPintura;
+  });
+
   // Entrada: o globo fecha-se sobre os alfinetes, uma vez.
   useEffect(() => {
     if (!geo) return;
@@ -471,7 +491,7 @@ export default function GloboMapa({ coudelarias, flyTo, onMarkerClick }: Props) 
     const parado = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (parado) {
       rotacao.current = destino;
-      pedirPintura();
+      pedirPinturaRef.current();
       return;
     }
 
@@ -491,7 +511,7 @@ export default function GloboMapa({ coudelarias, flyTo, onMarkerClick }: Props) 
         entreAngulos(partida[0], destino[0], e),
         entreAngulos(partida[1], destino[1], e),
       ];
-      pintar();
+      pintarRef.current();
       if (t < 1) quadro.current = requestAnimationFrame(passo);
       else aAnimar.current = false;
     };
@@ -501,8 +521,19 @@ export default function GloboMapa({ coudelarias, flyTo, onMarkerClick }: Props) 
       cancelAnimationFrame(quadro.current);
       aAnimar.current = false;
     };
-    // `assinatura` é o enquadramento reduzido a texto — ver acima porquê.
-  }, [geo, assinatura, pintar, pedirPintura]);
+    /* `assinatura` é o enquadramento reduzido a texto — ver acima porquê —, e
+       `pintar`/`pedirPintura` saíram daqui de propósito: eram eles que faziam
+       a entrada repetir-se a cada filtro do directório. */
+  }, [geo, assinatura]);
+
+  /* Tirar `pintar` das dependências da entrada tirou de lá, de caminho, a
+     única coisa que repintava quando os alfinetes mudavam sem o
+     enquadramento mudar — filtrar uma lista de vinte e nove para quinze
+     costuma deixar a caixa deles onde estava. Repintar é o que essa mudança
+     pede; repetir o voo de 1400ms não é. */
+  useEffect(() => {
+    pedirPintura();
+  }, [pintar, pedirPintura]);
 
   useEffect(() => {
     const envolvente = envolve.current;
