@@ -77,6 +77,34 @@ const TOPO_AR = 1.02;
  *  As bordas caem no mar ou bem longe da mira, e o peso esbate-se num grau
  *  antes de lá chegar. */
 const JANELA_RELEVO = { lonMin: -13, lonMax: -2, latMin: 35, latMax: 45 };
+
+/** O intervalo em que o quociente de cor foi guardado num byte.
+ *
+ *  É a mesma janela do relevo, e o `cor.webp` traz o quociente entre a
+ *  luminância do terreno e a sua própria média local. Estes dois números são
+ *  o QMIN e o QMAX do `scripts/globo/montar-cor.mjs`, e saem de lá medidos:
+ *  sobre terra o quociente tem p1 = 0,908 e p99 = 1,127, e cortar em 0,78 e
+ *  1,22 deixa 0,85% de fora — neve, lagos e bordas de cidade. */
+const FAIXA_COR = [0.78, 1.22] as const;
+
+/** Quanto é que esse pormenor pesa no que se vê.
+ *
+ *  Três, que é o mesmo do `ganhoRelevo` e pela mesma razão. O que se exagera
+ *  é a amplitude de um sinal verdadeiro; não entra um único acidente que não
+ *  esteja nos dados, e por isso continua a ser geografia — só que mais alta.
+ *
+ *  Porque é preciso exagerar: à escala verdadeira o quociente é de ±10% de
+ *  luminância, e no ecrã isso chega diluído duas vezes — pela coluna de ar,
+ *  que soma luz por cima do terreno, e pela extinção, que lhe tira. Medido no
+ *  ecrã sobre Espanha, que é onde não há alfinetes a sujar a conta: a
+ *  modulação efectiva sobre o terreno é de 4,1% rms a ganho 2 e de 7,1% a
+ *  ganho 3,5, e o contraste local dentro de janelas de 64px sobe 5% e 10%.
+ *
+ *  E onde está o tecto: a 3,5 ainda não aparece grão nenhum. Isso contraria o
+ *  palpite com que isto começou — que acima de três se leria como ruído — e
+ *  por isso fica escrito, para ninguém voltar a baixar o número por causa de
+ *  um receio que já foi medido. O que limita não é o ruído, é o proveito. */
+const GANHO_COR = 3;
 /** Lat/lon → ponto na esfera, escrito num vector que já existe. */
 function naEsferaEm(saida: THREE.Vector3, lat: number, lon: number, raio: number) {
   const phi = (90 - lat) * (Math.PI / 180);
@@ -144,6 +172,10 @@ const FRAG_TERRA = /* glsl */ `
   uniform sampler2D mapaLuzes;
   uniform sampler2D mapaBrilho;
   uniform sampler2D mapaRelevo;
+  uniform sampler2D mapaCor;
+  uniform vec2 faixaCor;
+  uniform float corPronta;
+  uniform float ganhoCor;
   uniform vec4 janelaRelevo;
   uniform float relevoPronto;
   uniform float exageroRelevo;
@@ -255,6 +287,35 @@ const FRAG_TERRA = /* glsl */ `
     /* Junto ao horizonte o relevo desaparece com o resto: lá a coluna de
        ar já come tudo, e um declive amostrado de raspão só daria cintilação. */
     float p = pesoRelevo * terra * (1.0 - 0.75 * longe);
+
+    /* ── A cor da Península, à resolução da Península ────────────────────
+       O relevo aqui em cima resolveu a FORMA do terreno. A COR continuava a
+       sair dos mesmos 19x30 texels do mapa do mundo, e por isso o Alentejo
+       lia-se como uma aguarela desfocada por baixo de um relevo nítido — que
+       é o mesmo defeito que o relevo veio corrigir, na outra metade.
+
+       O «cor.webp» não traz cor: traz o QUOCIENTE entre a luminância do
+       terreno e a sua própria média local, tirado da cobertura do solo do
+       Natural Earth II a 60 pontos por grau (contra os 5,69 daqui). Média 1,
+       logo o que o mapa do mundo já sabe — a cor, o brilho, o verde do Minho
+       contra o ocre do Alentejo — fica exactamente como estava, e só se
+       acrescenta a banda de frequências que ele não consegue carregar. É a
+       mesma ideia do desvio de luz do relevo, e dá as mesmas garantias: sem
+       costura na borda da janela, sem salto de paleta, e sem nada perdido se
+       o ficheiro não chegar.
+
+       Multiplica os três canais por igual: mexe no claro-escuro e não no
+       matiz. A cor de cada sítio continua a ser a que a fotografia diz que é
+       — o Natural Earth é tinta cartográfica, e a tinta dele não entra aqui,
+       só o desenho.
+
+       Vai pelo mesmo «p» do relevo, e não por um peso próprio: é a mesma
+       janela, a mesma máscara de terra e a mesma razão para desaparecer
+       junto ao horizonte. Dois pesos para a mesma coisa era uma segunda
+       borda para esbater. */
+    vec3 amostraCor = texture2D(mapaCor, clamp(uvRelevo, 0.0, 1.0)).rgb;
+    float quociente = mix(faixaCor.x, faixaCor.y, amostraCor.r);
+    corDia *= mix(1.0, 1.0 + (quociente - 1.0) * ganhoCor, p * corPronta);
 
     /* Guarda-se o DESVIO da luz, não a luz do terreno.
        Substituir uma pela outra escurecia o país: um terreno rugoso
@@ -955,6 +1016,23 @@ export default function GloboTerra({
     mapaRelevo.anisotropy = renderizador.capabilities.getMaxAnisotropy();
     texturas.push(mapaRelevo);
 
+    /* A janela de cor, pela mesma razão e com a mesma rede: é um quociente de
+       média 1, por isso se não chegar fica valendo 1 em todo o lado — que é
+       exactamente a imagem de antes de ela existir. */
+    const mapaCor = carregador.load(
+      "/globo/cor.webp",
+      () => {
+        const m = terra.material as THREE.ShaderMaterial;
+        m.uniforms.corPronta.value = 1;
+        revelar();
+      },
+      undefined,
+      revelar
+    );
+    mapaCor.colorSpace = THREE.NoColorSpace;
+    mapaCor.anisotropy = renderizador.capabilities.getMaxAnisotropy();
+    texturas.push(mapaCor);
+
     // ── Terra ─────────────────────────────────────────────────────────────
     const terra = new THREE.Mesh(
       /* 220 paralelos e meridianos, não 128. De órbita baixa o que se vê da
@@ -992,6 +1070,19 @@ export default function GloboTerra({
              conta: abaixo de 2 o Alentejo continua a ser uma mancha, acima
              de 4 as encostas ganham um contorno duro que se lê como filtro. */
           ganhoRelevo: { value: 3 },
+          /* A janela de cor, montada pelo `scripts/globo/montar-cor.mjs`. */
+          mapaCor: { value: mapaCor },
+          /* Onde o quociente foi cortado ao ser guardado num byte. Tem de
+             casar com o QMIN/QMAX do script: é a mesma escala vista dos dois
+             lados, e um número trocado aqui não dá erro nenhum — dá um
+             continente com o contraste errado. */
+          faixaCor: { value: new THREE.Vector2(FAIXA_COR[0], FAIXA_COR[1]) },
+          /* Zero até o ficheiro chegar, como o `relevoPronto`. Aqui a rede é
+             mais macia: uma textura por carregar é preta, o que dá o
+             quociente mínimo, e sem esta chave a Península nascia escura
+             durante o carregamento. */
+          corPronta: { value: 0 },
+          ganhoCor: { value: GANHO_COR },
           raioTopo: { value: TOPO_AR },
           extincao: { value: 2.1 },
           sol: { value: SOL },
