@@ -10,6 +10,8 @@ import AccoesAnuncio from "@/components/comprar/AccoesAnuncio";
 import HistoricoVisita from "@/components/comprar/HistoricoVisita";
 import VistosRecentemente from "@/components/VistosRecentemente";
 import Pedigree from "@/components/Pedigree";
+import SeloVerificacao from "@/components/comprar/SeloVerificacao";
+import { seloDizAlgumaCoisa, seloPublicoDoAnuncio, seloVazio } from "@/lib/documentos/selo-publico";
 import { HorseSchema, BreadcrumbSchema } from "@/components/JsonLd";
 import {
   MapPin,
@@ -153,8 +155,9 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
      em todas as fichas do site. Vai na mesma volta das outras duas consultas:
      é a ficha inteira num só ida ao servidor. */
   let ascendentes: { caminho: string; nome: string | null; registo: string | null }[] = [];
+  let selo = seloVazio();
   {
-    const [fetchedCavalo, { data: similar }, { data: arvore }] = await Promise.all([
+    const [fetchedCavalo, { data: similar }, { data: arvore }, seloLido] = await Promise.all([
       getCavalo(id),
       supabase
         .from("cavalos_venda")
@@ -167,10 +170,16 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
         .from("cavalos_venda_ascendentes")
         .select("caminho, nome, registo")
         .eq("cavalo_id", id),
+      /* O selo vai na mesma volta que tudo o resto: é a ficha inteira numa só
+         ida ao servidor, e o `seloPublicoDoAnuncio` nunca lança — uma ficha
+         que rebenta porque a tabela dos documentos não respondeu é uma ficha
+         que deixa de vender um cavalo por causa de um selo. */
+      seloPublicoDoAnuncio(id),
     ]);
     cavalo = fetchedCavalo;
     similarHorses = (similar || []).map((c) => ({ ...c }));
     ascendentes = arvore ?? [];
+    selo = seloLido;
   }
 
   if (!cavalo) {
@@ -493,6 +502,22 @@ export default async function DetalheCavaloPage({ params }: { params: Promise<{ 
                 )}
               </section>
             </Revelar>
+
+            {/* ── O que a verificação de documentos diz ao comprador ─────────
+                Fica **antes** da genealogia de propósito: a genealogia são dois
+                nomes que o vendedor escreveu num formulário, e isto é a parte
+                que alguém foi conferir. A ordem na página é a ordem da
+                confiança.
+
+                E só aparece quando há alguma coisa a dizer. A ausência não se
+                anuncia: a maior parte dos anúncios não tem documentação
+                enviada, e carimbá-los transformaria o estado normal do site
+                numa acusação. */}
+            {seloDizAlgumaCoisa(selo) && (
+              <Revelar duracao={600}>
+                <SeloVerificacao selo={selo} />
+              </Revelar>
+            )}
 
             {/* PEDIGREE */}
             {(cavalo.pai || cavalo.mae || ascendentes.length > 0) && (

@@ -960,6 +960,59 @@ export type Database = {
           },
         ];
       };
+      consultas_stud_book: {
+        Row: {
+          actualizado_em: string;
+          cavalo_id: string;
+          chave: string | null;
+          consultado_em: string | null;
+          criado_em: string;
+          estado: string;
+          identificador: string | null;
+          motivo: string | null;
+          origem: string;
+          por: string | null;
+          registo: Json | null;
+          tentativas: number;
+        };
+        Insert: {
+          actualizado_em?: string;
+          cavalo_id: string;
+          chave?: string | null;
+          consultado_em?: string | null;
+          criado_em?: string;
+          estado: string;
+          identificador?: string | null;
+          motivo?: string | null;
+          origem?: string;
+          por?: string | null;
+          registo?: Json | null;
+          tentativas?: number;
+        };
+        Update: {
+          actualizado_em?: string;
+          cavalo_id?: string;
+          chave?: string | null;
+          consultado_em?: string | null;
+          criado_em?: string;
+          estado?: string;
+          identificador?: string | null;
+          motivo?: string | null;
+          origem?: string;
+          por?: string | null;
+          registo?: Json | null;
+          tentativas?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "consultas_stud_book_cavalo_id_fkey";
+            columns: ["cavalo_id"];
+            isOneToOne: true;
+            referencedRelation: "cavalos_venda";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       contact_submissions: {
         Row: {
           admin_notes: string | null;
@@ -1441,12 +1494,15 @@ export type Database = {
       };
       documentos_cavalo: {
         Row: {
+          aviso_recusa_em: string | null;
+          aviso_recusa_tentativas: number;
           bytes: number;
           caminho: string;
           cavalo_id: string | null;
           conflitos: Json | null;
           criado_em: string;
           estado: string;
+          forense: Json | null;
           id: string;
           leitura: Json | null;
           mime: string;
@@ -1459,12 +1515,15 @@ export type Database = {
           verificado_por: string | null;
         };
         Insert: {
+          aviso_recusa_em?: string | null;
+          aviso_recusa_tentativas?: number;
           bytes: number;
           caminho: string;
           cavalo_id?: string | null;
           conflitos?: Json | null;
           criado_em?: string;
           estado?: string;
+          forense?: Json | null;
           id?: string;
           leitura?: Json | null;
           mime: string;
@@ -1477,12 +1536,15 @@ export type Database = {
           verificado_por?: string | null;
         };
         Update: {
+          aviso_recusa_em?: string | null;
+          aviso_recusa_tentativas?: number;
           bytes?: number;
           caminho?: string;
           cavalo_id?: string | null;
           conflitos?: Json | null;
           criado_em?: string;
           estado?: string;
+          forense?: Json | null;
           id?: string;
           leitura?: Json | null;
           mime?: string;
@@ -1680,6 +1742,62 @@ export type Database = {
           user_email?: string;
         };
         Relationships: [];
+      };
+      fotos_impressoes: {
+        Row: {
+          altura: number;
+          blocos: string[];
+          caminho: string;
+          cavalo_id: string | null;
+          criado_em: string;
+          dhash: string;
+          dhash_centro: string;
+          id: string;
+          largura: number;
+          phash: string;
+          phash_centro: string;
+          sha256: string | null;
+          url: string | null;
+        };
+        Insert: {
+          altura: number;
+          blocos: string[];
+          caminho: string;
+          cavalo_id?: string | null;
+          criado_em?: string;
+          dhash: string;
+          dhash_centro: string;
+          id?: string;
+          largura: number;
+          phash: string;
+          phash_centro: string;
+          sha256?: string | null;
+          url?: string | null;
+        };
+        Update: {
+          altura?: number;
+          blocos?: string[];
+          caminho?: string;
+          cavalo_id?: string | null;
+          criado_em?: string;
+          dhash?: string;
+          dhash_centro?: string;
+          id?: string;
+          largura?: number;
+          phash?: string;
+          phash_centro?: string;
+          sha256?: string | null;
+          url?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fotos_impressoes_cavalo_id_fkey";
+            columns: ["cavalo_id"];
+            isOneToOne: false;
+            referencedRelation: "cavalos_venda";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       instagram_uploads: {
         Row: {
@@ -2690,6 +2808,10 @@ export type Database = {
         Returns: string;
       };
       generate_recovery_token: { Args: never; Returns: string };
+      incrementar_aviso_recusa_tentativas: {
+        Args: { documento: string };
+        Returns: undefined;
+      };
       log_admin_activity: {
         Args: {
           p_action_type: string;
