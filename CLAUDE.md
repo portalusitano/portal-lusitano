@@ -634,6 +634,18 @@ encontra e que ninguém muda quando as outras mudam.
   dos 20 blocos da página inicial —, e um `transitionend` delegado no
   documento acordaria a cada hover da página, que é trocar trabalho contínuo
   por trabalho contínuo.
+
+  **No globo a regra é a mesma e a solução é a outra metade dela.** As
+  etiquetas e as manchas pedem `will-change: transform, opacity` porque mudam
+  mesmo de sítio a cada quadro enquanto alguém arrasta — o `.assente` não lhes
+  serve, porque não são uma entrada que corre uma vez. Mas o pedido ficava de
+  pé para as vinte e nove etiquetas e as vinte e nove manchas, sempre: medido,
+  **48 camadas pedidas a 1400×950 com 16 elementos visíveis**, e 43 com 13 a
+  390×700. Três dezenas de camadas a ocupar memória de vídeo para não animar
+  nada — e no telemóvel é onde ela falta. Quem está escondido não está a
+  animar, e há um sinal que já diz isso a cada quadro: o `data-oculta`. Medido
+  depois: **16 pedidas para 16 visíveis, e 11 para 11**.
+
 - **A rede de segurança dos quatro segundos deixou de ser um interruptor.**
   Revelava a página inteira, sempre — o que, com o observador a funcionar,
   não é uma rede: é desligar a entrada ao entrar no ecrã e acender de uma vez

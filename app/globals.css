@@ -2656,6 +2656,29 @@ body {
     pointer-events: none;
   }
 
+  /* ── Um nome que não se vê não precisa de uma camada no compositor ──────
+     O `will-change: transform, opacity` das etiquetas e das manchas está lá
+     de propósito: elas mudam de sítio a cada quadro enquanto alguém arrasta o
+     globo, e é isso que as põe no compositor. Mas ficava pedido para as
+     vinte e nove e para as vinte e nove manchas, sempre — e a esmagadora
+     maioria delas está escondida em qualquer instante.
+
+     Medido a 1400×950: **48 elementos promovidos, dos quais 16 visíveis**; a
+     390×700, 43 promovidos e 13 visíveis. São umas três dezenas de camadas a
+     ocupar memória de vídeo para não animar coisa nenhuma, e no telemóvel é
+     onde ela falta.
+
+     A regra da casa está escrita na secção do Movimento — «o `will-change`
+     acaba quando a animação acaba» — e a solução que lá está (`.assente`) não
+     serve aqui: uma etiqueta visível **continua** a animar, não é uma entrada
+     que corre uma vez. O que serve é a outra metade da mesma ideia: quem está
+     escondido não está a animar. E há um sinal que já diz exactamente isso,
+     escrito pelo motor a cada quadro. */
+  .globo-etiqueta[data-oculta],
+  .globo-mancha[data-oculta] {
+    will-change: auto;
+  }
+
   /* ── Enquanto uma coudelaria está a ser escolhida ─────────────────────
      A opacidade dos nomes é escrita pelo motor a cada quadro, e no resto do
      tempo esta transição de 200ms serve para amaciar o esbatimento junto ao

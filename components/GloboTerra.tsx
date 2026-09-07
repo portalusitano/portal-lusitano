@@ -4597,7 +4597,7 @@ export default function GloboTerra({
        a roda e com o dedo vertical — senão não há maneira de chegar ao que
        está por baixo do globo. Nesse caso o globo não disputa nada e este
        atributo também não tem nada a impedir. */
-    <div className="relative h-full w-full" data-lenis-prevent>
+    <div className="relative h-full w-full">
       <div
         ref={caixa}
         className="h-full w-full cursor-grab touch-none active:cursor-grabbing"
