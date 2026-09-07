@@ -18,6 +18,11 @@ export interface CoudelariaNoMapa {
   destaque: boolean;
   coordenadas_lat?: number;
   coordenadas_lng?: number;
+  /* Já vinha do servidor na mesma linha — a `/mapa` pede-a no `select` e o
+     `MapaClient` passa-a ao globo — e faltava aqui: um tipo que esconde um
+     campo que existe é a mesma armadilha que um tipo que promete um que não
+     existe. É ela que a ficha rápida do globo escreve. */
+  num_cavalos?: number;
 }
 
 // Coordenadas GPS verificadas de cidades/vilas portuguesas

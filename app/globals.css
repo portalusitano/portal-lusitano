@@ -2637,6 +2637,10 @@ body {
   .globo-etiqueta__caixa {
     display: block;
     white-space: nowrap;
+    /* Âncora de duas coisas que se penduram daqui: a chapa do nome apontado
+       (um `::before`) e a ficha rápida. Ambas absolutas, ambas fora do modelo
+       de caixa — ver as notas junto de cada uma, lá mais abaixo. */
+    position: relative;
   }
 
   .globo-etiqueta[data-lado="esquerda"] .globo-etiqueta__caixa {
@@ -2738,8 +2742,15 @@ body {
 
   /* Quando não há espaço para as duas linhas, fica a primeira. Vale mais um
      nome sem a localidade do que um ponto sem nome nenhum. */
+  /* O `data-aberto` só esconde a localidade num **ajuntamento**: aí a lista
+     que abre já diz os nomes e os sítios, e a linha de cima passaria a ser um
+     resumo do que está logo por baixo. Num ponto com uma coudelaria só, o
+     `data-aberto` é a ficha rápida — e essa é absoluta, não entra na medida
+     da caixa. Se escondesse a localidade, a caixa encolhia depois de medida e
+     o nome subia para longe do alfinete, que é o defeito que a colocação
+     passa o tempo a evitar. */
   .globo-etiqueta[data-curto] .globo-etiqueta__local,
-  .globo-etiqueta[data-aberto] .globo-etiqueta__local {
+  .globo-etiqueta[data-grupo][data-aberto] .globo-etiqueta__local {
     display: none;
   }
 
@@ -2960,6 +2971,230 @@ body {
     text-overflow: ellipsis;
     white-space: nowrap;
     color: var(--foreground-muted);
+  }
+
+  /* ── A ficha rápida ──────────────────────────────────────────────────
+     O que a coudelaria tem, antes de se sair da página para o saber.
+
+     Vive **dentro** da caixa da etiqueta e é `position: absolute`, como o
+     painel da mancha é dentro do algarismo: sendo absoluta não entra no
+     `offsetWidth`/`offsetHeight` do pai, e é dessas duas medidas que sai a
+     caixa do teste de colisão. Abrir a ficha não desloca nome nenhum.
+
+     Abre para o lado que a etiqueta já escolheu — o `data-lado` e o
+     `data-vert` que a colocação escreveu. Não é decoração: o lado que a
+     colocação escolheu é, por construção, o lado onde havia espaço. Uma
+     segunda regra a decidir para onde a ficha abre estaria a adivinhar o que
+     o motor já sabe.
+
+     Vidro sobre preto, hairline fria, como qualquer superfície do site. É a
+     mesma família do `.globo-mancha__painel`, e de propósito: são a mesma
+     pergunta — «o que é que aqui está?» — feita a um ponto com uma
+     coudelaria e a um ponto com cinco. */
+  .globo-ficha {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 3;
+    display: grid;
+    gap: 7px;
+    width: 216px;
+    padding: 9px;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    background: var(--background-card);
+    box-shadow: 0 14px 44px rgba(0, 0, 0, 0.88);
+    text-align: left;
+    animation: globo-ficha-abrir var(--d-fast) var(--ease-out);
+    transform-origin: top left;
+    /* O que encosta a ficha à borda em vez de a deixar sair pela lona fora.
+       Vai na propriedade `translate` e não no `transform` de propósito: o
+       `transform` é do movimento de abrir, e a correcção de borda não é
+       movimento nenhum — misturá-los obrigaria cada `@keyframes` a carregar o
+       desvio dentro de si, que é a mesma regra escrita em quatro sítios. */
+    translate: var(--desvio-x, 0px) var(--desvio-y, 0px);
+  }
+
+  /* Uma etiqueta encostada à direita escreve o nome da direita para a
+     esquerda; a ficha acompanha, senão sai da lona — que é `overflow:
+     hidden` e a cortaria a meio. */
+  .globo-etiqueta[data-lado="esquerda"] .globo-ficha {
+    left: auto;
+    right: 0;
+    transform-origin: top right;
+  }
+
+  .globo-etiqueta[data-lado="centro"] .globo-ficha {
+    left: 50%;
+    transform: translateX(-50%);
+    transform-origin: top center;
+  }
+
+  /* Na metade de baixo a etiqueta escolheu escrever-se acima do ponto: a
+     ficha faz o mesmo, ou ficava por baixo da borda. */
+  .globo-etiqueta[data-vert="baixo"] .globo-ficha {
+    top: auto;
+    bottom: calc(100% + 8px);
+    transform-origin: bottom left;
+  }
+
+  .globo-etiqueta[data-lado="esquerda"][data-vert="baixo"] .globo-ficha {
+    transform-origin: bottom right;
+  }
+
+  @keyframes globo-ficha-abrir {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .globo-etiqueta[data-lado="centro"] .globo-ficha {
+    animation-name: globo-ficha-abrir-centro;
+  }
+
+  @keyframes globo-ficha-abrir-centro {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+  }
+
+  /* A fotografia é o primeiro argumento e por isso é a primeira coisa.
+     Proporção fixa: sem ela, a ficha muda de altura quando a imagem chega e
+     o que está por baixo salta. */
+  .globo-ficha__capa {
+    display: block;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 8px;
+    background: var(--background-elevated);
+  }
+
+  .globo-ficha__capa img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Os factos em mono, que é o que este site faz a números e a dados
+     tabelados: alinham em coluna entre fichas e leem-se como dados e não
+     como prosa. Separados por um ponto médio, sem selos — um selo por facto
+     desenhava cinco caixinhas dentro de uma caixa. */
+  .globo-ficha__factos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 7px;
+    margin: 0;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+    color: var(--foreground-strong);
+  }
+
+  .globo-ficha__facto + .globo-ficha__facto::before {
+    content: "·";
+    margin-right: 7px;
+    color: var(--foreground-muted);
+  }
+
+  /* Duas linhas e meia de descrição. O texto já vem cortado no fim de uma
+     frase pelo `resumoDaFicha`; o `line-clamp` é a rede para quando a fonte
+     ou a largura mudarem. */
+  .globo-ficha__texto {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    overflow: hidden;
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--foreground-secondary);
+  }
+
+  /* A saída. Branco, porque é a acção por omissão desta peça e neste site o
+     estado escolhido é branco — o dourado fica para o que é raro. */
+  .globo-ficha__ir {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 6px 0 0;
+    border: 0;
+    border-top: 1px solid var(--border-soft);
+    background: none;
+    font: inherit;
+    font-size: 11px;
+    line-height: 1.3;
+    text-align: left;
+    text-decoration: none;
+    color: var(--foreground-strong);
+    cursor: pointer;
+    transition: color var(--d-fast) var(--ease-out);
+  }
+
+  .globo-ficha__ir::after {
+    content: " →";
+    color: var(--foreground-muted);
+    transition: color var(--d-fast) var(--ease-out);
+  }
+
+  .globo-ficha__ir:hover,
+  .globo-ficha__ir:focus-visible {
+    color: var(--foreground-strong);
+  }
+
+  .globo-ficha__ir:hover::after,
+  .globo-ficha__ir:focus-visible::after {
+    color: var(--foreground-strong);
+  }
+
+  /* ── A chapa do nome apontado ────────────────────────────────────────
+     O nome tem sombra e não caixa, e é assim para os vinte e nove: uma
+     caixa por cada nome tapava o planeta. Mas o nome que está a ser
+     apontado é **um** — e sobre o terreno claro do Alentejo ao sol uma
+     sombra é o que tem menos para dar, porque a sombra só escurece e ali o
+     chão já é claro.
+
+     Por isso a chapa é só para esse: vidro, hairline fria, a mesma
+     superfície do resto do site. Não desloca nada — é `padding` com
+     `margin` negativa igual, logo a caixa que o teste de colisão mede não
+     muda de tamanho. */
+  /* A chapa é um `::before` com `inset` negativo, e **não** `padding` com
+     `margin` negativa. A margem negativa parece equivalente e não é: desloca
+     a caixa renderizada seis pixéis para o lado e três para cima, e a caixa
+     do nome é o alvo que o ponteiro está a apontar. Medido de fora, com o
+     rato pousado num nome: `721,336 → 715,333`. Seis pixéis chegam para o
+     alvo fugir de debaixo do dedo, que é o defeito que a colocação passa o
+     tempo a evitar — está escrito no componente, «o alvo não foge ao
+     ponteiro». Um pseudo-elemento absoluto não entra no modelo de caixa de
+     ninguém: a chapa aparece e nada se mexe. */
+  .globo-etiqueta[data-activo] .globo-etiqueta__caixa::before {
+    content: "";
+    position: absolute;
+    inset: -3px -6px;
+    z-index: -1;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--background-card) 82%, transparent);
+    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.7);
+  }
+
+  /* Com a chapa por baixo, a sombra do texto deixa de ter trabalho e passa a
+     sujar: o contraste passa a vir do fundo, que é onde deve estar. */
+  .globo-etiqueta[data-activo] .globo-etiqueta__nome,
+  .globo-etiqueta[data-activo] .globo-etiqueta__local,
+  .globo-etiqueta[data-activo] .globo-etiqueta__membro {
+    text-shadow: none;
   }
 
   /* ── Os comandos da vista ─────────────────────────────────────────────
