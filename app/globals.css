@@ -3195,8 +3195,23 @@ body {
     pointer-events: auto;
   }
 
+  /* ── Duas filas, e não uma ──────────────────────────────────────────────
+     A pílula tinha lá dentro os comandos **e** o estado do funil, e por isso
+     mudava de largura com o que a página encontrava: medido a 1280, 406px
+     limpa, 676px com três letras escritas e 701px com uma região — os dois
+     chips da vista a deslizarem 134px para a esquerda a meio de quem escreve.
+     Um comando que foge do dedo enquanto se usa o comando ao lado.
+
+     Os comandos ficam numa fila de largura fixa e o estado desce para uma
+     segunda, por baixo. Em telemóvel isto também sai mais barato do que
+     parece: a pílula com filtros embrulhava para duas linhas e o estorvo de
+     cima passava de 58 para 110px; separadas, cada fila tem a altura que
+     precisa e a de baixo só existe quando há filtro. */
   .mapa-barra {
     top: var(--topo-cromado);
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
   }
 
   .mapa-rodape {
@@ -3210,7 +3225,7 @@ body {
      flutuantes do site (`.globo-comando`, `.seleccao__lista`). */
   .mapa-pilula {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
@@ -3218,6 +3233,94 @@ body {
     padding: 0.375rem;
     border: 1px solid var(--border-soft);
     border-radius: 1rem;
+    background: color-mix(in srgb, var(--background-card) 82%, transparent);
+    backdrop-filter: blur(14px);
+  }
+
+  /* A hairline que separa o modo de vista do comando de pesquisa. São duas
+     coisas de natureza diferente encostadas na mesma superfície — uma escolhe
+     como se vê, a outra escolhe o quê — e sem nada entre elas leem-se como
+     uma fila de três botões. */
+  .mapa-pilula__risco {
+    flex: 0 0 1px;
+    align-self: stretch;
+    margin: 0.25rem 0;
+    background: var(--border-soft);
+  }
+
+  /* ── A pesquisa é o comando principal, e passa a parecê-lo ──────────────
+     Era uma caixa igual às outras: a mesma altura, o mesmo chão e o mesmo
+     peso dos dois chips ao lado. Numa página com vinte e nove coudelarias e
+     cinco regiões, escrever o nome é o caminho mais curto para vinte e nove
+     das vinte e nove — e era o único comando sem nada que o dissesse.
+
+     Ganha chão próprio (mais fundo do que a pílula que o segura, que é o que
+     um campo de entrada é: um poço, não uma pastilha), largura fixa para a
+     pílula não dançar, e a tecla que lhe salta o foco escrita ao lado. */
+  .mapa-procura {
+    position: relative;
+    flex: 0 0 auto;
+    width: 11rem;
+  }
+
+  @media (min-width: 640px) {
+    .mapa-procura {
+      width: 15rem;
+    }
+  }
+
+  .mapa-procura .campo {
+    background: var(--background);
+  }
+
+  /* A tecla de atalho. Sai de cena assim que o campo tem foco ou texto — a
+     partir daí já não é uma dica, é um estorvo em cima do que se escreveu. */
+  .mapa-tecla {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    padding: 0.0625rem 0.25rem;
+    border: 1px solid var(--border-soft);
+    border-radius: 0.25rem;
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 0.6875rem;
+    line-height: 1.4;
+    color: var(--foreground-muted);
+  }
+
+  /* Com o campo já em foco a tecla deixou de ser uma dica: é uma etiqueta
+     por cima do canto onde se está a escrever. */
+  .mapa-procura:focus-within .mapa-tecla {
+    display: none;
+  }
+
+  /* Sem rato não há tecla: num telemóvel isto seria um adorno a ocupar o
+     canto onde o botão de limpar vai aparecer. */
+  @media (pointer: coarse) {
+    .mapa-tecla {
+      display: none;
+    }
+  }
+
+  /* ── A segunda fila: o que o funil deu ─────────────────────────────────
+     Só existe quando há alguma coisa a dizer. Sem filtros, «29 resultados» é
+     o mesmo 29 que o botão das regiões já escreve. */
+  .mapa-estado {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    max-width: 100%;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--border-soft);
+    border-radius: 999px;
     background: color-mix(in srgb, var(--background-card) 82%, transparent);
     backdrop-filter: blur(14px);
   }
@@ -3257,9 +3360,23 @@ body {
   }
 
   /* Estado escolhido é branco, nunca dourado. */
-  .mapa-regioes__gatilho[aria-expanded="true"] {
+  .mapa-regioes__gatilho[aria-expanded="true"],
+  .mapa-regioes__gatilho[data-escolhido] {
     border-color: var(--border-hover);
     color: var(--foreground-strong);
+  }
+
+  /* Com uma região escolhida o gatilho deixa de dizer «Explorar Regiões» e
+     passa a dizer qual — e um ponto branco marca que ali há uma escolha
+     feita. O botão fechado é a única coisa que se vê do painel: enquanto
+     dizia «Explorar Regiões · 29» com o Alentejo escolhido e sete no ecrã,
+     era o cromado a desmentir o mapa. */
+  .mapa-regioes__marca {
+    flex: 0 0 auto;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--foreground-strong);
   }
 
   .mapa-regioes__seta {
@@ -3294,12 +3411,74 @@ body {
     overflow-y: auto;
   }
 
+  /* O nível das regiões são cinco linhas, não treze — e com o tecto da lista
+     de dentro ficava cortado: medido, 4 de 5 inteiras a 1280×900 e **3 de 5**
+     a 390×844, com a quinta (o Minho, que tem uma) fora do ecrã e sem nada a
+     dizer que existia. Uma lista de cinco que mostra três esconde o país.
+
+     O tecto sobe só neste nível, e continua muito longe do que o motor do
+     globo descarta: a regra dos 40% é sobre o rodapé inteiro, e medido com as
+     cinco à vista ele fica em 32% da lona nos dois ecrãs. */
+  .mapa-regioes__lista--regioes {
+    max-height: min(34dvh, 340px);
+  }
+
+  /* ── Quanto é que esta região pesa ─────────────────────────────────────
+     A lista era cinco nomes e cinco números, e um número sozinho não se
+     compara: para saber que o Ribatejo é metade do país e o Minho é uma,
+     era preciso ler os cinco e fazer a conta. A barra faz a conta pelo
+     olho. É a receita das «previews em HTML» do sistema — barras e
+     algarismos a 10–11px, peso zero, e o dado é verdadeiro. */
+  .mapa-quota {
+    flex: 0 0 auto;
+    width: 2.25rem;
+    height: 3px;
+    border-radius: 999px;
+    background: var(--border-soft);
+    overflow: hidden;
+  }
+
+  .mapa-quota__cheio {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--foreground-muted);
+    transition: background var(--d-fast) var(--ease-out);
+  }
+
+  .mapa-regioes__lista button:hover .mapa-quota__cheio,
+  .mapa-regioes__lista button:focus-visible .mapa-quota__cheio {
+    background: var(--foreground-strong);
+  }
+
   .mapa-dica {
     max-width: 46ch;
     text-align: center;
     /* Texto que não se carrega não pode roubar o arrasto ao globo. A caixa
        da faixa já o cobre, por isso o motor conta com ele na mesma. */
     pointer-events: none;
+    /* O `display` entra na transição com `allow-discrete`: assim a frase
+       esbate-se e **só no fim** sai da caixa, sem um temporizador em
+       JavaScript a copiar a duração de um token — que é a armadilha que o
+       CLAUDE.md descreve a propósito do `700ms` escrito à mão dentro do
+       globo. Onde não houver `allow-discrete`, o `display: none` aplica-se de
+       imediato: perde-se o esbatimento, não se perde o comportamento. */
+    transition:
+      opacity var(--d-fast) var(--ease-out),
+      display var(--d-fast) allow-discrete;
+  }
+
+  /* ── Uma instrução que já foi seguida é ruído ──────────────────────────
+     «Arraste para rodar» custa duas linhas de texto em telemóvel, e essas
+     duas linhas são metade do estorvo de baixo — medido, o rodapé fechado
+     tem 85,6px dos quais ~40 são esta frase, e é a faixa por onde o globo
+     escreve os nomes do sul. Fica enquanto ninguém mexeu no globo, que é
+     quem precisa dela; à primeira vez que alguém arrasta, aproxima ou usa
+     as setas, esbate-se e sai do caminho. Sai da caixa — e não só da vista
+     — porque o que se quer de volta são os pixéis, não a transparência. */
+  .mapa-dica[data-ido] {
+    opacity: 0;
+    display: none;
   }
 
   /* Duas instruções ao mesmo tempo leem-se como nenhuma: com o painel aberto
@@ -3320,6 +3499,86 @@ body {
     transition:
       opacity var(--d-fast) var(--ease-out),
       visibility 0s linear var(--d-fast);
+  }
+
+  /* ── A chegada ─────────────────────────────────────────────────────────
+     Uma página que é um mapa a ocupar o ecrã inteiro tem um instante de
+     chegada, e esta não tinha nenhum: os comandos estavam no sítio no
+     primeiro quadro, por cima de um globo que ainda se estava a compor, e o
+     que se via era um cromado a aparecer do nada em cima de uma cena a
+     nascer. As duas peças nascem *sobre* a cena, e é exactamente isso que o
+     `--d-nascer` é — o mesmo token com que os nomes das coudelarias nascem
+     por cima do globo. Não se inventa aqui uma duração.
+
+     Cada uma vem do lado por onde está encostada, com 100ms entre elas, que é
+     o escalonamento do resto do site. Corre uma vez e pára: não é um ciclo.
+
+     `backwards` e não `both`, de propósito: `both` segura o valor final para
+     sempre e, com ele, a opacidade fica presa a 1 — o que calava a transição
+     do `[data-fora]`, que é a que tira os comandos do ecrã quando o palco
+     sai. Com `backwards` só o estado *antes* do atraso é segurado, e depois
+     de correr o elemento volta ao estilo normal. */
+  @keyframes mapa-nascer {
+    from {
+      opacity: 0;
+      transform: translateY(var(--nascer-de, 0));
+    }
+  }
+
+  .mapa-barra {
+    --nascer-de: -0.75rem;
+    animation: mapa-nascer var(--d-nascer) var(--ease-out) 120ms backwards;
+  }
+
+  .mapa-rodape {
+    --nascer-de: 0.75rem;
+    animation: mapa-nascer var(--d-nascer) var(--ease-out) 220ms backwards;
+  }
+
+  /* ── A base não respondeu ──────────────────────────────────────────────
+     O texto estava certo; o desenho não. Eram novecentos pixéis de preto com
+     um bloco de cento e cinquenta a boiar no meio geométrico, sem superfície
+     nenhuma por baixo — lê-se como uma página que se perdeu, não como um mapa
+     que não carregou. E por cima dele ficava a pílula inteira: uma caixa de
+     pesquisa que não tem o que pesquisar e um interruptor entre duas vistas
+     que estão as duas vazias. Oferecer um comando que não pode funcionar é
+     pior do que não oferecer nenhum.
+
+     Ganha a superfície de assinatura do site — a que emerge do preto em vez
+     de estar colada a ele — e assenta acima do meio geométrico, que é onde o
+     olho procura o centro. */
+  .mapa-falha {
+    position: relative;
+    width: min(100%, 26rem);
+    margin-inline: auto;
+    padding: 2rem 1.5rem 2.25rem;
+    text-align: center;
+  }
+
+  /* O ícone estava a `--foreground-muted` e a 22px sobre preto: quase não se
+     via. Passa a assentar num disco com a mesma hairline das outras
+     superfícies, que é o que lhe dá presença sem lhe dar cor. */
+  .mapa-falha__marca {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-bottom: 0.25rem;
+    border: 1px solid var(--border-soft);
+    border-radius: 999px;
+    background: var(--background-elevated);
+    color: var(--foreground-secondary);
+  }
+
+  /* Centrada no que se vê da lona, não na lona: com o palco a ocupar a janela
+     toda, o meio geométrico fica baixo de mais para quem lê. */
+  .mapa-vazio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 0 1rem 8vh;
   }
 }
 
@@ -3429,7 +3688,10 @@ body {
   .pilha__nivel,
   .pilha__nivel[data-fora="nao"] .linha-cascata,
   .vista-troca,
-  .vista-troca .cartao-cascata {
+  .vista-troca .cartao-cascata,
+  .mapa-barra,
+  .mapa-rodape,
+  .mapa-dica {
     animation: none !important;
     transition: none !important;
   }

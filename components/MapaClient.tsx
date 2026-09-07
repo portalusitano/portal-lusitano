@@ -247,20 +247,31 @@ const SemResultados = memo(function SemResultados({
   limparLabel: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 px-8 py-12 text-center">
-      <SearchX size={22} className="text-[var(--foreground-muted)]" aria-hidden="true" />
-      <p className="titulo-seccao">{titulo}</p>
-      <p className="meta max-w-[38ch]">
-        {termo && (
-          <>
-            <span className="font-mono text-[var(--foreground-secondary)]">“{termo}”</span> —{" "}
-          </>
-        )}
-        {dica}
-      </p>
-      <button type="button" onClick={aoLimpar} className="btn btn-secundario btn-sm mt-1">
-        {limparLabel}
-      </button>
+    <div className="cartao-seco mapa-falha">
+      <span aria-hidden="true" className="cartao-seco__costura" />
+      <div className="relative flex flex-col items-center gap-3">
+        <span className="mapa-falha__marca">
+          <SearchX size={20} aria-hidden="true" />
+        </span>
+        <p className="titulo-seccao">{titulo}</p>
+        <p className="meta max-w-[38ch]">
+          {termo && (
+            <>
+              <span className="font-mono text-[var(--foreground-secondary)]">“{termo}”</span> —{" "}
+            </>
+          )}
+          {dica}
+        </p>
+        {/* Sair daqui é uma coisa só, e por isso é o botão por omissão — que
+            no sistema é branco. Era de contorno, do mesmo peso do link ao
+            lado: dois caminhos iguais num ecrã que só tem um. */}
+        <button type="button" onClick={aoLimpar} className="btn btn-primario btn-sm mt-1">
+          {limparLabel}
+        </button>
+      </div>
+      {/* Sem o `.cartao-seco__esbatido`: esse dissolve os 40% de baixo do
+          cartão no preto, e aqui o que está em baixo é a saída. O esbatido é
+          para quando o que desaparece é adorno. */}
     </div>
   );
 });
@@ -284,20 +295,31 @@ const NaoCarregou = memo(function NaoCarregou({
   directorioLabel: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 px-8 py-12 text-center">
-      <CloudOff size={22} className="text-[var(--foreground-muted)]" aria-hidden="true" />
-      <p className="titulo-seccao">{titulo}</p>
-      <p className="meta max-w-[42ch]">{dica}</p>
-      <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
-        {/* Recarregar a página é o que resolve isto, e é por isso que o botão
-            existe em vez de um `reset()` de fronteira de erro: a falha está no
-            servidor, não numa árvore de React que se possa voltar a montar. */}
-        <a href="/mapa" className="btn btn-secundario btn-sm">
-          {tentarLabel}
-        </a>
-        <LocalizedLink href="/directorio" className="btn btn-subtil btn-sm">
-          {directorioLabel}
-        </LocalizedLink>
+    <div className="cartao-seco mapa-falha">
+      <span aria-hidden="true" className="cartao-seco__costura" />
+      <div className="relative flex flex-col items-center gap-3">
+        <span className="mapa-falha__marca">
+          <CloudOff size={20} aria-hidden="true" />
+        </span>
+        <p className="titulo-seccao">{titulo}</p>
+        <p className="meta max-w-[42ch]">{dica}</p>
+        <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
+          {/* O botão por omissão — branco — é o directório, e não é por
+              acaso: é o que a frase acima promete que continua a funcionar, e
+              é o único dos dois que se sabe que responde. Tentar outra vez
+              fica ao lado, de contorno. Estavam os dois em segundo plano, um
+              de contorno e outro subtil, num ecrã que só tem estas duas
+              saídas. */}
+          <LocalizedLink href="/directorio" className="btn btn-primario btn-sm">
+            {directorioLabel}
+          </LocalizedLink>
+          {/* Recarregar a página é o que resolve isto, e é por isso que o botão
+              existe em vez de um `reset()` de fronteira de erro: a falha está no
+              servidor, não numa árvore de React que se possa voltar a montar. */}
+          <a href="/mapa" className="btn btn-secundario btn-sm">
+            {tentarLabel}
+          </a>
+        </div>
       </div>
     </div>
   );
@@ -421,6 +443,20 @@ export default function MapaClient({
      mão, com o nome escrito por extenso. */
   const [regioesAbertas, setRegioesAbertas] = useState(false);
   const gatilhoRegioes = useRef<HTMLButtonElement>(null);
+  const campoProcura = useRef<HTMLInputElement>(null);
+  const lona = useRef<HTMLDivElement>(null);
+
+  /* ── A dica sai quando deixa de ser dica ────────────────────────────────
+     «Arraste para rodar · toque num nome…» são duas linhas de texto em
+     telemóvel, e essas duas linhas são quase metade do estorvo de baixo —
+     medido, o rodapé fechado tem 85,6px e a frase leva ~40 deles. É a faixa
+     onde o globo escreve os nomes do sul.
+
+     Enquanto ninguém mexeu no globo ela fica: é para quem ainda não sabe.
+     Ao primeiro toque, arrasto ou tecla dentro da lona sai — e não volta.
+     Quem a esbate e a tira da caixa é o CSS, com `display` a transitar em
+     `allow-discrete`; aqui só se vira um interruptor. */
+  const [dicaIda, setDicaIda] = useState(false);
 
   /* ── Um funil só ───────────────────────────────────────────────────────
      A pesquisa filtrava o globo e a lista; o painel de regiões contava por
@@ -435,6 +471,9 @@ export default function MapaClient({
     [coudelarias, procura, regiao]
   );
   const regioes = useMemo(() => contarPorRegiao(coudelarias, porTexto), [coudelarias, porTexto]);
+  /* A régua das barras de quota. `contarPorRegiao` devolve da maior para a
+     menor, por isso a maior é a primeira — e é ela que vale 100%. */
+  const maiorRegiao = regioes[0]?.total ?? 0;
 
   const temFiltro = procura.trim() !== "" || regiao !== null;
   const limpar = useCallback(() => {
@@ -558,6 +597,42 @@ export default function MapaClient({
     return () => document.removeEventListener("keydown", aoTeclar);
   }, [regioesAbertas]);
 
+  useEffect(() => {
+    if (dicaIda) return;
+    const el = lona.current;
+    if (!el) return;
+    const mexeu = () => setDicaIda(true);
+    /* Passivos, os dois: um ouvinte não passivo em cima da lona é
+       exactamente o que o CLAUDE.md conta a propósito do Lenis — proíbe o
+       browser de deslocar a página no compositor. E a roda fica de fora de
+       propósito: com o palco a ocupar a janela, rodá-la desloca a página,
+       não mexe no globo. */
+    el.addEventListener("pointerdown", mexeu, { once: true, passive: true });
+    el.addEventListener("keydown", mexeu, { once: true, passive: true });
+    return () => {
+      el.removeEventListener("pointerdown", mexeu);
+      el.removeEventListener("keydown", mexeu);
+    };
+  }, [dicaIda, viewMode]);
+
+  /* ── A barra é o comando principal, e ganha a tecla que o diz ───────────
+     Numa página de vinte e nove coudelarias, escrever o nome é o caminho
+     mais curto para qualquer uma delas — e era o único comando sem nada que
+     o assinalasse. A barra `/` é o atalho que toda a gente já conhece de
+     outras listas; não se rouba a tecla a quem está a escrever noutro sítio. */
+  useEffect(() => {
+    const aoTeclar = (e: KeyboardEvent) => {
+      if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
+      const alvo = e.target as HTMLElement | null;
+      if (alvo && (alvo.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(alvo.tagName)))
+        return;
+      e.preventDefault();
+      campoProcura.current?.focus();
+    };
+    document.addEventListener("keydown", aoTeclar);
+    return () => document.removeEventListener("keydown", aoTeclar);
+  }, []);
+
   /* ── Fora do ecrã não há nada para comandar ─────────────────────────────
      Os comandos são `fixed` porque têm de ser: é assim que o globo os vê
      (ver o comentário do `.mapa-palco` no `globals.css`). Mas o documento
@@ -565,22 +640,75 @@ export default function MapaClient({
      chega por tabulação ou pela barra de deslocamento levava os comandos do
      mapa a flutuar por cima dele. Quem avisa é o `IntersectionObserver`, que
      dispara quando o palco sai do ecrã em vez de perguntar a cada
-     deslocamento se já saiu. */
+     deslocamento se já saiu.
+
+     ── Só que «sair do ecrã» nunca acontecia ────────────────────────────
+     Era um observador só, com `threshold: 0`, sobre um palco que tem
+     exactamente a altura da janela. Um alvo dessa altura só deixa de
+     intersectar a janela quando a página desce mais do que uma janela
+     inteira — e o que há por baixo do mapa é o rodapé do site, que é mais
+     baixo do que isso. Resultado, medido com a página descida até ao fim:
+     a 1280×900 o gatilho «Explorar Regiões» ficava pousado em cima do
+     «© 2026 Portal Lusitano»; a 390×844 ficavam **as duas** peças em cima
+     do rodapé — a pílula de comandos sobre a coluna «Navegação» e o
+     gatilho sobre o «TikTok». `data-fora` por pôr, em ambos os casos.
+
+     Cada peça passa a ter o seu sinal, e o sinal é o mesmo para as duas:
+     **sai quem deixa de ter o mapa por baixo.** É um `rootMargin` que
+     encolhe a janela do observador até à linha onde essa peça assenta, e a
+     medida vem da própria peça — não é um número escolhido. O
+     `ResizeObserver` volta a armá-lo quando a peça muda de altura (o painel
+     abre, a dica sai); nada disto lê geometria a cada deslocamento.
+
+     Medido depois: a 1280×900 a pílula fica (o mapa ainda está por baixo
+     dela) e o rodapé sai; a 390×844 saem as duas. */
   const palco = useRef<HTMLDivElement>(null);
-  const [cromadoFora, setCromadoFora] = useState(false);
+  const barra = useRef<HTMLDivElement>(null);
+  const rodape = useRef<HTMLDivElement>(null);
+  const [barraFora, setBarraFora] = useState(false);
+  const [rodapeFora, setRodapeFora] = useState(false);
   useEffect(() => {
-    setCromadoFora(false);
+    setBarraFora(false);
+    setRodapeFora(false);
     const alvo = palco.current;
     if (!alvo) return;
-    const observador = new IntersectionObserver(
-      ([entrada]) => setCromadoFora(!entrada.isIntersecting),
-      {
-        threshold: 0,
+    const pecas: { no: HTMLDivElement | null; diz: (fora: boolean) => void }[] = [
+      { no: barra.current, diz: setBarraFora },
+      { no: rodape.current, diz: setRodapeFora },
+    ];
+    const observadores: IntersectionObserver[] = [];
+    const armar = () => {
+      for (const o of observadores.splice(0)) o.disconnect();
+      for (const { no, diz } of pecas) {
+        if (!no) {
+          diz(false);
+          continue;
+        }
+        /* A linha onde esta peça assenta, contada do topo da janela — e a
+           peça é `fixed`, por isso essa linha não muda com o deslocamento.
+           Encolher por aí o topo da janela do observador é dizer-lhe:
+           «avisa-me quando o palco deixar de chegar aqui abaixo». */
+        const topo = Math.max(0, Math.round(no.getBoundingClientRect().top));
+        const observador = new IntersectionObserver(([e]) => diz(!e.isIntersecting), {
+          rootMargin: `-${topo}px 0px 0px 0px`,
+          threshold: 0,
+        });
+        observador.observe(alvo);
+        observadores.push(observador);
       }
-    );
-    observador.observe(alvo);
-    return () => observador.disconnect();
-  }, [viewMode]);
+    };
+    armar();
+    /* As peças mudam de altura sozinhas — o painel abre, a dica sai, os
+       chips de filtro nascem —, e a janela muda com a rotação do telefone. */
+    const medidor = new ResizeObserver(armar);
+    for (const { no } of pecas) if (no) medidor.observe(no);
+    window.addEventListener("resize", armar, { passive: true });
+    return () => {
+      for (const o of observadores) o.disconnect();
+      medidor.disconnect();
+      window.removeEventListener("resize", armar);
+    };
+  }, [viewMode, falhou]);
 
   const contagem = `${formatarNumero(visiveis.length, language)} ${
     visiveis.length === 1 ? t.mapa.result_one : t.mapa.results
@@ -653,14 +781,22 @@ export default function MapaClient({
         </button>
       </div>
 
+      {/* Na pílula, uma hairline entre o modo de vista e a pesquisa: são duas
+          coisas de natureza diferente — uma escolhe como se vê, a outra
+          escolhe o quê — e encostadas sem nada entre elas leem-se como uma
+          fila de três botões iguais. Na lista os dois blocos já estão
+          separados pelo espaço da página. */}
+      {noMapa && <div aria-hidden="true" className="mapa-pilula__risco" />}
+
       <div
         className={
-          /* Na pílula a caixa tem largura própria: `.campo` é `width: 100%` e
-             sem uma medida aqui encolhia até o marcador «Pesquisar…» se
-             perder. 11rem é o que a palavra portuguesa — a mais longa das
-             três — pede depois dos 76px que a lupa e o botão de limpar já
-             comem. */
-          noMapa ? "relative w-44 sm:w-56" : "relative min-w-0 flex-1 sm:max-w-sm"
+          /* Na pílula a caixa tem largura própria (`.mapa-procura`): `.campo`
+             é `width: 100%` e sem uma medida encolhia até o marcador
+             «Pesquisar…» se perder — e uma largura fixa é também o que
+             impede a pílula de mudar de tamanho com o que se escreve. Na
+             lista cresce com a página; as utilidades do Tailwind estão numa
+             camada posterior e ganham à classe. */
+          noMapa ? "mapa-procura" : "mapa-procura relative min-w-0 flex-1 sm:max-w-sm"
         }
       >
         <label htmlFor="mapa-procura" className="sr-only">
@@ -673,13 +809,15 @@ export default function MapaClient({
         />
         <input
           id="mapa-procura"
+          ref={campoProcura}
           type="search"
           placeholder={t.mapa.search_placeholder}
           value={procura}
           onChange={(e) => setProcura(e.target.value)}
+          aria-keyshortcuts="/"
           className="campo h-10 pl-10 pr-9 text-sm"
         />
-        {procura && (
+        {procura ? (
           <button
             type="button"
             onClick={() => setProcura("")}
@@ -688,6 +826,13 @@ export default function MapaClient({
           >
             <X size={14} aria-hidden="true" />
           </button>
+        ) : (
+          /* A tecla que salta o foco para aqui, escrita onde ela serve. É
+             decorativa para quem ouve — o `aria-keyshortcuts` do campo é que
+             o anuncia — e some-se em ecrãs de toque, onde teclado não há. */
+          <kbd aria-hidden="true" className="mapa-tecla">
+            /
+          </kbd>
         )}
       </div>
     </>
@@ -703,17 +848,25 @@ export default function MapaClient({
 
      E a barra só aparece quando tem alguma coisa a dizer. Sem filtros, «29
      resultados» é o mesmo 29 que o botão das regiões já escreve — o mesmo
-     número duas vezes no mesmo ecrã. Mesmo escondida continua no documento,
-     porque uma região viva que só nasce no instante da mudança é uma região
-     viva que os leitores de ecrã podem não chegar a anunciar. */
+     número duas vezes no mesmo ecrã. Isso passou a valer também na lista, que
+     ganhou a sua fila de regiões com «Todas · 29» à cabeça: sem filtros, a
+     linha «29 resultados» era o terceiro sítio a dizer 29. Mesmo escondida
+     continua no documento, porque uma região viva que só nasce no instante da
+     mudança é uma região viva que os leitores de ecrã podem não chegar a
+     anunciar. */
   const barraEstado = (
     <div
       className={
         falhou
           ? "hidden"
-          : temFiltro || viewMode === "list"
-            ? "flex flex-wrap items-center gap-x-3 gap-y-2 px-1"
-            : "sr-only"
+          : !temFiltro
+            ? "sr-only"
+            : /* No mapa é uma fila que flutua por si, por baixo da pílula; na
+                 lista assenta no documento. Estava dentro da pílula, e era
+                 isso que fazia a pílula mudar de largura com cada tecla. */
+              noMapa
+              ? "mapa-estado"
+              : "flex flex-wrap items-center gap-x-3 gap-y-2 px-1"
       }
     >
       <p className="meta" role="status" aria-live="polite">
@@ -726,7 +879,11 @@ export default function MapaClient({
           </>
         )}
       </p>
-      {regiao && (
+      {/* Na lista a região já está numa pastilha branca uma linha acima, na
+          fila dos filtros, e ao lado dela está o «Todas» que a tira: repeti-la
+          aqui punha duas pastilhas iguais a dizer «Alentejo» a doze pixéis uma
+          da outra. No mapa não há fila nenhuma, e é aqui que ela se remove. */}
+      {regiao && noMapa && (
         <button type="button" onClick={() => setRegiao(null)} className="chip chip-activo gap-1.5">
           {regiao}
           <X size={12} aria-hidden="true" />
@@ -757,7 +914,10 @@ export default function MapaClient({
     <Pilha nivel={regiao === null ? 0 : 1}>
       {[
         /* Nível 0 — as regiões */
-        <div key="regioes" className="mapa-regioes__lista divide-y divide-[var(--border-soft)]">
+        <div
+          key="regioes"
+          className="mapa-regioes__lista mapa-regioes__lista--regioes divide-y divide-[var(--border-soft)]"
+        >
           {regioes.map(({ regiao: nome, total }, i) => {
             /* Uma região que a pesquisa esvaziou fica visível mas inerte:
                escondê-la esconderia que existe; deixá-la clicável prometeria
@@ -781,7 +941,18 @@ export default function MapaClient({
                 <span className="min-w-0 flex-1 truncate text-sm text-[var(--foreground)]">
                   {nome}
                 </span>
-                <span className="font-mono text-xs tabular-nums text-[var(--foreground-muted)]">
+                {/* Quanto pesa esta região no que está à vista. Cinco nomes e
+                    cinco números não se comparam sem se lerem os cinco: para
+                    saber que o Ribatejo é quase metade do país e o Minho tem
+                    uma, era preciso fazer a conta de cabeça. A barra fá-la
+                    pelo olho, e o dado é o mesmo que o algarismo ao lado. */}
+                <span aria-hidden="true" className="mapa-quota">
+                  <span
+                    className="mapa-quota__cheio"
+                    style={{ width: `${maiorRegiao > 0 ? (total / maiorRegiao) * 100 : 0}%` }}
+                  />
+                </span>
+                <span className="w-5 text-right font-mono text-xs tabular-nums text-[var(--foreground-muted)]">
                   {total}
                 </span>
                 <ChevronRight
@@ -813,8 +984,12 @@ export default function MapaClient({
                     aria-hidden="true"
                     className="shrink-0 text-[var(--foreground-muted)] transition-transform duration-200 group-hover:-translate-x-0.5 group-hover:text-[var(--foreground-strong)]"
                   />
+                  {/* Sem o algarismo: o gatilho logo abaixo já diz «Alentejo
+                      · 7» e a fila de estado lá em cima diz «7 de 29». Três
+                      cópias do mesmo número num painel de vinte e duas rem
+                      não são três confirmações, são ruído. Aqui o que importa
+                      é a seta: isto é o caminho de volta. */}
                   <span className="min-w-0 flex-1 truncate">{regiaoDoPainel}</span>
-                  <span className="meta font-mono tabular-nums">{listaDoPainel.length}</span>
                 </button>
               </h2>
               {/* A lista rola, e a barra do site tem 8px e está desenhada nos
@@ -872,25 +1047,30 @@ export default function MapaClient({
           {t.mapa.skip_to_regions}
         </a>
 
-        <div className="mapa-barra" data-fora={cromadoFora ? "" : undefined}>
-          <div className="mapa-pilula">
-            {comandos}
+        {/* Com a base em baixo não há nada para comandar: uma caixa de
+            pesquisa que não tem o que pesquisar e um interruptor entre duas
+            vistas que estão as duas vazias são dois comandos a fingir que
+            funcionam. A fila sai; o que fica no ecrã é a falha e as saídas
+            dela. */}
+        {!falhou && (
+          <div ref={barra} className="mapa-barra" data-fora={barraFora ? "" : undefined}>
+            <div className="mapa-pilula">{comandos}</div>
             {barraEstado}
           </div>
-        </div>
+        )}
 
-        <div className="mapa-lona vista-troca">
+        <div ref={lona} className="mapa-lona vista-troca">
           {visiveis.length > 0 ? (
             /* Antes recebia `searchQuery ? filtradas : todas`, o que deixava a
                região escolhida sem efeito nenhum sobre o globo. Agora recebe o
                que o funil deu. */
             <GloboTerra coudelarias={visiveis} aoEscolher={(c) => irParaFicha(c.slug)} />
           ) : (
-            <div className="flex h-full items-center justify-center">{vazio}</div>
+            <div className="mapa-vazio">{vazio}</div>
           )}
         </div>
 
-        <div className="mapa-rodape" data-fora={cromadoFora ? "" : undefined}>
+        <div ref={rodape} className="mapa-rodape" data-fora={rodapeFora ? "" : undefined}>
           {!falhou && visiveis.length > 0 && (
             /* `tabIndex={-1}`: sem isto o salto muda o endereço e deixa o foco
                onde estava, e a tabulação seguinte voltava ao globo. */
@@ -907,24 +1087,43 @@ export default function MapaClient({
               >
                 {pilhaDasRegioes}
               </div>
+              {/* ── O gatilho não pode desmentir o mapa ──────────────────
+                  Fechado, é a única coisa que se vê do painel — e com o
+                  Alentejo escolhido dizia «Explorar Regiões · 29» enquanto o
+                  globo tinha sete acesos e a pílula dizia «7 de 29». O
+                  cromado a contradizer o conteúdo, no mesmo ecrã. Passa a
+                  dizer onde se está e quantas se vêem; o ponto branco é o
+                  sinal de escolha feita, que no sistema é branco e não
+                  dourado. */}
               <button
                 type="button"
                 ref={gatilhoRegioes}
                 onClick={() => setRegioesAbertas((a) => !a)}
                 aria-expanded={regioesAbertas}
                 aria-controls="mapa-regioes-painel"
+                data-escolhido={regiao ? "" : undefined}
                 className="mapa-regioes__gatilho"
               >
-                <Layers size={15} aria-hidden="true" className="shrink-0" />
+                {regiao ? (
+                  <span aria-hidden="true" className="mapa-regioes__marca" />
+                ) : (
+                  <Layers size={15} aria-hidden="true" className="shrink-0" />
+                )}
                 <span className="titulo-seccao min-w-0 flex-1 truncate">
-                  {t.mapa.explore_regions}
+                  {regiao ?? t.mapa.explore_regions}
                 </span>
-                <span className="meta font-mono tabular-nums">{porTexto.length}</span>
+                <span className="meta font-mono tabular-nums">
+                  {regiao ? visiveis.length : porTexto.length}
+                </span>
                 <ChevronUp size={15} aria-hidden="true" className="mapa-regioes__seta" />
               </button>
             </div>
           )}
-          {visiveis.length > 0 && <p className="meta mapa-dica">{t.mapa.globe_hint}</p>}
+          {visiveis.length > 0 && (
+            <p className="meta mapa-dica" data-ido={dicaIda ? "" : undefined}>
+              {t.mapa.globe_hint}
+            </p>
+          )}
         </div>
       </div>
     );
@@ -954,8 +1153,59 @@ export default function MapaClient({
           {titulo.depois}
         </h1>
 
-        <div className="mb-3 flex flex-nowrap items-center gap-2 sm:gap-3">{comandos}</div>
-        <div className="mb-4">{barraEstado}</div>
+        {!falhou && (
+          <>
+            <div className="mb-3 flex flex-nowrap items-center gap-2 sm:gap-3">{comandos}</div>
+            {/* ── A lista também filtra por região ──────────────────────────
+                O painel das regiões só existia na vista do mapa: quem
+                escolhesse a lista — e é o que escolhe quem não vê um canvas —
+                perdia a única maneira de percorrer as vinte e nove sem saber o
+                que procura. Ficava com a caixa de pesquisa, que só serve a
+                quem já sabe o nome. E o endereço `?regiao=Alentejo` continuava
+                a valer, o que dava o pior dos casos: um filtro em vigor sem
+                nenhum comando na página que o pusesse ou o tirasse.
+
+                Aqui é uma fila de pastilhas e não a pilha do mapa, e a
+                diferença é de conteúdo: no mapa entrar numa região é entrar
+                num sítio, porque o que está fora sai do ecrã; numa lista que
+                se rola vê-se tudo, e escolher é marcar um filtro. `.chip` /
+                `.chip-activo`, que é o idioma que o resto do site já usa. */}
+            <div
+              id="mapa-regioes"
+              tabIndex={-1}
+              role="group"
+              aria-label={t.mapa.filter_region}
+              className="mb-3 flex flex-wrap items-center gap-1.5"
+            >
+              <button
+                type="button"
+                onClick={() => setRegiao(null)}
+                aria-pressed={regiao === null}
+                className={`chip ${regiao === null ? "chip-activo" : ""}`}
+              >
+                {t.mapa.region_all}
+                <span className="font-mono tabular-nums">{porTexto.length}</span>
+              </button>
+              {regioes.map(({ regiao: nome, total }) => (
+                /* Uma região que a pesquisa esvaziou fica visível mas inerte —
+                   a mesma regra do painel do mapa: escondê-la esconderia que
+                   existe, deixá-la clicável prometeria o que não há. */
+                <button
+                  key={nome}
+                  type="button"
+                  disabled={total === 0}
+                  onClick={() => setRegiao(nome)}
+                  aria-pressed={regiao === nome}
+                  className={`chip ${regiao === nome ? "chip-activo" : ""} disabled:pointer-events-none disabled:opacity-40`}
+                >
+                  {nome}
+                  <span className="font-mono tabular-nums">{total}</span>
+                </button>
+              ))}
+            </div>
+            <div className="mb-4">{barraEstado}</div>
+          </>
+        )}
 
         {/* A `key` é o que faz a animação voltar a correr: sem ela o React
             reaproveita o nó e a animação, que já correu, não se repete. */}
@@ -981,7 +1231,11 @@ export default function MapaClient({
               ))}
             </div>
           ) : (
-            <div className="cartao">{vazio}</div>
+            /* O `.cartao` que embrulhava isto era uma segunda moldura à volta
+               de uma superfície que já é um cartão: o `vazio` traz o cartão
+               assinatura, o mesmo que o mapa mostra. Uma só, e a mesma nas
+               duas vistas. */
+            <div className="py-8">{vazio}</div>
           )}
         </div>
       </div>
