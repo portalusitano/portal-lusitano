@@ -1,7 +1,13 @@
 # O que mudar nas coudelarias, por ordem de confiança
 
-Resumo accionável dos quatro relatórios deste directório. **Nada aqui foi
-escrito na base**, com uma excepção assinalada em baixo.
+Resumo accionável dos quatro relatórios deste directório.
+
+> **APLICADO a 7 de Setembro de 2026.** O que está feito está marcado com ✅ e
+> registado na secção «O que foi escrito na base», no fim. O aviso que se segue
+> sobre o `WebFetch` continua verdadeiro para o **relatório original**; a
+> aplicação foi feita com o `WebSearch` a funcionar, e **três afirmações que o
+> relatório dava por infundadas confirmaram-se** — o «sem fonte» era o bloqueio
+> a falar, não os factos. Estão assinaladas.
 
 ## O limite, que decide o que se pode fazer sozinho
 
@@ -178,3 +184,82 @@ pode mudar sozinho é o que está na secção A.
 A seguir a isso, por esta ordem: **as seis coordenadas** (é o que manda alguém
 conduzir), **os dois prémios de outras casas** (são afirmações sobre pessoas), e
 **as duas duplicações**.
+
+---
+
+# O que foi escrito na base
+
+7 de Setembro de 2026. Cada linha diz o valor de antes, para se poder desfazer.
+
+## Coordenadas — quatro das seis, confirmadas por fonte independente
+
+Cada uma foi confirmada **duas vezes** antes de se escrever, e as duas colunas
+(`coordenadas_lat/lng` e `latitude/longitude`) ficaram iguais, que é uma
+armadilha a menos.
+
+| coudelaria      | antes                                    | depois                 | confirmação                                                                             |
+| --------------- | ---------------------------------------- | ---------------------- | --------------------------------------------------------------------------------------- |
+| Coudelaria CL   | `38.9667, -8.85`                         | `38.879444, -8.862842` | a própria casa publica 38°52'46,00"N 8°51'46,23"O (Monte Braço de Prata, EN118 km 29,3) |
+| Alter Real      | `39.1994, -7.6614`                       | `39.221776, -7.687602` | Tapada do Arneiro, 7440-152 Alter do Chão                                               |
+| Malhadinha Nova | `37.9109, -7.8947`                       | `37.830696, -7.989163` | 37°49'50,60"N 7°59'20,91"O, e o Apple Maps ao sétimo decimal                            |
+| Monte Velho     | `38.7167, -7.9833` (centro de Arraiolos) | `38.775491, -8.028753` | Herdade do Monte Velho, Santana do Campo                                                |
+
+**O Monte Velho quase levou um valor errado.** A primeira busca devolveu
+`38.77527, -7.98616` — latitude quase igual, longitude 3,7 km ao lado. Foi
+Santana do Campo que desempatou: a aldeia está em `38.7665, -8.0325`, e o valor
+com `-8.0288` fica a 1 km dela enquanto o outro fica a 4 km. **Duas fontes a
+darem números parecidos não são duas confirmações**; o que confirma é um
+terceiro facto independente — aqui, a morada.
+
+**Não escritas, e porquê:**
+
+- **Santa Margarida** — o relatório propõe «Monte da Sernadinha», que é um nome
+  e não uma coordenada. Sem número, não se escreve um.
+- **Morgado Lusitano** — sem substituto.
+
+## Prémios e história
+
+| coudelaria                                    | o que mudou                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ✅ **Veiga Teixeira**                         | Sai a «Homenagem na Feira Nacional do Cavalo», que é da **Coudelaria Veiga** (Manuel Tavares Veiga, Quinta da Broa). A própria `historia` desta ficha nomeava a outra casa lá dentro — o parágrafo saiu com ela. Lista de prémios fica vazia.                                                                                                                                                                                                                                               |
+| ✅ **Ortigão Costa**                          | Saem «Maior coudelaria privada de exportação internacional» e «Especialização única em cavalos pretos desde 1963». Um prémio é atribuído por alguém; um superlativo sobre si próprio não é. O «desde 1963» confirma-se e fica na `historia`.                                                                                                                                                                                                                                                |
+| ✅ **Alter Real**                             | Sai «a coudelaria real mais antiga em funcionamento contínuo no mundo». Kladruby nad Labem tem carta imperial de **1579** (fundada em 1563) e está na UNESCO desde 2019 precisamente pela linhagem ininterrupta no mesmo sítio. E a própria `historia` regista a recuperação de 1942 a partir de **onze éguas e três garanhões** — «contínuo» é a parte que a casa contradiz a si mesma. Entra «a mais antiga coudelaria portuguesa em actividade», que é verdade e continua a ser notável. |
+| ✅ **Flor do Lis**                            | O «43.º do ranking FEI» nunca bateu certo: é **56.º a 31 de Agosto de 2025**. Passa a levar data, e ao lado o facto que não envelhece — **é o Lusitano melhor classificado do ranking**.                                                                                                                                                                                                                                                                                                    |
+| ✅ **Lusitanos d'Atela**                      | O Soberano passa a dizer que foi **criado por Guilherme Borba** e que a casa era a proprietária e ele o pai do Hercules d'Atela. Não se apaga: numa lista de prémios de uma coudelaria, um cavalo sem essa nota lê-se como criado por ela.                                                                                                                                                                                                                                                  |
+| ✅ **Fundação Eugénio de Almeida** (inactiva) | GUIZO ganha a palavra que muda a leitura: **Espanha**. Cavaleiro espanhol, proprietário espanhol, equipa de Espanha; o papel da casa é o de **criador**. Sem isso, uma medalha olímpica numa lista portuguesa lê-se como uma medalha portuguesa.                                                                                                                                                                                                                                            |
+| ✅ **Dressage Plus** (inactiva)               | Sai a lista inteira. O Zonik Plus não é Lusitano, o «7.º» estava velho, o «Hit Plus 35.º» não tem fonte — e o ranking FEI que estava a ser citado classifica **atletas**, não cavalos.                                                                                                                                                                                                                                                                                                      |
+
+## Três que o relatório dava por infundadas e que se confirmaram
+
+O `WebFetch` estava bloqueado quando os quatro relatórios foram escritos, e
+«não encontrei fonte» ficou registado como «sem fonte». São coisas
+diferentes. Com a busca a funcionar:
+
+- **Campeador — Campeão dos Campeões, Bélgica 2013** (Santa Margarida).
+  Confirmado: Festival Internacional do Puro-Sangue Lusitano, École
+  d'Équitation de Gesves, 28–29 de Setembro de 2013. **Ganhou a data e o
+  sítio**, que é o que torna um prémio verificável por quem o lê.
+- **Spartacus — Reprodutor de Mérito** (Santa Margarida). Confirmado, e são
+  **cinco estrelas**.
+- **Gladiador do Lis** (Flor do Lis) existe e é da casa — o que estava errado
+  era só o número.
+
+**A lição:** apagar o que não se conseguiu confirmar teria tirado do portal
+três factos verdadeiros. Onde a dúvida é sobre a _fonte_ e não sobre o _facto_,
+confirma-se antes de cortar.
+
+## Fica por decidir, e precisa de uma pessoa
+
+- **Coudelaria Andrade (inactiva) e Coudelaria SA (activa)** na mesma Herdade da
+  Agolada de Baixo. Fundir dois registos de produção apaga história; e a
+  Andrade não fechou, dividiu-se em 1991. Os prémios históricos (Marialva II,
+  Campeão Ibérico 1970/1972) estão no registo inactivo e o activo tem a lista
+  vazia. **Não toquei.**
+- **Jupiter Classical Dressage e Coudelaria Vila Viçosa** na mesma Herdade do
+  Ameal, sem fonte que descreva sucessão ou venda. **Não toquei.**
+- **`num_cavalos` parece contar éguas** em pelo menos quatro fichas. Ou o campo
+  muda de nome, ou os valores estão sistematicamente subavaliados — e a segunda
+  hipótese faz coudelarias grandes parecerem pequenas.
+- **O par de colunas que ninguém lê.** As quatro coordenadas corrigidas ficaram
+  iguais nos dois pares. Faltam as outras: só depois de todas baterem certo é
+  que `latitude`/`longitude` pode ser apagada em segurança.
