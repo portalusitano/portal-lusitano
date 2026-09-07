@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { LISTING_TIERS, PLANO, PLANO_UNICO } from "@/lib/listing-tiers";
 import {
   LISTING_STATUS,
   canSellerTransition,
@@ -82,11 +83,22 @@ describe("canSellerTransition", () => {
 });
 
 describe("computeExpiry / computeFeaturedUntil", () => {
-  it("uses the tier duration", () => {
-    // standard = 30 dias
-    expect(computeExpiry("standard", NOW)?.toISOString()).toBe(iso(30));
-    // premium = 60 dias
-    expect(computeExpiry("premium", NOW)?.toISOString()).toBe(iso(60));
+  it("uses the plan duration", () => {
+    expect(computeExpiry(PLANO_UNICO, NOW)?.toISOString()).toBe(iso(PLANO.durationDays));
+  });
+
+  /**
+   * Os quatro planos antigos — `basico`, `standard`, `destaque`, `premium` —
+   * deixaram de existir, e **não se converteram no de hoje**. Um anúncio
+   * comprado ao abrigo de um deles não passa a ter sessenta dias por causa de
+   * uma mudança de preçário; o que se sabe é que não se sabe, e é `null` que
+   * isso se escreve.
+   */
+  it("does not resurrect the four old plans as the current one", () => {
+    for (const antigo of ["basico", "standard", "destaque", "premium"]) {
+      expect(computeExpiry(antigo, NOW)).toBeNull();
+      expect(computeFeaturedUntil(antigo, NOW)).toBeNull();
+    }
   });
 
   it("returns null for an unknown tier instead of inventing a period", () => {
@@ -94,14 +106,20 @@ describe("computeExpiry / computeFeaturedUntil", () => {
     expect(computeFeaturedUntil("inexistente", NOW)).toBeNull();
   });
 
-  it("gives no featured period to tiers that do not include one", () => {
-    expect(computeFeaturedUntil("basico", NOW)).toBeNull();
-    expect(computeFeaturedUntil("standard", NOW)).toBeNull();
+  /**
+   * O plano único não vende destaque, e é de propósito: um distintivo que todos
+   * os anúncios têm não distingue nada, e a secção de destaques passaria a ser
+   * «os anúncios recentes». Ver o cabeçalho de `lib/listing-tiers.ts`.
+   */
+  it("sells no featured period at all", () => {
+    expect(computeFeaturedUntil(PLANO_UNICO, NOW)).toBeNull();
+    expect(PLANO.featuredDays).toBe(0);
+    expect(PLANO.badge).toBeNull();
   });
 
-  it("uses the featured duration where the tier has one", () => {
-    expect(computeFeaturedUntil("destaque", NOW)?.toISOString()).toBe(iso(14));
-    expect(computeFeaturedUntil("premium", NOW)?.toISOString()).toBe(iso(30));
+  it("is one plan, and it costs 79 euros", () => {
+    expect(Object.keys(LISTING_TIERS)).toEqual([PLANO_UNICO]);
+    expect(PLANO.priceInCents).toBe(7900);
   });
 });
 
@@ -179,9 +197,13 @@ describe("normalizeListing", () => {
     expect(normalizeListing({ id: "a", status: "vendido" }, NOW).publico).toBe(false);
   });
 
-  it("resolves the tier display name and defaults to standard", () => {
-    expect(normalizeListing({ id: "a", listing_tier: "premium" }, NOW).tierName).toBe("Premium");
-    expect(normalizeListing({ id: "a" }, NOW).tier).toBe("standard");
+  it("resolves the plan name, and shows an old id raw instead of renaming it", () => {
+    expect(normalizeListing({ id: "a", listing_tier: PLANO_UNICO }, NOW).tierName).toBe(PLANO.name);
+    expect(normalizeListing({ id: "a" }, NOW).tier).toBe(PLANO_UNICO);
+    // Um plano que já não existe mostra-se como está gravado. Inventar-lhe um
+    // nome de hoje era dizer que aquele anúncio tem condições que ninguém lhe
+    // vendeu.
+    expect(normalizeListing({ id: "a", listing_tier: "premium" }, NOW).tierName).toBe("premium");
   });
 
   it("coerces numeric strings that Supabase returns for decimal columns", () => {

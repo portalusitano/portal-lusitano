@@ -2377,7 +2377,14 @@
     "rider_level": "Nível de Cavaleiro Recomendado",
     "current_use": "Uso Atual do Cavalo",
     "behavior_section": "Comportamento e Maneabilidade",
-    "current_trainer": "Treinador Atual"
+    "current_trainer": "Treinador Atual",
+    "preco_titulo": "Um preço, e mais nada",
+    "preco_sufixo": "uma vez, sem mensalidades",
+    "preco_dias": "60 dias no ar",
+    "preco_fotos": "Fotografias sem limite",
+    "preco_comissao": "Zero comissão sobre a venda",
+    "preco_revisao": "Documentação revista por nós",
+    "preco_nota": "Paga-se no fim, depois de preencher. Se o anúncio não for aprovado, o valor é devolvido."
   },
   "error_page": {
     "something_wrong": "Algo correu mal",

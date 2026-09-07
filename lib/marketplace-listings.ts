@@ -7,7 +7,7 @@
  * it first. See `normalizeListing` below.
  */
 
-import { getListingTier } from "@/lib/listing-tiers";
+import { getListingTier, PLANO_UNICO } from "@/lib/listing-tiers";
 import { fotosDaLinha } from "@/lib/marketplace-fotos";
 
 /** Every status a listing row can hold in the database. */
@@ -249,7 +249,10 @@ export function normalizeListing(row: RawListingRow, now: Date = new Date()): Se
   const status = (str(row, "status") || LISTING_STATUS.PENDING) as ListingStatus;
   const expiresAt = str(row, "listing_expires_at");
   const expirado = isExpired(expiresAt, now);
-  const tier = str(row, "listing_tier") || "standard";
+  /* Uma linha sem `listing_tier` é do plano de hoje. Estava aqui `"standard"`,
+     que era um dos quatro planos que já não existem — e continuaria a apontar
+     para um plano que não se vende há muito. Ver `lib/listing-tiers.ts`. */
+  const tier = str(row, "listing_tier") || PLANO_UNICO;
   const fotos = fotosDaLinha(row);
 
   return {

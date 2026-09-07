@@ -2377,7 +2377,14 @@
     "rider_level": "Nivel de Jinete Recomendado",
     "current_use": "Uso Actual del Caballo",
     "behavior_section": "Comportamiento y Manejabilidad",
-    "current_trainer": "Entrenador Actual"
+    "current_trainer": "Entrenador Actual",
+    "preco_titulo": "Un precio, y nada más",
+    "preco_sufixo": "una vez, sin mensualidades",
+    "preco_dias": "60 días en línea",
+    "preco_fotos": "Fotografías sin límite",
+    "preco_comissao": "Cero comisión sobre la venta",
+    "preco_revisao": "Documentación revisada por nosotros",
+    "preco_nota": "Se paga al final, después de rellenar todo. Si el anuncio no se aprueba, se le devuelve el importe."
   },
   "error_page": {
     "something_wrong": "Algo salió mal",

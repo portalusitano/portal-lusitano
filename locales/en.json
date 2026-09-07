@@ -2377,7 +2377,14 @@
     "rider_level": "Recommended Rider Level",
     "current_use": "Current Horse Use",
     "behavior_section": "Behaviour & Tractability",
-    "current_trainer": "Current Trainer"
+    "current_trainer": "Current Trainer",
+    "preco_titulo": "One price, nothing else",
+    "preco_sufixo": "once, no subscriptions",
+    "preco_dias": "60 days online",
+    "preco_fotos": "Unlimited photographs",
+    "preco_comissao": "Zero commission on the sale",
+    "preco_revisao": "Paperwork reviewed by us",
+    "preco_nota": "You pay at the end, after filling everything in. If the listing is not approved, you get your money back."
   },
   "error_page": {
     "something_wrong": "Something went wrong",

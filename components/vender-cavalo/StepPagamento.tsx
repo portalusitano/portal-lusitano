@@ -2,9 +2,9 @@
 
 import { useMemo } from "react";
 import LocalizedLink from "@/components/LocalizedLink";
-import { CreditCard, Shield, Check, Clock, Camera, Star } from "lucide-react";
+import { CreditCard, Shield } from "lucide-react";
 import type { FormData } from "@/components/vender-cavalo/types";
-import { LISTING_TIERS } from "@/lib/listing-tiers";
+import { PLANO } from "@/lib/listing-tiers";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
 import {
@@ -16,7 +16,6 @@ import {
 interface StepPagamentoProps {
   formData: FormData;
   imagens: File[];
-  selectedTier: string;
   termsAccepted: boolean;
   onTermsChange: (checked: boolean) => void;
   loading: boolean;
@@ -52,7 +51,6 @@ function textoDoProgresso(
 export default function StepPagamento({
   formData,
   imagens,
-  selectedTier,
   termsAccepted,
   onTermsChange,
   loading,
@@ -61,8 +59,7 @@ export default function StepPagamento({
 }: StepPagamentoProps) {
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
-  const tier = LISTING_TIERS[selectedTier] || LISTING_TIERS.standard;
-  const precoTotal = tier.priceInCents / 100;
+  const precoTotal = PLANO.priceInCents / 100;
 
   /**
    * A caixa dos termos não é um campo do catálogo: quem sabe se ela está
@@ -72,16 +69,14 @@ export default function StepPagamento({
   const erros = useFaltas(errosCrus, formData, { termos_aceites: termsAccepted });
 
   const durationLabel =
-    tier.durationDays === 15
+    PLANO.durationDays === 15
       ? tr("15 dias", "15 days", "15 días")
-      : tier.durationDays === 30
+      : PLANO.durationDays === 30
         ? tr("30 dias", "30 days", "30 días")
         : tr("60 dias", "60 days", "60 días");
 
   const photosLabel =
-    tier.maxPhotos === -1 ? tr("Ilimitadas", "Unlimited", "Ilimitadas") : `${tier.maxPhotos}`;
-
-  const isDestaque = selectedTier === "destaque" || selectedTier === "premium";
+    PLANO.maxPhotos === -1 ? tr("Sem limite", "Unlimited", "Sin límite") : `${PLANO.maxPhotos}`;
 
   return (
     <div className="bg-[var(--background-secondary)]/50 cartao p-6">
@@ -110,59 +105,24 @@ export default function StepPagamento({
         </div>
       </div>
 
-      {/* Resumo do Tier Seleccionado */}
-      <div className="border border-[var(--border-soft)] rounded-lg p-4 mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Star
-              size={16}
-              className={
-                isDestaque
-                  ? "text-[var(--foreground-muted)] fill-current"
-                  : "text-[var(--foreground-muted)]"
-              }
-            />
-            <span className="font-semibold">
-              {tr("Plano", "Plan", "Plan")} {tier.name}
-            </span>
-            {tier.badge && (
-              <span className="rotulo px-2 py-0.5 bg-[var(--elevate-1)] rounded">{tier.badge}</span>
-            )}
-          </div>
-          <span className="text-xl font-bold text-[var(--foreground-muted)]">{precoTotal}€</span>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-[var(--foreground-secondary)]">
-          <div className="flex items-center gap-1.5">
-            <Clock size={12} className="text-[var(--foreground-muted)]" />
-            {durationLabel}
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Camera size={12} className="text-[var(--foreground-muted)]" />
-            {photosLabel} {tr("fotos", "photos", "fotos")}
-          </div>
-          {isDestaque && (
-            <div className="flex items-center gap-1.5">
-              <Check size={12} className="text-[var(--foreground-muted)]" />
-              {tr("Destaque incluído", "Featured included", "Destacado incluido")}
-            </div>
-          )}
-        </div>
-      </div>
+      {/* ── O que se paga ───────────────────────────────────────────────────
+          Eram dois blocos, e os dois diziam 79 €: um «Resumo do Plano» com o
+          preço à direita, e por baixo um «Total a pagar» com o mesmo número
+          maior. Dizer duas vezes o mesmo valor a dois tamanhos não é insistir,
+          é fazer quem lê procurar a diferença entre eles.
 
-      {/* Preço Total */}
-      <div className="bg-[var(--elevate-1)] border border-[var(--border-soft)] rounded-lg p-4 mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="text-sm text-[var(--foreground-secondary)]">
-              {t.vender_cavalo.total_to_pay}
-            </span>
-            <div className="text-2xl font-bold text-[var(--foreground-muted)]">{precoTotal}€</div>
-          </div>
-          <CreditCard size={32} className="text-[var(--foreground-muted)]" />
+          Fica um. O número à direita, o que está incluído por baixo em texto
+          corrido — sem ícones a marcar cada linha: quatro vistos numa lista de
+          quatro coisas incluídas não distinguem nada, porque não há nada de
+          que as distinguir. */}
+      <div className="cartao mb-6 p-4">
+        <div className="flex items-baseline justify-between gap-4">
+          <span className="rotulo">{t.vender_cavalo.total_to_pay}</span>
+          <span className="preco text-2xl text-[var(--foreground-strong)]">{precoTotal}€</span>
         </div>
-        <div className="text-xs text-[var(--foreground-muted)] mt-2">
-          {tr("Plano", "Plan", "Plan")} {tier.name} — {durationLabel}
-        </div>
+        <p className="meta mt-2 leading-relaxed">
+          {durationLabel} · {photosLabel} {tr("fotografias", "photographs", "fotografías")}
+        </p>
       </div>
 
       {/* Termos */}

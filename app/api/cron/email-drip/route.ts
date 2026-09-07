@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { sendEmail } from "@/lib/resend";
 import { generateUnsubscribeToken } from "@/lib/sanitize";
 import { logger } from "@/lib/logger";
+import { cronAutorizado } from "@/lib/cron-autorizado";
 
 // ─── CONFIGURATION ───────────────────────────────────────────────────────────
 
@@ -62,24 +62,8 @@ const DRIP_SEQUENCE: DripStep[] = [
 
 export async function GET(request: NextRequest) {
   // ── Auth: verify CRON_SECRET ──
-  const authHeader = request.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (!cronSecret) {
-    logger.error("[email-drip] CRON_SECRET env var is not configured");
-    return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
-  }
-
-  const expected = `Bearer ${cronSecret}`;
-  const authBuffer = Buffer.from(authHeader || "");
-  const expectedBuffer = Buffer.from(expected);
-  if (
-    authBuffer.length !== expectedBuffer.length ||
-    !crypto.timingSafeEqual(authBuffer, expectedBuffer)
-  ) {
-    logger.warn("[email-drip] Unauthorized cron request");
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const autorizacao = cronAutorizado(request, "email-drip");
+  if (!autorizacao.ok) return autorizacao.resposta;
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://portal-lusitano.pt";
   const now = new Date();

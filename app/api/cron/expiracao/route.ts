@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { sendEmail } from "@/lib/resend";
 import { escapeHtml } from "@/lib/sanitize";
 import { avisoDevido, descreverAviso, type LimiarAviso } from "@/lib/expiracao-anuncios";
 import { LISTING_STATUS, daysUntil } from "@/lib/marketplace-listings";
 import { logger } from "@/lib/logger";
+import { cronAutorizado } from "@/lib/cron-autorizado";
 
 /** Listings inspected per run, to keep one invocation inside its time budget. */
 const MAX_ANUNCIOS_POR_EXECUCAO = 200;
@@ -69,24 +69,8 @@ async function emailDoVendedor(linha: LinhaAnuncio): Promise<string | null> {
  * deadline and starts the cycle again.
  */
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (!cronSecret) {
-    logger.error("[cron/expiracao] CRON_SECRET env var is not configured");
-    return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
-  }
-
-  const expected = `Bearer ${cronSecret}`;
-  const authBuffer = Buffer.from(authHeader || "");
-  const expectedBuffer = Buffer.from(expected);
-  if (
-    authBuffer.length !== expectedBuffer.length ||
-    !crypto.timingSafeEqual(authBuffer, expectedBuffer)
-  ) {
-    logger.warn("[cron/expiracao] Unauthorized cron request");
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const autorizacao = cronAutorizado(request, "cron/expiracao");
+  if (!autorizacao.ok) return autorizacao.resposta;
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://portal-lusitano.pt";
   const agora = new Date();

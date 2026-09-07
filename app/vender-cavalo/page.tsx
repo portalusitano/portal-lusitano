@@ -10,7 +10,7 @@ import type {
   Resposta,
 } from "@/components/vender-cavalo/types";
 import { initialFormData, TOTAL_STEPS } from "@/components/vender-cavalo/data";
-import { LISTING_TIERS } from "@/lib/listing-tiers";
+import { PLANO, PLANO_UNICO } from "@/lib/listing-tiers";
 import PageHeader from "@/components/vender-cavalo/PageHeader";
 import PricingBanner from "@/components/vender-cavalo/PricingBanner";
 import HowItWorks from "@/components/vender-cavalo/HowItWorks";
@@ -108,7 +108,9 @@ export default function VenderCavaloPage() {
    * de largar e já vê assinalado ao lado.
    */
   const [resumo, setResumo] = useState<ErroCampo[]>([]);
-  const [selectedTier, setSelectedTier] = useState("standard");
+  /* O plano é um só, e por isso não há estado nenhum a guardar aqui.
+     Enquanto eram quatro, o `selectedTier` viajava do topo da página até ao
+     `checkout` e até ao rascunho guardado no browser. Ver `lib/listing-tiers.ts`. */
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   /**
@@ -270,6 +272,11 @@ export default function VenderCavaloPage() {
         "Escolheu vender como particular mas o NIF é de pessoa colectiva. Confirme qual deles quer na factura.",
         "You are selling as a private individual but this is a company tax number. Check which you want on the invoice.",
         "Vende como particular pero el NIF es de persona jurídica. Compruebe cuál quiere en la factura."
+      ),
+      nifEstrangeiroCurto: tr(
+        "Este número de contribuinte é curto de mais para ser um.",
+        "That tax number is too short to be one.",
+        "Este número de contribuyente es demasiado corto para serlo."
       ),
       telefoneInvalido: tr(
         "Um número português é 9 seguido de 1, 2, 3 ou 6 e mais sete algarismos, ou um fixo com nove a começar por 2.",
@@ -526,7 +533,6 @@ export default function VenderCavaloPage() {
       const reposto = passoSeguro(rascunho);
       setStep(reposto);
       setMaiorPasso(reposto);
-      setSelectedTier(rascunho.plano);
       setRascunhoReposto({
         ficheiros: perdeuFicheiros,
         guardadoEm: rascunho.guardadoEm,
@@ -552,7 +558,7 @@ export default function VenderCavaloPage() {
     {
       formData,
       passo: step,
-      plano: selectedTier,
+      plano: PLANO_UNICO,
       fotografias: imagens.length,
       documentos: Object.keys(documentos).length,
     },
@@ -592,7 +598,6 @@ export default function VenderCavaloPage() {
     setFormData(initialFormData);
     setStep(1);
     setMaiorPasso(1);
-    setSelectedTier("standard");
     setImagens([]);
     setDocumentos({});
     setTermsAccepted(false);
@@ -830,7 +835,7 @@ export default function VenderCavaloPage() {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (tierData.maxPhotos !== -1 && imagens.length + files.length > maxImages) {
+    if (PLANO.maxPhotos !== -1 && imagens.length + files.length > maxImages) {
       const excesso = [{ campo: "fotografias", mensagem: t.vender_cavalo.error_max_images }];
       setErrors(excesso);
       setResumo(excesso);
@@ -925,7 +930,7 @@ export default function VenderCavaloPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tier: selectedTier,
+          tier: PLANO_UNICO,
           formData: {
             proprietarioNome: formData.proprietario_nome,
             proprietarioEmail: formData.proprietario_email,
@@ -1075,8 +1080,10 @@ export default function VenderCavaloPage() {
     }
   };
 
-  const tierData = LISTING_TIERS[selectedTier] || LISTING_TIERS.standard;
-  const maxImages = tierData.maxPhotos === -1 ? 50 : tierData.maxPhotos;
+  /* Cinquenta é o tecto de quem sobe, não o do plano: o plano não tem tecto,
+     mas cinquenta fotografias num formulário são um envio que ninguém acaba.
+     Ver `lib/subir-fotografias.ts`. */
+  const maxImages = PLANO.maxPhotos === -1 ? 50 : PLANO.maxPhotos;
   const errosPorCampo = useMemo(() => porCampo(errors), [errors]);
   const apontamentos = inspeccao.visiveis;
   const conta = useCallback((seccao: string) => contarSeccao(seccao, formData), [formData]);
@@ -1135,7 +1142,7 @@ export default function VenderCavaloPage() {
         suppressHydrationWarning
         style={{ "--rdelay": "200ms" } as React.CSSProperties}
       >
-        <PricingBanner selectedTier={selectedTier} onTierChange={setSelectedTier} />
+        <PricingBanner />
       </div>
 
       <div ref={topoDoFormulario} className="max-w-3xl mx-auto scroll-mt-24">
@@ -1295,7 +1302,6 @@ export default function VenderCavaloPage() {
             <StepPagamento
               formData={formData}
               imagens={imagens}
-              selectedTier={selectedTier}
               termsAccepted={termsAccepted}
               onTermsChange={(aceite) => {
                 setTermsAccepted(aceite);

@@ -1,7 +1,12 @@
 import type { FormData } from "@/components/vender-cavalo/types";
 import { niveisTreino } from "@/components/vender-cavalo/data";
 import { lerMicrochip } from "@/lib/microchip-iso";
-import { lerNif, lerTelefonePT, pareceTelefoneInternacional } from "@/lib/identificacao-pt";
+import {
+  lerNif,
+  lerTelefonePT,
+  normalizarNif,
+  pareceTelefoneInternacional,
+} from "@/lib/identificacao-pt";
 import { sugerirDominioEmail } from "@/lib/dominios-email";
 import { identificarVideo } from "@/lib/video-partilhado";
 import { lerRegistoApsl } from "@/components/vender-cavalo/registo-apsl";
@@ -86,6 +91,7 @@ export interface MensagensInspeccao {
   nifControlo: string;
   nifColectivoParticular: string;
   nifSingularEmpresa: string;
+  nifEstrangeiroCurto: string;
   telefoneInvalido: string;
   telefoneInternacional: string;
   emailDominio: (sugerido: string) => string;
@@ -325,9 +331,38 @@ export function inspeccionar(
       apontar("microchip", "erro", m.microchipPrefixo);
   }
 
+  /* ── O país, lido uma vez ────────────────────────────────────────────────
+     Serve o NIF e o telefone, e é a mesma pergunta para os dois: **as regras
+     portuguesas valem para quem vive em Portugal.** O campo vazio conta como
+     Portugal porque é o que a maior parte de quem cá chega é, e porque não se
+     recusa nada antes de a pessoa dizer onde vive. */
+  const pais = texto(formData, "pais_proprietario");
+  const emPortugal = pais === "" || pais === "Portugal";
+
   // --- NIF: nove algarismos com dígito de controlo módulo 11 ---------------
+  //
+  // ██ E só para quem vive em Portugal. ██
+  //
+  // A regra do módulo 11 corria sobre o que estivesse escrito, viesse de onde
+  // viesse. Um vendedor espanhol com um NIF de nove caracteres que acaba em
+  // letra, um francês com um SIREN de nove algarismos que não fecha por esta
+  // conta, um holandês com um BTW de doze — todos recebiam «O NIF tem nove
+  // algarismos» ou «este NIF não fecha» a respeito de um número que está
+  // perfeitamente certo no país deles. O cabeçalho do `identificacao-pt.ts`
+  // já dizia porque é que isso é caro: recusar um número válido custa um
+  // anúncio. A regra do telefone, escrita mais abaixo, já fazia esta pergunta;
+  // a do NIF é que não a fazia.
+  //
+  // Para quem vive fora não se inventa uma regra: não há uma que sirva a
+  // Europa toda, e um formato adivinhado recusaria mais gente do que apanha.
+  // O que se faz é o mínimo — ver o `else`.
   const nifEscrito = texto(formData, "proprietario_nif");
-  if (nifEscrito.trim()) {
+  if (nifEscrito.trim() && !emPortugal) {
+    // Fora de Portugal, o único engano que se sabe apanhar sem saber o país é
+    // o campo com um caractere ou dois. Tudo o resto pode ser verdade algures.
+    if (normalizarNif(nifEscrito).length < 4)
+      apontar("proprietario_nif", "erro", m.nifEstrangeiroCurto);
+  } else if (nifEscrito.trim()) {
     const nif = lerNif(nifEscrito);
     if (nif.problema === "nao-numerico" || nif.problema === "comprimento")
       apontar("proprietario_nif", "erro", m.nifComprimento);
@@ -350,8 +385,6 @@ export function inspeccionar(
   // vale o mínimo que vale em todo o lado, e mais nada: a numeração de cada
   // país é a dele, e recusar um número francês por não ser português custa
   // um anúncio e não impede nenhum engano.
-  const pais = texto(formData, "pais_proprietario");
-  const emPortugal = pais === "" || pais === "Portugal";
   for (const campo of ["proprietario_telefone", "proprietario_whatsapp"] as const) {
     const valor = texto(formData, campo).trim();
     if (!valor) continue;

@@ -126,6 +126,51 @@ describe("NIF", () => {
   it("sem tipo de vendedor escolhido não se pergunta nada sobre o par", () => {
     expect(de(ver({ proprietario_nif: "501234560" }), "proprietario_nif")).toEqual([]);
   });
+
+  /**
+   * ██ A regra do módulo 11 é portuguesa, e só vale para quem vive em Portugal. ██
+   *
+   * Corria sobre o que estivesse escrito, viesse de onde viesse. Um vendedor
+   * espanhol com um NIF que acaba em letra, um francês com um SIREN de nove
+   * algarismos que não fecha por esta conta, um holandês com um BTW de doze —
+   * todos recebiam «este NIF não fecha» a respeito de um número que está certo
+   * no país deles.
+   *
+   * O cabeçalho do `identificacao-pt.ts` já dizia porque é que isso é caro:
+   * **recusar um número válido custa um anúncio.** A regra do telefone, escrita
+   * no mesmo ficheiro, já fazia esta pergunta; a do NIF é que não a fazia.
+   */
+  it("um número estrangeiro não é julgado pela conta portuguesa", () => {
+    // Um SIREN francês de nove algarismos que não fecha por módulo 11.
+    for (const pais of ["França", "Espanha", "Países Baixos"]) {
+      expect(
+        de(ver({ proprietario_nif: "123456788", pais_proprietario: pais }), "proprietario_nif")
+      ).toEqual([]);
+    }
+    // E o mesmo número, de quem vive em Portugal, continua a não fechar.
+    expect(
+      nivel(
+        ver({ proprietario_nif: "123456788", pais_proprietario: "Portugal" }),
+        "proprietario_nif"
+      )
+    ).toBe("erro");
+  });
+
+  it("fora de Portugal só se apanha o que é curto de mais para ser um número", () => {
+    expect(
+      nivel(ver({ proprietario_nif: "12", pais_proprietario: "França" }), "proprietario_nif")
+    ).toBe("erro");
+    // Formatos que não são portugueses mas são números a sério noutro sítio.
+    for (const numero of ["B12345678", "NL123456789B01", "IE1234567FA"]) {
+      expect(
+        de(ver({ proprietario_nif: numero, pais_proprietario: "Irlanda" }), "proprietario_nif")
+      ).toEqual([]);
+    }
+  });
+
+  it("sem país escrito conta como Portugal, que é quem cá chega", () => {
+    expect(nivel(ver({ proprietario_nif: "123456788" }), "proprietario_nif")).toBe("erro");
+  });
 });
 
 describe("telefone", () => {

@@ -1,173 +1,151 @@
 "use client";
 
-import { useMemo } from "react";
-import { Check, Star, Crown, Zap } from "lucide-react";
-import { LISTING_TIERS, type ListingTier } from "@/lib/listing-tiers";
+/**
+ * O preço, dito uma vez.
+ *
+ * ## O que aqui estava
+ *
+ * Uma grelha de quatro cartões — 29 €, 49 €, 79 €, 149 € — cada um com um
+ * círculo de escolha, uma lista de vistos e um distintivo dourado «Popular» a
+ * apontar para o segundo. Entre quem chega para vender um cavalo e o
+ * formulário havia uma decisão que ninguém sabe tomar à chegada: quantos dias
+ * vou precisar? quantas fotografias tenho? vale a pena o destaque?
+ *
+ * Passou a haver **um preço**. Não há nada a escolher, e por isso não há aqui
+ * um comando: há uma afirmação. É a peça mais Apple de toda esta página, e não
+ * por causa de como está pintada — é por não pedir nada a ninguém.
+ *
+ * ## Porque é que o número é grande e o resto é pequeno
+ *
+ * Porque a pergunta que traz alguém a esta secção é uma só, e a resposta cabe
+ * em três caracteres. O que vem a seguir — dias, fotografias, comissão,
+ * revisão — não são argumentos de venda a competir pelo mesmo olhar: são a
+ * letra pequena, e ficam do tamanho da letra pequena. O `.preco` do sistema já
+ * tem `tabular-nums`, que é o que faz os dígitos assentarem.
+ *
+ * **Nenhum destes quatro é um visto verde.** Não são vantagens sobre um plano
+ * que não existe; são o que está incluído, e a lista não tem com que competir.
+ *
+ * ## O movimento
+ *
+ * O número conta-se do zero até 79 em `--d-nascer`, uma vez, ao entrar no
+ * ecrã. É a única peça desta página que faz isso, e faz por uma razão: um
+ * preço que se conta é um preço que se lê — o olho segue o algarismo a
+ * assentar em vez de o encontrar já pousado. Com `prefers-reduced-motion` o
+ * número está lá, pousado, desde o primeiro quadro.
+ */
+
+import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
-import { createTranslator } from "@/lib/tr";
+import { PLANO } from "@/lib/listing-tiers";
 
-interface PricingBannerProps {
-  selectedTier: string;
-  onTierChange: (tierId: string) => void;
+/** O preço em euros. Vem do plano — não se escreve o número aqui. */
+const EUROS = PLANO.priceInCents / 100;
+
+/**
+ * O número a contar até ao preço.
+ *
+ * Um `requestAnimationFrame` que corre uma vez, e pára. Não é um ciclo: chega
+ * ao fim e desliga-se, e por isso não entra na conta dos ciclos infinitos do
+ * site. Com `prefers-reduced-motion` nem sequer arranca.
+ */
+function useContagem(destino: number, duracaoMs: number, activo: boolean) {
+  const [valor, setValor] = useState(activo ? 0 : destino);
+
+  useEffect(() => {
+    if (!activo) return;
+    let quadro = 0;
+    const inicio = performance.now();
+    const passo = (agora: number) => {
+      const t = Math.min(1, (agora - inicio) / duracaoMs);
+      // A mesma curva de saída do sistema: rápido no princípio, a assentar no
+      // fim. Escrita à mão porque um `cubic-bezier` do CSS não se aplica a um
+      // número; os pontos são os do `--ease-out`.
+      const suave = 1 - Math.pow(1 - t, 3);
+      setValor(Math.round(destino * suave));
+      if (t < 1) quadro = requestAnimationFrame(passo);
+    };
+    quadro = requestAnimationFrame(passo);
+    return () => cancelAnimationFrame(quadro);
+  }, [destino, duracaoMs, activo]);
+
+  return valor;
 }
 
-const TIER_ORDER = ["basico", "standard", "destaque", "premium"] as const;
-
-const TIER_ICONS: Record<string, React.ReactNode> = {
-  basico: <Zap size={18} />,
-  standard: <Star size={18} />,
-  destaque: <Star size={18} className="fill-current" />,
-  premium: <Crown size={18} />,
-};
-
-export default function PricingBanner({ selectedTier, onTierChange }: PricingBannerProps) {
-  const { language } = useLanguage();
-  const tr = useMemo(() => createTranslator(language), [language]);
-
-  return (
-    <div className="max-w-5xl mx-auto mb-8">
-      <h3 className="text-lg text-center mb-6">
-        {tr("Escolha o seu plano", "Choose your plan", "Elija su plan")}
-      </h3>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {TIER_ORDER.map((tierId) => {
-          const tier = LISTING_TIERS[tierId];
-          const isSelected = selectedTier === tierId;
-          const isPopular = tierId === "standard";
-
-          return (
-            <TierCard
-              key={tierId}
-              tier={tier}
-              tierId={tierId}
-              isSelected={isSelected}
-              isPopular={isPopular}
-              icon={TIER_ICONS[tierId]}
-              language={language}
-              onClick={() => onTierChange(tierId)}
-            />
-          );
-        })}
-      </div>
-    </div>
-  );
+/** Lê a duração de um token do CSS, em ms. Um número à mão aqui era um número que ninguém encontra. */
+function duracaoDoToken(nome: string, omissao: number): number {
+  if (typeof window === "undefined") return omissao;
+  const bruto = getComputedStyle(document.documentElement).getPropertyValue(nome).trim();
+  if (bruto.endsWith("ms")) return parseFloat(bruto) || omissao;
+  if (bruto.endsWith("s")) return (parseFloat(bruto) || omissao / 1000) * 1000;
+  return omissao;
 }
 
-function TierCard({
-  tier,
-  tierId,
-  isSelected,
-  isPopular,
-  icon,
-  language,
-  onClick,
-}: {
-  tier: ListingTier;
-  tierId: string;
-  isSelected: boolean;
-  isPopular: boolean;
-  icon: React.ReactNode;
-  language: string;
-  onClick: () => void;
-}) {
-  const tr = useMemo(() => createTranslator(language), [language]);
-  const price = tier.priceInCents / 100;
+export default function PricingBanner() {
+  const { t } = useLanguage();
+  const v = t.vender_cavalo;
 
-  const durationLabel =
-    tier.durationDays === 15
-      ? tr("15 dias", "15 days", "15 días")
-      : tier.durationDays === 30
-        ? tr("30 dias", "30 days", "30 días")
-        : tr("60 dias", "60 days", "60 días");
+  const caixa = useRef<HTMLDivElement>(null);
+  const [aContar, setAContar] = useState(false);
+  const [duracao, setDuracao] = useState(700);
 
-  const photosLabel =
-    tier.maxPhotos === -1
-      ? tr("Fotos ilimitadas", "Unlimited photos", "Fotos ilimitadas")
-      : tr(
-          `Até ${tier.maxPhotos} fotos`,
-          `Up to ${tier.maxPhotos} photos`,
-          `Hasta ${tier.maxPhotos} fotos`
-        );
+  useEffect(() => {
+    const quer = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const el = caixa.current;
+    if (quer || !el) return;
 
-  const featuredLabel =
-    tier.featuredDays > 0
-      ? tr(
-          `Destaque ${tier.featuredDays} dias`,
-          `Featured ${tier.featuredDays} days`,
-          `Destacado ${tier.featuredDays} días`
-        )
-      : null;
+    /* Conta quando chega ao ecrã, e uma vez só. O `disconnect` no primeiro
+       cruzamento é o que garante que não volta a contar ao rolar para trás —
+       um preço que se conta duas vezes lê-se como um preço que mudou.
+
+       As duas escritas de estado vivem dentro do observador e não no corpo do
+       efeito: um `setState` na montagem é um render a mais por uma coisa que
+       ainda não se vê, e o lint apanha-o. Aqui só acontecem quando o preço
+       entra no ecrã, que é o instante em que alguma coisa muda mesmo. */
+    const observador = new IntersectionObserver(
+      ([entrada]) => {
+        if (!entrada.isIntersecting) return;
+        setDuracao(duracaoDoToken("--d-nascer", 700));
+        setAContar(true);
+        observador.disconnect();
+      },
+      { threshold: 0.4 }
+    );
+    observador.observe(el);
+    return () => observador.disconnect();
+  }, []);
+
+  const mostrado = useContagem(EUROS, duracao, aContar);
+
+  const incluido = [v.preco_dias, v.preco_fotos, v.preco_comissao, v.preco_revisao];
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`relative flex flex-col p-4 sm:p-5 rounded-xl border-2 transition-all duration-300 text-left cursor-pointer touch-manipulation ${
-        isSelected
-          ? "border-[var(--foreground-strong)] bg-[var(--elevate-1)]"
-          : "border-[var(--border)] bg-[var(--background-secondary)]/50 hover:border-[var(--border-hover)]"
-      }`}
-    >
-      {/* Popular badge */}
-      {isPopular && (
-        <span className="selo selo-destaque absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full whitespace-nowrap">
-          {tr("Popular", "Popular", "Popular")}
+    <div ref={caixa} className="mx-auto mb-12 max-w-xl px-4 text-center">
+      <h2 className="rotulo mb-5">{v.preco_titulo}</h2>
+
+      {/* O número. `aria-hidden` na contagem e o valor final no rótulo: um
+          leitor de ecrã que anunciasse 0, 14, 47, 79 lia um preço a mudar. */}
+      <p className="mb-1 flex items-baseline justify-center gap-1">
+        <span
+          aria-hidden="true"
+          className="preco text-6xl leading-none text-[var(--foreground-strong)] sm:text-7xl"
+        >
+          {mostrado}
+          <span className="text-[0.5em] align-super">€</span>
         </span>
-      )}
+        <span className="sr-only">{EUROS} €</span>
+      </p>
+      <p className="meta mb-7">{v.preco_sufixo}</p>
 
-      {/* Selection indicator */}
-      <div
-        className={`absolute top-3 right-3 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-          isSelected
-            ? "border-[var(--foreground-strong)] bg-[var(--foreground-strong)]"
-            : "border-[var(--foreground-muted)]/30"
-        }`}
-      >
-        {isSelected && <Check size={12} className="text-black" />}
-      </div>
-
-      {/* Icon + Name */}
-      <div className="flex items-center gap-2 mb-3 mt-1">
-        <span className="text-[var(--foreground-muted)]">{icon}</span>
-        <span className="font-semibold text-sm sm:text-base">{tier.name}</span>
-        {tier.badge && (
-          <span className="rotulo px-1.5 py-0.5 bg-[var(--elevate-1)] rounded">{tier.badge}</span>
-        )}
-      </div>
-
-      {/* Price */}
-      <div className="mb-3">
-        <span className="text-2xl sm:text-3xl font-bold text-[var(--foreground-muted)]">
-          {price}€
-        </span>
-        <span className="text-xs text-[var(--foreground-muted)] ml-1">
-          {tr("único", "one-time", "único")}
-        </span>
-      </div>
-
-      {/* Features */}
-      <ul className="space-y-1.5 text-xs sm:text-sm text-[var(--foreground-secondary)]">
-        <li className="flex items-center gap-2">
-          <Check size={12} className="text-[var(--foreground-muted)] flex-shrink-0" />
-          {durationLabel}
-        </li>
-        <li className="flex items-center gap-2">
-          <Check size={12} className="text-[var(--foreground-muted)] flex-shrink-0" />
-          {photosLabel}
-        </li>
-        {featuredLabel && (
-          <li className="flex items-center gap-2">
-            <Check size={12} className="text-[var(--foreground-muted)] flex-shrink-0" />
-            {featuredLabel}
+      <ul className="mx-auto mb-6 grid max-w-md gap-y-2 text-sm text-[var(--foreground-secondary)] sm:grid-cols-2 sm:gap-x-8">
+        {incluido.map((linha) => (
+          <li key={linha} className="text-left">
+            {linha}
           </li>
-        )}
-        {tierId === "premium" && (
-          <li className="flex items-center gap-2">
-            <Check size={12} className="text-[var(--foreground-muted)] flex-shrink-0" />
-            {tr("Promoção redes sociais", "Social media promotion", "Promoción redes sociales")}
-          </li>
-        )}
+        ))}
       </ul>
-    </button>
+
+      <p className="meta mx-auto max-w-md leading-relaxed">{v.preco_nota}</p>
+    </div>
   );
 }
