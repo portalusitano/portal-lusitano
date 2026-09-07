@@ -312,6 +312,28 @@ function RegistarContent() {
             {dentro ? t.common.continue : t.auth.login_account}
             <ArrowRight size={16} aria-hidden="true" />
           </LocalizedLink>
+
+          {/* ██ A saída de quem já tinha conta e não sabe a palavra-passe ██
+              Sem isto, a frase acima — «Se já tinha, entre com a sua
+              palavra-passe» — mandava alguém para uma porta e não lhe dava a
+              chave. Aconteceu, e está nos registos do Supabase: três
+              `user_repeated_signup` do mesmo endereço numa noite, duas
+              entradas falhadas, e **zero** pedidos de recuperação. A pessoa
+              tentou criar conta outra vez, três vezes, porque era a única
+              coisa que o ecrã lhe oferecia.
+
+              Fica aqui para toda a gente, e não só para quem já tem conta: o
+              ecrã é o mesmo nos dois casos de propósito — qual deles é, é o
+              que o Supabase esconde para que o registo não sirva para
+              descobrir quem tem conta no site. */}
+          {!dentro && (
+            <LocalizedLink
+              href="/recuperar-senha"
+              className="meta mt-4 inline-block underline decoration-[var(--border)] underline-offset-4 hover:text-[var(--foreground)]"
+            >
+              {t.auth.forgot_password}
+            </LocalizedLink>
+          )}
         </div>
       </div>
     );
