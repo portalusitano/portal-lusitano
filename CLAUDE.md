@@ -226,6 +226,47 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
      sobreposições continuam em zero. Os 0,2 que restam são o caso honesto:
      não havia sítio nenhum, e aí uma conta vale mais do que um silêncio.
 
+     **E o painel aberto era escrito por cima.** A mancha fechada é um disco de
+     22px, mas aberta o painel ocupa 170×255 no computador e 160×210 no
+     telemóvel — e nada na colocação dos nomes sabia que ele existia. As
+     manchas nascem à montagem e os nomes refazem-se a cada reagrupamento,
+     logo em ordem de DOM cada nome vem depois de cada mancha e pintava por
+     cima dela; o `z-index: 2` do próprio painel nunca podia responder, porque
+     o `will-change: transform` faz da `.globo-mancha` um contexto de
+     empilhamento e esse 2 só vale lá dentro. Perdiam-se os dois: texto a 12px
+     sobre texto a 12px não é nenhum dos dois. Medido, abrindo todas as
+     manchas de oito carregamentos por vista: **46 caixas por cima do painel
+     em 16 painéis no computador e 73 em 24 no telemóvel** — cerca de três por
+     painel.
+
+     Dizer à colocação que ali há uma caixa ocupada era a saída errada, e por
+     duas razões que o ficheiro já tinha escrito: os nomes saltariam no
+     instante em que o painel abre — o alvo a fugir de debaixo do dedo de quem
+     acabou de carregar —, e os que não achassem lugar novo cairiam nas
+     sobras, ou seja **perdiam-se por causa de uma abertura**. A ficha rápida
+     não empurra ninguém pela mesma razão, e esta é a mesma casa.
+
+     A resposta são duas metades da mesma afirmação — _o painel está à
+     frente_. Em CSS a mancha aberta sobe (`z-index: 3`, acima do 2 da
+     etiqueta escolhida). E no motor, quem cai na caixa do painel recua a
+     zero enquanto ele estiver aberto — nomes e algarismos, menos o algarismo
+     dono do painel. Não é esconder informação: o painel é opaco e já os
+     tapava. O que ele não sabe fazer é tapá-los **inteiros**, e meio nome à
+     borda de um painel lê-se como um erro de desenho. Apagar é a mesma
+     cobertura dita com franqueza, e o esbatimento de `--d-fast` que a
+     etiqueta já tem trata da passagem — é o tempo dos hovers e dos botões,
+     que é o gesto que abre isto.
+
+     Nada disto toca na colocação: a etiqueta continua colocada, a caixa dela
+     continua no depósito, e a caixa da mancha **fechada** não cresce um pixel
+     — o `lib/globo/manchas` não foi tocado e os 600 quadros dos testes dele
+     continuam de pé. Medido depois, nos mesmos 35 painéis: **0 caixas por
+     cima do painel, 0 nomes deslocados por abrir, 0 sobreposições entre nomes
+     e algarismos**, e ao fechar todos os nomes voltam ao mesmo pixel e à mesma
+     opacidade. O painel é medido com a animação de abertura calada, como a
+     ficha rápida já fazia: a 95% do tamanho a correcção de borda saía 4px
+     curta e a caixa do véu 8×13 mais pequena do que o painel que se vê.
+
    - **As setas percorrem as vinte e nove**, por latitude, de norte para sul,
      e cada passo traz a coudelaria à vista antes de lhe dar o foco. A
      tabulação continua a passar só pelos nomes que se lêem: uma segunda rota
