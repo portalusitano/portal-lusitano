@@ -159,8 +159,36 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
      As manchas calculam-se **depois** da colocação e só apanham as sobras —
      nunca podem tirar o nome a ninguém. Agrupam no ecrã e não no terreno, e
      por isso desfazem-se ao aproximar: quem mexe na roda tem recompensa
-     visível. Medido: 29 de 29 com conta no ecrã, 0 sobreposições contando
-     manchas e nomes juntos.
+     visível.
+
+     **E isto era mentira em cerca de 7% dos carregamentos.** A colocação de uma
+     mancha tentava vinte e cinco sítios — o centro do ajuntamento e três anéis
+     de oito, até 68px — e, se estivessem todos ocupados, **desistia em
+     silêncio** (`if (!posta) continue`). Desistir ali não deixa um algarismo por
+     escrever: **apaga todas as coudelarias que esse algarismo estava a contar**.
+     Uma lista de vinte e cinco palpites não é uma procura, e onde ela se
+     esgotava a promessa desta linha calava-se. O quadro que decide é um só —
+     depois de a entrada assentar o ciclo pára —, por isso nunca havia segunda
+     tentativa.
+
+     A resposta já estava no ficheiro, noutro sítio: uma sobra sozinha não ganha
+     mancha própria se houver uma ao lado — junta-se a ela, porque «a conta de
+     uma zona vale mais do que duas contas ao lado uma da outra». A mesma regra
+     fecha o buraco. **Um ajuntamento que não acha lugar é adoptado pelo mais
+     próximo que achou**, e só se nada tiver sido posto é que se abre uma espiral
+     à janela toda. A decisão mudou-se para `lib/globo/manchas.ts`, onde é uma
+     função total sem um ramo que deite fora um membro, e onde duas invariantes
+     estão fixadas por testes sobre 600 quadros apertados gerados ao acaso: **cada
+     sobra é contada exactamente uma vez**, e **nenhum algarismo toca num nome,
+     noutro algarismo ou na borda**. Há uma excepção, e é testada: se não existir
+     uma única posição livre na janela inteira, devolve-se o que se conseguiu em
+     vez de escrever por cima de um nome — um nome apagado é pior do que uma
+     conta por escrever, e o quadro seguinte tenta outra vez.
+
+     Medido: 29 de 29 com conta no ecrã, 0 sobreposições contando manchas e nomes
+     juntos, em 40 carregamentos a 1400×950 e 40 a 390×700. Antes desta correcção
+     o telemóvel dava 39 em 40.
+
    - **As setas percorrem as vinte e nove**, por latitude, de norte para sul,
      e cada passo traz a coudelaria à vista antes de lhe dar o foco. A
      tabulação continua a passar só pelos nomes que se lêem: uma segunda rota
@@ -188,7 +216,28 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
      sempre acesa onde há mais do que uma; uma argola mais aberta em quem
      está a ser apontado. O destaque fica no tamanho do ponto, que é a
      hierarquia mais fraca das três de propósito — é a que menos importa a
-     quem está a apontar. Era um halo aditivo de dez pixéis com cauda: um
+     quem está a apontar.
+
+     **E o alfinete tem agora um verbo próprio: o nome é «ir», o alfinete é
+     «conta-me mais».** Carregar no nome continua a chegar à ficha num passo — é
+     uma âncora a sério, com o botão do meio e o Ctrl —, e carregar no alfinete
+     abre a ficha rápida por cima do globo. Antes o alfinete era um segundo botão
+     para o mesmo destino: 44 pixéis de alvo a não dizer nada de novo. Dois
+     alvos, dois verbos, e ninguém perde um passo — nem no telemóvel, onde
+     apontar não existe.
+
+     **A ficha rápida não pode empurrar um nome**, e isso não é uma esperança: é
+     `position: absolute` dentro da caixa do próprio nome, tal como o painel da
+     mancha está dentro do algarismo. Um filho absoluto não conta para o
+     `offsetWidth`/`offsetHeight` do pai — e esses dois números **são** a caixa do
+     teste de colisão. Também não precisa de ser vista pelo `medirEstorvos`,
+     porque não flutua por cima de nada: é filha da camada que o motor já
+     governa. Medido, de fichada fechada contra aberta: todos os nomes colocados
+     no mesmo pixel, e 0 sobreposições nas duas. E o que se mostra lá dentro sai
+     do que a base tem: sem `foto_capa` não há fotografia nem um rectângulo
+     cinzento a fingir uma, e sem `num_cavalos` não há número nem um travessão.
+     Uma fotografia por vez, e só a pedido — abrir o mapa custa cinco imagens,
+     abrir uma ficha custa seis. Era um halo aditivo de dez pixéis com cauda: um
      brilho não é informação, e **aditivo não sabe escurecer**, por isso
      sobre o Alentejo ao sol o ponto branco desaparecia e sobre o mar de
      noite era uma bola. O mesmo alfinete lia-se com dois pesos conforme o
@@ -197,6 +246,7 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
      uma grandeza e não um sinal — e a olho era indistinguível de um
      destaque. O carimbo tem sempre o mesmo lado; o que muda de estado é o
      desenho lá dentro.
+
    - **Escolher uma coudelaria é um movimento só.** Entre carregar num nome
      e a página mudar não acontecia nada: a ficha aparecia sem que nada
      tivesse dito qual dos vinte e nove pontos tinha sido escolhido. Agora
@@ -227,6 +277,7 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
      caixas passaram a depósitos com contagem, os testes a voltas à mão, e
      as posições comparam-se em números antes de se montar a cadeia do
      `translate3d`.
+
 5. **Holofote na grelha** — `<GrelhaHolofote>` escreve a posição do rato em
    coordenadas de cada cartão (`--px`, `--py`) e o `.cartao-holofote` acende
    com ela a hairline e um halo. Como os cartões todos lêem a mesma luz, ela

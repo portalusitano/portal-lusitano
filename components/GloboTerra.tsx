@@ -3,9 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { nomeCurto, sitioCurto } from "@/lib/nomes-globo";
+import { factosDaFicha, resumoDaFicha, segundaLinha } from "@/lib/globo/ficha";
+import { capaDoCartao } from "@/lib/directorio-capas";
 import * as THREE from "three";
 import { curvaDoToken, duracaoDoToken } from "@/lib/curvas-css";
 import { resolverCoordenadas, type CoudelariaNoMapa } from "@/lib/coordenadas-coudelarias";
+import { colocarManchas } from "@/lib/globo/manchas";
 import { agrupar, kmPorPixel, raioEmDegraus } from "@/lib/agrupar-globo";
 
 /*
@@ -1532,6 +1535,198 @@ export default function GloboTerra({
     /** As etiquetas que existem neste momento. Muda a cada reagrupamento. */
     let etiquetas: Etiqueta[] = [];
 
+    /* ── A ficha rápida ───────────────────────────────────────────────────
+     *
+     * Um ponto no globo dizia o nome e a terra, e mais nada. Para saber se
+     * valia a pena, era preciso sair da página — e sair da página é o passo
+     * caro: perde-se o enquadramento, perde-se o sítio na lista, e voltar
+     * custa um carregamento. A base tem o que falta para decidir antes:
+     * fotografia, quantos cavalos, a região, e a descrição.
+     *
+     * ── Porque é que abre no gesto deliberado e não ao passar por cima ────
+     * O componente já tinha a distinção escrita: **apontar acende, abrir
+     * desloca**. Acender não move nada — a caixa cresce a partir do canto
+     * virado para o alfinete, logo cresce para longe do ponteiro. Abrir é
+     * outra coisa: aparece conteúdo onde o dedo já está. Por isso a lista de
+     * um ajuntamento só abre ao carregar e ao receber o foco.
+     *
+     * A ficha entra nessa mesma casa e não inventa uma segunda: abre no
+     * `aberta`, que é o carregar no alfinete e o foco do teclado. Assim as
+     * setas que já percorrem as vinte e nove passam a contar alguma coisa em
+     * cada passo, sem uma linha de código de teclado nova, e o toque tem o
+     * gesto que precisa — no telemóvel não há apontar. O nome continua a ser
+     * uma ligação de um passo: **o nome é «ir», o alfinete é «diz-me mais»**.
+     *
+     * ── Porque é que isto não parte a colocação de etiquetas ──────────────
+     * A ficha é `position: absolute` **dentro** da caixa da etiqueta, como o
+     * painel da mancha é dentro do algarismo. Sendo absoluta, não entra no
+     * `offsetWidth`/`offsetHeight` do pai — e é dessas duas medidas que sai a
+     * caixa do teste de colisão. Logo: abrir a ficha não muda a caixa de
+     * ninguém, não desloca nome nenhum e não obriga a remedir.
+     *
+     * É também por isso que não precisa de ser vista pelo `medirEstorvos`:
+     * esse mede quem está **fixo no ecrã** por cima da lona, e a ficha não é
+     * — anda com a etiqueta, é filha dela, e vive dentro da camada que o
+     * motor já governa. Uma peça flutuante à parte, que o `medirEstorvos` não
+     * visse, punha os nomes a serem escritos por baixo dela; esta não pode
+     * estar nesse caso porque não flutua sobre coisa nenhuma.
+     *
+     * ── O que não faz ─────────────────────────────────────────────────────
+     * Não inventa dados. Sem `foto_capa` não há fotografia e não há caixa
+     * cinzenta a fingir uma; sem `num_cavalos` não há número e não há «—».
+     * Um campo vazio a dizer que está vazio ocupa o mesmo que um facto e não
+     * é um. A escolha do que mostrar está no `lib/globo/ficha`, com testes.
+     */
+    type Ficha = {
+      nó: HTMLElement;
+      aberta: boolean;
+      mostrar: (aberto: boolean) => void;
+    };
+
+    const montarFicha = (
+      c: CoudelariaNoMapa,
+      caixa: HTMLElement,
+      cabeca: HTMLElement
+    ): Ficha | null => {
+      const factos = factosDaFicha(c);
+      const resumo = resumoDaFicha(c.descricao);
+      /* A capa passa pela mesma regra do resto do site: uma fotografia de
+         banco de imagens apresentada como sendo daquela coudelaria é a mesma
+         afirmação falsa em qualquer página, e quem a filtra é o
+         `capaDoCartao` — um só sítio, e não uma segunda regra aqui. */
+      const capa = capaDoCartao(c.foto_capa, c.slug, {});
+      if (!capa && !factos.length && !resumo) return null;
+
+      const nó = document.createElement("div");
+      nó.className = "globo-ficha";
+      /* Nasce fora do DOM acessível e fora do rato: enquanto está fechada não
+         é uma paragem de tabulação nem um alvo. */
+      nó.hidden = true;
+
+      let img: HTMLImageElement | null = null;
+      if (capa) {
+        const moldura = document.createElement("span");
+        moldura.className = "globo-ficha__capa";
+        img = document.createElement("img");
+        img.alt = "";
+        img.decoding = "async";
+        img.loading = "lazy";
+        /* Uma capa que não carrega deixa a moldura vazia, e uma moldura vazia
+           é uma mancha cinzenta a fingir uma fotografia. Some. */
+        img.addEventListener("error", () => moldura.remove(), { once: true });
+        moldura.appendChild(img);
+        nó.appendChild(moldura);
+      }
+
+      if (factos.length) {
+        const linha = document.createElement("p");
+        linha.className = "globo-ficha__factos";
+        for (const f of factos) {
+          const item = document.createElement("span");
+          item.className = "globo-ficha__facto";
+          item.textContent = f;
+          linha.appendChild(item);
+        }
+        nó.appendChild(linha);
+      }
+
+      if (resumo) {
+        const texto = document.createElement("p");
+        texto.className = "globo-ficha__texto";
+        texto.textContent = resumo;
+        nó.appendChild(texto);
+      }
+
+      /* A saída, e é explícita de propósito: quem chega aqui pelo toque não
+         passou por cima de nada, e o nome lá em cima pode estar tapado pelo
+         dedo. Uma ficha que informa e não diz por onde se vai obriga a
+         adivinhar. */
+      const destino = hrefDe(c);
+      if (destino || aoEscolherRef.current) {
+        const ir = document.createElement(destino ? "a" : "button");
+        if (ir instanceof HTMLButtonElement) ir.type = "button";
+        if (ir instanceof HTMLAnchorElement && destino) ir.href = destino;
+        ir.className = "globo-ficha__ir";
+        ir.textContent = "Ver coudelaria";
+        ir.setAttribute("aria-label", `Ver a ficha de ${c.nome}`);
+        ir.addEventListener("click", (ev) => {
+          ev.stopPropagation();
+          if (arrastou) {
+            ev.preventDefault();
+            return;
+          }
+          escolher(c, ev as MouseEvent);
+        });
+        nó.appendChild(ir);
+      }
+
+      nó.id = `globo-ficha-${c.id}`;
+      caixa.appendChild(nó);
+
+      /* ── Encostar à borda em vez de sair por ela ──────────────────────
+         A camada dos nomes é `overflow: hidden` — tem de ser, senão um nome
+         junto à borda escorregava para fora da lona —, e por isso uma ficha
+         que não caiba não fica pendurada por fora: fica **cortada**. Medido a
+         390×700, com a ficha aberta sobre um ponto do lado direito: 216 px de
+         ficha a começar no pixel 213 de uma lona de 390, ou seja trinta e
+         nove por cento dela do lado de fora.
+
+         A correcção é a mesma que o painel da mancha já usa, e pela mesma
+         razão: mede-se **no momento em que abre**, uma vez, e escreve-se um
+         desvio. Não é por quadro — a ficha não anda sozinha, anda com a
+         etiqueta, e a etiqueta leva o desvio consigo. */
+      const encostar = () => {
+        nó.style.setProperty("--desvio-x", "0px");
+        nó.style.setProperty("--desvio-y", "0px");
+        /* Medir com a animação de abertura a correr é medir a ficha a 96% do
+           tamanho e fora do sítio — o `getBoundingClientRect` inclui a
+           transformação, e a transformação, neste instante, é o primeiro
+           quadro de um `scale(0.96)`. Medido: a correcção saía nove pixéis
+           curta e a ficha continuava três pixéis fora da lona.
+           Cala-se a animação, força-se um refluxo para o browser a esquecer,
+           mede-se, e devolve-se — a animação recomeça já a partir do sítio
+           corrigido, que é onde ela devia ter começado. */
+        nó.style.animation = "none";
+        void nó.offsetWidth;
+        const lona = camadaEtiquetas.getBoundingClientRect();
+        const r = nó.getBoundingClientRect();
+        const MARGEM = 6;
+        let dx = 0;
+        if (r.left < lona.left + MARGEM) dx = lona.left + MARGEM - r.left;
+        else if (r.right > lona.right - MARGEM) dx = lona.right - MARGEM - r.right;
+        let dy = 0;
+        /* Em cima manda a janela útil e não a lona: por baixo do cabeçalho
+           fixo a ficha não se lê, e é a mesma medida que os nomes usam. */
+        if (r.top < lona.top + topoUtil + MARGEM) dy = lona.top + topoUtil + MARGEM - r.top;
+        else if (r.bottom > lona.top + baseUtil - MARGEM) {
+          dy = lona.top + baseUtil - MARGEM - r.bottom;
+        }
+        if (dx) nó.style.setProperty("--desvio-x", `${Math.round(dx)}px`);
+        if (dy) nó.style.setProperty("--desvio-y", `${Math.round(dy)}px`);
+        nó.style.animation = "";
+      };
+
+      const peça: Ficha = {
+        nó,
+        aberta: false,
+        mostrar: (aberto: boolean) => {
+          peça.aberta = aberto;
+          nó.hidden = !aberto;
+          /* `aria-describedby` e não `aria-expanded`: a cabeça é uma ligação
+             para a ficha da coudelaria, e uma ligação com `aria-expanded`
+             anuncia que abre alguma coisa — o que ela faz é levar lá. O que a
+             peça faz é **descrever** o destino enquanto está à vista. */
+          if (aberto) cabeca.setAttribute("aria-describedby", nó.id);
+          else cabeca.removeAttribute("aria-describedby");
+          if (aberto) encostar();
+          /* O pedido da imagem só parte quando alguém pede a ficha. Criá-la
+             com `src` posto seriam vinte e nove pedidos de fotografia para
+             abrir um mapa em que nenhuma se vê. */
+          if (aberto && img && capa && !img.src) img.src = capa;
+        },
+      };
+      return peça;
+    };
     const criarEtiqueta = (
       coords: [number, number],
       membros: CoudelariaNoMapa[],
@@ -1630,6 +1825,8 @@ export default function GloboTerra({
       cabeca.append(titulo, subtitulo);
 
       let lista: HTMLUListElement | null = null;
+      /** A ficha rápida de um ponto com uma coudelaria só. Ver `montarFicha`. */
+      let fichaRapida: Ficha | null = null;
       const alvos = new Map<string, HTMLElement>();
 
       if (éGrupo) {
@@ -1697,11 +1894,17 @@ export default function GloboTerra({
         caixa.appendChild(lista);
       } else {
         titulo.textContent = nomeCurto(principal.nome);
-        subtitulo.textContent = sitioCurto(principal.localizacao);
+        /* A localidade sai quando o nome já a diz. «Coudelaria do Cartaxo»
+           com «Cartaxo» por baixo é a mesma palavra em dois tamanhos: não
+           acrescenta nada e come a segunda linha inteira, que é a linha que
+           decide se a etiqueta cabe num vale apertado. A regra está no
+           `lib/globo/ficha`, com testes. */
+        subtitulo.textContent = segundaLinha(principal.nome, principal.localizacao);
         cabeca.title = principal.nome;
         cabeca.setAttribute("aria-label", `${principal.nome}, ${principal.localizacao}`);
         cabeca.dataset.coudelaria = principal.id;
         alvos.set(principal.id, cabeca);
+        fichaRapida = montarFicha(principal, caixa, cabeca);
       }
 
       camadaEtiquetas.appendChild(nó);
@@ -1717,6 +1920,17 @@ export default function GloboTerra({
         cheia: { l: 0, a: 0 },
         curta: { l: 0, a: 0 },
         abrir: (aberto: boolean) => {
+          /* Um ponto que junta várias abre a lista de quem lá está; um ponto
+             com uma só abre a ficha rápida. São a mesma pergunta — «o que é
+             que aqui está?» — e por isso partilham o gesto e o atributo. */
+          if (fichaRapida) {
+            if (fichaRapida.aberta === aberto) return;
+            fichaRapida.mostrar(aberto);
+            nó.toggleAttribute("data-aberto", aberto);
+            /* Não se remede: a ficha é `position: absolute` e não entra na
+               caixa que o teste de colisão usa — ver a nota no `montarFicha`. */
+            return;
+          }
           if (!lista || lista.hidden !== aberto) return;
           lista.hidden = !aberto;
           cabeca.setAttribute("aria-expanded", String(aberto));
@@ -1928,13 +2142,9 @@ export default function GloboTerra({
       anterior: { t: string; op: string; aberta: boolean };
     };
 
-    /** Raio de ajuntamento, em pixéis de ecrã. Constante e não uma fracção da
-        lona: o que decide se dois nomes se estorvam é a distância em pixéis
-        entre eles, e essa não muda por a janela ser maior. */
-    const RAIO_MANCHA = 40;
-    /** Uma sobra solitária ainda se cola à mancha mais próxima até aqui —
-        melhor um algarismo que a inclui do que uma pinta anónima. */
-    const RAIO_ADOPCAO = 104;
+    /* O raio de ajuntamento e o de adopção vivem no `lib/globo/manchas`, com
+       a conta que os usa e os testes que os fixam. Uma constante escrita aqui
+       e outra lá seriam duas verdades sobre a mesma coisa. */
     let manchaAberta: Mancha | null = null;
     let manchaFixa: Mancha | null = null;
     let manchaSob: Mancha | null = null;
@@ -2121,48 +2331,25 @@ export default function GloboTerra({
       if (manchaSob === m) manchaSob = null;
     };
 
-    /** Onde a mancha tenta pousar, por ordem: em cima do ajuntamento e depois
-        em anéis cada vez mais largos à volta. Só precisa de fugir às caixas de
-        nome já colocadas — das pintas que ela própria representa não foge, que
-        é o ponto.
+    /* ── Onde é que os algarismos ficam ───────────────────────────────────
+       A decisão saiu daqui para o `lib/globo/manchas`, e a razão é que ela
+       tinha um buraco que só se via em sete por cento dos carregamentos:
+       o algarismo experimentava vinte e cinco sítios à volta do ajuntamento
+       e, se os vinte e cinco estivessem ocupados, **desistia em silêncio**.
+       Desistir ali não deixa um algarismo por escrever — apaga do ecrã todas
+       as coudelarias que ele contava. Medido a 1400×950: 25 de 29.
 
-        Três anéis e não um: com um só, treze das vinte e nove ficavam sem
-        lugar num quadro cheio de nomes e voltavam a ser pontos calados —
-        medido. Um algarismo a trinta pixéis do sítio ainda se lê como sendo
-        daquele ajuntamento; não se ler de todo é que não. */
-    const ANEL_MANCHA: readonly (readonly [number, number])[] = [
-      [0, 0],
-      ...[26, 46, 68].flatMap((r) =>
-        [0, 45, 90, 135, 180, 225, 270, 315].map(
-          (g) =>
-            [
-              Math.round(r * Math.cos((g * Math.PI) / 180)),
-              Math.round(r * Math.sin((g * Math.PI) / 180)),
-            ] as const
-        )
-      ),
-    ];
+       No módulo há três degraus (perto, adopção, longe) e dois testes que
+       fixam a promessa que o CLAUDE.md faz por escrito: nenhuma coudelaria
+       fica sem conta, e nenhum algarismo toca noutra caixa. Aqui fica só o
+       DOM — que nó recebe que conta, onde se põe, e quem se esconde. */
 
-    /* O algarismo é pequeno e não é texto: a folga com que se afasta de um
-       nome não tem de ser a folga entre dois nomes. Com os doze pixéis do
-       `FOLGA_X` não sobrava lugar nenhum num quadro cheio. */
-    const FOLGA_MANCHA = 5;
-    const bateMancha = (c: Caixa) => {
-      for (let i = 0; i < nColocadas; i++) {
-        const o = colocadas[i];
-        if (
-          c.x < o.x + o.l + FOLGA_MANCHA &&
-          c.x + c.l + FOLGA_MANCHA > o.x &&
-          c.y < o.y + o.a + FOLGA_MANCHA &&
-          c.y + c.a + FOLGA_MANCHA > o.y
-        ) {
-          return true;
-        }
-      }
-      return false;
-    };
+    /** As caixas já ocupadas, vistas como um vector simples para o módulo.
+        É reaproveitado de quadro para quadro: o que se reinicia é o
+        comprimento, e as caixas lá dentro são as mesmas do depósito. */
+    const ocupadasView: Caixa[] = [];
 
-    const agruparSobras = (l: number) => {
+    const agruparSobras = () => {
       for (const m of manchas) m.usada = false;
       const livres = sobras.filter((e) => e.noEcra);
       if (!livres.length) {
@@ -2170,103 +2357,37 @@ export default function GloboTerra({
         return;
       }
 
-      const r2 = RAIO_MANCHA * RAIO_MANCHA;
-      const dist2 = (a: Etiqueta, b: Etiqueta) =>
-        (a.ecraX - b.ecraX) ** 2 + (a.ecraY - b.ecraY) ** 2;
-      const usados = new Set<Etiqueta>();
-      const ajuntamentos: Etiqueta[][] = [];
+      ocupadasView.length = 0;
+      for (let i = 0; i < nColocadas; i++) ocupadasView.push(colocadas[i]);
 
-      /* Guloso pelo mais povoado: em cada volta lidera quem tiver mais
-         vizinhos ainda livres. Sai mais estável do que ir por ordem de
-         índice — a mesma nuvem de pontos dá sempre o mesmo desenho, e é a
-         estabilidade que impede o algarismo de saltitar ao arrastar. */
-      for (;;) {
-        let lider: Etiqueta | null = null;
-        let melhor = 0;
-        for (const e of livres) {
-          if (usados.has(e)) continue;
-          let n = 0;
-          for (const o of livres) if (!usados.has(o) && dist2(e, o) <= r2) n++;
-          if (n > melhor) {
-            melhor = n;
-            lider = e;
-          }
-        }
-        if (!lider) break;
-        const g = livres.filter((o) => !usados.has(o) && dist2(lider!, o) <= r2);
-        for (const o of g) usados.add(o);
-        ajuntamentos.push(g);
-      }
-
-      const cheios = ajuntamentos.filter((g) => g.length > 1);
-      /* Solitárias: primeiro tentam colar-se à mancha mais próxima — a conta
-         de uma zona vale mais do que duas contas ao lado uma da outra. Quem
-         não tiver nenhuma por perto fica com mancha própria, de uma só.
-
-         Um algarismo «1» parece pouco, e é de propósito que fica: continua a
-         dizer «aqui está uma coudelaria» e continua a abrir-se no nome dela,
-         que é tudo o que faltava ao ponto anónimo. Sem isto ficavam três
-         pontos calados no computador e três no telemóvel — medido —, e a
-         promessa de que nenhum ponto fica sem conta deixava de ser verdade. */
-      const adopcao2 = RAIO_ADOPCAO * RAIO_ADOPCAO;
-      for (const g of ajuntamentos) {
-        if (g.length !== 1) continue;
-        const [so] = g;
-        let alvo: Etiqueta[] | null = null;
-        let menor = adopcao2;
-        for (const c of cheios) {
-          const d = dist2(so, c[0]);
-          if (d < menor) {
-            menor = d;
-            alvo = c;
-          }
-        }
-        if (alvo) alvo.push(so);
-        else cheios.push(g);
-      }
-
-      // A mais povoada escolhe lugar primeiro.
-      cheios.sort((x, y) => y.length - x.length);
+      const postas = colocarManchas(livres, {
+        chip: chipMedida,
+        /* A janela útil, e não a lona: o motor não escreve por baixo do que
+           está fixo no ecrã. Os dois pixéis de folga são os mesmos que a
+           colocação dos nomes usa. */
+        janela: {
+          x0: 2,
+          y0: topoUtil + 2,
+          x1: larguraCaixa - 2,
+          y1: baseUtil - 2,
+        },
+        ocupadas: ocupadasView,
+      });
 
       let i = 0;
-      for (const g of cheios) {
+      for (const posta of postas) {
         if (i >= manchas.length) break;
         const m = manchas[i];
-        let cx = 0;
-        let cy = 0;
-        for (const e of g) {
-          cx += e.ecraX;
-          cy += e.ecraY;
-        }
-        cx /= g.length;
-        cy /= g.length;
 
-        let posta: Caixa | null = null;
-        for (const [dx, dy] of ANEL_MANCHA) {
-          const c = tentativa;
-          c.x = cx + dx - chipMedida.l / 2;
-          c.y = cy + dy - chipMedida.a / 2;
-          c.l = chipMedida.l;
-          c.a = chipMedida.a;
-          if (c.x < 2 || c.y < topoUtil + 2 || c.x + c.l > l - 2 || c.y + c.a > baseUtil - 2)
-            continue;
-          if (bateMancha(c)) continue;
-          posta = c;
-          break;
-        }
-        if (!posta) continue;
-
-        escreverMancha(
-          m,
-          g.flatMap((e) => e.membros)
-        );
+        escreverMancha(m, posta.membros);
         m.usada = true;
-        m.ecraX = posta.x + posta.l / 2;
-        m.ecraY = posta.y + posta.a / 2;
-        /* Entra na lista das caixas ocupadas para que a mancha seguinte não
-           lhe caia em cima — e para que, no quadro a seguir, nenhum nome
-           pouse por cima dela. */
-        guardarColocada(posta);
+        m.ecraX = posta.x + chipMedida.l / 2;
+        m.ecraY = posta.y + chipMedida.a / 2;
+        /* Entra na lista das caixas ocupadas para que, no quadro a seguir,
+           nenhum nome pouse por cima dela. O módulo já a pôs no `ocupadasView`
+           — que é o que impede duas manchas de se cruzarem dentro do mesmo
+           quadro —, mas quem sobrevive ao quadro é o depósito. */
+        guardarColocada({ x: posta.x, y: posta.y, l: chipMedida.l, a: chipMedida.a });
 
         const t = `translate3d(${Math.round(posta.x)}px, ${Math.round(posta.y)}px, 0)`;
         if (t !== m.anterior.t) {
@@ -2623,7 +2744,7 @@ export default function GloboTerra({
 
       /* Por fim, o que ficou sem nome. Corre depois de tudo colocado, e é
          por isso que não pode tirar um nome a ninguém. */
-      agruparSobras(l);
+      agruparSobras();
     };
 
     /* ── O alfinete e a etiqueta são a mesma coisa vista de dois sítios ────
@@ -2736,8 +2857,14 @@ export default function GloboTerra({
       if (paraAbrir !== aberta) {
         const antes = aberta;
         aberta = paraAbrir;
-        if (antes && antes.membros.length > 1) antes.abrir(false);
-        if (paraAbrir && paraAbrir.membros.length > 1) paraAbrir.abrir(true);
+        /* Sem a guarda do `membros.length > 1` que aqui estava: nessa altura
+           só um ajuntamento tinha o que abrir. Agora um ponto com uma
+           coudelaria só também tem — a ficha rápida —, e quem sabe distinguir
+           os dois casos é o próprio `abrir`, que é onde a etiqueta guarda o
+           que tem. A guarda aqui deixava a ficha por abrir para sempre e a
+           condição estava escrita em dois sítios. */
+        antes?.abrir(false);
+        paraAbrir?.abrir(true);
         precisaMedir = true;
         mudou = true;
       }
@@ -2848,8 +2975,28 @@ export default function GloboTerra({
        Um ponto que junta várias abre-se e mostra quem lá está: nenhum zoom
        as separa a esta altura, e por isso a escolha tem de ser dita por
        palavras. Carregar fora fecha-a. */
-    function accionar(e: Etiqueta, ev?: MouseEvent) {
-      if (e.membros.length > 1) {
+    /**
+     * `daLona` distingue os dois alvos que a mesma etiqueta oferece.
+     *
+     * **O nome é «ir»; o alfinete é «diz-me mais».** Carregar no nome leva à
+     * ficha da coudelaria num passo, como sempre levou — é uma ligação a
+     * sério e continua a dar o Ctrl+clique e o botão do meio. Carregar no
+     * alfinete abre a ficha rápida: fotografia, cavalos, região e as
+     * primeiras linhas da descrição, sem sair da página.
+     *
+     * Dois alvos e dois verbos, e nenhum deles perde um passo: quem já sabe
+     * que quer aquela coudelaria carrega no nome e vai; quem está a decidir
+     * carrega no ponto e fica. Antes, o alfinete e o nome faziam a mesma
+     * coisa — o ponto era um segundo botão para o mesmo destino, que é um
+     * alvo desperdiçado num mapa onde o alvo tem 44 pixéis e o nome tem
+     * cento e sessenta.
+     *
+     * Num ponto que junta várias não há ficha para mostrar — não há uma
+     * coudelaria, há cinco —, e os dois alvos continuam a fazer o mesmo:
+     * abrir a lista de quem lá está.
+     */
+    function accionar(e: Etiqueta, ev?: MouseEvent, daLona = false) {
+      if (e.membros.length > 1 || daLona) {
         fixa = fixa === e ? null : e;
         actualizarActivo();
       } else {
@@ -3277,7 +3424,7 @@ export default function GloboTerra({
       if (ponteiros.size === 0) travouEntrada = false;
       if (!clique || eraArrasto || soTravou || e.target !== lona) return;
       // O alfinete vale um clique tanto quanto o nome: é ele o alvo que se vê.
-      if (sobAlfinete) accionar(sobAlfinete);
+      if (sobAlfinete) accionar(sobAlfinete, undefined, true);
       // Carregar no vazio fecha a pilha ou a mancha que estiver aberta.
       else {
         if (fixa) {
