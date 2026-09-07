@@ -122,6 +122,27 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
      ponto onde a etiqueta assenta. O dourado ficou no alfinete e no fio e
      saiu do texto — das onze etiquetas legíveis ao mesmo tempo, seis eram
      douradas, o que já não é um acento mas uma segunda cor de texto.
+
+     **E vale também para um ponto que junta várias**, que era onde a regra
+     estava escrita mas não aplicada: o título era a terra e os nomes iam
+     sussurrados por baixo, a 10px e com reticências. Medido a 1400×950 com
+     as vinte e nove verdadeiras, **duas etiquetas por carregamento acabavam
+     em «…», e as duas eram destas** — e a linha cortada era a única que
+     trazia informação. «Vila Viçosa» em cima, «Vila Viçosa · Jupiter
+     Classical Dress…» por baixo: a mesma palavra em dois tamanhos e em dois
+     papéis, com a resposta cortada. Agora **duas coudelarias ganham uma
+     linha cada**, as duas com o peso de um nome — e o algarismo que se
+     encostava ao título saiu do sistema, porque duas linhas contam-se de
+     relance e «Alter do Chão 2» lia-se como o número da porta. **Três ou
+     mais** não cabem em linhas legíveis, e aí a conta é a resposta honesta:
+     o título passa a ser a conta e a terra desce para a segunda linha. A
+     terra só se escreve quando é uma ou duas, e não se escreve de todo se um
+     dos dois nomes já a disser. A regra é uma função pura em
+     `lib/globo/ficha`, com testes sobre os quatro ajuntamentos que os dados
+     verdadeiros fazem. Medido depois: **zero reticências nas três vistas**.
+     Custou um nome em telemóvel (dez para nove): as etiquetas de par são
+     mais altas, e quem sai passa a ser contado por uma mancha.
+
    - **O relevo da Ibéria vem de uma textura à parte** (`relevo.webp`,
      159KB, janela de −13…−2 de longitude e 35…45 de latitude). A textura
      global tem 19×30 texels para Portugal continental inteiro, esticados
@@ -188,6 +209,22 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
      Medido: 29 de 29 com conta no ecrã, 0 sobreposições contando manchas e nomes
      juntos, em 40 carregamentos a 1400×950 e 40 a 390×700. Antes desta correcção
      o telemóvel dava 39 em 40.
+
+     **E um algarismo «1» é um disco a tapar um nome.** A mancha existe para
+     contar o que não coube; contar _um_ não conta nada — dá um disco igual
+     ao que noutro sítio do mapa cobre nove, e obriga a apontá-lo para saber
+     uma coisa que uma palavra dizia de graça. Medido: 0,8 discos destes por
+     carregamento a 1400×950. Uma sobra que ficaria sozinha ganha por isso
+     uma segunda oportunidade, e só ela: a regra que lhe barrou o caminho —
+     nenhum nome pousa sobre outro alfinete — cede aqui pela mesma razão por
+     que já cedia à etiqueta apontada, porque a dúvida que ela previne é
+     menor do que a de um ponto que não diz nada, e o fio continua a apontar
+     o alfinete. O que **não** cede é a colisão entre nomes. O resgate corre
+     antes de os algarismos irem para o DOM, e o que sobrar recoloca-se
+     contra a lista já com o nome novo lá dentro — nenhum algarismo aterra em
+     cima do que se acabou de escrever. Medido depois: 0,8 → 0,2, e as
+     sobreposições continuam em zero. Os 0,2 que restam são o caso honesto:
+     não havia sítio nenhum, e aí uma conta vale mais do que um silêncio.
 
    - **As setas percorrem as vinte e nove**, por latitude, de norte para sul,
      e cada passo traz a coudelaria à vista antes de lhe dar o foco. A

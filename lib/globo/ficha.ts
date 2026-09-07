@@ -108,5 +108,58 @@ export function resumoDaFicha(descricao: string | null | undefined, tecto = 180)
   return `${corte.slice(0, espaco > 0 ? espaco : tecto).trim()}…`;
 }
 
+/**
+ * O que um ponto que junta várias coudelarias escreve.
+ *
+ * ── Porque é que isto mudou ────────────────────────────────────────────────
+ * O título era a terra e os nomes iam sussurrados por baixo, a 10px e com
+ * reticências. Medido a 1400×950 com as vinte e nove verdadeiras: duas
+ * etiquetas por carregamento acabavam em «…», e as duas eram destas. A linha
+ * cortada era a única que trazia informação — «Vila Viçosa · Jupiter
+ * Classical Dress…» — e o título por cima dela dizia «Vila Viçosa», que é ao
+ * mesmo tempo a terra e o começo do primeiro nome. A mesma palavra em dois
+ * tamanhos e em dois papéis diferentes, com a resposta cortada por baixo.
+ *
+ * A regra que o CLAUDE.md escreveu para as etiquetas de uma coudelaria vale
+ * aqui pela mesma razão, palavra por palavra: «o que distingue duas
+ * coudelarias da mesma vila é o nome delas, e o sítio já está dito pelo ponto
+ * onde a etiqueta assenta».
+ *
+ * ── A regra ────────────────────────────────────────────────────────────────
+ * **Duas**: uma por linha, as duas com o peso de um nome. Duas linhas contam-
+ * -se de relance, e por isso o algarismo ao lado do título — que se lia
+ * colado à terra, «Alter do Chão 2», como se fosse o número da porta —
+ * deixa de ser preciso e sai do sistema.
+ *
+ * **Três ou mais**: já não cabem em linhas legíveis, e aí a conta é a
+ * resposta honesta. O título passa a ser a conta e a terra desce para a
+ * segunda linha, que é onde ela deixa de disputar o lugar aos nomes.
+ *
+ * A terra só se escreve quando é uma só, ou duas. A três já não há sítio
+ * comum nenhum: dizer «Ribatejo» a um ponto que junta cinco das doze do
+ * Ribatejo seria dizer uma coisa falsa em letra grande.
+ */
+export function linhasDoGrupo(membros: readonly { nome: string; localizacao: string }[]): {
+  nomes: string[];
+  conta: string;
+  sitio: string;
+} {
+  const terras = [...new Set(membros.map((m) => sitioCurto(m.localizacao)).filter(Boolean))];
+  const sitio = terras.length === 1 ? terras[0] : terras.length === 2 ? terras.join(" · ") : "";
+  if (membros.length === 2) {
+    /* A mesma regra da `segundaLinha`, aplicada ao par: se um dos dois nomes
+       já diz a terra, a terra não volta a escrever-se por baixo. «Vila Viçosa
+       / Jupiter Classical Dressage» com «Vila Viçosa» sussurrado em baixo é a
+       mesma palavra em dois tamanhos — e quem lê o par já sabe onde está. */
+    const dita = membros.some((m) => localidadeRepetida(m.nome, m.localizacao));
+    return {
+      nomes: membros.map((m) => nomeCurto(m.nome)),
+      conta: "",
+      sitio: dita ? "" : sitio,
+    };
+  }
+  return { nomes: [], conta: `${membros.length} coudelarias`, sitio };
+}
+
 /** O nome que a etiqueta escreve. Um só sítio, para não haver dois. */
 export { nomeCurto, sitioCurto };

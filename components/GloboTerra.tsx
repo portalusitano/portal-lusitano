@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { nomeCurto, sitioCurto } from "@/lib/nomes-globo";
-import { factosDaFicha, resumoDaFicha, segundaLinha } from "@/lib/globo/ficha";
+import { factosDaFicha, linhasDoGrupo, resumoDaFicha, segundaLinha } from "@/lib/globo/ficha";
 import { capaDoCartao } from "@/lib/directorio-capas";
 import * as THREE from "three";
 import { curvaDoToken, duracaoDoToken } from "@/lib/curvas-css";
@@ -1922,37 +1922,40 @@ export default function GloboTerra({
 
       if (éGrupo) {
         /* ── Como se chama a um ponto que junta várias ───────────────────
-           Quando as coudelarias do ajuntamento são todas da mesma terra, o
-           título é a terra — «Vila Viçosa 2» é verdade, e é o que se lê no
-           mapa. Quando não são, **não se inventa um sítio comum**: o título
-           passa a ser a conta, e são os nomes, por baixo, que dizem quem
-           ali está. Era esta a objecção que impedia o mapa de juntar pontos
-           vizinhos, e é assim que ela deixa de se aplicar. */
-        const terras = [...new Set(membros.map((m) => sitioCurto(m.localizacao)).filter(Boolean))];
-        /* Uma terra só: o título é a terra e o algarismo diz quantas.
-           Duas: dizem-se as duas, que continua a ser um sítio e não uma
-           invenção. Três ou mais: já não há sítio comum nenhum para dizer, e
-           o título passa a ser a conta — são os nomes, por baixo, que dizem
-           quem ali está. Dizer «Ribatejo» a um ponto que junta cinco das doze
-           do Ribatejo seria dizer uma coisa falsa em letra grande. */
-        titulo.textContent =
-          terras.length === 1
-            ? terras[0]
-            : terras.length === 2
-              ? terras.join(" · ")
-              : `${membros.length} coudelarias`;
-        if (terras.length === 1) {
-          const conta = document.createElement("span");
-          conta.className = "globo-etiqueta__conta";
-          conta.textContent = String(membros.length);
-          titulo.appendChild(conta);
+           A regra vive no `lib/globo/ficha`, com testes, e é a mesma que o
+           CLAUDE.md escreveu para as etiquetas de uma coudelaria só: **os
+           nomes em cima, a terra por baixo**. Duas coudelarias ganham uma
+           linha cada, as duas com o peso de um nome — duas linhas contam-se
+           de relance, e por isso o algarismo colado ao título deixou de ser
+           preciso e saiu. Três ou mais não cabem em linhas legíveis, e aí a
+           conta é a resposta honesta.
+
+           O que isto corrige, medido a 1400×950 com as vinte e nove
+           verdadeiras: duas etiquetas por carregamento acabavam em «…», e as
+           duas eram destas — a linha cortada era justamente a única que
+           trazia informação. */
+        const linhas = linhasDoGrupo(membros);
+        /* Os nomes vão os dois dentro do `__nome`, separados por uma quebra,
+           e não um em cada elemento. A razão é o `data-curto`: quando a
+           etiqueta não cabe inteira, o que se deita fora é o `__local` — e
+           deitar fora um nome de coudelaria para poupar uma linha seria
+           apagar do mapa uma das duas que este ponto existe para anunciar.
+           Assim o que cede é a terra, que o próprio ponto já diz. */
+        if (linhas.nomes.length) {
+          titulo.textContent = linhas.nomes[0];
+          for (const nome of linhas.nomes.slice(1)) {
+            titulo.appendChild(document.createElement("br"));
+            titulo.appendChild(document.createTextNode(nome));
+          }
+        } else {
+          titulo.textContent = linhas.conta;
         }
-        subtitulo.textContent = membros.map((m) => nomeCurto(m.nome)).join(" · ");
+        subtitulo.textContent = linhas.sitio;
         cabeca.setAttribute("aria-expanded", "false");
         cabeca.setAttribute(
           "aria-label",
-          terras.length
-            ? `${terras.join(", ")}: ${membros.length} coudelarias`
+          linhas.sitio
+            ? `${linhas.sitio}: ${membros.length} coudelarias`
             : `${membros.length} coudelarias aqui`
         );
 
@@ -2448,22 +2451,74 @@ export default function GloboTerra({
         return;
       }
 
-      ocupadasView.length = 0;
-      for (let i = 0; i < nColocadas; i++) ocupadasView.push(colocadas[i]);
-
-      const postas = colocarManchas(livres, {
-        chip: chipMedida,
+      /* A lista das caixas ocupadas monta-se a partir do depósito, e volta a
+         montar-se se entretanto se acrescentar um nome: o `colocarManchas`
+         **estende** o vector que recebe, e por isso não se pode reaproveitar
+         o de uma passagem anterior. */
+      const relerOcupadas = () => {
+        ocupadasView.length = 0;
+        for (let i = 0; i < nColocadas; i++) ocupadasView.push(colocadas[i]);
+      };
+      const janelaUtil = {
         /* A janela útil, e não a lona: o motor não escreve por baixo do que
            está fixo no ecrã. Os dois pixéis de folga são os mesmos que a
            colocação dos nomes usa. */
-        janela: {
-          x0: 2,
-          y0: topoUtil + 2,
-          x1: larguraCaixa - 2,
-          y1: baseUtil - 2,
-        },
+        x0: 2,
+        y0: topoUtil + 2,
+        x1: larguraCaixa - 2,
+        y1: baseUtil - 2,
+      };
+
+      relerOcupadas();
+      let postas = colocarManchas(livres, {
+        chip: chipMedida,
+        janela: janelaUtil,
         ocupadas: ocupadasView,
       });
+
+      /* ── Um algarismo «1» é um disco a tapar um nome ────────────────────
+         A mancha existe para contar o que não coube. Contar **um** não conta
+         nada: dá um disco do tamanho de um alfinete, igual ao que noutro
+         sítio do mapa cobre nove, e obriga a apontá-lo para saber uma coisa
+         que uma palavra dizia de graça. Medido a 1400×950 com as vinte e
+         nove verdadeiras: 0,8 discos destes por carregamento.
+
+         Um solitário ganha por isso uma segunda oportunidade, e só ele: a
+         regra que lhe barrou o caminho — nenhum nome pousa sobre outro
+         alfinete — cede aqui pela mesma razão por que já cedia à etiqueta
+         apontada. O que ela previne é a dúvida sobre a quem pertence o nome;
+         e essa dúvida é menor do que a de um ponto que não diz nada. O fio
+         continua a apontar-lhe o alfinete.
+
+         O que **não** cede é a colisão entre nomes: o `bate` fica de pé, e
+         por isso um nome resgatado nunca escreve por cima de outro. E como o
+         resgate acontece antes de os algarismos irem para o DOM, os que
+         sobrarem recolocam-se contra a lista já com o nome novo lá dentro —
+         nenhum algarismo aterra em cima do que se acabou de escrever. */
+      const resgatadas = new Set<Etiqueta>();
+      /* O módulo devolve coudelarias, não etiquetas — uma mancha é a conta de
+         quem lá está, e não a lista de quem a alimentou. Um algarismo «1» só
+         pode ter vindo de uma etiqueta de uma coudelaria só, e é por essa
+         que se procura. */
+      for (const posta of postas) {
+        if (posta.membros.length !== 1) continue;
+        const id = posta.membros[0].id;
+        const e = livres.find((x) => x.membros.length === 1 && x.membros[0].id === id);
+        if (e && resgatarNome(e)) resgatadas.add(e);
+      }
+      if (resgatadas.size) {
+        const restantes = livres.filter((e) => !resgatadas.has(e));
+        if (!restantes.length) {
+          for (const m of manchas) esconderMancha(m);
+          return;
+        }
+        relerOcupadas();
+        postas = colocarManchas(restantes, {
+          chip: chipMedida,
+          janela: janelaUtil,
+          ocupadas: ocupadasView,
+        });
+      }
 
       let i = 0;
       for (const posta of postas) {
@@ -2577,6 +2632,42 @@ export default function GloboTerra({
       for (let i = 0; i < nAlfinetesEcra; i++) {
         const p = alfinetesEcra[i];
         if (c.x < p.x + p.l && c.x + c.l > p.x && c.y < p.y + p.a && c.y + c.a > p.y) return true;
+      }
+      return false;
+    };
+
+    /**
+     * A segunda oportunidade de uma sobra que ficaria sozinha numa mancha.
+     *
+     * Corre depois de todos os nomes colocados e depois de se saber quem
+     * ficaria a contar-se a si próprio — ver a nota no `agruparSobras`.
+     * Percorre as mesmas oito hipóteses, nas mesmas duas formas, com uma só
+     * diferença: pode pousar sobre um alfinete. Não pode, nunca, pousar
+     * sobre outro nome ou sobre um algarismo já escrito.
+     *
+     * Devolve `true` se escreveu. A partir daí a etiqueta é uma colocada
+     * como as outras, e o quadro seguinte trata-a como tal — com a
+     * histerese do `e.ultimo` a segurá-la no sítio.
+     */
+    const resgatarNome = (e: Etiqueta): boolean => {
+      if (!e.noEcra) return false;
+      for (const medida of [e.cheia, e.curta]) {
+        if (!medida.l) continue;
+        for (let k = 0; k < hipoteses.length; k++) {
+          const h = hipoteses[k];
+          const c = caixaDe(e.ecraX, e.ecraY, medida, h);
+          const cabe =
+            c.x >= 2 &&
+            c.y >= topoUtil + 2 &&
+            c.x + c.l <= larguraCaixa - 2 &&
+            c.y + c.a <= baseUtil - 2;
+          if (!cabe || bate(c)) continue;
+          guardarColocada(c);
+          e.colocada = true;
+          e.ultimo = k;
+          escrever(e, c, h.lado, h.vert, medida === e.curta, veu(e));
+          return true;
+        }
       }
       return false;
     };
@@ -3987,8 +4078,7 @@ export default function GloboTerra({
       /* O `scrollHeight` só se pergunta se a primeira metade passar: é a
          leitura cara das duas, e na esmagadora maioria dos casos — um globo
          que é um bloco no meio de uma página — não é preciso perguntar. */
-      const prende =
-        cobreOEcra && document.documentElement.scrollHeight - window.innerHeight > 24;
+      const prende = cobreOEcra && document.documentElement.scrollHeight - window.innerHeight > 24;
       if (prende === globoEhOEcra) return;
       globoEhOEcra = prende;
       /* Um ouvinte não passivo prende o deslocamento mesmo que nunca chegue a

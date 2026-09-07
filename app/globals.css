@@ -2754,18 +2754,21 @@ body {
     display: none;
   }
 
-  /* Quantas coudelarias há neste ponto. Não é um selo: é um algarismo do
-     tamanho do texto à volta, para se ler sem roubar a linha. */
-  .globo-etiqueta__conta {
-    margin-left: 5px;
-    padding: 0 4px;
-    border-radius: 999px;
-    background: var(--elevate-2);
-    font-size: 9px;
-    font-variant-numeric: tabular-nums;
-    line-height: 14px;
-    vertical-align: 1px;
-    color: var(--foreground-strong);
+  /* ── Duas coudelarias no mesmo ponto: uma por linha ────────────────────
+     Aqui esteve um `.globo-etiqueta__conta` — um algarismo encostado ao
+     título. Saiu, e a razão é o que ele dizia quando o título era a terra:
+     «Alter do Chão 2» lê-se como o número da porta, não como a conta das
+     coudelarias que ali estão. Duas linhas dizem «duas» sem nenhum
+     algarismo, e dizem também **quais**, que é a pergunta a seguir.
+
+     O `text-overflow` não sabe reticenciar duas linhas de uma vez, mas cada
+     linha é `nowrap` e por isso reticencia-se sozinha. Quem trata de encurtar
+     a sério é o `lib/nomes-globo`, que corta pelo que distingue e não pelo
+     pixel onde a caixa acaba. */
+  .globo-etiqueta[data-grupo] .globo-etiqueta__nome {
+    /* A quebra vem de um `<br>` no JavaScript, não de o texto dar a volta:
+       um nome que se parte a meio lê-se pior do que um nome reticenciado. */
+    white-space: pre;
   }
 
   /* A pilha aberta: os nomes que estavam encostados uns aos outros, agora em
@@ -2808,9 +2811,10 @@ body {
      Onde não coube um nome, fica a conta. É a diferença entre uma nuvem de
      pintas anónimas e um mapa que diz «aqui estão sete».
 
-     É um algarismo, não um selo: a mesma família do `.globo-etiqueta__conta`
-     — hairline fria, fundo elevado, número em tabular — mas redondo e
-     autónomo, porque não se encosta a nome nenhum. Branco e não dourado: o
+     É um algarismo, não um selo: hairline fria, fundo elevado, número em
+     tabular — redondo e autónomo, porque não se encosta a nome nenhum. É o
+     único algarismo que restou no globo; o que se encostava ao título de um
+     ajuntamento saiu, e a nota está lá em cima. Branco e não dourado: o
      dourado é o acento e já saiu dos alfinetes pela mesma razão — repetido
      em cada mancha da grelha deixaria de assinalar seja o que for. */
 
