@@ -48,6 +48,8 @@ function LoginContent() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [globalError, setGlobalError] = useState("");
+  /** A entrada falhou por credenciais, e vale a pena lembrar o botão do Google. */
+  const [dicaDeEntrada, setDicaDeEntrada] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [loading, setLoading] = useState(false);
   const [shaking, setShaking] = useState(false);
@@ -103,10 +105,27 @@ function LoginContent() {
       const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
       if (authError) {
-        const msg = authError.message.includes("Invalid login")
-          ? t.auth.reserved_access
-          : authError.message;
-        setGlobalError(msg);
+        /* ── «Acesso Reservado» não dizia nada a ninguém ────────────────────
+           Era o que aparecia quando o email ou a palavra-passe não batiam
+           certo — e lê-se como «este site não é para si», que é uma coisa
+           diferente e que não tem solução nenhuma do lado de quem lê. É a
+           mensagem mais importante do site inteiro: é o que uma pessoa vê no
+           momento em que não consegue entrar, e tem de lhe dizer o que fazer a
+           seguir.
+
+           O que fica é o que se sabe — «o email ou a palavra-passe não estão
+           certos» — sem dizer qual dos dois, que é o que o Supabase esconde de
+           propósito para que a página de entrada não sirva para descobrir quem
+           tem conta.
+
+           E vai com a dica do Google, porque é a causa mais comum e a mais
+           invisível: quem criou a conta pelo botão que está mesmo aqui em cima
+           não tem palavra-passe nenhuma neste site, tenta uma, falha, e não
+           tem como adivinhar porquê. Dizê-lo não revela nada — vale para
+           qualquer pessoa que leia. */
+        const credenciais = authError.message.includes("Invalid login");
+        setGlobalError(credenciais ? t.auth.credenciais_erradas : authError.message);
+        setDicaDeEntrada(credenciais);
         abanar();
         return;
       }
@@ -163,7 +182,16 @@ function LoginContent() {
             className="mt-0.5 shrink-0 text-[var(--erro)]"
             aria-hidden="true"
           />
-          <span className="text-[var(--erro)]">{globalError || erroDeRegresso}</span>
+          <span className="min-w-0 text-[var(--erro)]">
+            {globalError || erroDeRegresso}
+            {/* A dica não é vermelha: não é uma segunda coisa que correu mal,
+                é a saída. Pintá-la da cor do erro fazia dela mais aviso. */}
+            {dicaDeEntrada && (
+              <span className="mt-1.5 block text-[var(--foreground-secondary)]">
+                {t.auth.credenciais_erradas_dica}
+              </span>
+            )}
+          </span>
         </div>
       )}
 

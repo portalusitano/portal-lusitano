@@ -1853,6 +1853,8 @@
   },
   "auth": {
     "reserved_access": "Acesso Reservado",
+    "credenciais_erradas": "O email ou a palavra-passe não estão certos.",
+    "credenciais_erradas_dica": "Se criou a conta com o Google, entre por aí — a palavra-passe é a da Google e não uma daqui.",
     "logging_in": "A Entrar...",
     "login_account": "Entrar na Conta",
     "login_desc": "Entre para gerir os seus anúncios, falar com compradores e receber alertas.",

@@ -5269,3 +5269,49 @@ html.light .barra-dir__seccao[data-busca]::after {
     }
   }
 }
+
+/* ==========================================================================
+ * O que o browser preenche sozinho
+ *
+ * O Chrome pinta os campos que preencheu com um fundo próprio — um azul muito
+ * claro — e **o `background-color` não lhe chega**: a regra vem da folha do
+ * agente com prioridade de agente, e uma declaração nossa, com `!important` ou
+ * sem ele, perde. Num site preto com texto branco, o resultado é o que se vê
+ * numa captura da página de entrada: dois rectângulos brancos com o email e a
+ * palavra-passe em cinzento claro, no meio de um cartão escuro. O formulário
+ * mais importante do site é o que fica pior.
+ *
+ * O que se pinta por cima é uma **sombra interior de mil pixéis**, que é a
+ * única propriedade que o autopreenchimento não reclama para si. Não é um
+ * truque bonito, é o único que existe — e é por isso que fica escrito aqui em
+ * vez de espalhado por cada formulário.
+ *
+ * **Sem camada, de propósito**, pela mesma razão que as outras duas excepções
+ * deste ficheiro: o CSS sem camada ganha a qualquer `@layer`, e as utilidades
+ * do Tailwind estão numa camada posterior à dos componentes. Dentro do
+ * `@layer components`, um `bg-[…]` escrito numa página apagava isto.
+ *
+ * O `-webkit-text-fill-color` é o par obrigatório: sem ele o texto continua
+ * com a cor que o agente lhe deu, e ficava cinzento sobre preto.
+ * ========================================================================== */
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--background-elevated) inset;
+  box-shadow: 0 0 0 1000px var(--background-elevated) inset;
+  -webkit-text-fill-color: var(--foreground-strong);
+  caret-color: var(--foreground-strong);
+  border-radius: inherit;
+}
+
+/* O Firefox tem a sua própria, e essa responde a `background-color` — mas só
+   com `!important`, e só nesta pseudo-classe. */
+input:autofill,
+textarea:autofill {
+  background-color: var(--background-elevated) !important;
+  color: var(--foreground-strong) !important;
+}

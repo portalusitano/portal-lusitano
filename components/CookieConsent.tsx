@@ -205,29 +205,98 @@ export default function CookieConsent() {
       // pedisse — no meio de um trabalho sobre outra coisa — e volta ao que
       // era. Com ela em baixo, quem chega vê o site primeiro, que é a ordem
       // certa das duas coisas.
-      className="fixed inset-x-3 bottom-3 z-[9998] mx-auto max-w-3xl opacity-0 animate-[slideUp_0.4s_cubic-bezier(0.22,1,0.36,1)_forwards] lg:inset-x-6 lg:bottom-6"
+      className="fixed inset-x-3 bottom-3 z-[9998] mx-auto max-w-5xl opacity-0 animate-[slideUp_0.4s_cubic-bezier(0.22,1,0.36,1)_forwards] lg:inset-x-6 lg:bottom-6"
       style={{ willChange: "transform, opacity", marginBottom: "env(safe-area-inset-bottom)" }}
     >
       <div
         ref={painelRef}
-        className="rounded-[28px] border border-[var(--border-soft)] bg-black/80 p-5 shadow-[0_12px_60px_rgba(0,0,0,0.7)] backdrop-blur-xl sm:p-6"
+        /* Opaca, e não a 80% ou a 94%.
+            Medido em duas capturas: com o fundo translúcido, o preço da página
+            de venda e a citação do Mestre Nuno Oliveira liam-se **através** do
+            texto dos cookies. Sobre preto, seis por cento de texto branco ainda
+            se lê — o pouco que passa não é uma transparência elegante, é uma
+            frase por cima de outra. O vidro é a borda e a sombra; o fundo é
+            fundo. */
+        className="rounded-[28px] border border-[var(--border-soft)] bg-[var(--background-elevated)] p-4 shadow-[0_12px_60px_rgba(0,0,0,0.7)] sm:p-6"
       >
-        <h2 className="titulo-seccao">{c.title}</h2>
-        <p className="mt-2 text-sm leading-relaxed text-[var(--foreground-secondary)]">
-          {c.description}{" "}
-          <LocalizedLink
-            href="/privacidade"
-            className="text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-2 hover:decoration-[var(--border-hover)]"
-          >
-            {c.policy}
-          </LocalizedLink>
-          .
-        </p>
+        {/* ── Uma barra tem de ter altura de barra ────────────────────────
+            Empilhada — título, parágrafo, dois botões, «Escolher», nota — dava
+            255 pixéis. Medido na página de entrada a 1280×900: tapava o botão
+            «Entrar na Conta». Uma barra que tapa a acção principal da página
+            onde assenta não é melhor do que a modal que aqui esteve.
+
+            A partir de `lg` o texto vai para a esquerda e as respostas para a
+            direita, que é o desenho que esta barra teve antes de virar cartão.
+            Abaixo disso empilha — num telemóvel não há duas colunas que valham
+            a pena. */}
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-8">
+          <div className="min-w-0 flex-1">
+            <h2 className="titulo-seccao">{c.title}</h2>
+            <p className="mt-1.5 text-sm leading-relaxed text-[var(--foreground-secondary)]">
+              {c.description}{" "}
+              <LocalizedLink
+                href="/privacidade"
+                className="text-[var(--foreground-strong)] underline decoration-[var(--border)] underline-offset-2 hover:decoration-[var(--border-hover)]"
+              >
+                {c.policy}
+              </LocalizedLink>
+              .
+            </p>
+          </div>
+
+          {/* Recusar e aceitar são gémeos: mesma classe, mesma largura, mesma
+              linha. É o que faz de recusar uma resposta tão fácil como
+              aceitar, e não uma saída escondida. O «Escolher» fica por baixo
+              deles, mais leve — é a terceira hipótese, não a primeira. */}
+          <div className="flex shrink-0 flex-col gap-2 lg:w-[22rem]">
+            {/* Lado a lado desde o telemóvel. Empilhados, a barra ia a 329px
+                num ecrã de 844 — 39% do ecrã para uma pergunta de sim ou não —
+                e tapava o botão de entrar da página de entrada. São duas
+                palavras cada uma; cabem. */}
+            <div className="flex flex-row gap-2">
+              <button
+                type="button"
+                onClick={() => registar(SO_ESSENCIAIS, "declined")}
+                className="btn btn-primario flex-1 rounded-full"
+              >
+                {c.reject_all}
+              </button>
+              <button
+                type="button"
+                onClick={() => registar(TUDO, "accepted")}
+                className="btn btn-primario flex-1 rounded-full"
+              >
+                {c.accept_all}
+              </button>
+            </div>
+            <div className="flex flex-row gap-2">
+              {detalhes && (
+                <button
+                  type="button"
+                  onClick={() => registar({ ...preferencias, essential: true }, "custom")}
+                  className="btn btn-secundario flex-1 rounded-full"
+                >
+                  {c.accept_selected}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setDetalhes((v) => !v)}
+                aria-expanded={detalhes}
+                className="btn btn-subtil flex-1 rounded-full"
+              >
+                {detalhes ? c.hide_details : c.customize}
+              </button>
+            </div>
+          </div>
+        </div>
 
         {/* As escolhas por categoria. Aparecem a pedido, mas a recusa não
-            depende delas — está na linha de baixo, a um clique. */}
+            depende delas — está na coluna da direita, a um clique. Em barra
+            larga vão a três colunas: empilhadas, empurravam as respostas para
+            fora do ecrã em portáteis baixos. */}
         {detalhes && (
-          <div className="mt-4 flex flex-col gap-2">
+          <div className="anim-crescer mt-4 grid gap-2 lg:grid-cols-3">
             {categorias.map((cat) => (
               <div
                 key={cat.chave}
@@ -252,47 +321,10 @@ export default function CookieConsent() {
           </div>
         )}
 
-        {/* Recusar e aceitar são gémeos: mesma classe, mesma largura, mesma
-            linha. É o que faz de recusar uma resposta tão fácil como
-            aceitar, e não uma saída escondida. */}
-        <div className="mt-5 flex flex-col gap-2.5 sm:flex-row">
-          <button
-            type="button"
-            onClick={() => registar(SO_ESSENCIAIS, "declined")}
-            className="btn btn-primario flex-1 rounded-full"
-          >
-            {c.reject_all}
-          </button>
-          <button
-            type="button"
-            onClick={() => registar(TUDO, "accepted")}
-            className="btn btn-primario flex-1 rounded-full"
-          >
-            {c.accept_all}
-          </button>
-        </div>
-
-        <div className="mt-2.5 flex flex-col gap-2.5 sm:flex-row">
-          {detalhes ? (
-            <button
-              type="button"
-              onClick={() => registar({ ...preferencias, essential: true }, "custom")}
-              className="btn btn-secundario flex-1 rounded-full"
-            >
-              {c.accept_selected}
-            </button>
-          ) : null}
-          <button
-            type="button"
-            onClick={() => setDetalhes((v) => !v)}
-            aria-expanded={detalhes}
-            className="btn btn-subtil flex-1 rounded-full"
-          >
-            {detalhes ? c.hide_details : c.customize}
-          </button>
-        </div>
-
-        <p className="meta mt-4 text-center">{c.reopen_hint}</p>
+        {/* A nota de que se pode voltar atrás. Fica ao pé do texto e não
+            centrada por baixo de tudo: numa barra larga, uma linha centrada no
+            meio de dois metros de nada não pertence a coisa nenhuma. */}
+        <p className="meta mt-3 hidden sm:block">{c.reopen_hint}</p>
       </div>
     </div>,
     document.body

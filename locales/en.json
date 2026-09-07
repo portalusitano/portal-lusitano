@@ -1853,6 +1853,8 @@
   },
   "auth": {
     "reserved_access": "Reserved Access",
+    "credenciais_erradas": "That email and password do not match.",
+    "credenciais_erradas_dica": "If you created the account with Google, sign in that way — the password is your Google one, not one from here.",
     "logging_in": "Logging in...",
     "login_account": "Sign In",
     "login_desc": "Sign in to manage your listings, talk to buyers and receive alerts.",
