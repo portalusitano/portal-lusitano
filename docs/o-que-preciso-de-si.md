@@ -293,6 +293,53 @@ trabalho existe para acabar. Há três `cron` no site (`alertas`, `email-drip`,
 
 ---
 
+## 10. Seis coudelarias têm duas moradas na base, e elas não concordam
+
+Isto é uma pergunta a si, porque conhece as coudelarias e eu não.
+
+A tabela `coudelarias` tem **dois pares de colunas de coordenadas**:
+`coordenadas_lat`/`coordenadas_lng` e `latitude`/`longitude`. O código lê
+sempre o primeiro par (`resolverCoordenadas`, em
+`lib/coordenadas-coudelarias.ts`); o segundo **nunca é lido por ninguém**.
+
+Das 29 coudelarias activas, **seis têm valores diferentes nos dois pares**:
+
+| coudelaria                    | localidade           | distância entre as duas |
+| ----------------------------- | -------------------- | ----------------------- |
+| Coudelaria Pedro Passanha     | Ferreira do Alentejo | **17,8 km**             |
+| Herdade da Malhadinha Nova    | Albernoa, Beja       | 13,0 km                 |
+| Coudelaria Torres Vaz Freire  | Alter do Chão        | 13,0 km                 |
+| Coudelaria Herdade do Azinhal | Urra, Portalegre     | 6,8 km                  |
+| Companhia das Lezírias        | Samora Correia       | 6,3 km                  |
+| Cavalos na Areia              | Torre, Comporta      | 4,0 km                  |
+
+**Porque é que isto importa mais do que parece:** o alfinete no mapa e o botão
+«Como chegar» da ficha saem daqui. Uma coordenada errada não é um pixel fora do
+sítio — é mandar alguém conduzir para o lado errado.
+
+**O que consegui apurar sozinho, e é pouco.** Comparei os dois pares com o
+centro da localidade que cada coudelaria declara, usando o mapa de localidades
+que o próprio código tem. Três das seis não têm a localidade nesse mapa e por
+isso não dá para as julgar. Das outras três:
+
+- **Torres Vaz Freire** — a coluna que se mostra põe-na a **12 km** de Alter do
+  Chão; a que não se lê põe-na a **2 km**. É a que parece mais errada das seis.
+- **Pedro Passanha** — a que se mostra está a 7,9 km de Ferreira do Alentejo, a
+  outra a 15,1 km. Aqui é a mostrada que parece melhor.
+- **Companhia das Lezírias** — 2,9 km contra 3,4 km. Empate técnico.
+
+**Não lhes toquei**, e não vou tocar por minha conta: uma coudelaria a 12 km da
+vila é perfeitamente normal — muitas são herdades no meio do campo — e o centro
+da localidade não é a morada da coudelaria. Escolher uma coluna a partir desta
+conta seria trocar um erro possível por um erro certo.
+
+**O que preciso de si:** abrir estas seis no Google Maps e dizer-me qual dos
+dois pontos é o portão. Com isso, corrijo os valores e **apago o par de colunas
+que não se lê** — dois pares de coordenadas na mesma tabela é uma armadilha
+montada para quem vier a seguir, que mais tarde ou mais cedo lê o par errado.
+
+---
+
 ## O que **não** vou fazer, e porquê
 
 **Não descarrego o stud-book da APSL para uma base nossa.** É a base de dados
