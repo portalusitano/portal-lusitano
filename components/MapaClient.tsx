@@ -582,6 +582,40 @@ export default function MapaClient({
     [router, language]
   );
 
+  /* ── Abrir o painel tem de levar o foco lá para dentro ─────────────────
+     O painel abre **para cima** do gatilho, e por isso está antes dele no
+     documento. Sem isto, a rota de teclado que a página desenhou não tem
+     saída: medido a 1400×950, do atalho «Saltar o globo e ir às regiões»
+     chega-se ao gatilho, carrega-se, o painel abre — e a tabulação seguinte
+     sai do conteúdo e aterra no rodapé do site, em «Encontrar cavalo».
+     Sessenta tabulações para a frente não encontram uma única região: a
+     ordem dá a volta à página e volta aos nomes do globo. O único caminho
+     para dentro era `Shift+Tab` duas vezes, que entra pelo fim da lista e é
+     o gesto de recuar a servir de gesto de entrar.
+
+     Quem abriu o painel abriu-o para escolher, por isso o foco vai com ele —
+     é a mesma regra que a `Pilha` já aplica quando se muda de nível, e a
+     mesma que faz sentido do comentário do Escape aqui abaixo, que já falava
+     do foco «que está lá dentro». Com rato não se vê nada: o anel é
+     `:focus-visible`. Fechar devolve-o ao gatilho, que é de onde saiu.
+
+     `preventScroll`: o painel é fixo e já está no ecrã; deixar o browser
+     rolar até ele arranca a página de onde a pessoa a deixou. */
+  const painelRegioes = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!regioesAbertas) return;
+    const nivel = painelRegioes.current?.querySelector<HTMLElement>(
+      '.pilha__nivel[data-fora="nao"]'
+    );
+    // O `data-foco` é a região de onde se veio, quando se está a voltar a
+    // ela; senão serve a primeira coisa que se possa focar — no nível de
+    // dentro é o botão de voltar, que é onde o foco deve assentar.
+    const destino =
+      nivel?.querySelector<HTMLElement>("[data-foco]") ??
+      nivel?.querySelector<HTMLElement>("button:not([disabled]), a[href]");
+    destino?.focus({ preventScroll: true });
+  }, [regioesAbertas]);
+
   /* ── Fechar o painel é o que a tecla de escape faz em todo o lado ───────
      O painel abre por cima do mapa. Sem esta tecla, quem o abriu tem de o ir
      fechar ao mesmo botão — e o foco, que está lá dentro, volta ao princípio
@@ -1082,6 +1116,7 @@ export default function MapaClient({
             >
               <div
                 id="mapa-regioes-painel"
+                ref={painelRegioes}
                 hidden={!regioesAbertas}
                 className="mapa-regioes__painel"
               >

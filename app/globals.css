@@ -3522,16 +3522,35 @@ body {
 
      Ganha chão próprio (mais fundo do que a pílula que o segura, que é o que
      um campo de entrada é: um poço, não uma pastilha), largura fixa para a
-     pílula não dançar, e a tecla que lhe salta o foco escrita ao lado. */
+     pílula não dançar, e a tecla que lhe salta o foco escrita ao lado.
+
+     ── E a largura fixa cedia à janela, não ao que se escreve ─────────────
+     Era `flex: 0 0 auto`, isto é: não encolhe. A pílula é `flex-wrap: nowrap`
+     e a fila lá dentro pede 362px — dois chips, a hairline, as folgas e estas
+     11rem —, mais 8 de folga da pílula e 24 da faixa: **394px de janela**. E
+     a pílula não tem `overflow`, por isso abaixo disso não corta, transborda.
+     Medido, sem tocar em mais nada: a 360 (a largura mais comum do Android) o
+     campo saía 8,8px pela direita da pílula e acabava a 3px da borda do ecrã,
+     com o canto redondo do vidro já fora; a 320 o chip «Mapa» começava em
+     **−16,8px** — dezassete pixéis do comando principal fora da janela, e
+     nenhuma barra por onde os ir buscar.
+
+     `flex: 0 1 11rem` mantém as 11rem como largura desejada e deixa-as ceder
+     só quando a janela não as dá. A razão da largura fixa fica de pé: o que
+     ela impede é a pílula mudar de tamanho **com o que se escreve**, e um
+     `<input>` não cresce com o texto — quem encolhe aqui é a janela, que não
+     muda a meio de quem está a escrever. Medido depois: 320 → 108,5px de
+     campo, 360 → 148,5, 375 → 163,5, 390 → 176 (nada muda), e nada fora da
+     janela em nenhuma delas. */
   .mapa-procura {
     position: relative;
-    flex: 0 0 auto;
-    width: 11rem;
+    flex: 0 1 11rem;
+    min-width: 0;
   }
 
   @media (min-width: 640px) {
     .mapa-procura {
-      width: 15rem;
+      flex-basis: 15rem;
     }
   }
 
@@ -3685,11 +3704,36 @@ body {
      a 390×844, com a quinta (o Minho, que tem uma) fora do ecrã e sem nada a
      dizer que existia. Uma lista de cinco que mostra três esconde o país.
 
-     O tecto sobe só neste nível, e continua muito longe do que o motor do
-     globo descarta: a regra dos 40% é sobre o rodapé inteiro, e medido com as
-     cinco à vista ele fica em 32% da lona nos dois ecrãs. */
+     ── E «32% nos dois ecrãs» era verdade em dois ecrãs só ────────────────
+     O tecto anterior — `min(34dvh, 340px)` — nunca chegava a apertar: cinco
+     linhas de 44px (o alvo de toque) dão 220px, e 34dvh só desce abaixo disso
+     em ecrãs mais baixos do que 647. Quem mandava era o conteúdo, e o conteúdo
+     está em pixéis enquanto o tecto dos 40% está em percentagem da lona. O
+     rodapé aberto mede **286px, sempre**: 220 de lista, 2 de hairlines, 8 de
+     folga, 44 de gatilho e 12 de encosto ao fundo. Isso é 34% de uma janela
+     de 844 e **40,9% de uma de 700** — e o motor do globo, que descarta o que
+     passa dos 40% por não distinguir uma barra de uma cortina, deixava de
+     fugir dele e escrevia os nomes por baixo do painel.
+
+     Medido a 390×700 com o painel aberto: 3 dos 10 nomes escritos ficavam
+     debaixo do painel; a 390×667, 5 dos 10. Invisíveis e por contar — nem
+     nome nem algarismo de mancha.
+
+     O tecto passa a ser o do rodapé inteiro, que é quem os 40% medem, e a
+     lista fica com o que sobra: 38dvh (dois pontos de folga) menos as 4,125rem
+     que as outras peças ocupam, menos a área segura de baixo, que num telefone
+     com barra de gestos empurra tudo para cima. As 340px continuam de tecto
+     para ecrãs altos.
+
+     Medido depois: 700 → 38,0% e **zero** nomes debaixo do painel (sete
+     legíveis, os mesmos sete de antes: os três que se perdiam passam a ser
+     contados numa mancha); 667 → 37,9% e zero, com sete legíveis contra cinco.
+     A 844 e a 950 nada muda — 33,9% e 27,7%, as cinco regiões inteiras. O que
+     se paga é abaixo dos ~758px de altura: a quinta região passa a pedir um
+     dedo de rolo, com a barra à vista a dizer que ela existe. Uma região a um
+     gesto de distância é mais barata do que uma coudelaria apagada. */
   .mapa-regioes__lista--regioes {
-    max-height: min(34dvh, 340px);
+    max-height: min(340px, calc(38dvh - 4.125rem - env(safe-area-inset-bottom, 0px)));
   }
 
   /* ── Quanto é que esta região pesa ─────────────────────────────────────
