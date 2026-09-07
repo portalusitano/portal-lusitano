@@ -217,3 +217,68 @@
     height: auto !important;
   }
 }
+
+/* ==========================================================================
+ * O ecrã de entrada tem de caber no ecrã
+ *
+ * Medido a 390×844, que é o telemóvel mais comum: a página de entrada media
+ * **979px**. Cento e trinta e cinco pixéis de rolo debaixo de um formulário de
+ * dois campos — e o comentário do `layout.tsx` já dizia, a propósito do
+ * desktop, porque é que isso importa: «uma página de entrada que não cabe no
+ * ecrã é a primeira coisa que o sítio faz mal à frente de quem ainda está a
+ * decidir se confia nele». Valia para 1280×900 e vale mais para um telemóvel,
+ * onde o teclado ainda vai comer metade do que resta.
+ *
+ * O que se corta, e é por esta ordem porque é a ordem do que menos custa:
+ *
+ * - **A citação** (32px de margem + 42 de texto = 74px). É o remate da página,
+ *   e um remate é a primeira coisa que sai quando não há sítio. Fica em ecrãs
+ *   altos, que é onde ela cabe sem empurrar nada.
+ * - **O botão «Voltar ao portal»** (24 + 44 = 68px). Sai porque é redundante:
+ *   a ferradura lá em cima **é** uma ligação para a página inicial, e a barra
+ *   do site tem a navegação toda. Não se perde uma saída, perde-se uma segunda
+ *   cópia dela.
+ *
+ * São 142px, e faltavam 135.
+ *
+ * ── Porque é a altura e não a largura ────────────────────────────────────
+ * Um telemóvel deitado é largo e baixo. Um `sm:` esconderia isto num telefone
+ * de pé e mostrá-lo-ia no mesmo telefone deitado, que é precisamente onde há
+ * menos altura. A pergunta é sobre a altura, e por isso pergunta-se pela
+ * altura.
+ *
+ * O limiar são 860px porque é o que separa os telemóveis (844, 852, 812, 736,
+ * 667) do portátil de 900 que o comentário do layout já tinha acertado — e
+ * esse continua a mostrar tudo.
+ * ========================================================================== */
+
+@media (max-height: 860px) {
+  .rodape-entrada__citacao,
+  .rodape-entrada__voltar {
+    display: none;
+  }
+}
+
+/* ── E os 64 pixéis reservados para uma barra que não está lá ──────────────
+ *
+ * O `globals.css` tem, sem camada, `@media (max-width: 1024px) { main {
+ * padding-bottom: 4rem } }` — folga para a navegação de fundo do telemóvel.
+ * Medido nestas páginas: **não há navegação de fundo nenhuma**. Os únicos
+ * elementos fixos ao fundo do ecrã em `/login` e `/registar` são a cortina de
+ * entrada, que sai sozinha, e a barra de cookies, que também. São 64 pixéis de
+ * preto a reservar sítio para uma coisa que não existe — e eram exactamente os
+ * 64 que faltavam para a página caber.
+ *
+ * Anula-se aqui e não lá: a regra existe por causa de páginas que têm essa
+ * barra, e desligá-la para todo o site a partir de uma medição feita em três
+ * páginas seria trocar um defeito conhecido por um desconhecido. É a mesma
+ * decisão, e pela mesma razão, que o `.mapa-palco` já toma para o `/mapa`.
+ *
+ * Sem camada, como a regra que anula: o CSS sem `@layer` ganha a qualquer
+ * `@layer`, e uma dentro de uma camada não lhe chegaria.
+ */
+@media (max-width: 1024px) {
+  body:has(.palco-auth) main {
+    padding-bottom: 0;
+  }
+}

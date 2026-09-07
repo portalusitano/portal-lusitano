@@ -24,13 +24,13 @@ export default function RodapeEntrada() {
 
   return (
     <>
-      <div className="animate-auth-fadeInUp auth-stagger-4 mt-6 flex justify-center">
+      <div className="rodape-entrada__voltar animate-auth-fadeInUp auth-stagger-4 mt-6 flex justify-center">
         <Link href="/" className="btn btn-subtil btn-sm rounded-full">
           ← {t.auth.back_to_portal}
         </Link>
       </div>
 
-      <blockquote className="animate-auth-fadeInUp auth-stagger-6 mt-8 text-center">
+      <blockquote className="rodape-entrada__citacao animate-auth-fadeInUp auth-stagger-6 mt-8 text-center">
         <p className="text-xs italic leading-relaxed text-[var(--foreground-muted)]">
           {t.auth.quote}
         </p>
