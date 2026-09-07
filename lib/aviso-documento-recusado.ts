@@ -23,34 +23,40 @@
  *    anúncio, não há conta, e a `referencia` não traz endereço nenhum. Nesse
  *    caso devolve-se a razão em vez de se falhar em silêncio.
  *
- * ## Quem chama isto, hoje: ninguém
+ * ## Quem chama isto
  *
- * E é a metade que falta a este trabalho. O instante em que a recusa acontece
- * é o `POST /api/admin/documentos/[id]/recusar`, e esse ficheiro pertence a
- * outra pessoa — está a ser mexido por outro agente enquanto isto se escreve.
- * A ligação é uma linha, a seguir ao `logger.info` dessa rota e antes do
- * `NextResponse.json`:
+ * Dois caminhos, e o segundo existe por causa do primeiro:
  *
- * ```ts
- * import { avisarDocumentoRecusado } from "@/lib/aviso-documento-recusado";
- * // …
- * const aviso = await avisarDocumentoRecusado(id);
- * if (!aviso.enviado) {
- *   logger.warn("[admin/documentos/recusar] vendedor não avisado", { id, razao: aviso.razao });
- * }
- * ```
+ * 1. **A recusa**, em `POST /api/admin/documentos/[id]/recusar`, no instante em
+ *    que ela acontece. Não deixa cair a recusa se o aviso falhar: a decisão de
+ *    quem revê já está gravada, e desfazê-la — ou devolver um erro a quem a
+ *    tomou — porque um serviço de e-mail não respondeu seria trocar um problema
+ *    por outro maior.
+ * 2. **A varredura diária**, em `GET /api/cron/avisos-de-recusa`, que apanha o
+ *    que ficou por avisar. É a metade que faltava: sem ela, um aviso que não
+ *    saísse ficava um `logger.warn` e mais nada, e o vendedor que pagou e cujo
+ *    Livro Azul foi recusado esperava para sempre — que é o defeito que todo
+ *    este trabalho existe para acabar.
  *
- * Repare-se no que ela **não** faz: não deixa cair a recusa se o aviso falhar.
- * A decisão de quem revê já está gravada, e desfazê-la — ou devolver um erro a
- * quem a tomou — porque um serviço de e-mail não respondeu seria trocar um
- * problema por outro maior.
+ * ## O que escreve, e é o que torna a varredura possível
  *
- * ## O que não faz
+ * Duas colunas, e nunca as duas ao mesmo tempo:
  *
- * Não escreve estado nenhum. Não marca o documento como avisado — não há coluna
- * para isso, e inventar uma aqui seria inventá-la no código sem a inventar na
- * base. A consequência está escrita: se o envio falhar, ninguém volta a tentar.
- * Quem chama recebe o resultado e regista-o.
+ * - **`aviso_recusa_em`**, quando o e-mail saiu. É o que impede a varredura de
+ *   avisar duas vezes.
+ * - **`aviso_recusa_tentativas` + 1**, quando não saiu **e o documento está
+ *   mesmo recusado**. É o que permite à varredura desistir de uma linha que
+ *   nunca vai conseguir ser avisada.
+ *
+ * As razões que **não** incrementam são as que não são tentativas falhadas:
+ * `sem-documento` e `nao-recusado` querem dizer que não havia nada a avisar, e
+ * contá-las gastaria as tentativas de um documento que ainda nem foi recusado.
+ *
+ * **Nenhuma destas escritas pode deitar abaixo o aviso.** Se a marca falhar
+ * depois de o e-mail sair, o vendedor já foi avisado — devolver `false` aí
+ * faria a varredura mandar-lhe um segundo e-mail. O que se faz é registar e
+ * seguir; a consequência de uma marca perdida é um aviso repetido, e a de um
+ * `false` errado é o mesmo aviso repetido **todos os dias**.
  */
 
 import { supabaseAdmin } from "@/lib/supabase-admin";
@@ -86,7 +92,31 @@ function texto(v: unknown): string | null {
   return typeof v === "string" && v.trim() !== "" ? v : null;
 }
 
+/**
+ * Avisa, e regista o que aconteceu.
+ *
+ * A contagem das tentativas está **aqui**, à volta, e não espalhada pelos sete
+ * pontos de saída lá dentro: assim não há nenhum caminho de falha que se
+ * esqueça de contar, e acrescentar um oitavo motivo amanhã não obriga ninguém
+ * a lembrar-se disto.
+ *
+ * `sem-documento` e `nao-recusado` não contam — não são tentativas falhadas, é
+ * não haver nada a avisar, e gastá-las esgotaria as tentativas de um documento
+ * que ainda nem foi recusado.
+ */
 export async function avisarDocumentoRecusado(documentoId: string): Promise<ResultadoDoAviso> {
+  const resultado = await tentarAvisar(documentoId);
+  if (
+    !resultado.enviado &&
+    resultado.razao !== "sem-documento" &&
+    resultado.razao !== "nao-recusado"
+  ) {
+    await contarTentativaFalhada(documentoId);
+  }
+  return resultado;
+}
+
+async function tentarAvisar(documentoId: string): Promise<ResultadoDoAviso> {
   const { data, error } = await supabaseAdmin
     .from("documentos_cavalo")
     .select("id, cavalo_id, tipo, estado, motivo_recusa")
@@ -175,5 +205,50 @@ export async function avisarDocumentoRecusado(documentoId: string): Promise<Resu
     tipo: nomeDoTipo,
   });
 
+  await marcarAvisado(documentoId);
   return { enviado: true };
+}
+
+/**
+ * O documento fica marcado como avisado.
+ *
+ * Não lança e não devolve nada: quem chama já mandou o e-mail, e uma marca que
+ * falha não desfaz um e-mail que saiu. O pior que acontece é a varredura mandar
+ * um segundo aviso amanhã — que é bem melhor do que a alternativa, que seria
+ * dizer a quem chama que o aviso não saiu quando saiu.
+ */
+async function marcarAvisado(documentoId: string): Promise<void> {
+  try {
+    const { error } = await supabaseAdmin
+      .from("documentos_cavalo")
+      .update({ aviso_recusa_em: new Date().toISOString() })
+      .eq("id", documentoId);
+    if (error) throw error;
+  } catch (e) {
+    logger.error("[aviso-documento-recusado] o aviso saiu mas a marca não ficou", {
+      documento: documentoId,
+      erro: e,
+    });
+  }
+}
+
+/**
+ * Mais uma tentativa falhada.
+ *
+ * Incrementa-se no servidor com uma expressão SQL e não lendo-o-e-escrevendo-o
+ * daqui: a rota que recusa e a varredura podem tocar na mesma linha ao mesmo
+ * tempo, e duas leituras seguidas de duas escritas perdem uma das contagens.
+ */
+async function contarTentativaFalhada(documentoId: string): Promise<void> {
+  try {
+    const { error } = await supabaseAdmin.rpc("incrementar_aviso_recusa_tentativas", {
+      documento: documentoId,
+    });
+    if (error) throw error;
+  } catch (e) {
+    logger.warn("[aviso-documento-recusado] falha a contar a tentativa", {
+      documento: documentoId,
+      erro: e,
+    });
+  }
 }

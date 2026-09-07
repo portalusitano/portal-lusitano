@@ -63,6 +63,10 @@
     {
       "path": "/api/cron/expiracao",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/avisos-de-recusa",
+      "schedule": "0 10 * * *"
     }
   ]
 }
