@@ -2372,6 +2372,15 @@ export default function GloboTerra({
     /** Folga entre o painel e a borda da janela útil. */
     const MARGEM_PAINEL = 6;
 
+    /* ── Onde o painel aberto assenta ─────────────────────────────────────
+     * Guardado **em relação ao canto do algarismo**, e não em coordenadas da
+     * lona: o algarismo anda com o globo, e o painel anda com ele. Assim
+     * mede-se uma vez, no momento em que abre, e a caixa em coordenadas da
+     * lona sai de uma soma por quadro — sem um `getBoundingClientRect` a
+     * meio de um arrasto, que é o pedido que este ficheiro evita em toda a
+     * parte. */
+    let painelRel: { dx: number; dy: number; l: number; a: number } | null = null;
+
     const ajustarPainel = (m: Mancha) => {
       m.painel.style.setProperty("--desvio", "0px");
       m.lista.style.maxHeight = "";
@@ -2393,17 +2402,38 @@ export default function GloboTerra({
       const espaco = Math.max(acima, abaixo) - 26 - resto;
       m.lista.style.maxHeight = `${Math.round(Math.max(44, Math.min(232, espaco)))}px`;
 
+      /* Medir com a animação de abertura a correr é medir o painel a 95% do
+         tamanho e fora do sítio — o `getBoundingClientRect` inclui a
+         transformação, e a transformação, neste instante, é o primeiro
+         quadro de um `scale(0.95)`. É a mesma armadilha que a ficha rápida
+         já documenta, e a mesma resposta: cala-se a animação, força-se um
+         refluxo para o browser a esquecer, mede-se, e devolve-se. Medido a
+         1400×950: a correcção de borda saía 4 pixéis curta, e a caixa que o
+         véu usa saía 8×13 mais pequena do que o painel que se vê. */
+      m.painel.style.animation = "none";
+      void m.painel.offsetWidth;
       const r = m.painel.getBoundingClientRect();
       let dx = 0;
       if (r.left < caixa.left + MARGEM_PAINEL) dx = caixa.left + MARGEM_PAINEL - r.left;
       else if (r.right > caixa.right - MARGEM_PAINEL) dx = caixa.right - MARGEM_PAINEL - r.right;
       if (dx) m.painel.style.setProperty("--desvio", `${Math.round(dx)}px`);
+      m.painel.style.animation = "";
+
+      /* O `--desvio` é uma translação pura, por isso soma-se ao que já se
+         mediu em vez de se pedir a caixa uma segunda vez. */
+      painelRel = {
+        dx: r.left + dx - chipR.left,
+        dy: r.top - chipR.top,
+        l: r.width,
+        a: r.height,
+      };
     };
 
     const actualizarMancha = () => {
       const alvo = manchaFixa ?? manchaSob;
       if (alvo === manchaAberta) return;
       manchaAberta = alvo;
+      if (!alvo) painelRel = null;
       for (const m of manchas) {
         const aberta = m === alvo;
         if (aberta === m.anterior.aberta) continue;
@@ -2413,6 +2443,82 @@ export default function GloboTerra({
       }
       pedirQuadro();
     };
+
+    /* ── O que o painel aberto cobre recua ────────────────────────────────
+     *
+     * O painel é `position: absolute` dentro do algarismo, e isso resolve
+     * metade do problema: um filho absoluto não conta para o `offsetWidth`
+     * /`offsetHeight` do pai, que **são** a caixa do teste de colisão da
+     * mancha. Abrir não faz a mancha fechada crescer, e por isso nenhuma
+     * coudelaria fica sem conta. Essa metade estava certa.
+     *
+     * A outra metade não estava: **nada na colocação dos nomes sabe que o
+     * painel existe.** Ele ocupa uns 170×255 no computador e 160×210 no
+     * telemóvel, e os nomes continuam a ser escritos onde sempre foram —
+     * por cima dele, porque as manchas nascem à montagem e os nomes são
+     * refeitos a cada reagrupamento, logo em ordem de DOM cada nome vem
+     * depois de cada mancha. Medido a 1400×950 com as vinte e nove
+     * verdadeiras, com o painel de sete aberto: **três nomes por cima da
+     * lista**, e a lista ilegível por baixo deles.
+     *
+     * ── Porque é que não se recoloca ──────────────────────────────────────
+     * A saída óbvia — dizer à colocação que ali há uma caixa ocupada — é a
+     * errada, e por duas razões que este ficheiro já escreveu noutro sítio.
+     * Os nomes saltariam para outro lado no instante em que o painel abre, e
+     * quem carregou no algarismo veria o mapa inteiro a remexer-se debaixo
+     * do dedo; e os nomes que não achassem lugar novo cairiam nas sobras, ou
+     * seja **perder-se-iam** por causa de uma abertura. A ficha rápida
+     * escolheu por isto mesmo não empurrar ninguém, e esta é a mesma casa.
+     *
+     * ── O que se faz então ────────────────────────────────────────────────
+     * Duas coisas, e são a mesma afirmação: _o painel está à frente_.
+     *
+     * 1. Em CSS, a mancha aberta sobe (`z-index`). Sem isso o painel fica
+     *    **por baixo** dos nomes e perdem-se os dois — nem se lê a lista nem
+     *    se lê o nome, porque texto a 12px sobre texto a 12px não é nenhum
+     *    dos dois.
+     * 2. Aqui, quem cai na caixa do painel recua a zero enquanto ele estiver
+     *    aberto. Não é para esconder informação: o painel é opaco e já os
+     *    tapava. O que ele não sabe fazer é tapá-los **inteiros** — um nome
+     *    a meio da borda mostra metade das letras e lê-se como um erro de
+     *    desenho, e um algarismo cortado ao meio é um disco partido. Apagar
+     *    é a mesma cobertura dita com franqueza, e o esbatimento de 200ms
+     *    que a etiqueta já tem (`--d-fast`, o tempo dos hovers e dos botões,
+     *    que é o gesto que abre isto) trata da passagem.
+     *
+     * Nada disto toca na colocação: a etiqueta continua `colocada`, a caixa
+     * dela continua no depósito, e fechar o painel devolve-a ao mesmo pixel.
+     * Medido, de painel fechado contra aberto: zero nomes deslocados.
+     */
+    /** A caixa do painel em coordenadas da lona. Depósito: não se faz por
+        quadro — é sempre a mesma, e só uma mancha abre de cada vez. */
+    const caixaPainel = criarCaixa();
+    let painelVivo = false;
+
+    /* A posição sai do `ecraX`/`ecraY` que o quadro anterior escreveu, e não
+       do quadro em curso: as manchas colocam-se **depois** dos nomes, de
+       propósito, porque só apanham sobras e nunca podem tirar um nome a
+       ninguém. Inverter as duas para poupar um quadro custaria essa garantia;
+       dezasseis milissegundos de atraso num painel que só anda quando alguém
+       arrasta o globo não custam nada. */
+    const marcarPainel = () => {
+      const m = manchaAberta;
+      painelVivo = !!(m && m.usada && painelRel);
+      if (!m || !painelRel || !painelVivo) return;
+      caixaPainel.x = m.ecraX - chipMedida.l / 2 + painelRel.dx;
+      caixaPainel.y = m.ecraY - chipMedida.a / 2 + painelRel.dy;
+      caixaPainel.l = painelRel.l;
+      caixaPainel.a = painelRel.a;
+    };
+
+    /** Sem folga: o que se quer saber é se o pixel fica tapado, e não se duas
+        caixas ficam encostadas de mais uma à outra. */
+    const sobOPainel = (c: Caixa) =>
+      painelVivo &&
+      c.x < caixaPainel.x + caixaPainel.l &&
+      c.x + c.l > caixaPainel.x &&
+      c.y < caixaPainel.y + caixaPainel.a &&
+      c.y + c.a > caixaPainel.y;
 
     const esconderMancha = (m: Mancha) => {
       m.usada = false;
@@ -2533,7 +2639,12 @@ export default function GloboTerra({
            nenhum nome pouse por cima dela. O módulo já a pôs no `ocupadasView`
            — que é o que impede duas manchas de se cruzarem dentro do mesmo
            quadro —, mas quem sobrevive ao quadro é o depósito. */
-        guardarColocada({ x: posta.x, y: posta.y, l: chipMedida.l, a: chipMedida.a });
+        const caixaChip = guardarColocada({
+          x: posta.x,
+          y: posta.y,
+          l: chipMedida.l,
+          a: chipMedida.a,
+        });
 
         const t = `translate3d(${Math.round(posta.x)}px, ${Math.round(posta.y)}px, 0)`;
         if (t !== m.anterior.t) {
@@ -2542,13 +2653,26 @@ export default function GloboTerra({
         }
         /* Os algarismos recuam com os nomes: fazem parte do «tudo o resto»
            que a escolha manda para trás, e um algarismo aceso ao lado de um
-           ponto escolhido lia-se como uma segunda escolha. */
-        const op = (escolhida ? 1 - escolhaT : 1).toFixed(2);
+           ponto escolhido lia-se como uma segunda escolha.
+
+           E recuam também debaixo de um painel aberto, pela mesma razão que
+           os nomes — menos a própria mancha aberta, que é dona do painel e
+           não pode apagar-se por baixo dele. Um disco de 22px cortado pela
+           borda do painel é a mesma metade de desenho que meio nome, e uma
+           conta que ninguém consegue ler não é uma conta. */
+        const tapado = m !== manchaAberta && sobOPainel(caixaChip);
+        const op = (tapado ? 0 : escolhida ? 1 - escolhaT : 1).toFixed(2);
         if (m.anterior.op !== op) {
           m.nó.style.opacity = op;
           m.anterior.op = op;
         }
-        if (m.nó.hasAttribute("data-oculta")) m.nó.toggleAttribute("data-oculta", false);
+        /* Sai do rato enquanto está apagado. Um algarismo invisível a meio
+           de fora do painel continuaria a ser um alvo, e um alvo que não se
+           vê é um clique que ninguém pediu — que é a razão já escrita para o
+           `data-oculta` das manchas sem lugar. */
+        if (m.nó.hasAttribute("data-oculta") !== tapado) {
+          m.nó.toggleAttribute("data-oculta", tapado);
+        }
         i++;
       }
 
@@ -2665,7 +2789,7 @@ export default function GloboTerra({
           guardarColocada(c);
           e.colocada = true;
           e.ultimo = k;
-          escrever(e, c, h.lado, h.vert, medida === e.curta, veu(e));
+          escrever(e, c, h.lado, h.vert, medida === e.curta, sobOPainel(c) ? 0 : veu(e));
           return true;
         }
       }
@@ -2765,6 +2889,7 @@ export default function GloboTerra({
       nColocadas = 0;
       nAlfinetesEcra = 0;
       sobras.length = 0;
+      marcarPainel();
 
       for (const e of etiquetas) {
         projeccao.copy(e.alfinete.posicao).applyMatrix4(mundo.matrixWorld);
@@ -2921,7 +3046,14 @@ export default function GloboTerra({
            esta a razão de as etiquetas continuarem a sobrepor-se depois de
            eu ter posto um teste de colisão. O teste estava certo; o que
            estava errado era o sítio onde eu punha o elemento a seguir. */
-        escrever(e, posta, lado, vert, curto, Math.min(1, (e.deFrente - 0.12) / 0.28) * veu(e));
+        escrever(
+          e,
+          posta,
+          lado,
+          vert,
+          curto,
+          sobOPainel(posta) ? 0 : Math.min(1, (e.deFrente - 0.12) / 0.28) * veu(e)
+        );
       }
 
       /* Por fim, o que ficou sem nome. Corre depois de tudo colocado, e é

@@ -2835,6 +2835,27 @@ body {
     pointer-events: none;
   }
 
+  /* ── O painel aberto fica à frente dos nomes ──────────────────────────
+     As manchas nascem à montagem e os nomes são refeitos a cada
+     reagrupamento: em ordem de DOM cada nome vem depois de cada mancha, e
+     por isso todos eles se escreviam **por cima** do painel. O `z-index: 2`
+     do próprio painel nunca podia resolver isto — o `will-change:
+     transform` faz da `.globo-mancha` um contexto de empilhamento, logo esse
+     2 só vale lá dentro, contra o algarismo.
+
+     Perdiam-se os dois: texto a 12px por cima de texto a 12px não é nenhum
+     dos dois. Medido a 1400×950 com o painel de sete aberto: três nomes por
+     cima da lista.
+
+     Três e não dois: dois é a etiqueta escolhida, que é a única coisa que
+     fica quando alguém escolhe uma coudelaria e não pode passar para trás de
+     um painel. Na prática não se cruzam — durante a escolha o motor apaga a
+     mancha com tudo o resto —, e a ordem escrita é a que se lê quando se
+     cruzarem. */
+  .globo-mancha[data-aberta] {
+    z-index: 3;
+  }
+
   .globo-mancha__chip {
     display: grid;
     place-items: center;
