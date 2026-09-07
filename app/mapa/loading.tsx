@@ -2,23 +2,20 @@
  * O esqueleto da `/mapa`.
  *
  * Tem de ser a planta do que vem a seguir, senão a página salta no momento em
- * que o conteúdo entra. Estava desalinhado em três sítios:
- *   - desenhava uma faixa de três números no herói, e a página não tem
- *     estatísticas nenhumas desde que saíram — o esqueleto prometia 64 pixéis
- *     que nunca chegam;
- *   - desenhava dois cartões na coluna do painel, um de regiões e outro de
- *     coudelarias, quando a página tem um só (a pilha) mais o botão para o
- *     directório;
- *   - reservava uma linha para a barra de resultados, que sem filtros não
- *     ocupa linha nenhuma;
- *   - e abria um `<main>`, quando o `app/layout.tsx` já embrulha tudo num
- *     `<main id="main-content">` — dois marcos «principal» para quem salta
- *     para o conteúdo, e mais 64 pixéis de margem em telemóvel, porque a regra
- *     `@media (max-width:1024px) { main { padding-bottom: … } }` acertava nos
- *     dois. É a mesma troca que os outros trinta ficheiros já fizeram.
+ * que o conteúdo entra — e a planta mudou: a `/mapa` deixou de ser um herói
+ * com um cartão de comandos e uma grelha de doze colunas e passou a ser uma
+ * lona da altura da janela com duas peças a flutuar por cima dela. O
+ * esqueleto usa **as mesmas classes** da página (`.mapa-palco`, `.mapa-lona`,
+ * `.mapa-barra`, `.mapa-pilula`, `.mapa-rodape`, `.mapa-regioes__gatilho`),
+ * que é a única maneira de as duas geometrias não poderem divergir: não há
+ * aqui um número que alguém tenha de se lembrar de acompanhar.
  *
- * A altura da lona sai da mesma variável que a página usa, para as duas não
- * poderem divergir.
+ * Não abre um `<main>`: o `app/layout.tsx` já embrulha tudo num
+ * `<main id="main-content">`, e um dentro do outro dava dois marcos
+ * «principal» para quem salta para o conteúdo.
+ *
+ * O painel das regiões é desenhado fechado, porque é assim que a página
+ * nasce.
  *
  * `animate-pulse` é a excepção aceite ao «três ciclos infinitos»: só existe
  * enquanto o conteúdo não chegou.
@@ -35,49 +32,24 @@
  */
 export default function Loading() {
   return (
-    <div data-carregando className="min-h-screen bg-[var(--background)]">
-      <section className="relative pb-4 pt-16 sm:pb-6 sm:pt-28">
-        <div className="mx-auto max-w-7xl animate-pulse px-4 text-center sm:px-6">
-          <div className="mx-auto mb-3 h-9 w-64 rounded bg-[var(--background-elevated)] sm:mb-4 sm:h-14 sm:w-96" />
-          <div className="mx-auto mb-6 hidden h-4 w-72 rounded bg-[var(--background-elevated)] sm:mb-8 sm:block" />
-        </div>
-      </section>
+    <div data-carregando className="mapa-palco">
+      {/* A lona ocupa a janela inteira: é a planta da página que vem a
+          seguir, e é isso que impede o salto no instante em que ela chega. */}
+      <div className="mapa-lona animate-pulse bg-[var(--background-elevated)]" />
 
-      <div className="mx-auto max-w-[1400px] animate-pulse px-4 pb-16 md:px-6">
-        {/* Comandos: os dois chips da vista e a caixa de pesquisa. */}
-        <div className="cartao mb-3 flex flex-nowrap items-center gap-2 p-3 sm:gap-3">
+      {/* A pílula de cima: os dois chips da vista e a caixa de pesquisa. */}
+      <div className="mapa-barra">
+        <div className="mapa-pilula animate-pulse">
           <div className="h-8 w-20 shrink-0 rounded-full bg-[var(--background-elevated)]" />
           <div className="h-8 w-20 shrink-0 rounded-full bg-[var(--background-elevated)]" />
-          <div className="h-10 min-w-0 flex-1 rounded-lg bg-[var(--background-elevated)] sm:max-w-sm" />
+          <div className="h-10 w-36 rounded-lg bg-[var(--background-elevated)] sm:w-56" />
         </div>
+      </div>
 
-        <div className="grid gap-4 [--altura-globo:460px] sm:[--altura-globo:560px] lg:grid-cols-12 lg:gap-6 lg:[--altura-globo:max(320px,min(680px,calc(100dvh-25rem)))]">
-          <div className="min-w-0 lg:col-span-8">
-            <div className="h-[var(--altura-globo)] rounded-2xl border border-[var(--border)] bg-[var(--background-elevated)]" />
-          </div>
-
-          <div className="min-w-0 lg:col-span-4">
-            {/* Um cartão só — a pilha, no nível das regiões. */}
-            <div className="cartao mb-3 overflow-hidden">
-              <div className="flex items-center gap-2 border-b border-[var(--border-soft)] px-4 py-3">
-                <div className="h-3.5 w-3.5 shrink-0 rounded bg-[var(--background-elevated)]" />
-                <div className="h-4 flex-1 rounded bg-[var(--background-elevated)]" />
-                <div className="h-3 w-5 rounded bg-[var(--background-elevated)]" />
-              </div>
-              <div className="divide-y divide-[var(--border-soft)]">
-                {Array.from({ length: 9 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-3 px-4 py-2.5">
-                    <div className="h-3.5 w-3.5 shrink-0 rounded bg-[var(--background-elevated)]" />
-                    <div className="h-3.5 flex-1 rounded bg-[var(--background-elevated)]" />
-                    <div className="h-3 w-5 rounded bg-[var(--background-elevated)]" />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* E o botão para o directório, que é o que fecha a coluna. */}
-            <div className="h-9 w-full rounded-xl bg-[var(--background-elevated)]" />
-          </div>
+      {/* E o gatilho das regiões, fechado — que é como a página nasce. */}
+      <div className="mapa-rodape">
+        <div className="mapa-regioes animate-pulse">
+          <div className="mapa-regioes__gatilho h-[42px]" />
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@ import {
   Globe,
   ChevronRight,
   ChevronLeft,
+  ChevronUp,
   X,
   List,
   Search,
@@ -17,7 +18,6 @@ import {
   CloudOff,
 } from "lucide-react";
 import LocalizedLink, { localizeHref } from "@/components/LocalizedLink";
-import Revelar from "@/components/Revelar";
 import Image from "next/image";
 import {
   filtrar,
@@ -413,6 +413,15 @@ export default function MapaClient({
   const [procura, setProcura] = useState(partida.procura);
   const [viewMode, setViewMode] = useState<"globo" | "list">(partida.vista);
 
+  /* ── O painel das regiões nasce fechado ────────────────────────────────
+     Aberto por omissão, ele é — medido — trezentos pixéis de estorvo no
+     fundo da lona que ninguém pediu, e é exactamente a banda onde o globo
+     escreve os nomes do sul. Fechado é um botão de quarenta e quatro: o
+     mapa fica com o ecrã e quem quer filtrar continua a ter o instrumento à
+     mão, com o nome escrito por extenso. */
+  const [regioesAbertas, setRegioesAbertas] = useState(false);
+  const gatilhoRegioes = useRef<HTMLButtonElement>(null);
+
   /* ── Um funil só ───────────────────────────────────────────────────────
      A pesquisa filtrava o globo e a lista; o painel de regiões contava por
      sua conta e nunca ouvia a pesquisa. Com «xpto» escrito, o globo tinha
@@ -534,6 +543,45 @@ export default function MapaClient({
     [router, language]
   );
 
+  /* ── Fechar o painel é o que a tecla de escape faz em todo o lado ───────
+     O painel abre por cima do mapa. Sem esta tecla, quem o abriu tem de o ir
+     fechar ao mesmo botão — e o foco, que está lá dentro, volta ao princípio
+     da página. O foco volta ao gatilho, que é de onde saiu. */
+  useEffect(() => {
+    if (!regioesAbertas) return;
+    const aoTeclar = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setRegioesAbertas(false);
+      gatilhoRegioes.current?.focus();
+    };
+    document.addEventListener("keydown", aoTeclar);
+    return () => document.removeEventListener("keydown", aoTeclar);
+  }, [regioesAbertas]);
+
+  /* ── Fora do ecrã não há nada para comandar ─────────────────────────────
+     Os comandos são `fixed` porque têm de ser: é assim que o globo os vê
+     (ver o comentário do `.mapa-palco` no `globals.css`). Mas o documento
+     não acaba na lona — por baixo dela está o rodapé do site, e quem lá
+     chega por tabulação ou pela barra de deslocamento levava os comandos do
+     mapa a flutuar por cima dele. Quem avisa é o `IntersectionObserver`, que
+     dispara quando o palco sai do ecrã em vez de perguntar a cada
+     deslocamento se já saiu. */
+  const palco = useRef<HTMLDivElement>(null);
+  const [cromadoFora, setCromadoFora] = useState(false);
+  useEffect(() => {
+    setCromadoFora(false);
+    const alvo = palco.current;
+    if (!alvo) return;
+    const observador = new IntersectionObserver(
+      ([entrada]) => setCromadoFora(!entrada.isIntersecting),
+      {
+        threshold: 0,
+      }
+    );
+    observador.observe(alvo);
+    return () => observador.disconnect();
+  }, [viewMode]);
+
   const contagem = `${formatarNumero(visiveis.length, language)} ${
     visiveis.length === 1 ? t.mapa.result_one : t.mapa.results
   }`;
@@ -574,13 +622,315 @@ export default function MapaClient({
     />
   );
 
+  const noMapa = viewMode === "globo";
+
+  /* ── Os comandos são os mesmos nas duas vistas ──────────────────────────
+     O que muda é a moldura: no mapa flutuam numa pílula fixa por cima da
+     lona, na lista assentam no topo da página. Escrevê-los duas vezes era
+     abrir a porta a duas caixas de pesquisa com regras diferentes. */
+  const comandos = (
+    <>
+      <div
+        className="flex shrink-0 items-center gap-1.5"
+        role="group"
+        aria-label={t.mapa.view_switch}
+      >
+        <button
+          type="button"
+          onClick={() => setViewMode("globo")}
+          aria-pressed={viewMode === "globo"}
+          className={`chip gap-1.5 ${viewMode === "globo" ? "chip-activo" : ""}`}
+        >
+          <Globe size={16} aria-hidden="true" /> {t.mapa.view_map}
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewMode("list")}
+          aria-pressed={viewMode === "list"}
+          className={`chip gap-1.5 ${viewMode === "list" ? "chip-activo" : ""}`}
+        >
+          <List size={16} aria-hidden="true" /> {t.mapa.view_list}
+        </button>
+      </div>
+
+      <div
+        className={
+          /* Na pílula a caixa tem largura própria: `.campo` é `width: 100%` e
+             sem uma medida aqui encolhia até o marcador «Pesquisar…» se
+             perder. 11rem é o que a palavra portuguesa — a mais longa das
+             três — pede depois dos 76px que a lupa e o botão de limpar já
+             comem. */
+          noMapa ? "relative w-44 sm:w-56" : "relative min-w-0 flex-1 sm:max-w-sm"
+        }
+      >
+        <label htmlFor="mapa-procura" className="sr-only">
+          {t.mapa.search_label}
+        </label>
+        <Search
+          size={16}
+          aria-hidden="true"
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]"
+        />
+        <input
+          id="mapa-procura"
+          type="search"
+          placeholder={t.mapa.search_placeholder}
+          value={procura}
+          onChange={(e) => setProcura(e.target.value)}
+          className="campo h-10 pl-10 pr-9 text-sm"
+        />
+        {procura && (
+          <button
+            type="button"
+            onClick={() => setProcura("")}
+            aria-label={t.mapa.clear_search}
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-[var(--foreground-muted)] transition-colors hover:text-[var(--foreground-strong)]"
+          >
+            <X size={14} aria-hidden="true" />
+          </button>
+        )}
+      </div>
+    </>
+  );
+
+  /* ── O estado do funil ──────────────────────────────────────────────────
+     O único sítio onde se lê por extenso quantas se vêem, de quantas, e com
+     que filtros — cada um removível onde está.
+
+     O `role="status"` está só na frase que conta. Estava na barra inteira,
+     botões incluídos, e o que o leitor de ecrã tinha para anunciar a cada
+     tecla escrita era «12 results of 29AlentejoClearClear».
+
+     E a barra só aparece quando tem alguma coisa a dizer. Sem filtros, «29
+     resultados» é o mesmo 29 que o botão das regiões já escreve — o mesmo
+     número duas vezes no mesmo ecrã. Mesmo escondida continua no documento,
+     porque uma região viva que só nasce no instante da mudança é uma região
+     viva que os leitores de ecrã podem não chegar a anunciar. */
+  const barraEstado = (
+    <div
+      className={
+        falhou
+          ? "hidden"
+          : temFiltro || viewMode === "list"
+            ? "flex flex-wrap items-center gap-x-3 gap-y-2 px-1"
+            : "sr-only"
+      }
+    >
+      <p className="meta" role="status" aria-live="polite">
+        <span className="tabular-nums text-[var(--foreground-strong)]">{contagem}</span>
+        {temFiltro && (
+          <>
+            {" "}
+            {t.mapa.of}{" "}
+            <span className="tabular-nums">{formatarNumero(coudelarias.length, language)}</span>
+          </>
+        )}
+      </p>
+      {regiao && (
+        <button type="button" onClick={() => setRegiao(null)} className="chip chip-activo gap-1.5">
+          {regiao}
+          <X size={12} aria-hidden="true" />
+          <span className="sr-only">{t.mapa.clear_filters}</span>
+        </button>
+      )}
+      {procura.trim() && (
+        <button type="button" onClick={() => setProcura("")} className="chip chip-activo gap-1.5">
+          <span className="font-mono">{procura.trim()}</span>
+          <X size={12} aria-hidden="true" />
+          <span className="sr-only">{t.mapa.clear_search}</span>
+        </button>
+      )}
+      {temFiltro && (
+        <button type="button" onClick={limpar} className="btn btn-subtil btn-sm rounded-full">
+          {t.mapa.clear_filters}
+        </button>
+      )}
+    </div>
+  );
+
+  /* ── A pilha das regiões ────────────────────────────────────────────────
+     O nível de cima perdeu o cabeçalho: quem diz «Explorar Regiões» e conta
+     quantas são é o gatilho que abre o painel, e dois cabeçalhos empilhados
+     a dizer o mesmo custavam quarenta e oito pixéis de estorvo por cima da
+     lona sem darem uma linha de conteúdo. */
+  const pilhaDasRegioes = (
+    <Pilha nivel={regiao === null ? 0 : 1}>
+      {[
+        /* Nível 0 — as regiões */
+        <div key="regioes" className="mapa-regioes__lista divide-y divide-[var(--border-soft)]">
+          {regioes.map(({ regiao: nome, total }, i) => {
+            /* Uma região que a pesquisa esvaziou fica visível mas inerte:
+               escondê-la esconderia que existe; deixá-la clicável prometeria
+               o que não há. */
+            const vazia = total === 0;
+            return (
+              <button
+                key={nome}
+                type="button"
+                disabled={vazia}
+                onClick={() => entrarNaRegiao(nome)}
+                data-foco={nome === regiaoAnterior.current && !vazia ? "" : undefined}
+                style={{ "--i": i } as React.CSSProperties}
+                className="linha-cascata group flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-[var(--elevate-1)] disabled:pointer-events-none disabled:opacity-40"
+              >
+                <MapPin
+                  className="shrink-0 text-[var(--foreground-muted)] transition-colors group-hover:text-[var(--foreground-strong)]"
+                  size={14}
+                  aria-hidden="true"
+                />
+                <span className="min-w-0 flex-1 truncate text-sm text-[var(--foreground)]">
+                  {nome}
+                </span>
+                <span className="font-mono text-xs tabular-nums text-[var(--foreground-muted)]">
+                  {total}
+                </span>
+                <ChevronRight
+                  size={14}
+                  aria-hidden="true"
+                  className="shrink-0 text-[var(--foreground-muted)] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-[var(--foreground-strong)]"
+                />
+              </button>
+            );
+          })}
+        </div>,
+
+        /* Nível 1 — dentro de uma região */
+        <div key="dentro">
+          {regiaoDoPainel && (
+            <>
+              {/* O `<h2>` embrulha o botão em vez de estar lá dentro: um
+                  título dentro de um controlo é uma paragem da navegação por
+                  títulos que afinal é um botão. */}
+              <h2 className="titulo-seccao">
+                <button
+                  type="button"
+                  onClick={() => setRegiao(null)}
+                  aria-label={`${t.mapa.region_clear}: ${regiaoDoPainel}`}
+                  className="group flex w-full items-center gap-2 border-b border-[var(--border-soft)] px-4 py-3 text-left transition-colors hover:bg-[var(--elevate-1)]"
+                >
+                  <ChevronLeft
+                    size={15}
+                    aria-hidden="true"
+                    className="shrink-0 text-[var(--foreground-muted)] transition-transform duration-200 group-hover:-translate-x-0.5 group-hover:text-[var(--foreground-strong)]"
+                  />
+                  <span className="min-w-0 flex-1 truncate">{regiaoDoPainel}</span>
+                  <span className="meta font-mono tabular-nums">{listaDoPainel.length}</span>
+                </button>
+              </h2>
+              {/* A lista rola, e a barra do site tem 8px e está desenhada nos
+                  tokens: mostrá-la diz que há mais e diz quanto. */}
+              <div className="mapa-regioes__lista divide-y divide-[var(--border-soft)]">
+                {listaDoPainel.map((c, i) => (
+                  <div
+                    key={c.id}
+                    className="linha-cascata"
+                    style={{ "--i": i } as React.CSSProperties}
+                  >
+                    {linhaDaLista(c)}
+                  </div>
+                ))}
+              </div>
+              {listaDoPainel.length === 0 && (
+                <p className="meta px-4 py-6 text-center">{t.mapa.empty_region}</p>
+              )}
+            </>
+          )}
+        </div>,
+      ]}
+    </Pilha>
+  );
+
+  if (noMapa) {
+    return (
+      /* Uma `div`, e não um `<main>`: o `app/layout.tsx` já embrulha tudo num
+         `<main id="main-content">`, e um dentro do outro dava dois marcos
+         «principal» ao leitor de ecrã. */
+      <div key="globo" ref={palco} className="mapa-palco">
+        {/* O título da página continua a existir para quem não vê o mapa. Não
+            se escreve por cima dele: um herói com um `<h1>` e um subtítulo
+            eram, medidas, vinte e duas rem de cromado à frente do único
+            conteúdo que esta página tem. O mapa é o título. */}
+        <h1 className="sr-only">
+          {titulo.antes}
+          {titulo.meio}
+          {titulo.depois}
+        </h1>
+        <p className="sr-only">{t.mapa.subtitle}</p>
+
+        {/* ── O atalho para o painel ─────────────────────────────────────
+            Medido com o teclado: entre a caixa de pesquisa e as regiões estão
+            os dois botões de aproximação do globo e as dezassete paragens dos
+            nomes e das manchas — que são conteúdo, e não se tiram. Quem quer
+            filtrar por região não pode ter de os atravessar todos. Com a base
+            em baixo o painel não existe, e um atalho para um sítio vazio é
+            uma promessa falha: sai do caminho também. */}
+        <a
+          href="#mapa-regioes"
+          hidden={falhou}
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[10001] focus:bg-[var(--foreground-strong)] focus:px-6 focus:py-3 focus:text-sm focus:font-bold focus:uppercase focus:tracking-wider focus:text-black"
+        >
+          {t.mapa.skip_to_regions}
+        </a>
+
+        <div className="mapa-barra" data-fora={cromadoFora ? "" : undefined}>
+          <div className="mapa-pilula">
+            {comandos}
+            {barraEstado}
+          </div>
+        </div>
+
+        <div className="mapa-lona vista-troca">
+          {visiveis.length > 0 ? (
+            /* Antes recebia `searchQuery ? filtradas : todas`, o que deixava a
+               região escolhida sem efeito nenhum sobre o globo. Agora recebe o
+               que o funil deu. */
+            <GloboTerra coudelarias={visiveis} aoEscolher={(c) => irParaFicha(c.slug)} />
+          ) : (
+            <div className="flex h-full items-center justify-center">{vazio}</div>
+          )}
+        </div>
+
+        <div className="mapa-rodape" data-fora={cromadoFora ? "" : undefined}>
+          {!falhou && visiveis.length > 0 && (
+            /* `tabIndex={-1}`: sem isto o salto muda o endereço e deixa o foco
+               onde estava, e a tabulação seguinte voltava ao globo. */
+            <div
+              id="mapa-regioes"
+              tabIndex={-1}
+              className="mapa-regioes"
+              data-aberto={regioesAbertas ? "" : undefined}
+            >
+              <div
+                id="mapa-regioes-painel"
+                hidden={!regioesAbertas}
+                className="mapa-regioes__painel"
+              >
+                {pilhaDasRegioes}
+              </div>
+              <button
+                type="button"
+                ref={gatilhoRegioes}
+                onClick={() => setRegioesAbertas((a) => !a)}
+                aria-expanded={regioesAbertas}
+                aria-controls="mapa-regioes-painel"
+                className="mapa-regioes__gatilho"
+              >
+                <Layers size={15} aria-hidden="true" className="shrink-0" />
+                <span className="titulo-seccao min-w-0 flex-1 truncate">
+                  {t.mapa.explore_regions}
+                </span>
+                <span className="meta font-mono tabular-nums">{porTexto.length}</span>
+                <ChevronUp size={15} aria-hidden="true" className="mapa-regioes__seta" />
+              </button>
+            </div>
+          )}
+          {visiveis.length > 0 && <p className="meta mapa-dica">{t.mapa.globe_hint}</p>}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    /* Uma `div`, e não um `<main>`: o `app/layout.tsx` já embrulha tudo num
-       `<main id="main-content">`, e um dentro do outro dava dois marcos
-       «principal» ao leitor de ecrã — quem salta para o conteúdo não deve ter
-       de escolher qual. Custava também 64 pixéis: a regra
-       `@media (max-width:1024px) { main { padding-bottom: … } }` acertava nos
-       dois e o telemóvel levava a margem do rodapé a dobrar. */
     <div className="min-h-screen bg-[var(--background)]">
       <div className="pointer-events-none fixed inset-0">
         <div
@@ -593,401 +943,47 @@ export default function MapaClient({
         />
       </div>
 
-      {/* ── Cabeçalho ────────────────────────────────────────────────────
-          Em telemóvel o que estava acima do globo comia 410 dos 700 pixéis
-          do ecrã, e com a barra de cookies em cima sobravam 128 de mapa.
+      <div className="relative mx-auto max-w-[1400px] px-4 pb-16 pt-20 sm:pt-28 md:px-6">
+        {/* Na lista a página volta a ser um documento, e um documento tem um
+            título visível. É a única diferença de cromado entre as duas
+            vistas, e é a que o conteúdo pede: no mapa não há por onde rolar,
+            aqui há. */}
+        <h1 className="titulo-pagina mb-4">
+          {titulo.antes}
+          {titulo.meio && <span className="text-[var(--foreground-strong)]">{titulo.meio}</span>}
+          {titulo.depois}
+        </h1>
 
-          O herói é só o título e uma linha: o distintivo «Mapa interactivo»
-          saiu — dizia por palavras o que o globo já mostra — e a faixa de
-          estatísticas também. Três números acima do mapa empurravam-no para
-          baixo da dobra para dizer o que a página inteira diz a seguir; o
-          contador de resultados, esse, fica ao pé da lista, que é onde
-          alguém o procura. O subtítulo só aparece a partir de `sm`. */}
-      <section className="relative pb-4 pt-16 sm:pb-4 sm:pt-24">
-        <div className="mx-auto max-w-7xl px-4 text-center sm:px-6">
-          {/* A palavra acesa vem do dicionário (`title_highlight`). Estava
-              escrita à mão aqui dentro, num `split("Portugal")` que só
-              funcionava enquanto as três traduções tivessem a palavra. */}
-          <h1 className="mb-3 text-2xl text-[var(--foreground)] sm:mb-4 sm:text-4xl md:text-5xl">
-            {titulo.antes}
-            {titulo.meio && <span className="text-[var(--foreground-strong)]">{titulo.meio}</span>}
-            {titulo.depois}
-          </h1>
-          <p className="mx-auto mb-6 hidden max-w-xl text-[var(--foreground-secondary)] sm:mb-6 sm:block">
-            {t.mapa.subtitle}
-          </p>
-        </div>
-      </section>
-
-      <div className="mx-auto max-w-[1400px] px-4 pb-16 md:px-6">
-        {/* ── Comandos ─────────────────────────────────────────────────
-            Numa linha só. Com `min-w-[12rem]` na caixa de pesquisa o cartão
-            partia-se em duas linhas a 390px e custava 58 pixéis de mapa; a
-            caixa passa a `min-w-0` e reparte o que sobra com os dois chips. */}
-        <div className="cartao mb-3 flex flex-nowrap items-center gap-2 p-3 sm:gap-3">
-          <div
-            className="flex shrink-0 items-center gap-1.5"
-            role="group"
-            aria-label={t.mapa.view_switch}
-          >
-            <button
-              type="button"
-              onClick={() => setViewMode("globo")}
-              aria-pressed={viewMode === "globo"}
-              className={`chip gap-1.5 ${viewMode === "globo" ? "chip-activo" : ""}`}
-            >
-              <Globe size={16} aria-hidden="true" /> {t.mapa.view_map}
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("list")}
-              aria-pressed={viewMode === "list"}
-              className={`chip gap-1.5 ${viewMode === "list" ? "chip-activo" : ""}`}
-            >
-              <List size={16} aria-hidden="true" /> {t.mapa.view_list}
-            </button>
-          </div>
-
-          <div className="relative min-w-0 flex-1 sm:max-w-sm">
-            <label htmlFor="mapa-procura" className="sr-only">
-              {t.mapa.search_label}
-            </label>
-            <Search
-              size={16}
-              aria-hidden="true"
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]"
-            />
-            <input
-              id="mapa-procura"
-              type="search"
-              placeholder={t.mapa.search_placeholder}
-              value={procura}
-              onChange={(e) => setProcura(e.target.value)}
-              className="campo h-10 pl-10 pr-9 text-sm"
-            />
-            {procura && (
-              <button
-                type="button"
-                onClick={() => setProcura("")}
-                aria-label={t.mapa.clear_search}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-[var(--foreground-muted)] transition-colors hover:text-[var(--foreground-strong)]"
-              >
-                <X size={14} aria-hidden="true" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* ── Barra de resultados ──────────────────────────────────────
-            O único sítio onde o estado do funil se lê por extenso: quantas se
-            vêem, de quantas, e com que filtros — cada um removível onde está.
-
-            O `role="status"` estava na barra inteira, botões incluídos. Medido
-            com a região do Alentejo aberta, o que o leitor de ecrã tinha para
-            anunciar a cada tecla escrita era «12 results of 29AlentejoClearClear»
-            — a contagem, o nome do chip, e as duas etiquetas escondidas dos
-            botões de limpar. A região viva passa a ser só a frase que conta; os
-            botões ficam de fora, onde sempre foram controlos e não estado.
-
-            E a barra só aparece quando tem alguma coisa a dizer. Sem filtros,
-            «29 resultados» era o mesmo 29 que o painel ao lado já escreve na
-            sua cabeça — o mesmo número duas vezes no mesmo ecrã, a custar uma
-            linha em cima do mapa. Na vista de lista não há painel, por isso aí
-            fica sempre — e mesmo escondida continua no documento, porque uma
-            região viva que só nasce no instante da mudança é uma região viva
-            que os leitores de ecrã podem não chegar a anunciar. */}
-        {/* Com a base em baixo não há funil nenhum a relatar: «0 resultados»
-            é verdade e não ajuda, e dito por um leitor de ecrã é a mesma
-            confusão que o ecrã já não faz. */}
-        <div
-          className={
-            falhou
-              ? "hidden"
-              : temFiltro || viewMode === "list"
-                ? "mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 px-1"
-                : "sr-only"
-          }
-        >
-          <p className="meta" role="status" aria-live="polite">
-            <span className="tabular-nums text-[var(--foreground-strong)]">{contagem}</span>
-            {temFiltro && (
-              <>
-                {" "}
-                {t.mapa.of}{" "}
-                <span className="tabular-nums">{formatarNumero(coudelarias.length, language)}</span>
-              </>
-            )}
-          </p>
-          {regiao && (
-            <button
-              type="button"
-              onClick={() => setRegiao(null)}
-              className="chip chip-activo gap-1.5"
-            >
-              {regiao}
-              <X size={12} aria-hidden="true" />
-              <span className="sr-only">{t.mapa.clear_filters}</span>
-            </button>
-          )}
-          {procura.trim() && (
-            <button
-              type="button"
-              onClick={() => setProcura("")}
-              className="chip chip-activo gap-1.5"
-            >
-              <span className="font-mono">{procura.trim()}</span>
-              <X size={12} aria-hidden="true" />
-              <span className="sr-only">{t.mapa.clear_search}</span>
-            </button>
-          )}
-          {temFiltro && (
-            <button
-              type="button"
-              onClick={limpar}
-              className="btn btn-subtil btn-sm ml-auto rounded-full"
-            >
-              {t.mapa.clear_filters}
-            </button>
-          )}
-        </div>
+        <div className="mb-3 flex flex-nowrap items-center gap-2 sm:gap-3">{comandos}</div>
+        <div className="mb-4">{barraEstado}</div>
 
         {/* A `key` é o que faz a animação voltar a correr: sem ela o React
-            reaproveita o nó e a animação, que já correu, não se repete — a
-            troca lia-se como um corte de montagem. */}
-        {viewMode === "globo" ? (
-          /* A altura da lona vive numa variável e não em três números
-             repetidos: o painel ao lado precisa da mesma medida para saber até
-             onde pode crescer, e tinha lá um `680px` escrito à mão que ninguém
-             obrigava a acompanhar o outro. */
-          <div
-            key="globo"
-            className="vista-troca grid gap-4 [--altura-globo:460px] sm:[--altura-globo:560px] lg:grid-cols-12 lg:gap-6 lg:[--altura-globo:max(320px,min(680px,calc(100dvh-22rem)))]"
-          >
-            <div className="min-w-0 lg:col-span-8">
-              {/* ── O atalho para o painel ─────────────────────────────────
-                  Medido com o teclado, a partir da barra de endereço: mais de
-                  34 tabulações em desktop e 28 em telemóvel até chegar à
-                  primeira região. Entre a caixa de pesquisa e o painel estão
-                  os dois botões de aproximação do globo e as dezassete
-                  paragens dos nomes e das manchas — que são conteúdo, e não se
-                  tiram. Quem quer filtrar por região não pode ter de os
-                  atravessar todos.
-
-                  A resposta é a que o site já usa no topo: uma ligação
-                  escondida que só aparece quando recebe o foco. Não ocupa um
-                  pixel a quem tem rato, custa uma paragem a quem não tem, e
-                  leva o foco directamente ao painel. */}
-              {/* Com a base em baixo o painel não existe, e um atalho para um
-                  sítio vazio é uma promessa falha: sai do caminho também. */}
-              <a
-                href="#mapa-regioes"
-                hidden={falhou}
-                className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[10001] focus:bg-[var(--foreground-strong)] focus:px-6 focus:py-3 focus:text-sm focus:font-bold focus:uppercase focus:tracking-wider focus:text-black"
-              >
-                {t.mapa.skip_to_regions}
-              </a>
-              {/* Sem nada para acender, a moldura encolhe. Manter 680px de
-                  preto à volta de uma frase de duas linhas é pedir a quem não
-                  encontrou nada que role meio ecrã para ler que não encontrou
-                  nada. */}
-              <div
-                className={`relative z-0 w-full overflow-hidden rounded-2xl border border-[var(--border)] bg-black ${
-                  visiveis.length > 0 ? "h-[var(--altura-globo)]" : "h-[260px]"
-                }`}
-              >
-                <div className="cartao-seco__costura z-10" />
-                {visiveis.length > 0 ? (
-                  <>
-                    {/* Antes recebia `searchQuery ? filtradas : todas`, o que
-                        deixava a região escolhida sem efeito nenhum sobre o
-                        globo: carregava-se em «Alentejo 13» e as vinte e nove
-                        continuavam acesas. Agora recebe o que o funil deu. */}
-                    <GloboTerra coudelarias={visiveis} aoEscolher={(c) => irParaFicha(c.slug)} />
-                  </>
-                ) : (
-                  <div className="flex h-full items-center justify-center">{vazio}</div>
-                )}
-              </div>
-              {/* ── A dica sai de cima do terreno ──────────────────────────
-                  Estava dentro da lona, encostada ao fundo. Duas coisas
-                  medidas: em desktop a 1400×950 ficava abaixo da dobra, ou
-                  seja, a única frase que explica como se usa o globo só se
-                  lia a quem rolasse; e em telemóvel escrevia-se por cima do
-                  Algarve, a cinzento ténue sobre fotografia de terreno, que é
-                  o pior sítio possível para 12 pixéis de texto. Cá fora
-                  assenta no preto da página, lê-se sempre, e devolve à lona os
-                  pixéis que tapava. */}
-              {visiveis.length > 0 && (
-                <p className="meta mt-2 px-1 text-center">{t.mapa.globe_hint}</p>
-              )}
-            </div>
-
-            {/* ── Painel lateral ─────────────────────────────────────────
-                Eram duas listas para a mesma coisa e nenhuma falava com a
-                outra. Passam a ser duas partes de uma: em cima escolhe-se a
-                região (e o globo obedece), em baixo estão as coudelarias que
-                a escolha deixou — com link directo à ficha. */}
-            <div className="min-w-0 lg:col-span-4">
-              {/* `tabIndex={-1}`: sem isto o salto muda o endereço e deixa o
-                  foco onde estava, e a tabulação seguinte voltava ao globo. */}
-              <div id="mapa-regioes" tabIndex={-1} className="lg:sticky lg:top-24">
-                {/* Com a base em baixo o painel era uma caixa oca: a cabeça a
-                    dizer «Explorar Regiões 0» e nada por baixo dela. Um
-                    instrumento que não tem nada para operar não se mostra
-                    desligado, tira-se — a falha já está escrita ao lado, e o
-                    que fica é a saída que continua a funcionar. */}
-                <Revelar direccao="up" className={falhou ? "hidden" : "mb-3"}>
-                  <div className="cartao overflow-hidden">
-                    <Pilha nivel={regiao === null ? 0 : 1}>
-                      {[
-                        /* Nível 0 — as regiões */
-                        <div key="regioes">
-                          <div className="flex items-center gap-2 border-b border-[var(--border-soft)] px-4 py-3">
-                            <Layers
-                              className="shrink-0 text-[var(--foreground-muted)]"
-                              size={15}
-                              aria-hidden="true"
-                            />
-                            <h2 className="titulo-seccao min-w-0 flex-1 truncate">
-                              {t.mapa.explore_regions}
-                            </h2>
-                            <span className="meta font-mono tabular-nums">{porTexto.length}</span>
-                          </div>
-                          <div className="divide-y divide-[var(--border-soft)]">
-                            {regioes.map(({ regiao: nome, total }, i) => {
-                              /* Uma região que a pesquisa esvaziou fica visível
-                                 mas inerte: escondê-la esconderia que existe;
-                                 deixá-la clicável prometeria o que não há. */
-                              const vazia = total === 0;
-                              return (
-                                <button
-                                  key={nome}
-                                  type="button"
-                                  disabled={vazia}
-                                  onClick={() => entrarNaRegiao(nome)}
-                                  data-foco={
-                                    nome === regiaoAnterior.current && !vazia ? "" : undefined
-                                  }
-                                  style={{ "--i": i } as React.CSSProperties}
-                                  className="linha-cascata group flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-[var(--elevate-1)] disabled:pointer-events-none disabled:opacity-40"
-                                >
-                                  <MapPin
-                                    className="shrink-0 text-[var(--foreground-muted)] transition-colors group-hover:text-[var(--foreground-strong)]"
-                                    size={14}
-                                    aria-hidden="true"
-                                  />
-                                  <span className="min-w-0 flex-1 truncate text-sm text-[var(--foreground)]">
-                                    {nome}
-                                  </span>
-                                  <span className="font-mono text-xs tabular-nums text-[var(--foreground-muted)]">
-                                    {total}
-                                  </span>
-                                  <ChevronRight
-                                    size={14}
-                                    aria-hidden="true"
-                                    className="shrink-0 text-[var(--foreground-muted)] transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-[var(--foreground-strong)]"
-                                  />
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>,
-
-                        /* Nível 1 — dentro de uma região */
-                        <div key="dentro">
-                          {regiaoDoPainel && (
-                            <>
-                              {/* O `<h2>` embrulha o botão em vez de estar lá
-                                  dentro: um título dentro de um controlo é uma
-                                  paragem da navegação por títulos que afinal é
-                                  um botão. Assim o leitor de ecrã anuncia
-                                  «título nível 2, Alentejo, botão», que é o que
-                                  isto é. */}
-                              <h2 className="titulo-seccao">
-                                <button
-                                  type="button"
-                                  onClick={() => setRegiao(null)}
-                                  aria-label={`${t.mapa.region_clear}: ${regiaoDoPainel}`}
-                                  className="group flex w-full items-center gap-2 border-b border-[var(--border-soft)] px-4 py-3 text-left transition-colors hover:bg-[var(--elevate-1)]"
-                                >
-                                  <ChevronLeft
-                                    size={15}
-                                    aria-hidden="true"
-                                    className="shrink-0 text-[var(--foreground-muted)] transition-transform duration-200 group-hover:-translate-x-0.5 group-hover:text-[var(--foreground-strong)]"
-                                  />
-                                  <span className="min-w-0 flex-1 truncate">{regiaoDoPainel}</span>
-                                  <span className="meta font-mono tabular-nums">
-                                    {listaDoPainel.length}
-                                  </span>
-                                </button>
-                              </h2>
-                              {/* A lista rola, e agora diz que rola. Medido
-                                  com o Alentejo aberto: a cabeça escrevia 12,
-                                  a caixa mostrava 6 inteiras, o conteúdo tinha
-                                  731px dentro de 422 — e a barra media 0
-                                  pixéis, porque o `no-scrollbar` a escondia.
-                                  Metade das coudelarias da região estava atrás
-                                  de um gesto que nada anunciava. A barra do
-                                  site tem 8px e já está desenhada nos tokens:
-                                  mostrá-la diz que há mais e diz quanto. */}
-                              <div className="divide-y divide-[var(--border-soft)] lg:max-h-[calc(var(--altura-globo)-11rem)] lg:overflow-y-auto">
-                                {listaDoPainel.map((c, i) => (
-                                  <div
-                                    key={c.id}
-                                    className="linha-cascata"
-                                    style={{ "--i": i } as React.CSSProperties}
-                                  >
-                                    {linhaDaLista(c)}
-                                  </div>
-                                ))}
-                              </div>
-                              {listaDoPainel.length === 0 && (
-                                <p className="meta px-4 py-6 text-center">{t.mapa.empty_region}</p>
-                              )}
-                            </>
-                          )}
-                        </div>,
-                      ]}
-                    </Pilha>
-                  </div>
-                </Revelar>
-
-                <LocalizedLink
-                  href="/directorio"
-                  className={falhou ? "hidden" : "btn btn-subtil btn-sm w-full rounded-xl"}
+            reaproveita o nó e a animação, que já correu, não se repete. */}
+        <div key="lista" className="vista-troca">
+          {visiveis.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 lg:gap-4">
+              {/* Não é `<Revelar>`: esse dispara ao entrar no ecrã e, ao trocar
+                  de vista, os cartões já lá estão — nunca disparava. A cascata
+                  é do CSS e corre com a vista. */}
+              {visiveis.map((c, i) => (
+                <div
+                  key={c.id}
+                  className="cartao-cascata"
+                  style={{ "--i": i } as React.CSSProperties}
                 >
-                  {t.mapa.all_studs}
-                </LocalizedLink>
-              </div>
+                  <CartaoGrelha
+                    coudelaria={c}
+                    capa={capaDoCartao(c.foto_capa, c.slug, capas)}
+                    featuredLabel={t.mapa.featured}
+                    horsesLabel={t.mapa.horses}
+                  />
+                </div>
+              ))}
             </div>
-          </div>
-        ) : (
-          <div key="lista" className="vista-troca">
-            {visiveis.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 lg:gap-4">
-                {/* Não é `<Revelar>`: esse dispara ao entrar no ecrã e, ao
-                    trocar de vista, os cartões já lá estão — nunca disparava.
-                    A cascata é do CSS e corre com a vista. */}
-                {visiveis.map((c, i) => (
-                  <div
-                    key={c.id}
-                    className="cartao-cascata"
-                    style={{ "--i": i } as React.CSSProperties}
-                  >
-                    <CartaoGrelha
-                      coudelaria={c}
-                      capa={capaDoCartao(c.foto_capa, c.slug, capas)}
-                      featuredLabel={t.mapa.featured}
-                      horsesLabel={t.mapa.horses}
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="cartao">{vazio}</div>
-            )}
-          </div>
-        )}
+          ) : (
+            <div className="cartao">{vazio}</div>
+          )}
+        </div>
       </div>
     </div>
   );

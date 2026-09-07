@@ -1700,7 +1700,8 @@ body {
 
     .anim-cabecalho,
     .anim-crescer,
-    .seleccao__lista {
+    .seleccao__lista,
+    .mapa-regioes__painel {
       animation: none;
     }
   }
@@ -3103,6 +3104,222 @@ body {
     min-width: 44px;
     height: 44px;
     transform: translate(-50%, -50%);
+  }
+}
+
+/* ── /mapa: a lona é a janela, e o resto flutua ───────────────────────────
+ * Havia vinte e duas rem de cromado por cima do globo — herói, subtítulo,
+ * cartão de comandos e barra de resultados — e o que sobrava para o mapa
+ * eram 546 dos 900 pixéis do ecrã em computador e 458 dos 844 em telemóvel.
+ * Medido. Numa página cujo conteúdo é um mapa, isso é a moldura a ocupar
+ * mais lugar do que o quadro.
+ *
+ * ── Porque é que o que flutua é `fixed` e não `absolute` ─────────────────
+ * Não é gosto. O `<GloboTerra>` não sabe que classes é que os outros
+ * componentes usam: descobre quem lhe está no caminho a perguntar ao browser
+ * com `document.elementFromPoint` e a subir ao primeiro antepassado `fixed`
+ * ou `sticky` (`fixoEm` e `medirEstorvos`). Um comando `absolute` dentro da
+ * lona não é visto por essa sondagem, e os nomes das coudelarias passariam a
+ * ser escritos por baixo dele.
+ *
+ * ── E porque é que cada peça é `fixed` por si ────────────────────────────
+ * Sem uma capa `fixed` de ecrã inteiro por cima de todas. Quem sobe a árvore
+ * a partir do botão pára no primeiro antepassado fixo, e uma capa dessas
+ * devolveria um estorvo do tamanho da janela — que, por ser maior do que 40%
+ * da lona, o motor descarta como se fosse uma cortina. O estorvo seria real
+ * e a conta dá-lo-ia como inexistente: o pior dos dois mundos.
+ *
+ * ── E porque é que as peças ficam no topo e no fundo, centradas ──────────
+ * A sondagem é uma faixa horizontal em cima e outra em baixo, em três
+ * colunas — 16%, 50% e 84% da largura. Um painel encostado a um dos lados a
+ * meia altura não é sondado por nenhuma delas. Ao centro, a coluna dos 50%
+ * apanha-o em qualquer largura de ecrã, e o que o motor mede é a caixa da
+ * faixa inteira, que é da largura da janela. A janela útil que sobra é uma
+ * banda, e é dela que os nomes fogem.
+ * ------------------------------------------------------------------------ */
+@layer components {
+  .mapa-palco {
+    position: relative;
+    width: 100%;
+    height: 100dvh;
+    /* Abaixo do cabeçalho, que tem 3.5rem em telemóvel e 5rem a partir de
+       `md`. Vive aqui e é herdado pelas peças fixas: a herança das variáveis
+       é pela árvore do DOM e não pelo bloco que as contém, por isso um filho
+       `fixed` lê esta na mesma. */
+    --topo-cromado: calc(3.5rem + env(safe-area-inset-top, 0px) + 0.5rem);
+  }
+
+  @media (min-width: 768px) {
+    .mapa-palco {
+      --topo-cromado: 5.5rem;
+    }
+  }
+
+  /* A regra sem camada `@media (max-width:1024px) { main { padding-bottom } }`
+     acrescenta 4rem por baixo de tudo o que está dentro do `<main>`. Numa
+     página que é exactamente uma janela de altura isso é uma faixa de preto
+     entre o mapa e o rodapé, e um deslocamento que não leva a lado nenhum.
+     Anula-se aqui, e só aqui. */
+  @media (max-width: 1024px) {
+    .mapa-palco {
+      margin-bottom: calc(-4rem - env(safe-area-inset-bottom, 0px));
+    }
+  }
+
+  .mapa-lona {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: var(--background);
+  }
+
+  /* ── A faixa de cima ────────────────────────────────────────────────────
+     `left: 0; right: 0` de propósito: o que o motor mede é esta caixa, e uma
+     caixa da largura da janela dá uma banda limpa em vez de um degrau. Quem
+     apanha o ponteiro é a pílula lá dentro — arrastar o globo ao lado dos
+     comandos continua a rodar o globo. */
+  .mapa-barra,
+  .mapa-rodape {
+    position: fixed;
+    z-index: 30;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    padding: 0 0.75rem;
+    pointer-events: none;
+  }
+
+  .mapa-barra > *,
+  .mapa-rodape > * {
+    pointer-events: auto;
+  }
+
+  .mapa-barra {
+    top: var(--topo-cromado);
+  }
+
+  .mapa-rodape {
+    bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Vidro sobre preto, hairline fria: a mesma receita das outras superfícies
+     flutuantes do site (`.globo-comando`, `.seleccao__lista`). */
+  .mapa-pilula {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    max-width: 100%;
+    padding: 0.375rem;
+    border: 1px solid var(--border-soft);
+    border-radius: 1rem;
+    background: color-mix(in srgb, var(--background-card) 82%, transparent);
+    backdrop-filter: blur(14px);
+  }
+
+  .mapa-regioes {
+    width: min(100%, 22rem);
+  }
+
+  /* Fechado, é um botão; aberto, é o cabeçalho do painel — e é ele que o
+     fecha. Assim não há dois cabeçalhos empilhados a dizer o mesmo, que era
+     o que dava ao painel mais quarenta e oito pixéis de altura sem lhe dar
+     mais uma linha de conteúdo. */
+  .mapa-regioes__gatilho {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-soft);
+    border-radius: 0.75rem;
+    background: color-mix(in srgb, var(--background-card) 82%, transparent);
+    backdrop-filter: blur(14px);
+    color: var(--foreground);
+    text-align: left;
+    cursor: pointer;
+    transition:
+      color var(--d-fast) var(--ease-out),
+      border-color var(--d-fast) var(--ease-out),
+      background var(--d-fast) var(--ease-out);
+  }
+
+  .mapa-regioes__gatilho:hover,
+  .mapa-regioes__gatilho:focus-visible {
+    border-color: var(--border-hover);
+    color: var(--foreground-strong);
+  }
+
+  /* Estado escolhido é branco, nunca dourado. */
+  .mapa-regioes__gatilho[aria-expanded="true"] {
+    border-color: var(--border-hover);
+    color: var(--foreground-strong);
+  }
+
+  .mapa-regioes__seta {
+    flex-shrink: 0;
+    transition: transform var(--d-fast) var(--ease-out);
+  }
+
+  .mapa-regioes__gatilho[aria-expanded="true"] .mapa-regioes__seta {
+    transform: rotate(180deg);
+  }
+
+  /* O painel abre para cima, e por isso a origem da animação é em baixo — a
+     mesma excepção que a `.seleccao__lista` já faz pela mesma razão. */
+  .mapa-regioes__painel {
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--border-soft);
+    border-radius: 0.75rem;
+    background: color-mix(in srgb, var(--background-card) 92%, transparent);
+    backdrop-filter: blur(14px);
+    animation: crescer var(--d-fast) var(--ease-out);
+    transform-origin: bottom center;
+  }
+
+  /* O tecto não é decorativo: um estorvo que coma mais de 40% da lona é
+     descartado pelo motor como se fosse uma cortina, e a partir daí os nomes
+     voltam a ser escritos por baixo dele. A lona é a janela inteira, logo
+     40% da lona são 40dvh — e o rodapé inteiro (painel, gatilho e dica) tem
+     de caber com folga abaixo disso. Medido com a região maior aberta. */
+  .mapa-regioes__lista {
+    max-height: min(20dvh, 240px);
+    overflow-y: auto;
+  }
+
+  .mapa-dica {
+    max-width: 46ch;
+    text-align: center;
+    /* Texto que não se carrega não pode roubar o arrasto ao globo. A caixa
+       da faixa já o cobre, por isso o motor conta com ele na mesma. */
+    pointer-events: none;
+  }
+
+  /* Duas instruções ao mesmo tempo leem-se como nenhuma: com o painel aberto
+     quem está ali está a escolher uma região, não a aprender a rodar o globo.
+     E são vinte pixéis a menos de estorvo em cima da lona. */
+  .mapa-regioes[data-aberto] ~ .mapa-dica {
+    display: none;
+  }
+
+  /* Fora do ecrã não há nada para comandar. Sem isto, quem chega ao rodapé
+     do site — por tabulação ou pela barra de deslocamento — leva os comandos
+     do mapa a flutuar por cima dele. `visibility` e não `opacity`: o que sai
+     do ecrã tem de sair também da ordem de tabulação. */
+  .mapa-barra[data-fora],
+  .mapa-rodape[data-fora] {
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      opacity var(--d-fast) var(--ease-out),
+      visibility 0s linear var(--d-fast);
   }
 }
 
