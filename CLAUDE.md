@@ -95,8 +95,9 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
    pequena da mesma ideia: barras e um acento que, em movimento, contam o
    que a frase do cartão diz por palavras.
 4. **A Terra em 3D** (`<GloboTerra>`) — é o mapa da página `/mapa`, e não
-   há outro. Texturas em `public/globo/` (569KB, mais 53KB de contornos
-   comprimidos; só nesta página). Chegou a haver outros dois — ver o ponto
+   há outro. Texturas em `public/globo/` (618,7 KiB em cinco ficheiros, mais
+   55,1 KiB de contornos comprimidos; só nesta página — os «569KB» que aqui
+   estiveram eram as quatro de antes de o `cor.webp` existir). Chegou a haver outros dois — ver o ponto
    6 —, e a regra é a mesma que vale para os ciclos infinitos: um motor de
    mapa a mais custa uma razão escrita, e não havia nenhuma. O que o faz
    funcionar:
@@ -175,7 +176,8 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
      decidir, o remate contra o preto era uma linha quebrada com os cantos
      dos polígonos à vista.
    - **As sobras não ficam anónimas.** Nem todos os vinte e nove nomes cabem:
-     em desktop escrevem-se treze, em telemóvel oito. Os que sobram juntam-se
+     em desktop escrevem-se catorze — eram treze antes de as etiquetas de par
+     encolherem a caixa —, em telemóvel oito. Os que sobram juntam-se
      em manchas com um algarismo, e apontar uma abre a lista de quem lá está.
      As manchas calculam-se **depois** da colocação e só apanham as sobras —
      nunca podem tirar o nome a ninguém. Agrupam no ecrã e não no terreno, e
@@ -222,9 +224,16 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
      o alfinete. O que **não** cede é a colisão entre nomes. O resgate corre
      antes de os algarismos irem para o DOM, e o que sobrar recoloca-se
      contra a lista já com o nome novo lá dentro — nenhum algarismo aterra em
-     cima do que se acabou de escrever. Medido depois: 0,8 → 0,2, e as
-     sobreposições continuam em zero. Os 0,2 que restam são o caso honesto:
-     não havia sítio nenhum, e aí uma conta vale mais do que um silêncio.
+     cima do que se acabou de escrever. As sobreposições continuam em zero.
+
+     **O número que aqui esteve estava na ponta optimista, e a lição é essa.**
+     Escreveu-se «0,8 → 0,2» a partir de **seis** carregamentos, que não
+     decidem nada: uma auditoria posterior mediu 0,50 em vinte, e uma terceira
+     amostra de vinte deu 0,25. O honesto é **entre 0,2 e 0,5**, e o que os
+     três números dizem em conjunto é que a variância entre carregamentos é
+     maior do que a diferença que se estava a reclamar. Uma amostra de seis
+     não distingue 0,2 de 0,5. Os que restam são o caso honesto — não havia
+     sítio nenhum, e aí uma conta vale mais do que um silêncio.
 
      **E o painel aberto era escrito por cima.** A mancha fechada é um disco de
      22px, mas aberta o painel ocupa 170×255 no computador e 160×210 no
@@ -586,6 +595,34 @@ encontra e que ninguém muda quando as outras mudam.
   mudou. O mesmo vale para o `<GrelhaHolofote>`, cuja cache de medidas passou
   a estar em coordenadas do documento e por isso não caduca ao rolar. Medido:
   1663 → 67 leituras na página inicial, 325 → 15 no directório.
+
+  **E esta regra tinha uma excepção escondida na página do globo.** O
+  `medirEstorvos` — o que pergunta ao browser quem está fixo no caminho —
+  corria uma sondagem completa **por evento de `scroll`**, e uma sondagem são
+  até 36 `elementFromPoint`, cada um com o `getComputedStyle` da subida aos
+  antepassados. Medido a 390×700, em dois segundos de rolo: **1296
+  `elementFromPoint`**. Era a maior despesa de linha principal da página, e
+  era exactamente o padrão que o parágrafo acima conta ter corrigido noutro
+  sítio.
+
+  Era também trabalho a dobrar, porque a resposta não podia ter mudado: um
+  elemento `fixed` **não se mexe na janela quando a página rola** — é a
+  definição. O que muda é onde a lona está, e isso é uma leitura e não trinta
+  e seis. A rolar recalcula-se a partir das faixas que a última sondagem
+  encontrou; um `sticky` é a excepção, porque esse mexe-se mesmo, e volta a
+  perguntar. E as sondagens completas passaram a **travão de fim** e não de
+  ritmo, tanto no rolo como no `transitionend`: uma transição não acaba uma
+  vez, acaba uma vez por propriedade, e o cromado deste mapa transita várias
+  ao mesmo tempo. A meio do gesto não se pergunta nada; a pergunta cai 160ms
+  depois de tudo assentar.
+
+  Medido, três corridas por vista, com a lona sempre no ecrã: **1296 → 108 a
+  390×700** e **1251 → 747 a 1400×950**. O que resta no computador são seis
+  sondagens em dois segundos, e são legítimas — a barra e o rodapé do mapa
+  escondem-se ao rolar, e a lona útil muda mesmo. E o que a faixa existe para
+  garantir continua garantido: **zero nomes debaixo de um estorvo fixo**, nas
+  duas vistas, antes e depois.
+
 - **O `will-change` acaba quando a animação acaba.** O estado inicial do
   `[data-revelar]` pede `will-change: opacity, transform`, e é isso que põe a
   entrada no compositor — mas ficava pedido para sempre, uma camada por bloco

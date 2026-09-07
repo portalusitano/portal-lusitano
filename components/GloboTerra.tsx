@@ -4130,14 +4130,36 @@ export default function GloboTerra({
     const FUNDOS_SONDA = [2, 18, 42, 78, 130, 200];
     let estorvoPedido = 0;
 
-    /** O rectângulo do estorvo fixo que está neste ponto, se algum houver. */
+    /* ── As duas faixas que a última sondagem encontrou ───────────────────
+     * Em coordenadas da **janela**, e não da lona: é essa a forma que
+     * sobrevive a um deslocamento. `bandaTopo` é o ponto mais fundo a que um
+     * estorvo de cima chega; `bandaBase` é o ponto mais alto a que um de
+     * baixo sobe. Sem estorvo nenhum ficam nos infinitos, e as contas que as
+     * usam dão zero sozinhas.
+     *
+     * `houvePegajoso` diz se alguma delas veio de um `sticky`. */
+    let bandaTopo = -Infinity;
+    let bandaBase = Infinity;
+    let houvePegajoso = false;
+
+    /** O rectângulo do estorvo fixo que está neste ponto, se algum houver.
+     *
+     * Devolve também se ele era **pegajoso** e não fixo, e essa distinção não
+     * é curiosidade: um `fixed` não muda de sítio na janela quando a página
+     * rola — é a definição —, mas um `sticky` muda, porque passa de correr
+     * com o texto a ficar preso na borda. É essa diferença que decide se a
+     * faixa se pode recalcular de cabeça ou se tem de se voltar a perguntar
+     * ao browser. Ver `recalcularFaixa`. */
     const fixoEm = (x: number, y: number) => {
       const alvo = document.elementFromPoint(x, y);
       if (!alvo || el.contains(alvo)) return null;
       let n: HTMLElement | null = alvo as HTMLElement;
       while (n && n !== document.body) {
         const pos = getComputedStyle(n).position;
-        if (pos === "fixed" || pos === "sticky") return n.getBoundingClientRect();
+        if (pos === "fixed" || pos === "sticky") {
+          if (pos === "sticky") houvePegajoso = true;
+          return n.getBoundingClientRect();
+        }
         n = n.parentElement;
       }
       return null;
@@ -4246,8 +4268,9 @@ export default function GloboTerra({
          quando a cortina sair — e vai sair — estão no sítio, e enquanto lá
          está não se vê nada de qualquer maneira. Passa a ser descartado. */
       const tecto = c.height * 0.4;
-      let alturaDoTopo = c.top;
-      let fundoDaBase = c.bottom;
+      let alturaDoTopo = -Infinity;
+      let fundoDaBase = Infinity;
+      houvePegajoso = false;
       const maisFundo = FUNDOS_SONDA[FUNDOS_SONDA.length - 1];
       for (const f of COLUNAS_SONDA) {
         const x = c.left + c.width * f;
@@ -4277,8 +4300,19 @@ export default function GloboTerra({
           if (chegaCima && chegaBaixo) break;
         }
       }
-      const entraEmCima = Math.max(0, alturaDoTopo - c.top);
-      const entraEmBaixo = Math.max(0, c.bottom - fundoDaBase);
+      bandaTopo = alturaDoTopo;
+      bandaBase = fundoDaBase;
+      aplicarFaixa(c);
+    };
+
+    /* ── A conta, separada da sondagem ────────────────────────────────────
+     * Isto era o fim do `medirEstorvos` e passou a viver sozinho, porque há
+     * dois caminhos que precisam dele e só um deles precisa de perguntar ao
+     * browser onde estão os estorvos. */
+    const aplicarFaixa = (c: DOMRect) => {
+      const tecto = c.height * 0.4;
+      const entraEmCima = Math.max(0, bandaTopo - c.top);
+      const entraEmBaixo = Math.max(0, c.bottom - bandaBase);
       const topo = entraEmCima > tecto ? 0 : entraEmCima;
       const base = alturaCaixa - (entraEmBaixo > tecto ? 0 : entraEmBaixo);
       if (Math.abs(topo - topoUtil) < 2 && Math.abs(base - baseUtil) < 2) return;
@@ -4288,6 +4322,71 @@ export default function GloboTerra({
          iam parar por baixo do cabeçalho com a página a meio do rolo. */
       comandos.style.setProperty("--recuo", `${Math.round(topo)}px`);
       pedirQuadro();
+    };
+
+    /* ── Rolar não obriga a voltar a perguntar ao browser ─────────────────
+     *
+     * O `CLAUDE.md` promete, por escrito, que **nada varre a página a cada
+     * deslocamento** — e conta a história do `ObservadorRevelar`, que foi
+     * corrigido por fazer exactamente isto. Este ficheiro estava a fazê-lo na
+     * mesma página: o `aoRolar` pedia uma sondagem completa por evento de
+     * `scroll`, e uma sondagem completa são até 36 `elementFromPoint`, cada um
+     * com o `getComputedStyle` da subida aos antepassados e um
+     * `getBoundingClientRect` no fim. Medido a 390×700, em dois segundos de
+     * rolo: **900 `elementFromPoint`, 403 `getComputedStyle` e 145
+     * `getBoundingClientRect`** — cerca de 39 testes de acerto forçados por
+     * evento, e a maior despesa de linha principal da página inteira.
+     *
+     * E era trabalho a dobrar, porque a resposta não podia ter mudado: um
+     * elemento `fixed` **não se mexe na janela quando a página rola**. É a
+     * definição de `fixed`. O que muda é onde a lona está — e isso é uma
+     * leitura, não trinta e seis.
+     *
+     * Por isso, a rolar, recalcula-se de cabeça a partir das faixas que a
+     * última sondagem encontrou. Duas excepções, e as duas escritas:
+     *
+     * 1. **Um `sticky` mexe-se**, porque passa de correr com o texto a ficar
+     *    preso na borda. Se a última sondagem apanhou um, volta-se a
+     *    perguntar como antes — é o caso raro a pagar o preço, e não o comum.
+     * 2. **Uma sondagem completa continua a haver, mas quando o rolo pára** e
+     *    não enquanto ele corre. Isto não é para corrigir o `fixed`, que não
+     *    precisa: é para o motor não passar a *saber* que os outros
+     *    componentes não mudam. A regra desta cena é perguntar ao browser
+     *    quem está no caminho e não conhecer as classes de ninguém; um
+     *    elemento que passasse a `fixed` a meio de um rolo, sem animação
+     *    nenhuma, seria invisível a todos os outros sinais.
+     *
+     *    É travão de fim e não travão de ritmo, e a diferença é o que se
+     *    sente: a meio do gesto não se pergunta nada ao browser, e a pergunta
+     *    cai 160ms depois de o dedo parar, quando já ninguém está à espera de
+     *    um quadro. Uma sondagem por gesto, em vez de uma a cada quarenta
+     *    milissegundos. */
+    const REPOUSO_DO_ROLO_MS = 160;
+    let relogioDoRolo = 0;
+    let faixaPedida = 0;
+    /** Uma sondagem completa quando as coisas assentarem, e não uma por sinal. */
+    const pedirEstorvosEmRepouso = () => {
+      window.clearTimeout(relogioDoRolo);
+      relogioDoRolo = window.setTimeout(pedirEstorvos, REPOUSO_DO_ROLO_MS);
+    };
+    const medirFaixaAoRolar = () => {
+      faixaPedida = 0;
+      if (desmontado || !noEcra || escondido) return;
+      /* Um `sticky` muda de sítio na janela ao rolar, logo a faixa em cache
+         não lhe serve: para esse volta-se a perguntar, como antes. É o caso
+         raro a pagar o preço, e não o comum. */
+      if (houvePegajoso) {
+        medirEstorvos();
+        return;
+      }
+      const c = el.getBoundingClientRect();
+      if (c.width < 1 || c.height < 1) return;
+      aplicarFaixa(c);
+    };
+    const pedirFaixaAoRolar = () => {
+      pedirEstorvosEmRepouso();
+      if (faixaPedida || desmontado) return;
+      faixaPedida = requestAnimationFrame(medirFaixaAoRolar);
     };
 
     const pedirEstorvos = () => {
@@ -4320,7 +4419,23 @@ export default function GloboTerra({
       if (el.contains(alvo)) return;
       const pos = getComputedStyle(alvo).position;
       if (pos !== "fixed" && pos !== "sticky") return;
-      pedirEstorvos();
+      /* ── Uma sondagem por assentamento, e não uma por propriedade ────────
+         Uma transição não acaba uma vez: acaba uma vez **por propriedade que
+         transita**, e o cromado deste mapa transita várias ao mesmo tempo —
+         a barra e o rodapé escondem-se ao rolar, cada um com o seu
+         `transform` e a sua `opacity`. Cada um desses fins pedia uma
+         sondagem completa, e ao rolar isso repete-se durante todo o gesto.
+
+         Medido a 1400×950, em dois segundos de rolo **depois** de o próprio
+         `aoRolar` já ter deixado de sondar: 357 `elementFromPoint`, todos
+         daqui. O rolo tinha sido corrigido e o custo continuava lá, vindo da
+         porta do lado.
+
+         O sinal continua a ser o mesmo — não se mede a meio de um deslize,
+         que era o defeito que este ouvinte existe para evitar —, mas
+         espera-se que **todas** as transições assentem antes de perguntar
+         uma vez. */
+      pedirEstorvosEmRepouso();
     };
 
     let relogioClique = 0;
@@ -4334,7 +4449,7 @@ export default function GloboTerra({
        um estorvo fixo. As duas coisas caducam ao mesmo sinal. */
     const aoRolar = () => {
       esquecerCaixa();
-      pedirEstorvos();
+      pedirFaixaAoRolar();
     };
     window.addEventListener("scroll", aoRolar, { passive: true });
     document.addEventListener("animationend", talvezEstorvo, true);
@@ -4408,6 +4523,8 @@ export default function GloboTerra({
       document.removeEventListener("transitionend", talvezEstorvo, true);
       document.removeEventListener("click", aoClicarAlgures, true);
       if (estorvoPedido) cancelAnimationFrame(estorvoPedido);
+      if (faixaPedida) cancelAnimationFrame(faixaPedida);
+      window.clearTimeout(relogioDoRolo);
       if (quadroPedido) cancelAnimationFrame(quadroPedido);
       observador.disconnect();
       observadorVista.disconnect();
