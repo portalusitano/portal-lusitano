@@ -253,3 +253,63 @@ describe("a contagem viva", () => {
     expect(screen.getByRole("status")).toHaveTextContent("7");
   });
 });
+
+/* ── A rota do teclado até uma região tem de ter saída ──────────────────────
+ * O painel abre **para cima** do gatilho, e por isso está antes dele no
+ * documento. Medido no browser a 1400×950 antes desta correcção: do atalho
+ * «Saltar o globo e ir às regiões» chega-se ao gatilho, carrega-se, o painel
+ * abre — e a tabulação seguinte sai do conteúdo e aterra no rodapé do site,
+ * em «Encontrar cavalo». Sessenta tabulações para a frente não encontravam
+ * uma única região. O único caminho para dentro era `Shift+Tab` duas vezes,
+ * que entra pelo fim da lista: o gesto de recuar a servir de gesto de entrar.
+ *
+ * Aqui não se prova a ordem de tabulação — isso mede-se num browser a sério —,
+ * prova-se a única coisa que a desfaz: **abrir o painel põe o foco lá
+ * dentro**. Com o foco na primeira região, a tabulação seguinte é a segunda,
+ * e a rota deixa de ter de existir ao contrário.
+ */
+describe("abrir o painel leva o foco lá para dentro", () => {
+  it("sem região, o foco assenta na primeira da lista", () => {
+    montar();
+    fireEvent.click(gatilhoDasRegioes());
+    const painel = document.getElementById("mapa-regioes-painel")!;
+    expect(painel).toContainElement(document.activeElement as HTMLElement);
+    // A lista vem da maior para a menor: o Ribatejo tem quatro.
+    expect(document.activeElement).toHaveTextContent("Ribatejo");
+  });
+
+  it("com região, o foco assenta no caminho de volta", () => {
+    montar({ regiao: "Alentejo" });
+    fireEvent.click(gatilhoDasRegioes());
+    const painel = document.getElementById("mapa-regioes-painel")!;
+    expect(painel).toContainElement(document.activeElement as HTMLElement);
+    expect(document.activeElement).toHaveAccessibleName(`${pt.mapa.region_clear}: Alentejo`);
+  });
+
+  it("fechar devolve o foco ao gatilho, que é de onde saiu", () => {
+    montar();
+    const gatilho = gatilhoDasRegioes();
+    fireEvent.click(gatilho);
+    // Primeiro tem de estar lá dentro, senão o regresso não prova nada.
+    expect(document.getElementById("mapa-regioes-painel")!).toContainElement(
+      document.activeElement as HTMLElement
+    );
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(document.activeElement).toBe(gatilho);
+  });
+
+  /* Uma região que a pesquisa esvaziou está `disabled`: o foco não pode
+     assentar nela, senão abrir o painel dava um foco que não faz nada. */
+  it("não assenta numa região que a pesquisa esvaziou", () => {
+    montar();
+    fireEvent.change(screen.getByLabelText(pt.mapa.search_label), {
+      target: { value: "alfa" },
+    });
+    fireEvent.click(gatilhoDasRegioes());
+    const posto = document.activeElement as HTMLElement;
+    expect(document.getElementById("mapa-regioes-painel")!).toContainElement(posto);
+    expect(posto).not.toHaveAttribute("disabled");
+    // Só o Ribatejo tem uma «Alfa»; as outras duas regiões ficam a zero.
+    expect(posto).toHaveTextContent("Ribatejo");
+  });
+});
