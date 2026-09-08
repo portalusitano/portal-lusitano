@@ -95,9 +95,12 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
    pequena da mesma ideia: barras e um acento que, em movimento, contam o
    que a frase do cartão diz por palavras.
 4. **A Terra em 3D** (`<GloboTerra>`) — é o mapa da página `/mapa`, e não
-   há outro. Texturas em `public/globo/` (618,7 KiB em cinco ficheiros, mais
-   55,1 KiB de contornos comprimidos; só nesta página — os «569KB» que aqui
-   estiveram eram as quatro de antes de o `cor.webp` existir). Chegou a haver outros dois — ver o ponto
+   há outro. Texturas em `public/globo/` (569,3 KiB em cinco ficheiros, mais
+   55,1 KiB de contornos comprimidos; só nesta página). O número esteve errado
+   duas vezes, e as duas por boas razões: os «569KB» originais eram quatro
+   ficheiros e o `cor.webp` juntou-se-lhes sem ninguém somar; medido, eram
+   618,7 KiB. Encolher a máscara de mar devolveu-o a 569,3 — coincidência, e
+   fica escrito para ninguém pensar que ninguém mexeu. Chegou a haver outros dois — ver o ponto
    6 —, e a regra é a mesma que vale para os ciclos infinitos: um motor de
    mapa a mais custa uma razão escrita, e não havia nenhuma. O que o faz
    funcionar:
@@ -164,6 +167,32 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
      antes, as 25 de terra ganharam estrutura (100× a 990× na variância do
      laplaciano) e as 25 de mar e céu continuam lisas — não entrou
      batimetria no oceano.
+   - **A máscara de mar é uma máscara, e não uma fotografia.** O
+     `brilho.webp` vinha a 2048×1024 como as outras texturas do planeta, mas o
+     shader lê-lhe **um canal só** e usa-o para uma coisa apenas: um lóbulo
+     especular de expoente 34 — largo e suave — onde o Sol bate de raspão no
+     mar. Uma máscara que multiplica um lóbulo desses não precisa da resolução
+     de uma imagem; precisa de saber onde acaba a terra com uma margem da
+     ordem do próprio lóbulo. Custava **8 MiB de memória de vídeo para
+     carregar um canal**, e no telemóvel é onde ela falta. Fica a 1024×512:
+     2 MiB, e o ficheiro cai de 98,6 para 52,2 KiB. Medido antes de decidir,
+     comparando a reduzida contra a original: 1024×512 dá erro médio de
+     3,44/255 e 512×256 dá 5,34, todo ele na linha de costa — e escolheu-se o
+     degrau conservador, porque a costa de Portugal é justamente a parte que
+     se vê de perto. Medido depois, no ecrã: o mesmo quadro do globo com uma
+     máscara e com a outra difere **no máximo 2/255 num subpixel**, com zero
+     subpixéis acima disso. O guião está em
+     `scripts/globo/encolher-brilho.mjs`.
+   - **A camada dos nomes não é o custo do teste de acerto**, e isto fica
+     escrito para o próximo não ir por aí. Uma auditoria apontou 409ms de
+     `HitTest` num arrasto de quatro segundos a 390×700 e propôs tirar a
+     camada do caminho do ponteiro durante o gesto. Fez-se, mediu-se, e **não
+     comprou nada**: 7ms de `HitTest` antes e 7ms depois. Isolado o mecanismo,
+     a camada custa **2 microssegundos por teste de acerto** — 422 nós, mas a
+     esmagadora maioria já está com `pointer-events: none` pelo `data-oculta`.
+     A dois microssegundos, sessenta vezes por segundo, são 0,12ms por
+     segundo. A alteração foi revertida: uma mudança que não se prova não
+     entra.
    - **A atmosfera é uma casca só**, e o que ela desenha é a coluna de ar
      que cada raio atravessa. Eram duas — uma larga e ténue, outra apertada
      e forte — porque cada uma fazia um Fresnel com uma potência diferente,
