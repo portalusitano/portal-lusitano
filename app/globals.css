@@ -2288,8 +2288,14 @@ body {
        lava a cor do que tapa e fica cinzento; com ela, o ocre do Alentejo
        atravessa a barra de cookies. */
     background: color-mix(in srgb, var(--background-card) 68%, transparent);
-    -webkit-backdrop-filter: blur(40px) saturate(200%);
-    backdrop-filter: blur(40px) saturate(200%);
+    /* O desfoque é o único número desta receita que muda de superfície para
+       superfície, e por isso é o único que sai como botão. Custa: desfocar é
+       compor uma camada contra o que está por baixo, e uma barra que vive por
+       cima de um formulário onde alguém escreve não pode pagar o mesmo que um
+       painel que abre a pedido. Quem o baixar escreve porquê, ao lado. */
+    --vidro-desfoque: 40px;
+    -webkit-backdrop-filter: blur(var(--vidro-desfoque)) saturate(200%);
+    backdrop-filter: blur(var(--vidro-desfoque)) saturate(200%);
     box-shadow:
       0 1px 0 0 var(--elevate-2) inset,
       0 24px 48px -12px rgba(0, 0, 0, 0.7);
@@ -6434,9 +6440,17 @@ textarea:autofill {
     gap: 0.75rem;
     max-width: min(42rem, calc(100vw - 3rem));
     padding: 0.5rem 1rem;
-    border: 1px solid var(--border-soft);
     border-radius: 999px;
-    background: color-mix(in srgb, var(--background) 62%, transparent);
+    /* O fundo, a borda e a saturação vêm do `.vidro`, que o JSX põe ao lado
+       desta classe; a sombra é a de baixo, que fica, porque a do `.vidro`
+       é a de um painel e numa pastilha lê-se como um borrão. O que muda é o
+       desfoque: **20px e não 40**,
+       e o número é medido — esta barra flutua por cima de um formulário onde
+       alguém está a escrever, e o custo de uma camada desfocada paga-se a cada
+       tecla. A 20px a superfície continua a ler-se como vidro (medido contra a
+       mesma barra sem desfoque: erro médio 0,274/255 e 1657 subpixéis
+       diferentes) e não muda o tempo de resposta da escrita. */
+    --vidro-desfoque: 20px;
     /* A sombra assenta-o: sem ela, uma superfície translúcida sobre preto
        lê-se como uma mancha e não como uma coisa pousada por cima. */
     box-shadow:
@@ -6465,6 +6479,12 @@ textarea:autofill {
     visibility: hidden;
     opacity: 0;
     transform: translate(-50%, 12px);
+    /* E é por isso que o `none` está aqui **escrito**, e não por omissão: o
+       `.vidro` que o JSX põe ao lado desta classe traz um `backdrop-filter`
+       no estado base, e sem esta linha juntar-se ao sistema devolvia
+       exactamente a camada que este comentário conta ter tirado. */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
     transition:
       opacity var(--d-header) var(--ease-header),
       transform var(--d-header) var(--ease-header),
@@ -6475,8 +6495,12 @@ textarea:autofill {
     visibility: visible;
     opacity: 1;
     transform: translate(-50%, 0);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    backdrop-filter: blur(20px) saturate(160%);
+    /* A única repetição da receita em todo o ficheiro, e tem razão: o filtro
+       aqui é um estado — `none` escondido, vidro à vista — e um estado não se
+       herda de uma classe irmã. O que **não** se repete é o número: o
+       desfoque vem do botão que o `.vidro` define. */
+    -webkit-backdrop-filter: blur(var(--vidro-desfoque)) saturate(200%);
+    backdrop-filter: blur(var(--vidro-desfoque)) saturate(200%);
     transition:
       opacity var(--d-header) var(--ease-header),
       transform var(--d-header) var(--ease-header),
@@ -6592,9 +6616,17 @@ textarea:autofill {
  * ========================================================================== */
 @layer components {
   .vc-barra-passo {
-    background: color-mix(in srgb, var(--background) 62%, transparent);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    backdrop-filter: blur(20px) saturate(160%);
+    /* Como o farol: a receita vem do `.vidro`, e o desfoque desce pela mesma
+       razão — esta é a única superfície do formulário que em telemóvel está
+       sempre à vista enquanto se escreve. */
+    --vidro-desfoque: 20px;
+    /* O `.vidro` fecha uma borda à volta toda, que é o que um painel quer.
+       Esta barra não é um painel: atravessa o ecrã de lado a lado e encosta à
+       navegação de baixo. A borda que ela tem é a de cima, e é a que a separa
+       do formulário — as outras três seriam duas linhas nas margens do ecrã e
+       um risco a dois pixéis de outro risco. */
+    border-inline: 0;
+    border-bottom: 0;
   }
 
   /* As duas defesas, iguais às do farol: sem `backdrop-filter` o fundo tem

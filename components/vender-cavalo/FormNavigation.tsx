@@ -92,7 +92,7 @@ export default function FormNavigation({ step, onPrev, faltam, rascunho }: FormN
           medida que o justifica escrita ao lado da regra: o desfoque que aqui
           estava vivia por baixo de um fundo a 95%, e a 95% um desfoque não se
           vê (máximo de 2/255 em todo o painel). */}
-      <div className="vc-barra-passo sm:hidden fixed bottom-16 left-0 right-0 z-30 border-t border-[var(--border)] px-4 py-3 flex items-center gap-3">
+      <div className="vidro vc-barra-passo sm:hidden fixed bottom-16 left-0 right-0 z-30 border-t border-[var(--border)] px-4 py-3 flex items-center gap-3">
         {step > 1 ? (
           <button
             type="button"

@@ -150,7 +150,7 @@ export default function Farol({ faltam, rascunho, passo }: FarolProps) {
 
   return (
     <div
-      className="vc-farol hidden sm:flex"
+      className="vidro vc-farol hidden sm:flex"
       data-visivel={visivel ? "sim" : "nao"}
       /* `aria-hidden` porque tudo o que aqui se escreve já é dito, e melhor,
          pelo indicador de passos e pelo cabeçalho de cada secção — os dois

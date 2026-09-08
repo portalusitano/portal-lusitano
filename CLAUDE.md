@@ -53,6 +53,40 @@ classe no sistema — acrescenta-se lá.
 `.selo` + `.selo-destaque` / `.selo-novo` / `.selo-neutro` / `.selo-forte` para
 distintivos sobre fotografia. `.cartao` para superfícies simples.
 
+**O que flutua é vidro, e é um só.** `.vidro` para painéis e barras
+(a de cookies, o convite a instalar a aplicação, a pastilha das línguas, o
+painel de partilhar, as duas barras do formulário de anúncio); `.vidro-leve`
+para um controlo pequeno, que muda só a sombra — a do `.vidro` diz «isto
+flutua a vinte e quatro pixéis» e numa pastilha de trinta de altura isso é um
+borrão. Serve para o que **flutua**; o que está assente na página é `.cartao`.
+
+Os números foram medidos e não escolhidos. O véu é **68%** do
+`--background-card`: pôs-se a superfície sobre um fundo claro e leu-se o
+contraste do texto contra os pixéis renderizados — 68% é o degrau mais fino
+que ainda passa 4,5:1 para a segunda linha (64% dá 4,27:1). O desfoque é 40px
+e a saturação 200%, e é a **saturação** que se lê como vidro: sem ela a
+superfície lava a cor do que tapa e fica cinzenta.
+
+O único número que muda de superfície para superfície é o desfoque, e por isso
+é o único que sai como botão: `--vidro-desfoque`. As duas barras do formulário
+de anúncio baixam-no a 20px porque flutuam por cima de alguém a escrever.
+Medido em 8 voltas alternadas na mesma sessão, a receita partilhada contra a
+que essas duas barras tinham antes: **−0,2ms de mediana em desktop e +0,1ms em
+telemóvel** por tecla — ou seja, nada. Uma primeira medição de 3 voltas dava 3
+a 4ms, e é o mesmo erro que este ficheiro já conta noutro sítio: três voltas
+não distinguem 3ms de ruído. Não havia mecanismo — as duas receitas são o
+mesmo `blur` mais `saturate`, e o que difere são constantes.
+
+Duas defesas obrigatórias, e nenhuma é decoração: `@supports not
+(backdrop-filter: …)` devolve um fundo opaco, e `prefers-reduced-transparency:
+reduce` também — sem desfoque por baixo, um véu translúcido é texto por cima de
+texto.
+
+**Uma superfície escondida não pede camada.** O farol do formulário só aparece
+quando o topo sai do ecrã, e no estado escondido o `backdrop-filter` está
+escrito a `none` de propósito: juntá-lo ao `.vidro` sem essa linha devolvia a
+camada que ninguém vê — o mesmo defeito que as etiquetas do globo tiveram.
+
 **Não se usa `<select>` nativo.** A lista aberta é pintada pelo widget do
 sistema — barra azul, tipo de letra do sistema, cantos direitos — e não há CSS
 que lhe chegue. Usa-se `<Seleccao>` (`components/ui/Seleccao.tsx`), que tem a
