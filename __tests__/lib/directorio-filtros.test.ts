@@ -298,16 +298,26 @@ describe("ordenar", () => {
 describe("paginar", () => {
   const lista = Array.from({ length: 29 }, (_, i) => coudelaria({ slug: String(i) }));
 
-  it("corta pelo tamanho de página do directório", () => {
+  /* As vinte e nove que a base tem cabem numa página só. Era 24 e partia-as em
+     24 + 5: cinco coudelarias atrás de um clique, e só na vista de partida —
+     qualquer filtro já cabia numa página. A razão comprida está na constante. */
+  it("as vinte e nove cabem todas numa página", () => {
     const p = paginar(lista, 1, POR_PAGINA);
-    expect(POR_PAGINA).toBe(24);
-    expect(p.itens).toHaveLength(24);
-    expect(p.totalPaginas).toBe(2);
+    expect(POR_PAGINA).toBe(36);
+    expect(p.itens).toHaveLength(29);
+    expect(p.totalPaginas).toBe(1);
     expect(p.total).toBe(29);
   });
 
+  it("continua a paginar quando o directório crescer", () => {
+    const muitas = Array.from({ length: 80 }, (_, i) => coudelaria({ slug: String(i) }));
+    expect(paginar(muitas, 1, POR_PAGINA).totalPaginas).toBe(3);
+    expect(paginar(muitas, 3, POR_PAGINA).itens).toHaveLength(8);
+  });
+
   it("uma página fora do intervalo devolve a última, não um ecrã vazio", () => {
-    expect(paginar(lista, 9, POR_PAGINA).pagina).toBe(2);
+    const muitas = Array.from({ length: 80 }, (_, i) => coudelaria({ slug: String(i) }));
+    expect(paginar(muitas, 9, POR_PAGINA).pagina).toBe(3);
   });
 });
 

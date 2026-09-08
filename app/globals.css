@@ -6789,9 +6789,73 @@ textarea:autofill {
   .dir-cartao__dado .dir-sitio__agulha {
     color: var(--foreground-muted);
   }
+
+  /* ── O rótulo de uma linha de dados também é dado ───────────────────────
+     «LINHAGENS» é o nome do que está escrito debaixo dele. O `.rotulo` do
+     sistema é `--foreground-muted`, o que **medido nos pixéis deste cartão**
+     dá 3,45:1 — e não era só o rótulo: o valor por baixo, «Veiga, Andrade»,
+     estava na mesma cor e na mesma medida. A passagem anterior subiu a terra,
+     o efectivo e a linha do que se faz para a `--foreground-secondary` e
+     deixou este par para trás; medidas as onze cores de texto desta página,
+     eram estas duas mais o rótulo do painel do topo e a contagem do botão do
+     mapa — quatro abaixo de 4,5:1, todas elas dados ou o nome de um dado.
+
+     Fica a `--foreground-secondary`. Medido na página construída, nas quatro
+     vistas: **cinco cores abaixo de 4,5:1 antes, zero depois**. O que continua
+     ténue é a agulha do sítio, que é um sinal e não texto.
+
+     Não se toca no `.rotulo` do sistema: ele vale o que vale onde é mesmo
+     ténue. O que muda é quem o usa nesta página, e por isso a classe é
+     `.dir-`. */
+  .dir-rotulo {
+    color: var(--foreground-secondary);
+  }
+
+  /* ── Os dois números com que se comparam duas coudelarias ───────────────
+     Eram uma frase só — «Desde 1836 · 150 cavalos» — toda em mono, alinhada à
+     esquerda. Duas coisas corriam mal ao mesmo tempo.
+
+     **A linha partia-se em telemóvel.** Medido a 390×844 nos vinte e três
+     cartões que têm este dado: a frase inteira em mono pede até 166px e a
+     coluna dá 147, e **quinze dos vinte e três** escreviam «150» numa linha e
+     «horses» na seguinte. Quem escreve os algarismos em mono e as palavras na
+     Geist pede 132px — cabem os vinte e três. A razão está no
+     `SoOsAlgarismos`.
+
+     **E os números não se comparavam.** Oito das vinte e nove não declaram ano
+     de fundação: nesses cartões o efectivo escorregava para o sítio onde o do
+     vizinho tem o ano, e uma coluna de cartões deixava de se poder ler de
+     relance — que é a única coisa para que uma grelha de directório serve. É
+     a mesma razão pela qual o `.preco` do site tem `tabular-nums`: números que
+     se comparam têm de aterrar no mesmo sítio.
+
+     Agora são duas casas fixas: o ano encostado à esquerda, o efectivo
+     encostado à direita. Quem não tem ano deixa a casa vazia e o efectivo fica
+     onde os outros o têm. Não é uma casa vazia com um travessão a fingir um
+     dado — é uma casa vazia. */
+  .dir-cartao__numeros {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .dir-cartao__ano {
+    min-width: 0;
+    white-space: nowrap;
+  }
+
+  /* O efectivo não encolhe: é ele o número que se compara, e uma reticência a
+     meio de «150 cavalos» não deixa comparar nada. Quem encolhe, se alguma
+     coisa tiver de encolher, é o ano — que traz a palavra «Desde» à frente e
+     por isso tem por onde. */
+  .dir-cartao__efectivo {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
 }
 
-/* ===========================================================================
+/* ={10}=================================================================
  * `.vc-nota` — a linha que diz o que fazer, e não a que diz quanto falta
  *
  * O formulário de publicar anúncio tinha as duas escritas na mesma classe. A
