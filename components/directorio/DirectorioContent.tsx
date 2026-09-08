@@ -25,7 +25,6 @@ import {
   ORDENACOES,
   POR_PAGINA,
   actividadesDisponiveis,
-  aplicarFiltros,
   contarFiltrosActivos,
   escreverFiltros,
   estatisticas,
@@ -39,6 +38,7 @@ import {
   type Ordenacao,
 } from "@/lib/directorio-filtros";
 import { ACTIVIDADES, type Actividade } from "@/lib/especialidades";
+import { estreitar, terraDe, terraRepeteRegiao } from "@/components/directorio/procura";
 import NumeroQueAssenta from "@/components/ui/NumeroQueAssenta";
 
 const GloboMapa = dynamic(() => import("@/components/GloboMapa"), {
@@ -225,11 +225,11 @@ function DirectorioInterior({
   // e as que ficariam a zero desaparecem sozinhas, que é a mesma regra que
   // deixou sete actividades onde havia cinquenta e oito.
   const regioes = useMemo(
-    () => regioesDisponiveis(aplicarFiltros(coudelarias, { ...filtros, regiao: "" })),
+    () => regioesDisponiveis(estreitar(coudelarias, { ...filtros, regiao: "" })),
     [coudelarias, filtros]
   );
   const actividades = useMemo(
-    () => actividadesDisponiveis(aplicarFiltros(coudelarias, { ...filtros, actividade: "" })),
+    () => actividadesDisponiveis(estreitar(coudelarias, { ...filtros, actividade: "" })),
     [coudelarias, filtros]
   );
   // As regiões que o ecrã vazio oferece contam-se sobre as vinte e nove, e não
@@ -239,7 +239,7 @@ function DirectorioInterior({
   const numeros = useMemo(() => estatisticas(coudelarias), [coudelarias]);
 
   const resultados = useMemo(
-    () => ordenar(aplicarFiltros(coudelarias, filtros), filtros.ordenar),
+    () => ordenar(estreitar(coudelarias, filtros), filtros.ordenar),
     [coudelarias, filtros]
   );
   const pagina = useMemo(
@@ -817,7 +817,16 @@ function Cartao({
      é a função que o lê, e não o tipo que se escreveu à espera dela. */
   const especialidades = lerListaDeTexto(c.especialidades);
   const linhagens = lerListaDeTexto(c.linhagens);
-  const sitio = [c.localizacao, c.regiao].filter(Boolean).join(", ");
+
+  /* A terra e a região são **dois dados**, e não uma frase só.
+     A morada inteira com a região colada ao fim, cortada a uma linha, perdia
+     sempre a região — era ela a última — e nas moradas compridas perdia
+     também a terra. A razão medida está no `terraDe`. */
+  const terra = terraDe(c.localizacao);
+  const regiao = (c.regiao ?? "").trim();
+  const mostraRegiao = Boolean(regiao) && !terraRepeteRegiao(terra, regiao);
+  const sitio = [terra, mostraRegiao ? regiao : null].filter(Boolean).join(", ");
+  const descricao = (c.descricao ?? "").trim();
 
   return (
     <LocalizedLink
@@ -855,15 +864,22 @@ function Cartao({
           {c.nome}
         </h3>
 
-        {sitio && (
-          <p className="meta flex items-start gap-1.5">
-            <MapPin size={12} className="mt-px shrink-0" aria-hidden="true" />
-            <span className="line-clamp-1">{sitio}</span>
+        {/* A região tem `shrink-0`: quem encolhe é a terra, e é ela que tem
+            por onde. Ao contrário, a região era a primeira a sair — 18 dos 24
+            cartões em telemóvel ficavam sem ela. */}
+        {(terra || regiao) && (
+          <p
+            className="dir-sitio dir-cartao__dado meta"
+            data-com-regiao={(terra && mostraRegiao) || undefined}
+          >
+            <MapPin size={12} className="dir-sitio__agulha" aria-hidden="true" />
+            <span className="dir-sitio__terra">{terra || regiao}</span>
+            {terra && mostraRegiao && <span className="dir-sitio__regiao">{regiao}</span>}
           </p>
         )}
 
         {(c.ano_fundacao || c.num_cavalos) && (
-          <p className="meta font-mono tabular-nums">
+          <p className="dir-cartao__dado meta font-mono tabular-nums">
             {[
               c.ano_fundacao ? `${t.directorio.since} ${c.ano_fundacao}` : null,
               c.num_cavalos
@@ -885,10 +901,32 @@ function Cartao({
             inteira num «+2» — o dado que distinguia ficava escondido
             precisamente atrás desse algarismo. Duas linhas de texto corrido
             dizem quatro ou cinco no mesmo espaço. */}
-        {especialidades.length > 0 && (
+        {especialidades.length > 0 ? (
           <p className="meta line-clamp-2 text-[var(--foreground-secondary)]">
             {especialidades.join(", ")}
           </p>
+        ) : (
+          /* **A descrição só aparece onde não há especialidades — e hoje isso
+             é zero cartões em vinte e nove.**
+
+             Fica escrito porque a primeira versão desta linha se justificava
+             com uma afirmação falsa: que `especialidades`, `linhagens` e
+             `ano_fundacao` estavam vazias nas vinte e nove. Não estão — as
+             duas primeiras estão preenchidas **29 em 29** e o ano em 21. O
+             que estava vazio era o recorte da tabela que o banco de ensaio
+             desta sessão servia, e mediu-se contra ele.
+
+             O ramo continua cá porque é uma rede honesta: uma coudelaria
+             acabada de registar tem descrição escrita e as listas por
+             preencher, e sem ele o cartão dela ficava com o nome, o sítio e o
+             efectivo — nada que diga o que ali se faz, que é a pergunta com
+             que se escolhe entre dois. Quando há especialidades, essas ganham:
+             são a mesma resposta arrumada, e duas leituras da mesma coisa não
+             cabem num cartão.
+
+             O que não se pode dizer é que este ramo mudou o que quer que seja
+             nos cartões que existem hoje. Não mudou. */
+          descricao && <p className="dir-cartao__dado meta line-clamp-2">{descricao}</p>
         )}
 
         {/* O rótulo em cima e os valores por baixo: em linha, numa coluna de

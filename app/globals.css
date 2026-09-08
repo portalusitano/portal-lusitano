@@ -6697,3 +6697,96 @@ textarea:autofill {
     color: var(--foreground-secondary);
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   DIRECTÓRIO — a linha do sítio no cartão
+
+   Acrescentado no fim e todo com o prefixo `.dir-`: não altera uma única
+   regra das que estão acima.
+
+   **A região deixou de ser a primeira coisa a desaparecer.** A linha era a
+   morada inteira mais a região coladas com vírgulas e cortadas a uma linha;
+   como a região vinha em último lugar, era sempre ela a sair. Medido nas
+   vinte e nove verdadeiras: **9 de 24 cartões em computador e 18 de 24 em
+   telemóvel** ficavam sem região à vista — e a região é ao mesmo tempo o eixo
+   por que se filtra e o que deixa comparar dois cartões de relance.
+
+   Agora são dois elementos e não uma frase: quem encolhe é a terra, que tem
+   por onde (`min-width: 0` mais reticências), e a região não encolhe de todo
+   (`flex-shrink: 0`). A terra vem já aparada pelo `terraDe`, que lhe tira a
+   rua, o quilómetro e o código postal — a razão medida está lá.
+   ════════════════════════════════════════════════════════════════════════════ */
+@layer components {
+  .dir-sitio {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.375rem;
+    min-width: 0;
+  }
+
+  /* A agulha alinha-se pela primeira linha do texto e não pela base da caixa,
+     e não encolhe: um ícone espremido lê-se como um erro de desenho. */
+  .dir-sitio__agulha {
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 0.15em;
+  }
+
+  /* `min-content` é a palavra mais comprida da terra: abaixo disso não
+     encolhe, e por isso é a **região** que desce de linha quando as duas não
+     cabem lado a lado. O contrário — encolher a terra até caber — dava
+     «Vila Verde de Fic…» num cartão de telemóvel de 173px. Assim a terra
+     escreve-se inteira e a linha custa a altura de uma segunda linha só nos
+     cartões onde é preciso. */
+  .dir-sitio__terra {
+    min-width: min-content;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* O que **não** encolhe. É o dado que o filtro usa. */
+  .dir-sitio__regiao {
+    flex-shrink: 0;
+    color: var(--foreground-secondary);
+  }
+
+  /* O ponto vive no CSS e não no HTML: é pontuação entre dois dados, não um
+     terceiro dado, e assim não vai parar ao texto que um leitor de ecrã lê
+     nem ao que uma selecção copia.
+
+     Está no fim da **terra** e não no princípio da região de propósito.
+     Quando as duas não cabem lado a lado e a região desce de linha, um ponto
+     encostado a ela lê-se como uma marca de lista — «· Ribatejo» parece o
+     primeiro item de uma enumeração. No fim da terra lê-se como o que é: a
+     linha continua abaixo. */
+  .dir-sitio[data-com-regiao] .dir-sitio__terra::after {
+    content: "·";
+    margin-left: 0.375rem;
+    color: var(--foreground-muted);
+  }
+
+  /* ── O que se lê no cartão é texto corrido, e tem de o parecer ──────────
+     As linhas de dados do cartão herdavam a cor do `.meta`, que é a
+     `--foreground-muted`. Medido **nos pixéis renderizados** do cartão:
+     rgb(102,102,102) sobre rgb(10,10,10) dá **3,45:1** — abaixo dos 4,5:1
+     que texto corrido pede. E não é letra pequena de rodapé: é a terra, é o
+     efectivo e é a frase que diz o que ali se faz, ou seja os três dados com
+     que se escolhe entre dois cartões.
+
+     A `--foreground-muted` é, pelo sistema, a cor do que é **ténue**. Estes
+     não são ténues — são a resposta. Passam à `--foreground-secondary`, que
+     é a cor do texto secundário e mede **7,89:1** no mesmo sítio.
+
+     Não se toca no `.meta`: ele continua a valer o que vale onde é mesmo
+     ténue. O que muda é só quem o usa aqui, e por isso a classe é `.dir-`.
+     A agulha fica ténue de propósito — é um sinal, não é texto. */
+  .dir-cartao__dado {
+    color: var(--foreground-secondary);
+  }
+
+  .dir-cartao__dado .dir-sitio__agulha {
+    color: var(--foreground-muted);
+  }
+}
