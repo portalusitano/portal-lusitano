@@ -712,8 +712,11 @@ export function apontamentosDeCoerencia(
 export const PASSO_DE_CADA_CAMPO: Readonly<Record<string, number>> = {
   proprietario_telefone: 1,
   proprietario_whatsapp: 1,
-  proprietario_nif: 1,
   proprietario_email: 1,
+  // O NIF mudou de passo com o resto da factura, e este mapa tem de ir com
+  // ele: um `erro` de inspecção que aponte para um passo onde o campo já não é
+  // desenhado é um passo travado por uma caixa que não está no ecrã.
+  proprietario_nif: 4,
   microchip: 1,
   numero_registo: 1,
   altura: 1,

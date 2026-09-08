@@ -3,7 +3,9 @@
 import { useMemo } from "react";
 import LocalizedLink from "@/components/LocalizedLink";
 import { CreditCard, Shield } from "lucide-react";
-import type { FormData } from "@/components/vender-cavalo/types";
+import type { FormData, AccoesCampo } from "@/components/vender-cavalo/types";
+import type { ApontamentosPorCampo } from "@/components/vender-cavalo/inspeccao";
+import SeccaoFacturacao from "@/components/vender-cavalo/SeccaoFacturacao";
 import { PLANO } from "@/lib/listing-tiers";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
@@ -30,6 +32,11 @@ interface StepPagamentoProps {
    */
   progresso?: { fase: string; feitos: number; total: number } | null;
   erros: ErrosPorCampo;
+  /* Os cinco campos da factura vivem agora aqui. Ver `SeccaoFacturacao.tsx`. */
+  updateField: (campo: keyof FormData, valor: FormData[keyof FormData]) => void;
+  apontamentos: ApontamentosPorCampo;
+  campo: AccoesCampo;
+  conta: (seccao: string) => { feitos: number; total: number };
 }
 
 /**
@@ -56,6 +63,10 @@ export default function StepPagamento({
   loading,
   progresso,
   erros: errosCrus,
+  updateField,
+  apontamentos,
+  campo,
+  conta,
 }: StepPagamentoProps) {
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
@@ -125,6 +136,22 @@ export default function StepPagamento({
         </p>
       </div>
 
+      {/* ── Quem recebe a factura ────────────────────────────────────────────
+          Cinco campos que estavam no passo 1, entre o telefone e o nome do
+          cavalo. Estão aqui porque é aqui que a factura se faz: entre o valor
+          a pagar, que se acabou de ler, e a caixa dos termos, que é o último
+          acto antes de cobrar. Nenhum ficou opcional. */}
+      <div className="mb-6">
+        <SeccaoFacturacao
+          formData={formData}
+          updateField={updateField}
+          erros={errosCrus}
+          apontamentos={apontamentos}
+          campo={campo}
+          conta={conta}
+        />
+      </div>
+
       {/* Termos */}
       <div className="mb-6">
         <label
@@ -173,7 +200,15 @@ export default function StepPagamento({
       </div>
 
       {/* O botão de pagar é `type="submit"` e não tem `onClick`: quem paga é o
-          `onSubmit` do formulário, o mesmo caminho da tecla Enter.
+          `onSubmit` do formulário.
+
+          **Já não é o mesmo caminho da tecla Enter, e é de propósito.** Com os
+          cinco campos da factura neste passo, Enter numa caixa de texto passava
+          a activar este botão — que é o botão por omissão do formulário — e a
+          cobrar 79 €. O `onKeyDown` do `<form>` trava a tecla no último passo e
+          só aí; a razão inteira está escrita no `page.tsx`, ao lado do
+          `aoTeclar`. Carregar aqui, ou carregar em Enter **com este botão em
+          foco**, continua a pagar.
 
           Deixou de estar `disabled` enquanto os termos não estão aceites. Um
           botão apagado não diz porquê, e a caixa dos termos fica acima dele —

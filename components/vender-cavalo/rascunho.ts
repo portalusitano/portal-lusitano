@@ -198,7 +198,12 @@ export function limparRascunho(): void {
  * ficaram os ficheiros que faltam, que é onde há alguma coisa a fazer.
  */
 export function passoSeguro(rascunho: Rascunho): number {
-  if (rascunho.documentos > 0) return Math.min(rascunho.passo, 2);
+  // O Livro Azul mudou do passo 2 para o passo 1 — está agora antes das doze
+  // perguntas que responde. O tecto tinha de mudar com ele: um ficheiro não
+  // sobrevive ao `localStorage`, e devolver alguém ao passo 2 deixava-o com um
+  // anexo obrigatório por escolher num passo que já tinha passado, e sem o
+  // botão desse passo a dizer nada sobre isso.
+  if (rascunho.documentos > 0) return Math.min(rascunho.passo, 1);
   if (rascunho.fotografias > 0) return Math.min(rascunho.passo, 3);
   return rascunho.passo;
 }

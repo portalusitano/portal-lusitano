@@ -110,7 +110,10 @@ const ANEXOS: readonly {
   depoisDaSeccao: string;
   mensagem: keyof MensagensValidacao;
 }[] = [
-  { campo: "livro_azul", passo: 2, depoisDaSeccao: "avos", mensagem: "livroAzul" },
+  // O Livro Azul mudou de passo. Está desenhado imediatamente **antes** da
+  // secção da identificação oficial, que é a que ele responde — por isso o
+  // sítio dele no resumo é depois de «O que vai no anúncio» e antes dela.
+  { campo: "livro_azul", passo: 1, depoisDaSeccao: "cavalo", mensagem: "livroAzul" },
   { campo: "fotografias", passo: 3, depoisDaSeccao: "condicoes", mensagem: "fotografias" },
 ];
 
@@ -174,12 +177,6 @@ export function validarPasso(
   const { formData, documentos, imagens, termosAceites } = estado;
   const erros: ErroCampo[] = [];
 
-  // O passo 4 não tem campos: tem uma caixa de aceitação e mais nada.
-  if (passo === 4) {
-    if (!termosAceites) erros.push({ campo: "termos_aceites", mensagem: m.termos });
-    return erros;
-  }
-
   const anexosDoPasso = ANEXOS.filter((a) => a.passo === passo);
   const emFalta = (campo: string) =>
     campo === "livro_azul" ? !documentos.livroAzul : imagens.length < MIN_IMAGES;
@@ -218,6 +215,11 @@ export function validarPasso(
   }
   fecharSeccao(seccaoAnterior);
 
+  // A caixa dos termos é a última coisa do passo 4, depois dos cinco campos da
+  // factura. Não é um campo de `FormData` e por isso não está no catálogo — mas
+  // trava o passo na mesma, e o sítio dela no resumo é o fim.
+  if (passo === 4 && !termosAceites) erros.push({ campo: "termos_aceites", mensagem: m.termos });
+
   return erros;
 }
 
@@ -250,9 +252,13 @@ export function faltamPorPasso(estado: EstadoFormulario, m: MensagensValidacao):
 export function totalPorPasso(estado: EstadoFormulario): number[] {
   const { formData } = estado;
   return [1, 2, 3, 4].map((passo) => {
-    if (passo === 4) return 1;
     const campos = CAMPOS.filter((c) => c.passo === passo && eExigido(c, formData)).length;
-    return campos + ANEXOS.filter((a) => a.passo === passo).length;
+    // O «+1» do passo 4 é a caixa dos termos, que não é campo do catálogo.
+    // Enquanto o passo 4 era só ela, este ramo era uma constante; com os cinco
+    // campos da factura lá dentro, uma constante passaria a mentir sobre o
+    // caminho que falta — que é o defeito que o `totalPorPasso` existe para não
+    // cometer.
+    return campos + ANEXOS.filter((a) => a.passo === passo).length + (passo === 4 ? 1 : 0);
   });
 }
 

@@ -65,11 +65,24 @@ export default function StepIndicator({
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
 
+  /**
+   * O nome de cada passo diz o que lá dentro se responde.
+   *
+   * O primeiro chamava-se «Proprietário & Identificação» e o quarto
+   * «Pagamento», e os dois passaram a mentir quando os cinco campos da factura
+   * mudaram de um para o outro: o passo 1 já não pede nada sobre quem paga —
+   * pede o contacto e o cavalo — e o passo 4 já não é só carregar no botão.
+   *
+   * Os dois nomes que mudaram vêm de um `tr(...)` e não de uma chave dos
+   * ficheiros de tradução, porque as chaves são partilhadas com outras páginas
+   * e este é um nome desta página. Os dois do meio não mudaram e continuam a
+   * vir de onde vinham.
+   */
   const stepLabels: string[] = [
-    t.vender_cavalo.step_label_owner + " & " + t.vender_cavalo.step_label_id,
+    tr("Contacto & o cavalo", "Contact & the horse", "Contacto y el caballo"),
     t.vender_cavalo.step_label_lineage + " & " + t.vender_cavalo.step_label_health,
     t.vender_cavalo.step_label_price,
-    t.vender_cavalo.step_label_payment,
+    tr("Factura & pagamento", "Invoice & payment", "Factura y pago"),
   ];
 
   const somaFeitos = feitos.reduce((a, b) => a + b, 0);

@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { CheckCircle, FileText } from "lucide-react";
-import type { StepProps, Documentos, DocumentType } from "@/components/vender-cavalo/types";
+import type { StepProps } from "@/components/vender-cavalo/types";
 import { linhagensPrincipais } from "@/components/vender-cavalo/data";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
@@ -10,12 +9,6 @@ import Seleccao from "@/components/ui/Seleccao";
 import Seccao from "@/components/vender-cavalo/Seccao";
 import { ErroDoCampo, classeCampo, useFaltas } from "@/components/vender-cavalo/campos-com-erro";
 import { atributosCampo, ligarCampo } from "@/components/vender-cavalo/apontamentos";
-import EscolherFicheiro from "@/components/vender-cavalo/EscolherFicheiro";
-
-interface StepLinhagemProps extends StepProps {
-  documentos: Documentos;
-  onDocUpload: (type: DocumentType, file: File) => void;
-}
 
 /**
  * A ascendência.
@@ -24,8 +17,16 @@ interface StepLinhagemProps extends StepProps {
  * com a nota «Opcional. Enriquece o pedigree que aparece no anúncio». Saiu a
  * gaveta e saiu a nota; o que fica no lugar é onde ir buscar o que se pede,
  * que é a informação que a nota devia ter dado desde sempre: **está tudo no
- * Livro Azul que se anexa no fim desta mesma página**, e por isso a ordem em
- * que as coisas aparecem no ecrã é a ordem em que se lêem no documento.
+ * Livro Azul**, e por isso a ordem em que as coisas aparecem no ecrã é a ordem
+ * em que se lêem no documento.
+ *
+ * **O Livro Azul deixou de se anexar aqui.** Anexava-se no fim desta página —
+ * ou seja **depois** das catorze perguntas que ele responde, e depois das doze
+ * do passo anterior, onde a nota da secção dizia com todas as letras «está
+ * tudo no Livro Azul e no passaporte, que anexa no passo seguinte». Vinte e
+ * seis perguntas a mandar procurar um documento, e o documento só se pedia
+ * depois delas. Passou para o passo 1, imediatamente antes da primeira
+ * pergunta que precisa dele — ver `StepIdentificacao.tsx`.
  *
  * Os campos dos avós ganharam `<label>` a sério. Eram doze `<input>` com um
  * `placeholder` a fazer de rótulo — «Nome», «Nº Registo» — debaixo de um
@@ -33,12 +34,10 @@ interface StepLinhagemProps extends StepProps {
  * como rótulo por um leitor de ecrã, e num campo obrigatório isso quer dizer
  * que quem lá chegar pelo resumo de erros não sabe onde está.
  */
-export default function StepLinhagem(props: StepLinhagemProps) {
+export default function StepLinhagem(props: StepProps) {
   const {
     formData,
     updateField,
-    documentos,
-    onDocUpload,
     erros: errosCrus,
     apontamentos,
     campo,
@@ -53,12 +52,8 @@ export default function StepLinhagem(props: StepLinhagemProps) {
    * mesma que trava o botão e a mesma que conta «7 / 12» no cabeçalho da
    * secção —, e é ela que decide qual dos campos leva vermelho.
    *
-   * O Livro Azul não é um campo de `FormData` e por isso não está no catálogo:
-   * quem sabe se ele já lá está é este passo, e é ele que o diz. Sem isso um
-   * anexo por escolher entrava como erro — a confusão que este trabalho
-   * existe para desfazer.
    */
-  const erros = useFaltas(errosCrus, formData, { livro_azul: Boolean(documentos.livroAzul) });
+  const erros = useFaltas(errosCrus, formData);
 
   /**
    * O que `ligarCampo` precisa de saber, montado uma vez.
@@ -300,59 +295,6 @@ export default function StepLinhagem(props: StepLinhagemProps) {
           </div>
         </Seccao>
 
-        {/* Upload Documentos */}
-        <div className="border-t border-[var(--border)] pt-6">
-          <h3 className="text-sm font-medium text-[var(--foreground)] mb-4 flex items-center gap-2">
-            <FileText size={18} className="text-[var(--foreground-muted)]" />
-            {t.vender_cavalo.required_docs_upload}
-          </h3>
-
-          <div className="space-y-4">
-            {/* Livro Azul. O `data-campo` é o que permite ao resumo de erros
-                no topo do passo vir ter aqui: um `<input type=file>` está
-                escondido dentro da etiqueta e não serve de alvo. */}
-            <div className="bg-[var(--background-card)]/50 cartao p-4" data-campo="livro_azul">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">{t.vender_cavalo.blue_book} *</span>
-                {documentos.livroAzul && <CheckCircle size={18} className="text-[var(--ok)]" />}
-              </div>
-              <p className="text-xs text-[var(--foreground-muted)] mb-3">
-                {t.vender_cavalo.blue_book_desc}
-              </p>
-              <EscolherFicheiro
-                texto={
-                  documentos.livroAzul ? documentos.livroAzul.name : t.vender_cavalo.choose_file
-                }
-                falta={erros.livro_azul?.nivel}
-                descritoPor={erros.livro_azul ? "erro-livro_azul" : undefined}
-                aoEscolher={(f) => onDocUpload("livroAzul", f[0])}
-              />
-              <ErroDoCampo erros={erros} campo="livro_azul" />
-            </div>
-
-            {/* O passaporte continua a não travar o passo, e a razão é a mesma
-                que já cá estava: quem publica um cavalo com Livro Azul tem o
-                documento que prova a identidade. Não é um campo do formulário
-                — é um segundo anexo do mesmo facto. */}
-            <div className="bg-[var(--background-card)]/50 cartao p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">{t.vender_cavalo.equine_passport}</span>
-                {documentos.passaporte && <CheckCircle size={18} className="text-[var(--ok)]" />}
-              </div>
-              <p className="text-xs text-[var(--foreground-muted)] mb-3">
-                {t.vender_cavalo.equine_passport_desc}
-              </p>
-              <EscolherFicheiro
-                texto={
-                  documentos.passaporte
-                    ? documentos.passaporte.name
-                    : t.vender_cavalo.choose_file_short
-                }
-                aoEscolher={(f) => onDocUpload("passaporte", f[0])}
-              />
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

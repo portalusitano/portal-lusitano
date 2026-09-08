@@ -200,10 +200,15 @@ describe("a que passo se pode voltar", () => {
     ...extra,
   });
 
-  it("quem tinha documentos volta ao passo 2, que é onde eles se anexam", () => {
+  it("quem tinha documentos volta ao passo 1, que é onde eles se anexam", () => {
     // Medido antes: quem tinha ido ao passo 3 voltava lá, sem fotografias e
     // sem Livro Azul, e o botão Continuar não andava — sem dizer porquê.
-    expect(passoSeguro(base({ passo: 4, documentos: 1, fotografias: 3 }))).toBe(2);
+    //
+    // Passo 1 e já não 2: o Livro Azul mudou de sítio, para vir antes das doze
+    // perguntas que ele responde em vez de depois delas. O tecto do restauro
+    // segue o anexo, senão devolvia alguém a um passo onde o anexo obrigatório
+    // já não é desenhado — e aí nem o botão desse passo diria porquê.
+    expect(passoSeguro(base({ passo: 4, documentos: 1, fotografias: 3 }))).toBe(1);
   });
 
   it("quem só tinha fotografias volta ao passo 3", () => {
