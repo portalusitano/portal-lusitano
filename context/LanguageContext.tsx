@@ -115,11 +115,22 @@ export function LanguageProvider({
       const aSeguir = codigo === "pt" ? "en" : codigo === "en" ? "es" : "pt";
       if (!translationsCache[aSeguir]) loadTranslations(aSeguir);
 
-      const pathname = window.location.pathname;
+      /* ── A query e a âncora vão com o caminho ──────────────────────────
+         Isto reescrevia o URL a partir do `pathname` só, e por isso **trocar
+         de língua apagava os filtros**: em `/mapa?q=veiga` carregar em «EN»
+         dava `/en/mapa` — e o ecrã continuava a mostrar «2 results» e «veiga»
+         na caixa, porque a troca de língua não remonta a página. Ninguém dava
+         por nada até recarregar, e aí apareciam as vinte e nove.
+
+         O URL deixava de descrever o que estava no ecrã, que é o defeito e
+         não o sintoma: quem guardasse nos favoritos, partilhasse a ligação ou
+         recarregasse perdia a pesquisa sem um aviso. */
+      const { pathname, search, hash } = window.location;
       const cleanPath = pathname.replace(/^\/(en|es)/, "") || "/";
-      const newPath =
+      const novoCaminho =
         codigo === "pt" ? cleanPath : `/${codigo}${cleanPath === "/" ? "" : cleanPath}`;
-      if (newPath !== pathname) {
+      const newPath = `${novoCaminho}${search}${hash}`;
+      if (novoCaminho !== pathname) {
         window.history.replaceState(null, "", newPath);
       }
 

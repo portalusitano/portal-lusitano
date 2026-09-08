@@ -123,16 +123,48 @@ const obterAvaliacoes = cache(async (id: string): Promise<Avaliacao[]> => {
  */
 export const dynamicParams = false;
 
+/**
+ * ── Uma construção que não conseguiu perguntar não pode sair verde ────────
+ *
+ * Isto engolia o erro. O `catch` devolvia `[]` e o `error` da resposta nem
+ * chegava a ser lido — e com o `dynamicParams` desligado uma lista vazia quer
+ * dizer **as vinte e nove fichas a 404, para sempre, até à construção
+ * seguinte**. Sem uma linha de aviso: o `next build` acabava verde e o defeito
+ * só aparecia em produção, na altura em que alguém carregasse numa coudelaria.
+ *
+ * Não é hipótese: foi medido no build que estava em `.next/standalone` desta
+ * máquina, feito com a base inalcançável — **29 de 29 slugs a 404**.
+ *
+ * A correcção é separar duas coisas que o código tratava como uma só:
+ *
+ * - **A base respondeu e não tem coudelarias nenhumas.** É um estado legítimo
+ *   — um portal acabado de instalar — e aí zero fichas é a resposta certa.
+ *   Segue em frente, e o `/directorio` mostra o seu ecrã vazio.
+ * - **Não se conseguiu perguntar.** A base não respondeu, a chave está errada,
+ *   a rede caiu. Aqui não se sabe nada, e publicar um site em que o directório
+ *   inteiro é 404 é pior do que não publicar. **Rebenta a construção**, que é
+ *   o único sítio onde isto ainda se pode apanhar de graça.
+ *
+ * Rebentar uma construção é a coisa mais agressiva que este ficheiro faz, e é
+ * de propósito: o preço de um `next build` falhado é alguém olhar para o
+ * registo; o preço da alternativa é o produto desaparecer sem ninguém dar por
+ * isso.
+ */
 export async function generateStaticParams() {
-  try {
-    const { data } = await supabase
-      .from("coudelarias")
-      .select("slug")
-      .eq("status", COUDELARIA_STATUS.ACTIVE);
-    return (data || []).map((c: { slug: string }) => ({ slug: c.slug }));
-  } catch {
-    return [];
+  const { data, error } = await supabase
+    .from("coudelarias")
+    .select("slug")
+    .eq("status", COUDELARIA_STATUS.ACTIVE);
+
+  if (error) {
+    throw new Error(
+      `Não se conseguiu ler as coudelarias para gerar as fichas: ${error.message}. ` +
+        "Com `dynamicParams = false`, continuar daqui publicaria todas as fichas a 404 — " +
+        "por isso a construção pára aqui, de propósito."
+    );
   }
+
+  return (data ?? []).map((c: { slug: string }) => ({ slug: c.slug }));
 }
 
 /**
