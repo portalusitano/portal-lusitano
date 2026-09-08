@@ -1,6 +1,15 @@
 "use client";
 
-import { useState, useMemo, memo, useRef, useEffect, useLayoutEffect, useCallback } from "react";
+import {
+  useState,
+  useMemo,
+  memo,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+  useDeferredValue,
+} from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import dynamic from "next/dynamic";
@@ -32,6 +41,7 @@ import {
   type EstadoDoMapa,
 } from "@/lib/mapa-coudelarias";
 import { capaDoCartao, iniciaisDe } from "@/lib/directorio-capas";
+import { comSinonimos } from "@/app/mapa/sinonimos";
 /* ── As mesmas duas regras que as etiquetas do globo usam ─────────────────
    Não é um empréstimo ao motor 3D: o módulo diz de si próprio que são «regras
    sobre os dados e não sobre o desenho», e a lista mostra os mesmos vinte e
@@ -524,10 +534,34 @@ export default function MapaClient({
      coisas saem do mesmo sítio: `porTexto` alimenta as contagens do painel
      (para uma região poder aparecer a zero em vez de mentir) e `visiveis`
      alimenta o globo, a lista e o contador. */
-  const porTexto = useMemo(() => filtrarPorTexto(coudelarias, procura), [coudelarias, procura]);
+  /* ── O que se escreve e o que se filtra não têm de andar ao mesmo passo ──
+     Medido a escrever «quinta» na caixa do mapa: a letra aparece depressa (36ms
+     de mediana no computador, 31 no telemóvel), mas o **quadro** parte-se — p95
+     de 766ms e um pico de 1017ms no computador, com 10 dos 32 quadros acima dos
+     32ms. A causa é a que se vê na cadeia: cada tecla muda `procura`, que muda
+     `visiveis`, que é a lista que vai para o `<GloboTerra>` — e o globo refaz os
+     alfinetes e as etiquetas **uma vez por letra**. Seis letras, seis
+     reconstruções, e nenhuma das cinco primeiras chega a ser vista.
+
+     `useDeferredValue` não torna a reconstrução mais barata; faz com que ela
+     aconteça menos vezes. Enquanto alguém continua a escrever, o React deita
+     fora o render adiado e recomeça com a letra mais recente, e o `useMemo`
+     devolve a **mesma referência** de `visiveis` — que é o que faz os efeitos
+     do globo não voltarem a correr.
+
+     O que fica no valor imediato é o que a pessoa escreveu: o texto dentro da
+     caixa e o endereço na barra. O que passa para o adiado é tudo o que
+     descreve o **resultado** — o globo, a lista, o painel e a fila que os
+     conta —, e passa junto, para não haver um instante com «29 de 29» ao lado
+     da palavra já escrita. */
+  const procuraFiltro = useDeferredValue(procura);
+  const porTexto = useMemo(
+    () => filtrarPorTexto(coudelarias, procuraFiltro),
+    [coudelarias, procuraFiltro]
+  );
   const visiveis = useMemo(
-    () => filtrar(coudelarias, { procura, regiao }),
-    [coudelarias, procura, regiao]
+    () => filtrar(coudelarias, { procura: procuraFiltro, regiao }),
+    [coudelarias, procuraFiltro, regiao]
   );
   /* Recalcula-se com o filtro de propósito — ver `destaqueDistingue`. */
   const destaqueVale = useMemo(() => destaqueDistingue(visiveis), [visiveis]);
@@ -536,7 +570,9 @@ export default function MapaClient({
      menor, por isso a maior é a primeira — e é ela que vale 100%. */
   const maiorRegiao = regioes[0]?.total ?? 0;
 
-  const temFiltro = procura.trim() !== "" || regiao !== null;
+  /* Descreve o resultado, logo anda com o valor adiado — senão a fila nascia
+     à primeira tecla a dizer «29 de 29», que é o número de antes. */
+  const temFiltro = procuraFiltro.trim() !== "" || regiao !== null;
   const limpar = useCallback(() => {
     setProcura("");
     setRegiao(null);
@@ -568,8 +604,9 @@ export default function MapaClient({
      antigo a ficar até deixar de ser preciso. */
   const regiaoDoPainel = regiao ?? regiaoAnterior.current;
   const listaDoPainel = useMemo(
-    () => (regiaoDoPainel ? filtrar(coudelarias, { procura, regiao: regiaoDoPainel }) : []),
-    [coudelarias, procura, regiaoDoPainel]
+    () =>
+      regiaoDoPainel ? filtrar(coudelarias, { procura: procuraFiltro, regiao: regiaoDoPainel }) : [],
+    [coudelarias, procuraFiltro, regiaoDoPainel]
   );
 
   /* ── O endereço é a memória da página ──────────────────────────────────
@@ -608,7 +645,10 @@ export default function MapaClient({
      da mesma consulta. */
   useLayoutEffect(() => {
     const doEndereco = lerEstadoDoMapa(
-      Object.fromEntries(new URLSearchParams(window.location.search)),
+      /* O mesmo sinónimo que o servidor aceita. Sem isto, quem chegasse com
+         `?search=` do directório via o servidor filtrar e o cliente
+         desfiltrar no primeiro `useLayoutEffect`. */
+      comSinonimos(Object.fromEntries(new URLSearchParams(window.location.search))),
       coudelarias.map((c) => c.regiao)
     );
     if (doEndereco.regiao !== partida.regiao) setRegiao(doEndereco.regiao);
@@ -957,7 +997,7 @@ export default function MapaClient({
     <SemResultados
       titulo={t.mapa.empty_title}
       dica={regiao ? t.mapa.empty_region : t.mapa.empty_hint}
-      termo={procura.trim()}
+      termo={procuraFiltro.trim()}
       aoLimpar={limpar}
       limparLabel={t.mapa.clear_filters}
     />
@@ -1113,9 +1153,9 @@ export default function MapaClient({
           <span className="sr-only">{t.mapa.clear_filters}</span>
         </button>
       )}
-      {procura.trim() && (
+      {procuraFiltro.trim() && (
         <button type="button" onClick={() => setProcura("")} className="chip chip-activo gap-1.5">
-          <span className="font-mono">{procura.trim()}</span>
+          <span className="font-mono">{procuraFiltro.trim()}</span>
           <X size={12} aria-hidden="true" />
           <span className="sr-only">{t.mapa.clear_search}</span>
         </button>
@@ -1364,7 +1404,16 @@ export default function MapaClient({
   }
 
   return (
-    <div className="min-h-screen bg-[var(--background)]">
+    /* `dvh` e não o `min-h-screen` do Tailwind, que compila para `100vh`.
+       Num telemóvel `100vh` é a janela **grande** — a que existe quando a
+       barra de endereço já se recolheu —, por isso com a barra à vista a
+       caixa é mais alta do que o que se vê e sobra deslocamento que não leva
+       a conteúdo nenhum. Não é uma unidade nova: é a que a metade do mapa
+       desta mesma página já usa (`.mapa-palco` é `100dvh`), e uma página com
+       duas respostas para «quanto é um ecrã» é uma página com um bug à
+       espera. Só morde quando os resultados são poucos — com as vinte e nove
+       o conteúdo passa a caixa de longe. */
+    <div className="min-h-[100dvh] bg-[var(--background)]">
       <div className="pointer-events-none fixed inset-0">
         <div
           aria-hidden="true"
