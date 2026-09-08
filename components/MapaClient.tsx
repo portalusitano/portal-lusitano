@@ -32,6 +32,24 @@ import {
   type EstadoDoMapa,
 } from "@/lib/mapa-coudelarias";
 import { capaDoCartao, iniciaisDe } from "@/lib/directorio-capas";
+/* ── As mesmas duas regras que as etiquetas do globo usam ─────────────────
+   Não é um empréstimo ao motor 3D: o módulo diz de si próprio que são «regras
+   sobre os dados e não sobre o desenho», e a lista mostra os mesmos vinte e
+   nove registos que o globo mostra. O argumento escrito lá vale aqui à letra
+   — «numa lista de coudelarias a palavra Coudelaria não distingue nenhuma das
+   outras» — e a lista **é** uma lista de coudelarias.
+
+   Medido a seco antes de entrar, contando quantos títulos e quantas terras o
+   browser corta com reticências: nomes 4/29 → 0/29 no computador e 22/29 →
+   6/29 no telemóvel; terras 7/29 → 0/29 e 10/29 → 0/29. As que ainda se
+   cortam são nomes longos a sério («Herdade da Malhadinha Nova»), e não a
+   mesma palavra repetida vinte vezes.
+
+   As terras eram o pior dos dois: em dez das vinte e nove o campo é a morada
+   completa com código postal, e cortada a meio — «Monte Mayor, EN 114 Km
+   145.5, 7050-70…» — não diz sequer o concelho, que é a única coisa que ali
+   se procura. O nome inteiro fica no `title`, como no globo. */
+import { nomeCurto, sitioCurto } from "@/lib/nomes-globo";
 
 // O globo desenha-se em canvas e mede o elemento onde está: só no cliente.
 // A cena 3D só se carrega nesta página, e só quando é precisa.
@@ -132,10 +150,15 @@ const LinhaCoudelaria = memo(function LinhaCoudelaria({
         <Capa coudelaria={coudelaria} capa={capa} sizes="40px" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm text-[var(--foreground)] group-hover:text-[var(--foreground-strong)]">
-          {coudelaria.nome}
+        <div
+          title={coudelaria.nome}
+          className="truncate text-sm text-[var(--foreground)] group-hover:text-[var(--foreground-strong)]"
+        >
+          {nomeCurto(coudelaria.nome)}
         </div>
-        <div className="meta truncate">{coudelaria.localizacao}</div>
+        <div title={coudelaria.localizacao} className="meta truncate">
+          {sitioCurto(coudelaria.localizacao)}
+        </div>
       </div>
       {typeof coudelaria.num_cavalos === "number" && (
         <span className="meta hidden shrink-0 font-mono tabular-nums sm:block">
@@ -242,10 +265,15 @@ const CartaoGrelha = memo(function CartaoGrelha({
             )}
           </div>
         )}
-        <h3 className="truncate text-sm text-[var(--foreground)] transition-colors group-hover:text-[var(--foreground-strong)]">
-          {coudelaria.nome}
+        <h3
+          title={coudelaria.nome}
+          className="truncate text-sm text-[var(--foreground)] transition-colors group-hover:text-[var(--foreground-strong)]"
+        >
+          {nomeCurto(coudelaria.nome)}
         </h3>
-        <p className="meta mb-1 truncate">{coudelaria.localizacao}</p>
+        <p title={coudelaria.localizacao} className="meta mb-1 truncate">
+          {sitioCurto(coudelaria.localizacao)}
+        </p>
         <p className="line-clamp-2 text-xs text-[var(--foreground-secondary)]">
           {coudelaria.descricao}
         </p>
@@ -777,6 +805,134 @@ export default function MapaClient({
     };
   }, [viewMode, falhou]);
 
+  /* ── E não se escreve por baixo de quem chegou depois ───────────────────
+     O efeito acima tira os comandos quando o **mapa** lhes sai de baixo. Não
+     cobre o caso simétrico, que é o que toda a gente vê na primeira visita:
+     outra coisa fixa a assentar por cima deles.
+
+     Medido, com a barra de cookies em pé — que é o primeiro ecrã de quem
+     nunca cá esteve: o gatilho «Explorar Regiões» fica **100% tapado** nas
+     duas vistas, e um clique nele não abre nada. Não é uma questão de
+     opinião: `document.elementFromPoint` no centro do gatilho devolve a
+     barra de cookies, e um `click()` de fora esgota o tempo com
+     `aria-expanded` a ficar em `false`. A dica fica 65% tapada no computador
+     e 100% no telemóvel.
+
+     E como o aviso é vidro a 68% e não uma chapa, o que se vê não é uma peça
+     escondida — é «Explorar Regiões» a atravessar «Escolher», texto de doze
+     pixéis por cima de texto de doze pixéis, que não é nenhum dos dois.
+
+     A resposta é a que este ficheiro já deu duas vezes. Do painel das manchas
+     do globo: «não é esconder informação: o painel é opaco e já os tapava. O
+     que ele não sabe fazer é tapá-los inteiros, e meio nome à borda de um
+     painel lê-se como um erro de desenho. Apagar é a mesma cobertura dita com
+     franqueza.» E do próprio motor: não se pergunta ao código de fora quanto
+     espaço ocupa — **pergunta-se ao browser quem está no caminho**, subindo
+     ao primeiro antepassado `fixed`. Aqui vale o mesmo: o mapa não conhece a
+     classe da barra de cookies, nem precisa.
+
+     ── E porque é que se apaga em vez de se subir ─────────────────────────
+     A hipótese óbvia — encostar o rodapé do mapa acima do aviso — foi
+     medida e não passa, e a conta é do próprio motor: um estorvo que coma
+     mais de 40% da lona é descartado como se fosse uma cortina, e a partir
+     daí os nomes voltam a ser escritos por baixo dele. A 390×700 o aviso
+     sozinho já ocupa 252px da lona (36%); com o rodapé do mapa por cima
+     dele a faixa passa a 346px, que são **49,4%** — acima do tecto. O globo
+     deixaria de fugir dela e escreveria os nomes debaixo das duas peças.
+     No computador passava (268px, 28%), e uma regra que sobe no computador
+     e apaga no telemóvel é duas regras. Apaga-se nos dois.
+
+     Enquanto o aviso lá está não se perde nada: o que se apaga já estava
+     tapado. Quando ele sai, as peças voltam com o esbatimento de `--d-fast`
+     que o `[data-fora]` já tem — é o tempo dos botões, que é o gesto que
+     tira o aviso do caminho. */
+  const [barraTapada, setBarraTapada] = useState(false);
+  const [rodapeTapada, setRodapeTapada] = useState(false);
+  useEffect(() => {
+    setBarraTapada(false);
+    setRodapeTapada(false);
+    const palcoNo = palco.current;
+    if (!palcoNo) return;
+
+    /* As mesmas três colunas com que o motor do globo sonda os estorvos —
+       16%, 50% e 84% —, e pela mesma razão: uma peça encostada a um dos
+       lados não é apanhada por uma sondagem só ao centro. Basta uma delas
+       para a peça se calar: meia pastilha debaixo de vidro não é meia
+       pastilha, é ruído. */
+    const COLUNAS = [0.16, 0.5, 0.84];
+    const tapado = (corpo: HTMLElement) => {
+      const c = corpo.getBoundingClientRect();
+      if (c.width < 1 || c.height < 1) return false;
+      const y = c.top + c.height / 2;
+      for (const f of COLUNAS) {
+        const alvo = document.elementFromPoint(c.left + c.width * f, y);
+        /* O que é nosso não nos tapa: a lona, os nomes do globo e o próprio
+           cromado vivem todos dentro do palco. Sem esta linha, uma peça já
+           apagada media a lona por baixo de si e voltava a acender-se. */
+        if (!alvo || palcoNo.contains(alvo)) continue;
+        let n: HTMLElement | null = alvo as HTMLElement;
+        while (n && n !== document.body) {
+          const pos = getComputedStyle(n).position;
+          if (pos === "fixed" || pos === "sticky") return true;
+          n = n.parentElement;
+        }
+      }
+      return false;
+    };
+
+    const corpos = [
+      { onde: barra, dentro: ".mapa-pilula", diz: setBarraTapada },
+      { onde: rodape, dentro: ".mapa-regioes__gatilho", diz: setRodapeTapada },
+    ] as const;
+    /* Sonda-se o **corpo** e não a faixa: a faixa é da largura da janela e
+       tem `pointer-events: none`, por isso uma sondagem a 16% dela cai na
+       lona e não diria nada. O que tem de estar alcançável é a pastilha e o
+       gatilho. */
+    const sondar = () => {
+      for (const { onde, dentro, diz } of corpos) {
+        const corpo = onde.current?.querySelector<HTMLElement>(dentro);
+        diz(corpo ? tapado(corpo) : false);
+      }
+    };
+    sondar();
+
+    /* Quem aparece depois é apanhado por um `MutationObserver`, que dispara
+       quando o DOM muda — e não por uma pergunta a cada deslocamento, que é
+       o padrão que este ficheiro já pagou caro noutro sítio. `childList` no
+       `body` e sem `subtree`: os avisos deste site vão para lá por portal
+       («o pedido não pertence a nenhuma secção da página»), logo entram e
+       saem como filhos directos. É um punhado de disparos por sessão. */
+    const aoMudarOCorpo = (listas: MutationRecord[]) => {
+      sondar();
+      /* O aviso entra a deslizar durante 400ms: sondado no instante em que
+         nasce, ainda está fora do ecrã e não tapa nada. Volta a sondar-se
+         quando o movimento dele acaba — o evento vem do próprio nó, não de
+         um temporizador com o número de outra pessoa escrito à mão. */
+      for (const l of listas)
+        for (const no of l.addedNodes)
+          if (no instanceof HTMLElement) {
+            no.addEventListener("animationend", sondar);
+            no.addEventListener("transitionend", sondar);
+          }
+    };
+    const vigia = new MutationObserver(aoMudarOCorpo);
+    vigia.observe(document.body, { childList: true });
+
+    /* As peças mudam de tamanho sozinhas (o painel abre, a dica sai) e a
+       janela muda com a rotação do telefone. */
+    const medidor = new ResizeObserver(sondar);
+    for (const { onde, dentro } of corpos) {
+      const corpo = onde.current?.querySelector<HTMLElement>(dentro);
+      if (corpo) medidor.observe(corpo);
+    }
+    window.addEventListener("resize", sondar, { passive: true });
+    return () => {
+      vigia.disconnect();
+      medidor.disconnect();
+      window.removeEventListener("resize", sondar);
+    };
+  }, [viewMode, falhou, regioesAbertas]);
+
   const contagem = `${formatarNumero(visiveis.length, language)} ${
     visiveis.length === 1 ? t.mapa.result_one : t.mapa.results
   }`;
@@ -1120,7 +1276,12 @@ export default function MapaClient({
             funcionam. A fila sai; o que fica no ecrã é a falha e as saídas
             dela. */}
         {!falhou && (
-          <div ref={barra} className="mapa-barra" data-fora={barraFora ? "" : undefined}>
+          <div
+            ref={barra}
+            className="mapa-barra"
+            data-fora={barraFora ? "" : undefined}
+            data-tapada={barraTapada ? "" : undefined}
+          >
             <div className="mapa-pilula">{comandos}</div>
             {barraEstado}
           </div>
@@ -1137,7 +1298,12 @@ export default function MapaClient({
           )}
         </div>
 
-        <div ref={rodape} className="mapa-rodape" data-fora={rodapeFora ? "" : undefined}>
+        <div
+          ref={rodape}
+          className="mapa-rodape"
+          data-fora={rodapeFora ? "" : undefined}
+          data-tapada={rodapeTapada ? "" : undefined}
+        >
           {!falhou && visiveis.length > 0 && (
             /* `tabIndex={-1}`: sem isto o salto muda o endereço e deixa o foco
                onde estava, e a tabulação seguinte voltava ao globo. */
@@ -1188,7 +1354,7 @@ export default function MapaClient({
             </div>
           )}
           {visiveis.length > 0 && (
-            <p className="meta mapa-dica" data-ido={dicaIda ? "" : undefined}>
+            <p className="meta vidro mapa-dica" data-ido={dicaIda ? "" : undefined}>
               {t.mapa.globe_hint}
             </p>
           )}
