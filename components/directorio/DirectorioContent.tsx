@@ -20,7 +20,6 @@ import Revelar from "@/components/Revelar";
 import Seleccao from "@/components/ui/Seleccao";
 import { useLanguage } from "@/context/LanguageContext";
 import { capaDoCartao, iniciaisDe } from "@/lib/directorio-capas";
-import { lerListaDeTexto } from "@/lib/coudelaria-ficha";
 import {
   ORDENACOES,
   POR_PAGINA,
@@ -38,7 +37,13 @@ import {
   type Ordenacao,
 } from "@/lib/directorio-filtros";
 import { ACTIVIDADES, type Actividade } from "@/lib/especialidades";
-import { estreitar, terraDe, terraRepeteRegiao } from "@/components/directorio/procura";
+import {
+  especialidadesDoCartao,
+  estreitar,
+  linhagensDoCartao,
+  terraDe,
+  terraRepeteRegiao,
+} from "@/components/directorio/procura";
 import NumeroQueAssenta from "@/components/ui/NumeroQueAssenta";
 
 const GloboMapa = dynamic(() => import("@/components/GloboMapa"), {
@@ -96,6 +101,42 @@ function FraseComNumero({ modelo, n }: { modelo: string; n: number }) {
       {antes}
       <NumeroQueAssenta valor={String(n)} className="numero-assenta-rapido font-mono" />
       {depois}
+    </>
+  );
+}
+
+/**
+ * A mesma frase, com **só os algarismos** em mono.
+ *
+ * O sistema diz que a mono é «para números, identificadores e dados
+ * tabelados, que assim alinham em coluna» — e «Desde» e «cavalos» não são
+ * números. Escrever a linha inteira em mono não a fazia alinhar melhor: fazia-a
+ * **mais larga**, e num cartão de telemóvel de 173px isso parte a linha em
+ * duas. Medido nos cartões a sério a 390×844: «Since 1836 · 150 horses» pede
+ * **166px** todo em mono e a coluna dá **147px**; com os algarismos em mono e
+ * as palavras na Geist pede **132px**. Quinze dos vinte e três cartões com
+ * este dado partiam o par «150 / horses» ao meio — e o português e o
+ * espanhol, que escrevem «cavalos» e «caballos», são mais compridos ainda.
+ * Medido depois nas três: zero linhas partidas.
+ *
+ * Os algarismos continuam `tabular-nums`, que é o que os deixa alinhar entre
+ * cartões — a mesma razão pela qual o `.preco` os tem.
+ */
+function SoOsAlgarismos({ texto }: { texto: string }) {
+  // O separador guarda os algarismos porque o grupo é capturante: a fatia
+  // ímpar é sempre número, a par é sempre palavra.
+  const pedacos = texto.split(/(\d+)/);
+  return (
+    <>
+      {pedacos.map((pedaco, i) =>
+        i % 2 === 1 ? (
+          <span key={i} className="font-mono tabular-nums">
+            {pedaco}
+          </span>
+        ) : (
+          pedaco
+        )
+      )}
     </>
   );
 }
@@ -407,7 +448,10 @@ function DirectorioInterior({
                     valor={valor}
                     className="block font-mono text-2xl tabular-nums text-[var(--foreground-strong)] sm:text-3xl"
                   />
-                  <div className="meta mt-1">{rotulo}</div>
+                  {/* `.dir-rotulo` e não o `.meta` que aqui estava: este texto é
+                      o **nome do número** que está por cima, e a
+                      `--foreground-muted` mede 3,45:1 nos pixéis desta página. */}
+                  <div className="dir-rotulo meta mt-1">{rotulo}</div>
                 </div>
               ))}
             </div>
@@ -591,7 +635,9 @@ function DirectorioInterior({
             >
               <Map size={14} aria-hidden="true" />
               {mapaAberto ? t.directorio.map_hide : t.directorio.map_show}
-              <span className="font-mono tabular-nums text-[var(--foreground-muted)]">
+              {/* Quantas coudelarias o mapa vai mostrar: é um dado, não uma
+                  legenda. A `--foreground-muted` media 3,66:1 aqui dentro. */}
+              <span className="font-mono tabular-nums text-[var(--foreground-secondary)]">
                 {noMapa.length}
               </span>
             </button>
@@ -659,7 +705,7 @@ function DirectorioInterior({
         ) : (
           <Vazio
             t={t}
-            regioes={regioesTodas.slice(0, 4).map((r) => r.valor)}
+            regioes={regioesTodas.slice(0, 4)}
             aoEscolherRegiao={(r) =>
               router.push(`${pathname}?${escreverFiltros({ ...FILTROS_VAZIOS, regiao: r })}`, {
                 scroll: false,
@@ -749,7 +795,10 @@ function FaixaDeChips({
 
   return (
     <div>
-      <span className="rotulo mb-2 block">{rotulo}</span>
+      {/* `.dir-rotulo`: o `.rotulo` do sistema é `--foreground-muted`, e aqui
+          dentro isso mede 3,66:1. Nomeia o eixo por que se filtra — não é
+          decoração. */}
+      <span className="rotulo dir-rotulo mb-2 block">{rotulo}</span>
       <div className="flex flex-wrap gap-2" role="group" aria-label={rotulo}>
         {lista.map((f, i) => {
           const activo = valor === f.valor;
@@ -810,13 +859,20 @@ function Cartao({
   capa: string | null;
   t: Dicionario;
 }) {
-  /* `lerListaDeTexto` e não `?? []`: uma string com JSON dentro não tem
-     `.filter` e rebentava a prerenderização da página inteira. A guarda pelo
-     `.length` não chegaria — uma string também tem `length`, portanto passa a
-     verificação e é o método a seguir que morre. Quem decide a forma do dado
-     é a função que o lê, e não o tipo que se escreveu à espera dela. */
-  const especialidades = lerListaDeTexto(c.especialidades);
-  const linhagens = lerListaDeTexto(c.linhagens);
+  /* As duas colunas são `jsonb` e há linhas nesta base que guardam uma
+     **string** com JSON lá dentro em vez de um array — foi assim que a
+     `cavalos_destaque` matou uma construção em produção. A guarda pelo
+     `.length` não chegaria: uma string também tem `length`, passa a
+     verificação, e é o método a seguir que morre. Quem decide a forma do dado
+     é a função que o lê, e não o tipo que se escreveu à espera dela; as duas
+     que se chamam aqui desembrulham-no.
+
+     E são estas duas e não `lerListaDeTexto` directamente porque a coluna
+     `especialidades` traz linhagens lá dentro em quatro das vinte e nove — a
+     razão medida, e o cartão onde o mesmo nome se escrevia duas vezes, estão
+     no `procura.ts`. */
+  const especialidades = especialidadesDoCartao(c.especialidades);
+  const linhagens = linhagensDoCartao(c.especialidades, c.linhagens);
 
   /* A terra e a região são **dois dados**, e não uma frase só.
      A morada inteira com a região colada ao fim, cortada a uma linha, perdia
@@ -878,18 +934,29 @@ function Cartao({
           </p>
         )}
 
+        {/* Os dois números com que se comparam duas coudelarias: há quanto
+            tempo existe, e quantos cavalos declara. Cada um encostado ao seu
+            lado — a razão medida está no `.dir-cartao__numeros`. */}
         {(c.ano_fundacao || c.num_cavalos) && (
-          <p className="dir-cartao__dado meta font-mono tabular-nums">
-            {[
-              c.ano_fundacao ? `${t.directorio.since} ${c.ano_fundacao}` : null,
-              c.num_cavalos
-                ? c.num_cavalos === 1
-                  ? t.directorio.horses_one
-                  : comN(t.directorio.horses_many, c.num_cavalos)
-                : null,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
+          <p className="dir-cartao__numeros dir-cartao__dado meta">
+            <span className="dir-cartao__ano">
+              {c.ano_fundacao ? (
+                <>
+                  {t.directorio.since} <SoOsAlgarismos texto={String(c.ano_fundacao)} />
+                </>
+              ) : null}
+            </span>
+            <span className="dir-cartao__efectivo">
+              {c.num_cavalos ? (
+                <SoOsAlgarismos
+                  texto={
+                    c.num_cavalos === 1
+                      ? t.directorio.horses_one
+                      : comN(t.directorio.horses_many, c.num_cavalos)
+                  }
+                />
+              ) : null}
+            </span>
           </p>
         )}
 
@@ -902,9 +969,7 @@ function Cartao({
             precisamente atrás desse algarismo. Duas linhas de texto corrido
             dizem quatro ou cinco no mesmo espaço. */}
         {especialidades.length > 0 ? (
-          <p className="meta line-clamp-2 text-[var(--foreground-secondary)]">
-            {especialidades.join(", ")}
-          </p>
+          <p className="dir-cartao__dado meta line-clamp-2">{especialidades.join(", ")}</p>
         ) : (
           /* **A descrição só aparece onde não há especialidades — e hoje isso
              é zero cartões em vinte e nove.**
@@ -934,8 +999,10 @@ function Cartao({
             dado que era suposto apresentar. */}
         {linhagens.length > 0 && (
           <p className="mt-auto pt-0.5">
-            <span className="rotulo block">{t.directorio.lineages_short}</span>
-            <span className="meta line-clamp-1">{linhagens.slice(0, 3).join(", ")}</span>
+            <span className="rotulo dir-rotulo block">{t.directorio.lineages_short}</span>
+            <span className="dir-cartao__dado meta line-clamp-1">
+              {linhagens.slice(0, 3).join(", ")}
+            </span>
           </p>
         )}
       </div>
@@ -961,7 +1028,7 @@ function Vazio({
   temFiltros,
 }: {
   t: Dicionario;
-  regioes: string[];
+  regioes: { valor: string; n: number }[];
   aoEscolherRegiao: (r: string) => void;
   aoLimpar: () => void;
   temFiltros: boolean;
@@ -987,11 +1054,22 @@ function Vazio({
 
       {regioes.length > 0 && (
         <div className="mt-8 border-t border-[var(--border-soft)] pt-6">
-          <p className="rotulo mb-3">{t.directorio.empty_try_region}</p>
+          <p className="rotulo dir-rotulo mb-3">{t.directorio.empty_try_region}</p>
           <div className="flex flex-wrap justify-center gap-2">
+            {/* Com a contagem, como as pastilhas da gaveta. Uma saída de um beco
+                que não diz para onde leva obriga a experimentar às cegas — e
+                duas destas quatro levam a uma coudelaria só. É a mesma razão
+                pela qual as pastilhas do filtro trazem o número: só vale a pena
+                carregar no que promete alguma coisa. */}
             {regioes.map((r) => (
-              <button key={r} type="button" onClick={() => aoEscolherRegiao(r)} className="chip">
-                {r}
+              <button
+                key={r.valor}
+                type="button"
+                onClick={() => aoEscolherRegiao(r.valor)}
+                className="chip"
+              >
+                {r.valor}
+                <span className="chip__conta font-mono">{r.n}</span>
               </button>
             ))}
           </div>

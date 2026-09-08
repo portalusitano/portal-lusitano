@@ -22,8 +22,27 @@ import {
   type Actividade,
 } from "@/lib/especialidades";
 
-/** Coudelarias por página. */
-export const POR_PAGINA = 24;
+/**
+ * Coudelarias por página.
+ *
+ * Eram 24, herdados do marketplace, onde há milhares de anúncios e paginar é a
+ * única saída. Aqui há **vinte e nove**, e 24 partia-as em 24 + 5: cinco
+ * coudelarias — 17% do directório — só apareciam a quem carregasse na página
+ * 2. E não em qualquer vista: **só na vista de partida**, porque qualquer
+ * filtro já cabe numa página (a região maior tem treze). Ou seja, o único ecrã
+ * em que a paginação existia era aquele em que ninguém pediu para estreitar
+ * nada, e o que ela escondia eram os cinco últimos da ordem — que é onde a
+ * coluna `destaque` põe quem não a tem.
+ *
+ * Com 36 as vinte e nove cabem todas, e a paginação continua lá para quando o
+ * directório crescer: o `Pagination` não se desenha com uma página só. 36
+ * também fecha a última fila cheia em três das quatro larguras da grelha (18
+ * filas a duas colunas, 12 a três, 9 a quatro).
+ *
+ * Não se apagou a paginação: um directório que só funcione enquanto for
+ * pequeno é um directório com um prazo.
+ */
+export const POR_PAGINA = 36;
 
 export type Ordenacao = "recomendadas" | "nome" | "antiguidade" | "cavalos";
 

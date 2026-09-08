@@ -13,11 +13,59 @@
 import { aplicarFiltros, contem, normalizar } from "@/lib/directorio-filtros";
 import type { CoudelariaListavel, FiltrosDirectorio } from "@/lib/directorio-filtros";
 import { lerListaDeTexto } from "@/lib/coudelaria-ficha";
+import { actividadesDe, type Actividade } from "@/lib/especialidades";
 
 /** O que uma coudelaria tem de morada e de prosa, para a pesquisa. */
 export interface Pesquisavel extends CoudelariaListavel {
   descricao?: string | null;
 }
+
+/**
+ * As palavras que a **própria página escreve** em cada pastilha de
+ * actividade, nas três línguas.
+ *
+ * **Escrever numa caixa de procura o que está escrito na pastilha ao lado
+ * dela dava zero.** Medido sobre as vinte e nove, com os sete rótulos nas três
+ * línguas — vinte e uma pastilhas ao todo: **treze devolviam zero
+ * resultados** e dezassete devolviam um número diferente do que a pastilha
+ * promete. Em inglês falhavam **seis das sete** («Working equitation» dá 8 na
+ * pastilha e dava 0 escrita à mão) e em espanhol outras seis; a única que
+ * escapava era «Dressage», e só porque se escreve igual em português.
+ *
+ * A causa: a pastilha filtra pela **actividade** — a taxonomia de
+ * `lib/especialidades`, que junta «Toureio» com «Tauromaquia» e «Equitação de
+ * Trabalho» com «Working Equitation» — e a procura varria só o **texto em
+ * bruto** da base, que está todo em português e nunca diz «working
+ * equitation». As duas metades da mesma página conheciam vocabulários
+ * diferentes.
+ *
+ * É a mesma falha que este ficheiro já descreve para «coudelaria alentejo»:
+ * **zero resultados com a resposta na base**, que é a pior coisa que uma
+ * caixa de procura pode fazer, porque não há nada no ecrã a que culpar. Só
+ * que aqui a palavra que não encontrava nada estava impressa a doze
+ * centímetros de distância, na pastilha.
+ *
+ * Entram as três línguas e não só a que está escolhida, de propósito: o site
+ * tem um selector de língua ao cimo e quem chega de fora escreve na sua —
+ * um comprador espanhol a ver a página em português escreve «doma clásica».
+ * Custa sete cadeias curtas.
+ *
+ * **Estão escritas à mão e não importadas do `locales/`**, e a razão é
+ * medida: os três dicionários somam 366 KiB e este módulo é carregado pelo
+ * componente de cliente do directório — importá-los para ir buscar catorze
+ * palavras punha o dicionário inteiro no pacote da página. Quem impede a
+ * deriva é um teste, que compara cada uma destas cadeias com a chave
+ * `activity_*` dos três ficheiros.
+ */
+export const PALAVRAS_DA_ACTIVIDADE: Record<Actividade, string> = {
+  criacao: "Criação Breeding Cría",
+  dressage: "Dressage Doma clásica",
+  trabalho: "Equitação de trabalho Working equitation Equitación de trabajo",
+  toureio: "Toureio Mounted bullfighting Rejoneo",
+  turismo: "Turismo Tourism",
+  ensino: "Ensino e treino Teaching and training Enseñanza y doma",
+  venda: "Venda e exportação Sales and export Venta y exportación",
+};
 
 /**
  * O texto por onde a pesquisa varre uma coudelaria.
@@ -52,6 +100,8 @@ function textoPesquisavel(c: Pesquisavel): string {
     c.descricao,
     ...lerListaDeTexto(c.especialidades),
     ...lerListaDeTexto(c.linhagens),
+    // O que a pastilha desta coudelaria diz, nas três línguas.
+    ...actividadesDe(c.especialidades).map((a) => PALAVRAS_DA_ACTIVIDADE[a]),
   ]
     .filter(Boolean)
     .join(" ");
@@ -153,6 +203,78 @@ export function terraDe(localizacao: string | null | undefined): string {
     if (parte && /\p{L}/u.test(parte)) return parte;
   }
   return bruto;
+}
+
+/* ── O que o cartão escreve como especialidade, e o que escreve como linhagem ─
+ *
+ * **A coluna `especialidades` tem lá dentro linhagens**, e o cartão escrevia-as
+ * como se fossem actividades. Medido nas vinte e nove: **quatro** trazem uma
+ * entrada «Linhagem …» — «Linhagem Andrade», «Linhagem Veiga», «Linhagem
+ * Veiga e Andrade», «Linhagem Xaquiro».
+ *
+ * Isto não é uma opinião de arrumação: o `lib/especialidades` já escreveu que
+ * estas quatro «não são especialidades — são linhagens, e há uma coluna
+ * `linhagens` que já as guarda e já as mostra no cartão», e por isso deixou-as
+ * de fora da taxonomia. Só que o cartão continuava a escrevê-las na linha das
+ * especialidades, e o resultado via-se no ecrã: o cartão da Herdade do Azinhal
+ * dizia «Linhagem Andrade, Equitação de Trabalho, Toureio, Conservação…» e,
+ * duas linhas abaixo, «LINHAGENS · Andrade». **O mesmo dado escrito duas vezes
+ * no mesmo cartão**, e a primeira das duas a gastar o lugar de uma
+ * especialidade que ficou cortada pelas reticências.
+ *
+ * O que se faz não é apagar: é **mudar de sítio**. Três das quatro repetem uma
+ * linhagem que a coluna própria já tem e desaparecem por serem repetidas; a
+ * quarta — «Linhagem Xaquiro», na Coudelaria de Santa Margarida, cujas
+ * linhagens são «Veiga, Andrade» — traz um nome que **não está em mais lado
+ * nenhum do cartão**, e passa a estar na linha onde se procuram linhagens.
+ * Apagá-la seria perder o dado; deixá-la onde estava era escrevê-la no sítio
+ * errado.
+ *
+ * Medido depois, nas vinte e nove: **4 → 0** entradas «Linhagem …» na linha
+ * das especialidades; das quatro, **três** repetiam um nome que a coluna
+ * própria já escrevia duas linhas abaixo e **nenhuma** o repete agora; e zero
+ * linhagens perdidas — as doze distintas de antes continuam as doze de agora,
+ * mais «Xaquiro», que passou a ser lida como o que é.
+ */
+
+/* «Linhagem X», «Linhagens X», «Linhagem de X» — o prefixo, não o nome.
+   O singular acaba em **m** e o plural em **ns**: um `linhagens?` escrito de
+   corrida pede «linhagen» e não casa com uma única das quatro que a base tem.
+   Apanhado pelos testes antes de sair daqui. */
+const PREFIXO_LINHAGEM = /^linhage(?:m|ns)\s+(?:de\s+)?/i;
+
+/** «Veiga e Andrade» são duas, não uma. Só o «e» português, que é o que há. */
+function nomesDaLinhagem(bruto: string): string[] {
+  return bruto
+    .split(/\s+e\s+/i)
+    .map((n) => n.trim())
+    .filter(Boolean);
+}
+
+/** As especialidades que o cartão escreve: as que são mesmo especialidades. */
+export function especialidadesDoCartao(especialidades: unknown): string[] {
+  return lerListaDeTexto(especialidades).filter((e) => !PREFIXO_LINHAGEM.test(e.trim()));
+}
+
+/**
+ * As linhagens que o cartão escreve: a coluna própria, mais as que estavam
+ * arrumadas na coluna errada e que ela ainda não diz.
+ */
+export function linhagensDoCartao(especialidades: unknown, linhagens: unknown): string[] {
+  const saida = lerListaDeTexto(linhagens);
+  const vistas = new Set(saida.map(normalizar));
+
+  for (const e of lerListaDeTexto(especialidades)) {
+    const bruto = e.trim();
+    if (!PREFIXO_LINHAGEM.test(bruto)) continue;
+    for (const nome of nomesDaLinhagem(bruto.replace(PREFIXO_LINHAGEM, ""))) {
+      const chave = normalizar(nome);
+      if (!chave || vistas.has(chave)) continue;
+      vistas.add(chave);
+      saida.push(nome);
+    }
+  }
+  return saida;
 }
 
 /** Se a terra e a região dizem a mesma coisa, escreve-se uma vez. */
