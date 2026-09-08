@@ -37,6 +37,7 @@ import { errosDeInspeccao, type MensagensInspeccao } from "@/components/vender-c
 import { useInspeccao } from "@/components/vender-cavalo/usar-inspeccao";
 import { useRegistoApsl } from "@/components/vender-cavalo/usar-registo-apsl";
 import { lerRascunho, limparRascunho, passoSeguro } from "@/components/vender-cavalo/rascunho";
+import { travarEnter } from "@/components/vender-cavalo/tecla-enter";
 import { useRascunho } from "@/components/vender-cavalo/usar-rascunho";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
@@ -834,6 +835,19 @@ export default function VenderCavaloPage() {
     else handleSubmit();
   };
 
+  /**
+   * No último passo, a tecla Enter não paga.
+   *
+   * A regra é uma função pura em `tecla-enter.ts`, com o defeito medido e a
+   * razão escritos lá — e com testes, porque o que ela impede é um pagamento
+   * que ninguém pediu, e isso não é o género de coisa que se confia a uma
+   * condição escrita dentro de um `onKeyDown`.
+   */
+  const aoTeclar = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    const alvo = e.target as HTMLElement;
+    if (travarEnter(e.key, alvo.tagName, step, TOTAL_STEPS)) e.preventDefault();
+  };
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (PLANO.maxPhotos !== -1 && imagens.length + files.length > maxImages) {
@@ -1224,7 +1238,7 @@ export default function VenderCavaloPage() {
           `<form>`: a tecla Enter não fazia nada, o `required` de cada campo
           não era verificado por ninguém, e não havia marco de formulário para
           quem navega com leitor de ecrã. */}
-      <form className="max-w-3xl mx-auto" onSubmit={aoSubmeter} noValidate>
+      <form className="max-w-3xl mx-auto" onSubmit={aoSubmeter} onKeyDown={aoTeclar} noValidate>
         <FormErrors ref={resumoDeErros} erros={resumo} />
 
         {/* A troca de passo usa o movimento que o sistema já tem para trocar
@@ -1245,6 +1259,8 @@ export default function VenderCavaloPage() {
                 <StepIdentificacao
                   formData={formData}
                   updateField={updateField}
+                  documentos={documentos}
+                  onDocUpload={handleDocUpload}
                   erros={errosPorCampo}
                   apontamentos={apontamentos}
                   campo={accoesDeCampo}
@@ -1261,8 +1277,6 @@ export default function VenderCavaloPage() {
               <StepLinhagem
                 formData={formData}
                 updateField={updateField}
-                documentos={documentos}
-                onDocUpload={handleDocUpload}
                 erros={errosPorCampo}
                 apontamentos={apontamentos}
                 campo={accoesDeCampo}
@@ -1317,6 +1331,10 @@ export default function VenderCavaloPage() {
               loading={loading}
               progresso={progressoAnexos}
               erros={errosPorCampo}
+              updateField={updateField}
+              apontamentos={apontamentos}
+              campo={accoesDeCampo}
+              conta={conta}
             />
           )}
         </div>

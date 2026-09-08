@@ -37,6 +37,12 @@ const PASSOS: Record<number, string[]> = {
   ],
   2: ["components/vender-cavalo/StepLinhagem.tsx", "components/vender-cavalo/StepTreinoSaude.tsx"],
   3: ["components/vender-cavalo/StepPrecoApresentacao.tsx"],
+  // Os cinco campos da factura mudaram do passo 1 para o passo 4, e são
+  // desenhados pela `SeccaoFacturacao` que o `StepPagamento` monta.
+  4: [
+    "components/vender-cavalo/StepPagamento.tsx",
+    "components/vender-cavalo/SeccaoFacturacao.tsx",
+  ],
 };
 
 function ler(relativo: string): string {
@@ -110,7 +116,7 @@ describe("o catálogo e o formulário dizem a mesma coisa", () => {
     // A ordem do catálogo é a ordem do resumo de erros, e é dela que sai o
     // sítio onde os anexos entram nessa lista. Com uma secção partida em duas,
     // o Livro Azul aparecia no meio da linhagem.
-    for (const passo of [1, 2, 3]) {
+    for (const passo of [1, 2, 3, 4]) {
       const seccoes = CAMPOS.filter((c) => c.passo === passo).map((c) => c.seccao);
       const compactadas = seccoes.filter((s, i) => s !== seccoes[i - 1]);
       expect(new Set(compactadas).size, `passo ${passo}`).toBe(compactadas.length);
@@ -154,14 +160,16 @@ describe("o que conta como resposta", () => {
 
 describe("a conta de uma secção", () => {
   it("num formulário vazio, nada está feito", () => {
+    // Quatro e não três: o WhatsApp veio da secção da factura para a do
+    // contacto, que é o que ele é. Ver a nota de ordem no `campos.ts`.
     const { feitos, total } = contarSeccao("contacto", initialFormData);
     expect(feitos).toBe(0);
-    expect(total).toBe(3);
+    expect(total).toBe(4);
   });
 
   it("cresce à medida que se responde", () => {
     const meio = { ...initialFormData, proprietario_nome: "Maria", proprietario_telefone: "912" };
-    expect(contarSeccao("contacto", meio)).toEqual({ feitos: 2, total: 3 });
+    expect(contarSeccao("contacto", meio)).toEqual({ feitos: 2, total: 4 });
   });
 
   it("o total encolhe quando um campo condicional deixa de ser exigido", () => {

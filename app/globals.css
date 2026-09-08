@@ -6790,3 +6790,40 @@ textarea:autofill {
     color: var(--foreground-muted);
   }
 }
+
+/* ===========================================================================
+ * `.vc-nota` — a linha que diz o que fazer, e não a que diz quanto falta
+ *
+ * O formulário de publicar anúncio tinha as duas escritas na mesma classe. A
+ * `.meta` do sistema é `--foreground-muted`, e sobre estas superfícies isso
+ * dá, **medido nos pixéis renderizados**, 3,66:1 no corpo de uma secção e
+ * 3,45:1 dentro de um `.cartao`. Para uma legenda que se pode saltar — a hora
+ * da última gravação, «7 / 12» — isso é a hierarquia a funcionar: o número
+ * está lá para quem o for procurar, e apagá-lo é o que o deixa fora do
+ * caminho de quem está a escrever.
+ *
+ * Mas as notas dos cabeçalhos de secção **não são legendas, são instruções**:
+ * «É por aqui que o comprador chega — sem isto o anúncio não serve», «As doze
+ * respostas a seguir estão todas aqui dentro. Anexe-o primeiro e copie de lá.»
+ * São a única frase da página que explica o que a secção quer, e quem não a
+ * ler responde pior ou não responde. Texto que é preciso ler é texto corrido,
+ * e texto corrido tem um mínimo de 4,5:1.
+ *
+ * Por isso a cor passa a `--foreground-secondary`, que é o mesmo token com que
+ * todos os `<label>` deste formulário já estão escritos — não é uma cor nova,
+ * é a cor de quem fala a sério. Medido no mesmo sítio e da mesma maneira:
+ * **3,45 → 7,89:1 dentro do cartão, e 3,66 → 7,89:1 no corpo da secção.** O
+ * tamanho e a entrelinha ficam os da `.meta`, porque o que muda é a
+ * importância e não o lugar na página.
+ *
+ * O alcance é este formulário e mais nada: a `.meta` do resto do site não é
+ * tocada, e a que aqui fica — a conta da secção, a hora do rascunho — continua
+ * a ser `.meta`, porque essa é mesmo uma legenda.
+ * ======================================================================== */
+@layer components {
+  .vc-nota {
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--foreground-secondary);
+  }
+}

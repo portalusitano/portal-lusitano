@@ -19,6 +19,29 @@ import type { FormData } from "@/components/vender-cavalo/types";
  *    **nome do campo** — que já está no rótulo, ao lado — mais o verbo certo
  *    para o tipo dele. Isso sai de uma tabela; não sai de prosa.
  *
+ * **A ordem por que se pergunta mudou, e o número de perguntas não.** Os cinco
+ * campos da factura — tipo de vendedor, país, NIF, morada e website — estavam
+ * no passo 1, entre o telefone e o nome do cavalo: eram as respostas 4 a 9 de
+ * noventa e três, e o nome do cavalo era a décima. Medido no browser, a
+ * 1400×950: **946px de rolo até à caixa do nome do cavalo, e 1309px a
+ * 390×700** — quem chega para vender um cavalo escrevia o número de
+ * contribuinte antes de dizer como ele se chama. Passaram para o passo 4, que
+ * é onde a factura se faz e onde o botão de pagar está: são os mesmos cinco
+ * campos, com o mesmo asterisco, perguntados quando servem para alguma coisa.
+ * Ninguém publica sem os responder, porque o passo 4 é o passo do pagamento.
+ *
+ * Medido depois: **709px e 880px**, com quatro caixas antes do nome do cavalo
+ * em vez de oito. E a conta por passo passou de `[27, 47, 20, 1]` para
+ * `[24, 46, 20, 5]` — **a soma é a mesma, noventa e cinco**, que é a prova de
+ * que nada foi tirado nem tornado opcional. A altura somada dos quatro passos
+ * também não mexeu: 8 506px contra 8 419px em computador, 12 436px contra
+ * 12 425px em telemóvel. O mesmo trabalho, por outra ordem.
+ *
+ * O **WhatsApp** não foi com eles: é um canal de contacto e ficou na secção do
+ * contacto, ao lado do telefone. Estava numa secção chamada «Facturação e
+ * contacto adicional», e um cabeçalho que precisa de um «e» para caber duas
+ * coisas é um cabeçalho a dizer que ali estão duas secções.
+ *
  * Por isso o nome de cada campo vive aqui, nas três línguas, ao lado do passo
  * onde ele é desenhado e da condição que o torna exigível. É este ficheiro que
  * a validação lê, é dele que sai a conta do que falta em cada passo, e é
@@ -46,7 +69,7 @@ export interface CampoDoFormulario {
   /** A chave em `FormData`. Igual ao `id` em todos menos onde o DOM manda outra coisa. */
   chave: keyof FormData;
   /** Em que passo é que este campo é desenhado. */
-  passo: 1 | 2 | 3;
+  passo: 1 | 2 | 3 | 4;
   tipo: TipoCampo;
   nome: Nome;
   /**
@@ -116,57 +139,13 @@ export const CAMPOS: readonly CampoDoFormulario[] = [
     mensagemPropria: "telefone",
   },
   {
-    id: "tipo_proprietario",
-    chave: "tipo_proprietario",
-    passo: 1,
-    tipo: "escolha",
-    seccao: "facturacao",
-    nome: ["Tipo de vendedor", "Seller type", "Tipo de vendedor"],
-  },
-  {
-    id: "pais_proprietario",
-    chave: "pais_proprietario",
-    passo: 1,
-    tipo: "escolha",
-    seccao: "facturacao",
-    nome: ["País de residência", "Country of residence", "País de residencia"],
-  },
-  {
-    id: "proprietario_nif",
-    chave: "proprietario_nif",
-    passo: 1,
-    tipo: "texto",
-    seccao: "facturacao",
-    nome: ["NIF", "Tax number", "NIF"],
-  },
-  {
     id: "proprietario_whatsapp",
     chave: "proprietario_whatsapp",
     passo: 1,
     tipo: "texto",
-    seccao: "facturacao",
+    seccao: "contacto",
     nome: ["WhatsApp", "WhatsApp", "WhatsApp"],
   },
-  {
-    id: "proprietario_morada",
-    chave: "proprietario_morada",
-    passo: 1,
-    tipo: "texto",
-    seccao: "facturacao",
-    nome: ["Morada de facturação", "Billing address", "Dirección de facturación"],
-  },
-  {
-    id: "website_coudelaria",
-    chave: "website_coudelaria",
-    passo: 1,
-    tipo: "texto",
-    seccao: "facturacao",
-    nome: ["Website da coudelaria", "Stud farm website", "Sitio web del criadero"],
-    // Só é desenhado para uma coudelaria ou escola. Exigi-lo a um particular
-    // seria exigir uma resposta a uma caixa que ele nunca vê.
-    exigidoQuando: eCoudelaria,
-  },
-
   // ---- Passo 1 · o cavalo -------------------------------------------------
   {
     id: "nome",
@@ -951,6 +930,53 @@ export const CAMPOS: readonly CampoDoFormulario[] = [
     tipo: "texto",
     seccao: "apresentacao",
     nome: ["Vídeo 2", "Video 2", "Vídeo 2"],
+  },
+
+  // ---- Passo 4 · quem recebe a factura -------------------------------------
+  // Estavam no passo 1, entre o telefone e o nome do cavalo. Ver a razão
+  // escrita no cabeçalho deste ficheiro.
+  {
+    id: "tipo_proprietario",
+    chave: "tipo_proprietario",
+    passo: 4,
+    tipo: "escolha",
+    seccao: "facturacao",
+    nome: ["Tipo de vendedor", "Seller type", "Tipo de vendedor"],
+  },
+  {
+    id: "pais_proprietario",
+    chave: "pais_proprietario",
+    passo: 4,
+    tipo: "escolha",
+    seccao: "facturacao",
+    nome: ["País de residência", "Country of residence", "País de residencia"],
+  },
+  {
+    id: "proprietario_nif",
+    chave: "proprietario_nif",
+    passo: 4,
+    tipo: "texto",
+    seccao: "facturacao",
+    nome: ["NIF", "Tax number", "NIF"],
+  },
+  {
+    id: "proprietario_morada",
+    chave: "proprietario_morada",
+    passo: 4,
+    tipo: "texto",
+    seccao: "facturacao",
+    nome: ["Morada de facturação", "Billing address", "Dirección de facturación"],
+  },
+  {
+    id: "website_coudelaria",
+    chave: "website_coudelaria",
+    passo: 4,
+    tipo: "texto",
+    seccao: "facturacao",
+    nome: ["Website da coudelaria", "Stud farm website", "Sitio web del criadero"],
+    // Só é desenhado para uma coudelaria ou escola. Exigi-lo a um particular
+    // seria exigir uma resposta a uma caixa que ele nunca vê.
+    exigidoQuando: eCoudelaria,
   },
 ];
 

@@ -156,8 +156,10 @@ describe("os campos que só existem em certas condições", () => {
   });
 
   it("mas é exigido a uma coudelaria", () => {
+    // No passo 4, que é onde a factura se faz e para onde os cinco campos do
+    // vendedor foram.
     const coudelaria = completo({ tipo_proprietario: "Coudelaria", website_coudelaria: "" });
-    expect(campos(validarPasso(1, coudelaria, m))).toContain("website_coudelaria");
+    expect(campos(validarPasso(4, coudelaria, m))).toContain("website_coudelaria");
   });
 
   it("a duração do trial só se pede a quem disse que aceita trial", () => {
@@ -251,17 +253,25 @@ describe("as regras que não são «está preenchido?»", () => {
     }
   });
 
-  it("sem Livro Azul não se passa do passo 2, e sem três fotografias não se passa do 3", () => {
-    expect(campos(validarPasso(2, { ...completo(), documentos: {} }, m))).toEqual(["livro_azul"]);
+  it("sem Livro Azul não se passa do passo 1, e sem três fotografias não se passa do 3", () => {
+    expect(campos(validarPasso(1, { ...completo(), documentos: {} }, m))).toEqual(["livro_azul"]);
     expect(campos(validarPasso(3, { ...completo(), imagens: [imagem(1), imagem(2)] }, m))).toEqual([
       "fotografias",
     ]);
   });
 
   it("sem os termos não se paga", () => {
+    // O passo 4 deixou de ser só a caixa dos termos: tem os cinco campos da
+    // factura antes dela, e a caixa continua a ser a última coisa do resumo.
     expect(campos(validarPasso(4, { ...completo(), termosAceites: false }, m))).toEqual([
       "termos_aceites",
     ]);
+  });
+
+  it("sem os campos da factura também não se paga, e eles vêm antes dos termos", () => {
+    const semFactura = completo({ proprietario_nif: "", proprietario_morada: "" });
+    const lista = campos(validarPasso(4, { ...semFactura, termosAceites: false }, m));
+    expect(lista).toEqual(["proprietario_nif", "proprietario_morada", "termos_aceites"]);
   });
 });
 
@@ -269,10 +279,13 @@ describe("a ordem do resumo é a ordem da página", () => {
   it("os anexos aparecem no sítio onde estão no ecrã, não no fim", () => {
     // Um resumo cuja ordem não é a do formulário manda quem o lê saltar para
     // cima e para baixo à procura — e com um passo desta altura, isso custa.
-    const passo2 = campos(validarPasso(2, estado({}), m));
-    const livro = passo2.indexOf("livro_azul");
-    expect(livro).toBeGreaterThan(passo2.indexOf("coudelaria_origem"));
-    expect(livro).toBeLessThan(passo2.indexOf("nivel_treino"));
+    // O Livro Azul está desenhado entre «O que vai no anúncio» e a
+    // identificação oficial, que é a secção que ele responde — e é aí que o
+    // resumo o escreve.
+    const passo1 = campos(validarPasso(1, estado({}), m));
+    const livro = passo1.indexOf("livro_azul");
+    expect(livro).toBeGreaterThan(passo1.indexOf("temperamento"));
+    expect(livro).toBeLessThan(passo1.indexOf("nome_registo"));
 
     const passo3 = campos(validarPasso(3, estado({}), m));
     const fotos = passo3.indexOf("fotografias");
@@ -315,7 +328,14 @@ describe("as contas do progresso", () => {
     // 27 + 47 + 20 + 1. Um particular, com uma égua, sem trial. A medição está
     // no relatório; este teste é o que impede que os portões desapareçam sem
     // que alguém dê por isso.
-    expect(faltamPorPasso(estado({}), m)).toEqual([27, 47, 20, 1]);
-    expect(quantosFaltam(1, estado({}), m)).toBe(27);
+    // Antes deste trabalho: [27, 47, 20, 1] — noventa e cinco portões, com o
+    // passo 1 a pedir vinte e sete respostas das quais seis eram sobre a
+    // factura. Agora: [24, 46, 20, 5]. **A soma é a mesma, noventa e cinco.**
+    // Nada foi tirado nem tornado opcional; cinco campos da factura passaram
+    // para o passo do pagamento e o Livro Azul passou para o passo 1, para
+    // vir antes das perguntas que responde.
+    expect(faltamPorPasso(estado({}), m)).toEqual([24, 46, 20, 5]);
+    expect(faltamPorPasso(estado({}), m).reduce((a, b) => a + b, 0)).toBe(95);
+    expect(quantosFaltam(1, estado({}), m)).toBe(24);
   });
 });

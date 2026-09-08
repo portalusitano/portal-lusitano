@@ -1,8 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import { Info } from "lucide-react";
-import type { StepProps, Resposta } from "@/components/vender-cavalo/types";
+import { CheckCircle, FileText, Info } from "lucide-react";
+import type {
+  StepProps,
+  Resposta,
+  Documentos,
+  DocumentType,
+} from "@/components/vender-cavalo/types";
 import {
   pelagens,
   coresOlhos,
@@ -17,6 +22,7 @@ import { createTranslator } from "@/lib/tr";
 import Seleccao from "@/components/ui/Seleccao";
 import Seccao from "@/components/vender-cavalo/Seccao";
 import SimNao from "@/components/vender-cavalo/SimNao";
+import EscolherFicheiro from "@/components/vender-cavalo/EscolherFicheiro";
 import { ErroDoCampo, classeCampo, useFaltas } from "@/components/vender-cavalo/campos-com-erro";
 import {
   ApontamentoDoCampo,
@@ -38,11 +44,40 @@ import type { RegistoVerificado } from "@/components/vender-cavalo/usar-registo-
  * A inspecção do microchip pela ISO 11784 não muda uma vírgula: obrigatório é
  * sobre estar preenchido, o aviso é sobre estar certo, e um campo obrigatório
  * continua a poder ter um aviso.
+ *
+ * **O Livro Azul passou a anexar-se aqui, antes das doze perguntas que ele
+ * responde**, e não no fim do passo 2. Não é arrumação: a nota da secção de
+ * baixo dizia, com todas as letras, «está tudo no Livro Azul e no passaporte,
+ * **que anexa no passo seguinte**». Ou seja, o formulário mandava procurar um
+ * documento, fazia-lhe doze perguntas de seguida, e só depois — passada a
+ * ascendência, que são mais catorze perguntas do mesmo documento — é que o
+ * pedia.
+ *
+ * Medido no banco de ensaio, do cabeçalho da secção que manda procurar o Livro
+ * Azul até à caixa que o recebia: **1 558px a 1400×950 e 2 842px a 390×700, e
+ * uma fronteira de passo pelo meio**. Depois de o anexo passar para cá, a
+ * mesma distância é de **307px e 344px, dentro do mesmo ecrã**.
+ *
+ * Agora o documento chega primeiro e as perguntas vêm a seguir, que é a ordem
+ * em que uma pessoa as consegue responder. Não é um campo novo nem um campo a
+ * menos: é o mesmo anexo obrigatório, no sítio onde serve.
  */
 interface StepIdentificacaoProps extends StepProps {
   /** Em que pé vai a consulta do número de registo à nossa base. */
   registoApsl: RegistoVerificado["estado"];
+  documentos: Documentos;
+  onDocUpload: (type: DocumentType, file: File) => void;
 }
+
+/**
+ * O que se escreve na pontuação morfológica quando não há nenhuma.
+ *
+ * Fica em português nas três línguas de propósito: é o valor que vai para a
+ * coluna `nivel_apsl` e daí para a ficha pública, que é escrita em português —
+ * um anúncio com «Not graded» no meio de uma ficha portuguesa é um dado
+ * traduzido a meio caminho, e a coluna não guarda a língua em que foi escrito.
+ */
+const NAO_CLASSIFICADO = "Não classificado";
 
 export default function StepIdentificacao(props: StepIdentificacaoProps) {
   const {
@@ -53,6 +88,8 @@ export default function StepIdentificacao(props: StepIdentificacaoProps) {
     campo,
     registoApsl,
     conta,
+    documentos,
+    onDocUpload,
   } = props;
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
@@ -63,7 +100,7 @@ export default function StepIdentificacao(props: StepIdentificacaoProps) {
    * mesma que trava o botão e a mesma que conta «7 / 12» no cabeçalho da
    * secção —, e é ela que decide qual dos campos leva vermelho.
    */
-  const erros = useFaltas(errosCrus, formData);
+  const erros = useFaltas(errosCrus, formData, { livro_azul: Boolean(documentos.livroAzul) });
 
   /**
    * O que `ligarCampo` precisa de saber, montado uma vez.
@@ -282,6 +319,64 @@ export default function StepIdentificacao(props: StepIdentificacaoProps) {
           </div>
         </Seccao>
 
+        {/* ── O Livro Azul ────────────────────────────────────────────────
+            Vem antes da secção que ele responde, e não depois dela nem no
+            passo seguinte. O `data-campo` é o que permite ao resumo de erros
+            no topo do passo vir ter aqui: um `<input type=file>` está
+            escondido dentro da etiqueta e não serve de alvo. */}
+        <div className="cartao p-4" data-campo="livro_azul">
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <span className="titulo-seccao flex items-center gap-2">
+              <FileText size={16} className="text-[var(--foreground-muted)]" aria-hidden="true" />
+              {t.vender_cavalo.blue_book} *
+            </span>
+            {documentos.livroAzul && (
+              <CheckCircle size={18} className="flex-none text-[var(--ok)]" aria-hidden="true" />
+            )}
+          </div>
+          <p className="vc-nota mb-3">
+            {tr(
+              "As doze respostas a seguir estão todas aqui dentro. Anexe-o primeiro e copie de lá.",
+              "The twelve answers below are all in here. Attach it first and copy from it.",
+              "Las doce respuestas siguientes están todas aquí. Adjúntelo primero y copie de él."
+            )}
+          </p>
+          <EscolherFicheiro
+            texto={documentos.livroAzul ? documentos.livroAzul.name : t.vender_cavalo.choose_file}
+            falta={erros.livro_azul?.nivel}
+            descritoPor={erros.livro_azul ? "erro-livro_azul" : undefined}
+            aoEscolher={(f) => onDocUpload("livroAzul", f[0])}
+          />
+          <ErroDoCampo erros={erros} campo="livro_azul" />
+
+          {/* O passaporte continua a não travar o passo, e a razão é a mesma
+              que já cá estava: quem publica um cavalo com Livro Azul tem o
+              documento que prova a identidade. Não é um campo do formulário —
+              é um segundo anexo do mesmo facto. E está aqui porque o número
+              que a caixa do passaporte pede, três perguntas abaixo, é o que
+              vem escrito nele. */}
+          <div className="mt-4 pt-4 border-t border-[var(--border-soft)]">
+            <div className="flex items-center justify-between gap-3 mb-2">
+              {/* `text-sm` no `--foreground`, como estava antes de mudar de
+                  passo: é o rótulo de um controlo e não uma legenda. Com a
+                  `.rotulo` media 3,45:1 sobre este cartão. */}
+              <span className="text-sm font-medium">{t.vender_cavalo.equine_passport}</span>
+              {documentos.passaporte && (
+                <CheckCircle size={16} className="flex-none text-[var(--ok)]" aria-hidden="true" />
+              )}
+            </div>
+            <p className="vc-nota mb-3">{t.vender_cavalo.equine_passport_desc}</p>
+            <EscolherFicheiro
+              texto={
+                documentos.passaporte
+                  ? documentos.passaporte.name
+                  : t.vender_cavalo.choose_file_short
+              }
+              aoEscolher={(f) => onDocUpload("passaporte", f[0])}
+            />
+          </div>
+        </div>
+
         <Seccao
           titulo={tr(
             "Identificação oficial e morfologia",
@@ -289,9 +384,9 @@ export default function StepIdentificacao(props: StepIdentificacaoProps) {
             "Identificación oficial y morfología"
           )}
           nota={tr(
-            "Está tudo no Livro Azul e no passaporte, que anexa no passo seguinte.",
-            "All of it is on the Blue Book and passport you attach in the next step.",
-            "Todo está en el Libro Azul y el pasaporte que adjunta en el paso siguiente."
+            "Está tudo no Livro Azul e no passaporte, que acabou de anexar aqui em cima.",
+            "All of it is on the Blue Book and passport you have just attached above.",
+            "Todo está en el Libro Azul y el pasaporte que acaba de adjuntar arriba."
           )}
           {...conta("identificacao")}
         >
@@ -554,6 +649,42 @@ export default function StepIdentificacao(props: StepIdentificacaoProps) {
                   "Puntuación Morfológica APSL"
                 )}{" "}
                 *
+                <span className="text-[var(--foreground-muted)] text-xs ml-1">
+                  {tr(
+                    "(no Livro Azul, se já foi a uma classificação)",
+                    "(on the Blue Book, if it has been graded)",
+                    "(en el Libro Azul, si ya fue a una calificación)"
+                  )}
+                </span>
+                {/* ── «Não classificado» é uma resposta ────────────────────
+                    Um cavalo só tem pontuação depois de ir a uma classificação
+                    morfológica, e muitos nunca foram — um poldro nunca foi, por
+                    definição. Este campo é obrigatório e era uma caixa de texto
+                    livre com o exemplo «78.5 pontos — Muito Bom» e um aviso a
+                    dizer que as pontuações «andam quase sempre entre 60 e 80»:
+                    quem não tivesse nenhuma ficava com duas saídas, inventar um
+                    número ou não publicar. As duas são más, e a primeira é pior
+                    — é o formulário a pedir que se declare o que não é verdade,
+                    que é exactamente a armadilha que as vinte e sete perguntas
+                    de sim/não existem para não repetir («não» é uma resposta a
+                    sério, e ainda não ter lido a pergunta não é).
+                    Obrigatório continua a querer dizer **respondido**: o que
+                    muda é que passa a haver a resposta certa para quem não tem
+                    pontuação, e ela escreve-se com um toque em vez de nove
+                    teclas. O botão desaparece assim que houver seja o que for
+                    escrito na caixa. */}
+                {!formData.nivel_apsl.trim() && (
+                  <button
+                    type="button"
+                    className="btn btn-subtil btn-sm ml-2 align-baseline"
+                    onClick={() => {
+                      updateField("nivel_apsl", NAO_CLASSIFICADO);
+                      campo.aoEscolher("nivel_apsl");
+                    }}
+                  >
+                    {tr("nunca foi classificado", "never graded", "nunca fue calificado")}
+                  </button>
+                )}
               </label>
               <input
                 id="nivel_apsl"

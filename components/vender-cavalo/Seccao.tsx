@@ -40,7 +40,10 @@ export default function Seccao({ titulo, total, feitos, nota, children }: Seccao
       <div className="seccao-campos__cabeca">
         <div className="min-w-0">
           <h3 className="titulo-seccao">{titulo}</h3>
-          {nota && <p className="meta mt-0.5">{nota}</p>}
+          {/* `.vc-nota` e não `.meta`: esta linha é uma instrução e não uma
+              legenda, e sobre este fundo a `.meta` mede 3,66:1. A razão e as
+              medidas estão no `globals.css`, ao lado da classe. */}
+          {nota && <p className="vc-nota mt-0.5">{nota}</p>}
         </div>
         {/* `aria-label` porque «7 / 12» lido em voz alta é «sete barra doze».
             O texto que se vê fica curto; o que se ouve fica em português. */}
