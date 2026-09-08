@@ -827,6 +827,55 @@ O alvo de toque de 44px em telemóvel é a regra sem camada que esticava os
 interruptores; o esmorecer do grupo de navegação tem de ser sem camada porque
 a cor de base das entradas está numa utilidade no JSX.
 
+### A ordem por que se pergunta (`/vender-cavalo`)
+
+São noventa e seis respostas e todas são obrigatórias — é uma decisão do dono,
+escrita no commit `63b9210`, e não se desfaz aqui. O que se decide aqui é
+**quando** se pergunta cada uma, e isso mede-se.
+
+**Primeiro o cavalo, depois a factura.** Das nove primeiras perguntas, seis
+eram sobre quem paga, e o nome do cavalo era a décima — 946px de rolo a
+1400×950 e 1309px a 390×700. Os cinco campos da factura passaram para o passo
+4, entre o valor a pagar e a caixa dos termos: 709px e 880px, quatro caixas
+antes em vez de oito, e a altura somada dos quatro passos inalterada
+(8 506 → 8 419 e 12 436 → 12 425). Mover não é tirar, e a conta por passo
+`[27,47,20,1] → [24,46,20,5]` tem a mesma soma de propósito, fixada por um
+teste para não encolher em silêncio.
+
+**O documento chega antes das perguntas que ele responde.** A secção da
+identificação dizia «está tudo no Livro Azul, que anexa no passo seguinte» —
+doze perguntas, mais catorze na ascendência, e só depois o anexo: 1 558px e
+2 842px de distância, com uma fronteira de passo pelo meio. Agora são 307px e
+344px no mesmo ecrã, e o tecto do `passoSeguro` do rascunho foi com ele.
+
+**Onde a resposta honesta é «não tem», tem de haver maneira de a dar.** A
+pontuação morfológica APSL era caixa de texto obrigatória com o exemplo «78.5
+pontos», e um cavalo só a tem depois de ir a uma classificação — um poldro
+nunca foi, por definição. Quem não tivesse nenhuma inventava um número ou não
+publicava. É a mesma armadilha que as vinte e sete perguntas de sim/não
+existem para não repetir: obrigatório quer dizer **respondido**, e «não tem» é
+uma resposta. Um toque escreve «Não classificado». **Os oito números de
+registo de avós são o mesmo caso e continuam por resolver** — um Livro Azul
+nem sempre os imprime.
+
+**No passo que cobra, a tecla Enter não paga.** O `onSubmit` do formulário é
+um só e no passo 4 chama o checkout; medido, uma tecla Enter com a caixa dos
+termos em foco disparava um `POST /api/vender-cavalo/upload` sem ninguém ter
+carregado em nada. Era um risco de gabinete enquanto aquele passo era só a
+caixa; com os campos da factura lá dentro passa a ser o hábito de toda a gente
+— escrever o NIF e carregar em Enter. A regra tem de ser sobre **o foco** e
+não sobre o `submitter` do `SubmitEvent`: numa submissão implícita o browser
+activa o botão por omissão do formulário, que _é_ o botão de pagar, e o
+`submitter` não distingue os dois casos. Vive em
+`components/vender-cavalo/tecla-enter.ts`, é uma função pura e tem testes,
+porque o que ela impede é uma cobrança que ninguém pediu. Nos passos 1 a 3
+nada muda: Enter continua a avançar.
+
+As notas dos cabeçalhos de secção deste formulário usam `.vc-nota` e não
+`.meta`: são instruções e não legendas, e a `.meta` mede 3,45–3,66:1 nestas
+superfícies contra os 7,89–8,37:1 do `--foreground-secondary`, que é o token
+com que os `<label>` já estão escritos.
+
 ### Densidade
 
 É um classificados: o que conta é caberem anúncios no ecrã. Grelhas de 2 a 5
