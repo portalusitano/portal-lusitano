@@ -827,6 +827,49 @@ O alvo de toque de 44px em telemóvel é a regra sem camada que esticava os
 interruptores; o esmorecer do grupo de navegação tem de ser sem camada porque
 a cor de base das entradas está numa utilidade no JSX.
 
+### A ficha de uma coudelaria
+
+**O `sticky` desta casa não prende, e a razão está no `body`.** A regra
+«Prevent horizontal scroll on mobile» põe `overflow-x: hidden` no `html` e no
+`body`, e o `hidden` no `body` faz dele um contentor de deslocamento — um
+`position: sticky` prende ao contentor mais próximo, e o do `body` nunca se
+desloca. A ficha teve um `lg:sticky lg:top-28` letra morta: medido a 1400×950,
+a rolar 0→2400px o topo da coluna ia de 577 a −1823, pixel a pixel com o rolo.
+Custava **10 das 29 fichas com o contacto fora do ecrã em mais de metade do
+percurso de leitura**; corrigido, o contacto está no ecrã em 82,6% do percurso
+contra 58,9%. Quem corrige é `overflow-x: clip`, que é **mais** restritivo do
+que o `hidden` — nem por programa deixa deslocar — e não cria contentor. Está
+aplicado por página (`body:has(.fc-ficha)`) e não na origem, porque a regra é
+de todo o site e a troca lá merece a sua própria medição. **A lição vale para
+além do `sticky`: uma propriedade escrita não é uma propriedade a funcionar** —
+o `getComputedStyle` dizia `position: sticky` e `top: 112px` nos dois casos.
+
+**O que aparece em todas as fichas não convida: é papel de parede.** Saíram
+três coisas que estavam em 29 de 29 — a caixa a tracejado «Ainda não há
+avaliações» (140px de secção para escrever uma ausência, agora 58px, e quem
+manda é `total === 0`, logo à primeira avaliação volta inteira), as coordenadas
+em cru sob o mapa (12px a 3,45:1, e para ninguém — quem quer lá chegar tem o
+«Como chegar», e o número continua a alimentar o mapa), e os 87 links de rodapé
+que a barra fixa do telemóvel tapava sem rolo que lá chegasse, porque o rodapé
+é irmão da ficha e não filho, e o `pb-28` do contentor não o alcança.
+
+**Do recorte da fotografia de topo ficou um «não comprou nada» medido.** A
+janela de 2,92:1 mostra 52% da altura da fotografia mediana e 23% na pior. A
+correcção óbvia — subir o `object-position` — foi ensaiada em sete valores
+sobre a energia do laplaciano por linha das 28 capas: o centróide fica em
+0,511, a meio, e a posição que retém mais energia é justamente os 50% por
+omissão (57,2% contra 53,9% a 20%). **Subir piora.** O que ajudaria era uma
+janela menos achatada, e isso troca primeiro ecrã por fotografia numa página de
+classificados — não entrou por não se provar.
+
+**E uma nota sobre bancos de ensaio que a secção das regras de trabalho não
+diz:** desconfiar também da **cobertura**. Um banco com `historia` em 29/29 mas
+a mesma frase de 69 caracteres nas vinte e nove tem cobertura perfeita e não
+consegue reproduzir os doze parágrafos que o defeito descreve. Foi contra um
+banco desses que entrou aqui uma coluna única para «fichas sem provas», apoiada
+em «12 das 29 não têm galeria nem história nem prémios»; um segundo banco deu
+história em 29/29, o ramo era código morto, e foi revertida.
+
 ### A ordem por que se pergunta (`/vender-cavalo`)
 
 São noventa e seis respostas e todas são obrigatórias — é uma decisão do dono,
