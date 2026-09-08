@@ -6352,3 +6352,265 @@ textarea:autofill {
   background-color: var(--background-elevated) !important;
   color: var(--foreground-strong) !important;
 }
+
+/* ===== PUBLICAR ANÚNCIO — O FAROL =========================================
+ * Classes com prefixo `vc-` (vender-cavalo), todas juntas e todas deste
+ * percurso.
+ *
+ * **O defeito, medido antes de se desenhar seja o que for.** A meio do passo
+ * 1, com o rolo em 2200px, a única coisa fixa no ecrã é a barra de navegação
+ * do site (81px) e o botão de subir. O indicador de passos ficou três mil
+ * pixéis acima, o botão de «Continuar» está outros tantos abaixo, e o
+ * cabeçalho da secção onde se está — «Official identification and
+ * conformation, 0 / 12» — passou por trás da navegação e desapareceu. Ou
+ * seja: no sítio exacto onde alguém está a trabalhar, o formulário não diz
+ * **onde está**, **quanto falta**, nem **se o que escreveu está a salvo**.
+ * Estas três são precisamente as perguntas a que o resto desta página já
+ * responde muito bem — nos dois extremos, e em nenhum dos dois se está.
+ *
+ * Tentou-se primeiro prender o cabeçalho de cada secção (`position: sticky`),
+ * que seria a resposta com menos peças. **Não pega, e fica escrito para o
+ * próximo não ir por aí:** o `.cartao` que envolve cada passo tem
+ * `overflow: hidden`, e um antepassado com `overflow` diferente de `visible`
+ * passa a ser o contentor de referência do `sticky`. Como esse cartão não
+ * desloca, a cabeça nunca chega a encostar — medido nas quatro secções do
+ * passo 1, com a página a 2100px: `position: sticky` aplicado e os quatro
+ * topos a −1038, −827, −274 e 51, ou seja a subirem com a página como se a
+ * regra não existisse. Mudar o `.cartao` era mudá-lo em todo o site por causa
+ * desta página.
+ *
+ * **Porquê vidro aqui, e só aqui.** Esta é a única superfície do percurso que
+ * flutua mesmo: o formulário passa-lhe por baixo enquanto se rola. Um fundo
+ * opaco fazia dela uma tira a cortar a página; o vidro diz o que é verdade —
+ * está por cima, e o que está por baixo continua lá.
+ *
+ * E é **uma** superfície, o que não é um pormenor. Mediu-se o custo de
+ * envolver as secções do passo em vidro contra o de uma superfície só,
+ * escrevendo trinta teclas num campo, três corridas por hipótese, mediana das
+ * corridas — do `keydown` ao quadro em que a letra aparece:
+ *
+ *              a 1400×950            a 390×700
+ *   como está  p50 21,6  p95 51,4    p50 25,3  p95 35,4
+ *   secções    p50 35,9  p95 123,6   p50 22,7  p95 47,4
+ *
+ * As secções em vidro **duplicam o p50 e mais do que duplicam o p95** no
+ * computador. E isso é o caso fácil: o passo 1 tem quatro secções, o passo 2
+ * tem oito. Por isso o vidro fica aqui e o `.cartao` de cada passo continua a
+ * ser o que era.
+ *
+ * A terceira hipótese desse ensaio — «uma superfície só» — **não conta, e fica
+ * escrito porque quase contou**. Aplicava o vidro ao `.resumo-erros`, que
+ * durante a escrita não está no ecrã: a contagem de superfícies com desfoque
+ * deu 2, a mesma de «como está», ou seja o vidro nunca chegou a acender-se e a
+ * linha media a hipótese de controlo com outro nome. Um número que confirma o
+ * que se quer ouvir é o que menos se revê.
+ *
+ * Quem prova a superfície única é o ensaio de fim, com o farol **visível** —
+ * escreve-se com a página rolada, que é a única situação em que ele está no
+ * ecrã —, alternando as duas hipóteses na mesma corrida para que a máquina não
+ * decida, quatro corridas por hipótese, mediana:
+ *
+ *              a 1400×950            a 390×700
+ *   sem ele    p50 23,9  p95 39,8    p50 22,4  p95 40,6
+ *   com ele    p50 21,9  p95 38,4    p50 22,0  p95 34,7
+ *
+ * As diferenças são inferiores a dois milissegundos e vão nos dois sentidos:
+ * o custo de uma superfície de vidro **não sai do ruído**. Em telemóvel são
+ * ainda zero camadas a mais, porque a barra do passo já tinha um
+ * `backdrop-filter` — o que lá mudou foi ele passar a comprar alguma coisa.
+ *
+ * O tempo é o `--d-header` com a `--ease-header`, e não um número novo: o que
+ * isto faz é aparecer e desaparecer em resposta ao rolo, que é exactamente o
+ * que o véu do cabeçalho do site já faz com esses dois tokens.
+ * ========================================================================== */
+@layer components {
+  .vc-farol {
+    position: fixed;
+    z-index: 30;
+    left: 50%;
+    bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    max-width: min(42rem, calc(100vw - 3rem));
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-soft);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--background) 62%, transparent);
+    /* A sombra assenta-o: sem ela, uma superfície translúcida sobre preto
+       lê-se como uma mancha e não como uma coisa pousada por cima. */
+    box-shadow:
+      0 1px 0 0 rgba(214, 235, 253, 0.06) inset,
+      0 8px 32px rgba(0, 0, 0, 0.55);
+    /* Não é um alvo: é informação. Deixar o ponteiro passar garante que nunca
+       tapa nada com que se possa querer mexer. */
+    pointer-events: none;
+
+    /* --- Escondido: **sem desfoque nenhum**, e a razão é a regra da casa.
+     *
+     * O `backdrop-filter` estava aqui, no estado base, e ficava pedido
+     * também com o farol a `opacity: 0` — que é o estado em que ele passa a
+     * maior parte da vida, porque só aparece depois de o topo do formulário
+     * sair do ecrã. Medido: **3 superfícies com desfoque na página com o
+     * farol escondido, contra 2 sem ele**. Uma camada de composição e um
+     * desfoque por quadro para desfocar o que ninguém vê.
+     *
+     * É o mesmo defeito que o `CLAUDE.md` conta ter corrigido nas etiquetas
+     * do globo — «quem está escondido não está a animar» —, e a resposta é a
+     * mesma: o sinal que já diz que está escondido (`data-visivel`) é o que
+     * decide se há camada. A `visibility` acompanha-o para que o farol saia
+     * também do caminho do ponteiro e do leitor de ecrã, e transita em
+     * degrau no fim da saída — sem isso desapareceria antes de acabar de se
+     * apagar. */
+    visibility: hidden;
+    opacity: 0;
+    transform: translate(-50%, 12px);
+    transition:
+      opacity var(--d-header) var(--ease-header),
+      transform var(--d-header) var(--ease-header),
+      visibility 0s linear var(--d-header);
+  }
+
+  .vc-farol[data-visivel="sim"] {
+    visibility: visible;
+    opacity: 1;
+    transform: translate(-50%, 0);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(160%);
+    transition:
+      opacity var(--d-header) var(--ease-header),
+      transform var(--d-header) var(--ease-header),
+      visibility 0s;
+  }
+
+  /* Sem `backdrop-filter` (browser antigo, ou quem desligou a
+     transparência), o fundo passa a opaco: um painel translúcido sem
+     desfoque por baixo é texto por cima de texto. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .vc-farol {
+      background: var(--background-elevated);
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .vc-farol,
+    .vc-farol[data-visivel="sim"] {
+      background: var(--background-elevated);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  /* A secção onde se está. É o que a barra de navegação tapou lá em cima. */
+  .vc-farol__onde {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.8125rem;
+    line-height: 1.3;
+    color: var(--foreground-strong);
+  }
+
+  .vc-farol__sep {
+    flex: none;
+    width: 1px;
+    height: 1rem;
+    background: var(--border-soft);
+  }
+
+  /* A conta. `tabular-nums` porque muda debaixo dos olhos de quem escreve, e
+     um algarismo que muda de largura faz saltar a palavra ao lado. */
+  .vc-farol__falta {
+    flex: none;
+    font-size: 0.75rem;
+    line-height: 1.3;
+    color: var(--foreground-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .vc-farol__falta[data-zero="sim"] {
+    color: var(--ok);
+  }
+
+  /* ===== A secção que fecha ================================================
+   * A conta do cabeçalho passava de `--foreground-muted` a `--ok` e o risco
+   * da esquerda desaparecia — os dois **num quadro**, sem transição nenhuma
+   * (medido: `transition` calculado em `all`, que sem duração é `all 0s`).
+   *
+   * Fechar uma secção é o único momento de recompensa que este formulário
+   * tem, e acontece entre quatro e oito vezes por passo. Não levava movimento
+   * nenhum. Leva agora o `--d-fast`, que é o tempo de um estado a mudar, e
+   * mais nada: é uma transição de cor, não entra no compositor e não pede
+   * camada nenhuma. */
+  .seccao-campos {
+    transition: border-left-color var(--d-fast) var(--ease-out);
+  }
+
+  .seccao-campos__conta {
+    transition: color var(--d-fast) var(--ease-out);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vc-farol {
+    transition: none;
+    transform: translate(-50%, 0);
+  }
+  .seccao-campos,
+  .seccao-campos__conta {
+    transition: none;
+  }
+}
+
+/* ===== PUBLICAR ANÚNCIO — A BARRA DE TELEMÓVEL ============================
+ * A barra fixa do fundo, em telemóvel. Continua a ser a mesma superfície e o
+ * mesmo conteúdo; o que muda é passar a fazer o que já estava a pagar.
+ *
+ * Estava em `bg-[var(--background)]/95 backdrop-blur-md`: um desfoque de 12px
+ * por baixo de um fundo **95% opaco**. Um desfoque nessas condições contribui
+ * com cinco por cento de cada pixel, e cinco por cento de nada é nada.
+ * Medido, o mesmo quadro com o desfoque e sem ele, a 390×700 e com o
+ * formulário denso por trás: **erro médio de 0,029/255, máximo de 2/255, e
+ * zero subpixéis acima de 2**. Ou seja, pagava-se uma camada de composição e
+ * um desfoque por quadro — no aparelho onde a memória de vídeo falta — para
+ * uma diferença que não se vê.
+ *
+ * A saída não é tirar o desfoque: é dar-lhe alguma coisa para fazer. Esta
+ * barra **flutua mesmo** — o formulário passa-lhe por baixo enquanto se rola —
+ * e é por isso um dos dois sítios deste percurso onde o vidro diz o que é
+ * verdade. A 62%, que é a opacidade que o site já usa nas suas superfícies
+ * flutuantes (a `.galeria-comando`, a `.galeria-conta`), o mesmo desfoque dá
+ * **erro médio de 0,274/255, máximo de 16/255 e 1657 subpixéis acima de 2**.
+ * A camada é a mesma que já lá estava; o que mudou foi passar a comprar-se
+ * com ela o efeito que se queria.
+ *
+ * O desfoque sobe de 12 para 20px e ganha saturação pela mesma razão: com
+ * 38% do que está por trás a passar, é preciso que o que passa seja luz
+ * espalhada e não o texto do formulário legível através do vidro.
+ * ========================================================================== */
+@layer components {
+  .vc-barra-passo {
+    background: color-mix(in srgb, var(--background) 62%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(160%);
+  }
+
+  /* As duas defesas, iguais às do farol: sem `backdrop-filter` o fundo tem
+     de voltar a ser opaco, senão fica texto por cima de texto — e esta barra
+     é a única superfície do formulário que em telemóvel está sempre à vista. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .vc-barra-passo {
+      background: var(--background);
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .vc-barra-passo {
+      background: var(--background);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+}

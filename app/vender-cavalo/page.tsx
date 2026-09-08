@@ -17,6 +17,7 @@ import HowItWorks from "@/components/vender-cavalo/HowItWorks";
 import StepIndicator from "@/components/vender-cavalo/StepIndicator";
 import FormErrors from "@/components/vender-cavalo/FormErrors";
 import FormNavigation from "@/components/vender-cavalo/FormNavigation";
+import Farol from "@/components/vender-cavalo/Farol";
 import StepProprietario from "@/components/vender-cavalo/StepProprietario";
 import StepIdentificacao from "@/components/vender-cavalo/StepIdentificacao";
 import StepLinhagem from "@/components/vender-cavalo/StepLinhagem";
@@ -1145,7 +1146,10 @@ export default function VenderCavaloPage() {
         <PricingBanner />
       </div>
 
-      <div ref={topoDoFormulario} className="max-w-3xl mx-auto scroll-mt-24">
+      {/* O `data-farol-topo` é o que o `<Farol>` observa para saber se se deve
+          mostrar: enquanto o indicador está no ecrã, quem responde a «onde
+          vou» e «quanto falta» é ele, com mais detalhe e sem tapar nada. */}
+      <div ref={topoDoFormulario} data-farol-topo="" className="max-w-3xl mx-auto scroll-mt-24">
         <StepIndicator
           currentStep={step}
           feitos={feitos}
@@ -1324,6 +1328,11 @@ export default function VenderCavaloPage() {
           rascunho={estadoRascunho}
         />
       </form>
+
+      {/* Fica fora do `<form>` de propósito: não é um campo nem um comando, é
+          o que se lê enquanto se preenche. Dentro dele seria mais um nó a
+          repintar a cada tecla. */}
+      <Farol faltam={faltam[step - 1] ?? 0} rascunho={estadoRascunho} passo={step} />
     </div>
   );
 }
