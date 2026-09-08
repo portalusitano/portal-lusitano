@@ -601,10 +601,17 @@ function DirectorioInterior({
           </div>
         </div>
 
+        {/* O `role` não é enfeite. Um `<div>` sem papel é `generic`, e a ARIA
+            proíbe dar nome a um `generic`: o `aria-label` que aqui estava era
+            deitado fora e o painel chegava ao leitor de ecrã sem nome nenhum.
+            Verificado a subir do canvas até ao `<main>` — o único `aria-label`
+            de todo o caminho estava neste `<div>`, com o `role` a nulo. Com
+            `group` o nome passa a contar. */}
         {mapaAberto && noMapa.length > 0 && (
           <div
             className="relative z-0 mb-8 overflow-hidden rounded-[var(--raio-lg)] border border-[var(--border-soft)]"
             style={{ height: 420 }}
+            role="group"
             aria-label={t.directorio.map_label}
           >
             <GloboMapa

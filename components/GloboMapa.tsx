@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { geoOrthographic, geoPath, geoGraticule10 } from "d3-geo";
 import type { GeoPath, GeoPermissibleObjects, GeoProjection } from "d3-geo";
 import { feature } from "topojson-client";
@@ -52,6 +52,27 @@ import { resolverCoordenadas, type CoudelariaNoMapa } from "@/lib/coordenadas-co
  *    país. Enquadrado a preencher o painel lia-se como um erro de desenho.
  *  - **O laço de pintura deixou de refazer o que não muda** — ver `pintar`,
  *    `pintarCeu` e `GRELHA`.
+ *
+ * E o que se corrigiu depois, com os números ao lado — cada um tem a razão
+ * escrita no sítio onde está:
+ *
+ *  - **Os nomes dos países nunca foram escritos na Geist.** O `ctx.font` levava
+ *    um `var(--font-geist-sans)`, que o canvas não sabe ler e descarta em
+ *    silêncio; ficava a fonte de origem, `10px sans-serif`. A variável nem
+ *    existe — no `layout.tsx` chama-se `--font-geist`. Ver `letra`.
+ *  - **Vinte dos vinte e nove alfinetes eram dourados.** Um acento em 69% dos
+ *    pontos é a cor do mapa, não um acento; e o `<GloboTerra>` já tinha feito
+ *    esta conta com os mesmos dados. Ver a secção «Coudelarias» do `pintar`.
+ *  - **A legenda saía do painel, que corta.** 1 de 29 a 390×700 em repouso e
+ *    9 de 27 depois de aproximar. Ver `encaixe`.
+ *  - **Os botões de aproximar não eram os do outro globo** e não se apagavam
+ *    ao fim do curso. Ver `curso` e `.globo-comando`.
+ *  - **O texto alternativo mentia na ficha**: «Globo com 1 coudelarias. A
+ *    mesma informação está na vista de lista» — e na ficha não há lista.
+ *
+ * E o que se tentou e não entrou, para não voltar a ser tentado às cegas: uma
+ * regra a calar o nome do país quando um alfinete lhe caísse em cima. Medida,
+ * não disparava uma única vez — ver o comentário nos «Nomes dos países».
  */
 
 /* Um alfinete só — a ficha de uma coudelaria — não tem caixa. Dá-se-lhe esta
@@ -138,7 +159,26 @@ export default function GloboMapa({ coudelarias, flyTo, onMarkerClick }: Props) 
      Liam-se com um `getComputedStyle` mais quatro `getPropertyValue` **por
      quadro** — pedir ao browser o estilo calculado a 60 Hz, dentro do laço de
      desenho. Aqui leem-se uma vez, quando o componente monta. */
-  const cores = useRef({ forte: "#fff", tenue: "#8a8a8a", ouro: "#c6a15b", fundo: "#000" });
+  const cores = useRef({ forte: "#fff", tenue: "#8a8a8a", fundo: "#000" });
+
+  /* O tipo de letra dos nomes dos países.
+
+     Estava escrito `"500 11px var(--font-geist-sans), system-ui, sans-serif"`,
+     e o canvas **não sabe o que é um `var()`**: a gramática do `ctx.font` é a
+     do `font` do CSS depois de as variáveis estarem resolvidas, e uma
+     atribuição que não faz o parse é descartada em silêncio — o contexto fica
+     com a que tinha. Medido no browser: pedida aquela cadeia, o `ctx.font`
+     respondia `"10px sans-serif"`, que é o valor de origem de um canvas
+     acabado de criar. Os nomes dos países deste mapa nunca foram escritos na
+     Geist nem a 11px; eram a fonte de omissão do browser a 10px. «Portugal»
+     media 37,2px em vez de 45,6px.
+
+     A variável nem existia, ainda por cima: no `layout.tsx` chama-se
+     `--font-geist`. Em vez de a copiar — um nome de variável copiado é um
+     nome que ninguém actualiza — lê-se a família **já resolvida** do próprio
+     `body`, que é a mesma cadeia que o resto do site usa. Uma leitura, à
+     montagem. */
+  const letra = useRef("11px system-ui, sans-serif");
 
   /* A lona das estrelas: pintada uma vez por tamanho e copiada com um
      `drawImage`. Eram 260 `arc()` com `fill()` a cada quadro para desenhar um
@@ -235,9 +275,15 @@ export default function GloboMapa({ coudelarias, flyTo, onMarkerClick }: Props) 
     cores.current = {
       forte: cor("--foreground-strong", "#fff"),
       tenue: cor("--foreground-muted", "#8a8a8a"),
-      ouro: cor("--gold", "#c6a15b"),
       fundo: cor("--background", "#000"),
     };
+
+    /* A família sai do `body` já resolvida — é a cadeia que o site inteiro
+       usa, com a Geist à frente. Peso 400: a regra da casa é que 400 chega
+       para quase tudo, e um nome de país sussurrado a cinzento é justamente
+       o sítio onde não se pede peso. */
+    const familia = getComputedStyle(document.body).fontFamily;
+    if (familia) letra.current = `400 11px ${familia}`;
   }, []);
 
   /** O céu, pintado uma vez por tamanho. */
@@ -285,7 +331,7 @@ export default function GloboMapa({ coudelarias, flyTo, onMarkerClick }: Props) 
     const cx = largura / 2;
     const cy = altura / 2;
     const raio = escala.current;
-    const { forte, tenue, ouro, fundo } = cores.current;
+    const { forte, tenue, fundo } = cores.current;
 
     // ── Céu ──────────────────────────────────────────────────────────────
     const estrelado = pintarCeu(largura, altura, dpr);
@@ -369,8 +415,17 @@ export default function GloboMapa({ coudelarias, flyTo, onMarkerClick }: Props) 
        completas por dez mil pontos, além da do desenho, para escrever meia
        dúzia de nomes. Quantos pixéis o país ocupa estima-se da largura em
        graus — que também vem do ficheiro — encolhida pelo cosseno da
-       latitude, que é o que a projecção lhe faz. */
-    ctx.font = "500 11px var(--font-geist-sans), system-ui, sans-serif";
+       latitude, que é o que a projecção lhe faz.
+
+       Chegou a haver aqui uma regra a calar o nome do país quando um alfinete
+       lhe caísse em cima, escrita a pensar na ficha — onde o centróide de
+       Portugal e a coudelaria enquadrada ficam por força perto. Mediu-se, e a
+       regra **nunca disparava**: para a Alter Real, que é o caso apertado, o
+       nome fica 18,4px acima e 13,6px ao lado do ponto, ou seja ao lado e não
+       por cima. Uma guarda que não se prova é código morto com um limiar
+       inventado lá dentro, e saiu. Fica escrito para o próximo não a
+       reescrever sem medir primeiro. */
+    ctx.font = letra.current;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = tenue;
@@ -387,8 +442,28 @@ export default function GloboMapa({ coudelarias, flyTo, onMarkerClick }: Props) 
     ctx.globalAlpha = 1;
 
     // ── Coudelarias ──────────────────────────────────────────────────────
-    /* Branco para todas, dourado só para as que estão em destaque. Vinte e
-       nove alfinetes dourados seguidos deixavam de assinalar seja o que for. */
+    /* Branco em todos os casos, e o dourado em nenhum.
+
+       O comentário que aqui estava dizia «dourado só para as que estão em
+       destaque» e justificava-se com «vinte e nove alfinetes dourados
+       seguidos deixavam de assinalar seja o que for» — mas ninguém contou os
+       que a base traz. Medido nas vinte e nove verdadeiras: **vinte têm
+       `destaque`**, ou seja sessenta e nove por cento do mapa era dourado. Um
+       acento em dois terços dos pontos não é um acento; é a cor do mapa, e a
+       regra da casa é explícita — «num distintivo que aparece em quase todos
+       os cartões de uma grelha usa-se o branco».
+
+       O `<GloboTerra>` já tinha chegado aqui, com estes mesmos dados e com
+       esta mesma conta escrita no ficheiro dele: «os alfinetes em destaque
+       eram vinte e um dos vinte e nove: um acento em setenta e dois por cento
+       dos pontos não assinala nada». Duas leituras da mesma tabela não podem
+       dar duas respostas — quem for do directório para o `/mapa` veria dois
+       mapas do mesmo país a dizer coisas diferentes sobre as mesmas
+       coudelarias.
+
+       O destaque fica onde ele o pôs: no **tamanho** do ponto, que é a
+       hierarquia mais fraca de propósito. Sobre preto quem assinala é o
+       contraste. */
     const visiveis: { x: number; y: number; alfinete: Alfinete }[] = [];
     for (const alfinete of alfinetes) {
       // Pela mesma razão dos nomes: um alfinete do outro lado do planeta
@@ -396,17 +471,18 @@ export default function GloboMapa({ coudelarias, flyTo, onMarkerClick }: Props) 
       if (!daNossaBanda(alfinete.lonLat[0], alfinete.lonLat[1])) continue;
       const p = projeccao(alfinete.lonLat);
       if (!p) continue;
-      const destaque = alfinete.coudelaria.destaque;
-      const r = destaque ? 4.5 : 3.2;
+      const r = alfinete.coudelaria.destaque ? 4 : 3.2;
 
+      // O halo que já cá estava para quem não tinha destaque, agora para
+      // todos: dá presença ao ponto sobre o cinzento da terra.
       ctx.beginPath();
       ctx.arc(p[0], p[1], r * 2.6, 0, Math.PI * 2);
-      ctx.fillStyle = destaque ? `${ouro}22` : "rgba(255,255,255,0.10)";
+      ctx.fillStyle = "rgba(255,255,255,0.10)";
       ctx.fill();
 
       ctx.beginPath();
       ctx.arc(p[0], p[1], r, 0, Math.PI * 2);
-      ctx.fillStyle = destaque ? ouro : forte;
+      ctx.fillStyle = forte;
       ctx.fill();
 
       visiveis.push({ x: p[0], y: p[1], alfinete });
@@ -464,6 +540,31 @@ export default function GloboMapa({ coudelarias, flyTo, onMarkerClick }: Props) 
     pintarRef.current = pintar;
     pedirPinturaRef.current = pedirPintura;
   });
+
+  /* Uma fonte que o documento ainda não desenhou não está disponível para o
+     canvas — e o canvas, ao contrário do texto em HTML, **não repinta sozinho
+     quando ela chega**: fica com a substituta para sempre, porque este mapa
+     desenha uma vez e depois só a pedido.
+
+     O `check` primeiro, e não só o `load`: quando a Geist já está no
+     documento — que é o caso normal, porque a página inteira está escrita
+     nela antes de alguém abrir o mapa — não há nada a esperar nem nada a
+     repintar. Só quando falta é que se pede, e aí é **uma** repintura, não um
+     ciclo: a promessa resolve uma vez. */
+  useEffect(() => {
+    const fontes = document.fonts;
+    if (!fontes || fontes.check(letra.current)) return;
+    let vivo = true;
+    fontes
+      .load(letra.current, "Portugal")
+      .then(() => {
+        if (vivo) pedirPinturaRef.current();
+      })
+      .catch(() => {});
+    return () => {
+      vivo = false;
+    };
+  }, []);
 
   // Entrada: o globo fecha-se sobre os alfinetes, uma vez.
   useEffect(() => {
@@ -661,6 +762,53 @@ export default function GloboMapa({ coudelarias, flyTo, onMarkerClick }: Props) 
     );
   };
 
+  /* A legenda tem de caber no painel.
+
+     Estava colada ao alfinete e mais nada: `left: x` com `-translate-x-1/2` e
+     `top: y - 10` com `-translate-y-full`. O painel corta (`overflow-hidden`),
+     por isso um alfinete perto de uma borda dava meia legenda — e é sempre a
+     metade de fora que leva o nome, porque o texto está centrado.
+
+     Medido a passar o rato por todos os alfinetes: a 1400×950 em repouso
+     saíam **0 de 29** (foi por isso que ninguém deu por ela), mas a 390×700
+     saía **1 de 29** logo em repouso, e depois de carregar três vezes no `+`
+     — que é o gesto para que os dois botões existem — saíam **9 de 27** no
+     telemóvel e **1 de 24** no computador. O pior caso ia 107,7px para fora
+     da borda esquerda: a legenda ficava reduzida a um canto de caixa.
+
+     A correcção é medir a caixa depois de ela existir e empurrá-la para
+     dentro; se não couber por cima do alfinete, passa para baixo. Uma leitura
+     de layout por **mudança de alfinete**, e não por movimento do rato — quem
+     manda aqui é o `setSobre`, que já só dispara quando muda o alfinete
+     debaixo do rato. */
+  const legenda = useRef<HTMLDivElement>(null);
+  const [encaixe, setEncaixe] = useState({ dx: 0, abaixo: false });
+  useLayoutEffect(() => {
+    if (!sobre) return;
+    const el = legenda.current;
+    const envolvente = envolve.current;
+    if (!el || !envolvente) return;
+    const larg = el.offsetWidth;
+    const alt = el.offsetHeight;
+    const L = envolvente.clientWidth;
+    const A = envolvente.clientHeight;
+    const MARGEM = 6;
+
+    let dx = 0;
+    const esquerda = sobre.x - larg / 2;
+    const direita = sobre.x + larg / 2;
+    if (esquerda < MARGEM) dx = MARGEM - esquerda;
+    else if (direita > L - MARGEM) dx = L - MARGEM - direita;
+
+    // Por omissão fica por cima, que é onde o olho a procura. Só desce quando
+    // por cima não há altura — e aí só desce se em baixo houver.
+    const abaixo = sobre.y - 10 - alt < MARGEM && sobre.y + 10 + alt <= A - MARGEM;
+
+    setEncaixe((antes) =>
+      antes.dx === dx && antes.abaixo === abaixo ? antes : { dx, abaixo }
+    );
+  }, [sobre]);
+
   const aoSubir = () => {
     arrasto.current = null;
   };
@@ -683,12 +831,19 @@ export default function GloboMapa({ coudelarias, flyTo, onMarkerClick }: Props) 
      página descia e o globo aproximava-se sem ninguém pedir. Com os dois
      botões, o mapa não regista um único ouvinte não passivo, e quem quer
      aproximar tem por onde — inclusive no telemóvel, onde roda não há. */
+  /* O fim do curso diz-se apagando o botão, que é como o outro globo já o
+     diz. Antes os dois botões continuavam acesos depois de o zoom bater no
+     limite: carregar dez vezes no `+` dava dez vezes nada, sem nada no ecrã a
+     explicar porquê. */
+  const [curso, setCurso] = useState({ podeAproximar: true, podeAfastar: true });
   const aproximar = useCallback(
     (factor: number) => {
       const min = zoomInicial.current * AFASTAR_MAX;
       const max = zoomInicial.current * APROXIMAR_MAX;
-      zoom.current = Math.max(min, Math.min(max, zoom.current * factor));
-      escala.current = raioBase.current * zoom.current;
+      const novo = Math.max(min, Math.min(max, zoom.current * factor));
+      zoom.current = novo;
+      escala.current = raioBase.current * novo;
+      setCurso({ podeAproximar: novo < max - 1e-9, podeAfastar: novo > min + 1e-9 });
       pedirPintura();
     },
     [pedirPintura]
@@ -713,48 +868,62 @@ export default function GloboMapa({ coudelarias, flyTo, onMarkerClick }: Props) 
         <canvas ref={lona} className="block h-full w-full" aria-hidden="true" />
       </div>
 
-      <div className="absolute bottom-2 right-2 z-10 flex flex-col gap-1">
+      {/* Os mesmos botões do `/mapa`, e não uns parecidos: `.globo-comando` é
+          a receita que já existe para «aproximar e afastar um globo neste
+          site» — quadrado de cantos redondos, vidro sobre o fundo do cartão,
+          44px em telemóvel e apagado ao fim do curso. Eram aqui cápsulas
+          redondas de 44px com `btn-subtil`, sempre acesas: dois mapas do mesmo
+          país com dois cromados diferentes. A classe é lida, não reescrita. */}
+      <div className="absolute bottom-2 right-2 z-10 grid gap-1.5">
         <button
           type="button"
           onClick={() => aproximar(1.35)}
+          disabled={!curso.podeAproximar}
           aria-label="Aproximar"
-          className="btn btn-subtil btn-sm size-11 justify-center rounded-full p-0"
+          className="globo-comando"
         >
-          <Plus size={15} aria-hidden="true" />
+          <Plus size={16} aria-hidden="true" />
         </button>
         <button
           type="button"
           onClick={() => aproximar(1 / 1.35)}
+          disabled={!curso.podeAfastar}
           aria-label="Afastar"
-          className="btn btn-subtil btn-sm size-11 justify-center rounded-full p-0"
+          className="globo-comando"
         >
-          <Minus size={15} aria-hidden="true" />
+          <Minus size={16} aria-hidden="true" />
         </button>
       </div>
 
       {sobre && (
         <div
-          className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-lg border px-2.5 py-1.5"
+          ref={legenda}
+          className="mapinha-legenda pointer-events-none absolute z-10 rounded-lg border px-2.5 py-1.5"
           style={{
-            left: sobre.x,
-            top: sobre.y - 10,
+            left: sobre.x + encaixe.dx,
+            top: encaixe.abaixo ? sobre.y + 10 : sobre.y - 10,
+            transform: `translateX(-50%) translateY(${encaixe.abaixo ? "0" : "-100%"})`,
             borderColor: "var(--border-soft)",
             background: "var(--background-elevated)",
           }}
         >
-          <p className="whitespace-nowrap text-[11px] font-medium text-[var(--foreground-strong)]">
-            {sobre.nome}
-          </p>
-          <p className="whitespace-nowrap text-[10px] text-[var(--foreground-muted)]">
-            {sobre.local}
-          </p>
+          <span className="mapinha-legenda__nome">{sobre.nome}</span>
+          <span className="mapinha-legenda__local">{sobre.local}</span>
         </div>
       )}
 
-      {/* O canvas é uma imagem; quem usa teclado ou leitor de ecrã navega
-          pela lista, que tem exactamente as mesmas coudelarias. */}
+      {/* O canvas é uma imagem, e o que ela diz tem de ser dito por escrito.
+          O que aqui estava dizia sempre a mesma frase — «Globo com N
+          coudelarias. A mesma informação está na vista de lista.» —, e na
+          ficha essa frase era falsa duas vezes: dava «Globo com 1
+          coudelarias», e mandava para uma lista que na ficha não existe. Este
+          painel faz dois trabalhos e por isso tem duas frases. */}
       <p className="sr-only">
-        Globo com {alfinetes.length} coudelarias. A mesma informação está na vista de lista.
+        {alfinetes.length === 1 && alfinetes[0]
+          ? `Mapa com a localização de ${alfinetes[0].coudelaria.nome}${
+              alfinetes[0].coudelaria.localizacao ? `, ${alfinetes[0].coudelaria.localizacao}` : ""
+            }.`
+          : `Mapa com ${alfinetes.length} coudelarias. A mesma informação está na vista de lista.`}
       </p>
     </div>
   );

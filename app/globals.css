@@ -6218,3 +6218,54 @@ textarea:autofill {
   background-color: var(--background-elevated) !important;
   color: var(--foreground-strong) !important;
 }
+
+/* ==========================================================================
+ * A legenda do <GloboMapa> — o mapa do directório e o «Onde fica» da ficha
+ *
+ * Estava escrita em utilidades soltas no JSX (`text-[11px] font-medium` e
+ * `text-[10px]`), que é o que o sistema visual pede para não se fazer: se
+ * apetece um tamanho que não existe, falta uma classe. E os dois números não
+ * eram os do resto do site — o outro globo escreve os nomes das coudelarias a
+ * 12px e a localidade a 10px, e não há razão para o mesmo par de linhas sobre
+ * o mesmo dado ter duas escalas conforme o mapa em que se lê.
+ *
+ * A cor da segunda linha era `--foreground-muted` (#666) sobre
+ * `--background-elevated` (#141414): **3,26:1**, abaixo dos 4,5:1 que a WCAG
+ * AA pede para texto a 10px. O outro globo já tinha tropeçado nisto e
+ * resolvido do mesmo modo, com `--foreground-secondary` (#a1a4a5) — aqui dá
+ * **7,43:1**.
+ * ========================================================================== */
+@layer components {
+  /* A caixa tem um tecto, e o tecto é o painel.
+
+     Sem ele a legenda era tão larga quanto o texto: cinco das vinte e nove
+     `localizacao` da base não são uma vila, são a morada inteira — a maior
+     tem 71 caracteres («Quinta da Portela, Cabeço da Rosa, EN 116, 2615-365
+     Alverca do Ribatejo»), contra uma mediana de 21. Com `white-space:
+     nowrap` isso dava, medido, uma fita de **353,3px dentro de um painel de
+     356** no telemóvel: nem centrada cabia, e o que ficava de fora era o fim
+     da morada.
+
+     Enrola-se, e não se corta com reticências: a segunda linha é a que traz a
+     resposta, e uma resposta cortada é pior do que uma resposta em duas
+     linhas — o mapa do `/mapa` já tinha aprendido isso a contar «…» nas
+     etiquetas dele. */
+  .mapinha-legenda {
+    max-width: min(220px, calc(100% - 12px));
+  }
+
+  .mapinha-legenda__nome {
+    display: block;
+    font-size: 12px;
+    line-height: 1.25;
+    font-weight: 500;
+    color: var(--foreground-strong);
+  }
+
+  .mapinha-legenda__local {
+    display: block;
+    font-size: 10px;
+    line-height: 1.3;
+    color: var(--foreground-secondary);
+  }
+}
