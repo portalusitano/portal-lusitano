@@ -6827,3 +6827,179 @@ textarea:autofill {
     color: var(--foreground-secondary);
   }
 }
+
+/* ═════════════════════════════════════════════════════════════════════════
+ * Ficha de coudelaria — `/directorio/<slug>`
+ *
+ * Bloco acrescentado no fim e com prefixo próprio (`.fc-`) de propósito: a
+ * ficha não abre excepções no sistema, só acrescenta as poucas peças que são
+ * dela. Nada aqui reescreve uma regra que já existia.
+ *
+ * **Os números daqui para baixo foram medidos contra um banco de ensaio, e um
+ * banco de ensaio é uma afirmação sobre o produto como qualquer outra.** O que
+ * se usou: as vinte e nove coudelarias verdadeiras, com `ano_fundacao`,
+ * `num_cavalos`, coordenadas, `foto_capa` e contactos como estão na base, e com
+ * a prosa (`historia`, `premios`, `servicos`, `especialidades`, `testemunhos`)
+ * vinda dos seeds deste repositório — que dão à Alter Real os mesmos quatro
+ * prémios e o mesmo 1748/200 cavalos que o site mostra. A distribuição que
+ * conta para o que se segue: história em 29/29 (doze delas com uma frase só,
+ * dezassete com três a doze parágrafos), prémios em 13/29, galeria em 25/29,
+ * contacto publicado em 29/29, e **zero avaliações em 29/29**.
+ *
+ * A prosa não é igual à produção. Onde isso muda a conclusão — e muda numa —
+ * está dito no sítio.
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+/* O `position: sticky` da coluna da direita nunca funcionou, e a razão não
+ * estava na ficha.
+ *
+ * `html, body { overflow-x: hidden }` (lá em cima, «Prevent horizontal scroll
+ * on mobile») faz do **body** um contentor de deslocamento. Um `sticky` prende
+ * ao contentor de deslocamento mais próximo, e o do body nunca se desloca —
+ * logo o `lg:sticky lg:top-28` da coluna era letra morta. Medido a 1400×950 na
+ * ficha da Alter Real: a rolar 0 → 2400px, o topo da coluna ia de 577 a −1823,
+ * ou seja acompanhava o rolo pixel a pixel; se prendesse, ficaria nos 112px do
+ * `top-28`. Isolado o mecanismo, trocar **só** o body para `clip` prende-o
+ * (112px); trocar só o `html` não muda nada; tirar o `[overflow-x:clip]` da
+ * própria ficha também não. É o body, e é só o body.
+ *
+ * O que isso custava: com a coluna a fugir, havia **10 fichas em que o
+ * telefone, o email ou o site estavam fora do ecrã em mais de metade do
+ * percurso de leitura** — quem acaba de ler a história e decide telefonar tem
+ * de voltar dois mil pixéis atrás. Medido em passos de 100px pelas 29 fichas,
+ * ligando e desligando esta regra na mesma construção: um contacto no ecrã em
+ * **58,9%** do percurso em média com o `sticky` morto, **82,6%** com ele vivo,
+ * e as fichas com o contacto fora do ecrã em mais de metade do percurso caem
+ * de **10 para 0**.
+ *
+ * `clip` em vez de `hidden` porque é **mais** restritivo, não menos: os dois
+ * cortam o que passa da caixa, mas o `clip` nem por programa deixa deslocar, e
+ * — é o que interessa aqui — não cria contentor de deslocamento. Medido nas 29
+ * fichas, a 390×780 e a 1400×950, antes e depois: **0 fichas com deslocamento
+ * horizontal** nas quatro medições, e o mesmo número de elementos a passar da
+ * janela (29/29 a 390px, que é a fita do «breadcrumb» a deslizar dentro da sua
+ * própria caixa, de propósito).
+ *
+ * Fica preso a `:has(.fc-ficha)` para valer só nesta página. A regra global é
+ * partilhada por todo o site e a correcção que ela merece — trocar `hidden`
+ * por `clip` na origem — é de quem for dono do ficheiro inteiro. */
+body:has(.fc-ficha) {
+  overflow-x: clip;
+}
+
+/* A barra de contacto do telemóvel é `fixed` e não ocupa lugar no documento.
+ * O rodapé é irmão da ficha, não filho, e por isso o `pb-28` do contentor da
+ * página não o alcança: medido a 390×780 no fim do rolo, a barra de 65px tapava
+ * 41px de cada um dos três últimos links do rodapé (Instagram, TikTok, Email)
+ * em **29 das 29 fichas — 87 links no total**, sem rolo que chegasse lá. Com o
+ * recuo: **0 fichas e 0 links**. Quem recua é o documento.
+ *
+ * `1023.98px` porque é onde o `lg:hidden` da barra a faz desaparecer, e o valor
+ * é o da própria barra — 44px de alvo de toque, 0,625rem em cima e o maior
+ * entre 0,625rem e a margem segura do aparelho em baixo. */
+@media (max-width: 1023.98px) {
+  body:has(.fc-com-barra) {
+    padding-bottom: calc(44px + 0.625rem + max(0.625rem, env(safe-area-inset-bottom)));
+  }
+}
+
+@layer components {
+  /* A medida da leitura.
+   *
+   * O `max-w-prose` do Tailwind são 65ch, e um `ch` é a largura do algarismo
+   * zero da fonte em uso. O zero da Geist é estreito, e o resultado medido nas
+   * 29 fichas é **76,2 caracteres por linha em mediana** (máximo 79,8) — acima
+   * dos 55–75 em que o olho volta ao início da linha seguinte sem se perder.
+   * Doze parágrafos a 76 caracteres é o que a ficha mais longa pede a quem lá
+   * chega.
+   *
+   * `58ch` porque é, medido, o maior valor que mantém **todas** as fichas
+   * dentro dos 75: mediana **69,0** e máximo **74,4**. A 54ch a mediana desce a
+   * 64,2 e a mancha cresce em altura sem que a linha fique melhor. O A/B foi
+   * feito na mesma construção, repondo os 65ch por folha de estilo. */
+  .fc-medida {
+    max-width: 58ch;
+  }
+
+  /* Lista de linhas curtas — prémios, distinções.
+   *
+   * Eram cartões: cada prémio numa caixa própria com borda, fundo e um ícone
+   * de medalha repetido. Medido nas 13 fichas que têm prémios, A/B na mesma
+   * construção: **57px por linha de texto que ocupa uma linha só**, contra 46px
+   * agora — e os treze blocos juntos passam de **3444px para 2870px**. E o
+   * ícone repetido dez vezes não distingue nada: é a mesma regra que o sistema
+   * já escreveu para os distintivos que aparecem em todos os cartões de uma
+   * grelha.
+   *
+   * Uma caixa só, com as linhas separadas por hairline. O ícone aparece uma
+   * vez, no título da secção, onde diz o que a lista é. */
+  .fc-lista {
+    border: 1px solid var(--border-soft);
+    border-radius: var(--raio);
+    background: var(--background-card);
+  }
+
+  .fc-lista > li + li {
+    border-top: 1px solid var(--border-soft);
+  }
+
+  .fc-lista > li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--foreground-secondary);
+  }
+
+  /* O marcador da linha: um travessão de luz fria, do tamanho de um traço de
+     texto. Não é um ícone — um ícone repetido é ruído; um travessão é
+     pontuação, e diz «isto é um item» sem se anunciar. */
+  .fc-lista > li::before {
+    content: "";
+    flex: 0 0 auto;
+    width: 0.625rem;
+    height: 1px;
+    background: var(--border);
+    transform: translateY(-0.3em);
+  }
+
+  /* Convite a avaliar quando ainda não há avaliação nenhuma.
+   *
+   * A caixa a tracejado com «Ainda não há avaliações» aparecia em **29 das 29
+   * fichas** e ocupava **140px** de secção (título, botão e caixa) para
+   * escrever uma ausência; agora são **58px**.
+   *
+   * Que nenhuma das vinte e nove tenha avaliações é inferência e não medida da
+   * produção: os três `INSERT INTO reviews` do repositório visam
+   * `coudelaria-alter-real` e `monte-velho-equestre`, e nenhum desses slugs
+   * existe entre as vinte e nove activas (são `alter-real` e `monte-velho`),
+   * pelo que nenhum deles escreveu linha nenhuma. Mas a inferência não sustenta
+   * nada: quem manda é `estatisticas.total === 0`, e à primeira avaliação a
+   * secção volta inteira, com título e média.
+   *
+   * Um cartão que aparece em todas as fichas não convida: é papel de parede.
+   * Fica uma linha só, com o verbo do lado direito, e o que ela afirma é o que
+   * se pode fazer — não o que não existe. */
+  .fc-convite {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--raio);
+    background: var(--background-card);
+  }
+
+  /* O texto do convite não é `.meta`: mede-se 3,66:1 sobre o cartão, abaixo do
+     mínimo de 4,5:1 para texto corrido. Aqui é a única frase da linha, e uma
+     frase que se lê tem de se ler. `--foreground-secondary` dá 8,37:1. */
+  .fc-convite__texto {
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--foreground-secondary);
+  }
+}

@@ -166,7 +166,11 @@ export default function FichaCoudelaria({
     });
 
   return (
-    <div className="min-h-screen bg-[var(--background)] [overflow-x:clip]">
+    <div
+      className={`fc-ficha min-h-screen bg-[var(--background)] [overflow-x:clip] ${
+        telefone || email || website || direccoes ? "fc-com-barra" : ""
+      }`}
+    >
       {/* ── Capa ───────────────────────────────────────────────────────────── */}
       {fotos.capa ? (
         <header className="relative min-h-[340px] sm:min-h-[480px]" aria-label={coudelaria.nome}>
@@ -313,7 +317,12 @@ export default function FichaCoudelaria({
                 <Revelar atraso={60}>
                   <section aria-labelledby="t-historia">
                     <Titulo id="t-historia">{t.directorio.history}</Titulo>
-                    <div className="max-w-prose space-y-3">
+                    {/* `.fc-medida` e não `max-w-prose`: medido nas 17 fichas com
+                        história, o `prose` do Tailwind dava 76,2 caracteres por
+                        linha em mediana — o `ch` é a largura do zero da Geist,
+                        que é estreito. A regra está no bloco `.fc-` do
+                        `globals.css`, com o número. */}
+                    <div className="fc-medida space-y-3">
                       {historia.map((paragrafo, i) => (
                         <p key={i} className="leading-relaxed text-[var(--foreground-secondary)]">
                           {paragrafo}
@@ -327,22 +336,18 @@ export default function FichaCoudelaria({
               {coudelaria.premios?.length ? (
                 <Revelar atraso={60}>
                   <section aria-labelledby="t-premios">
-                    <Titulo id="t-premios">{t.directorio.awards}</Titulo>
-                    <ul className="m-0 list-none space-y-2 p-0">
+                    {/* A medalha uma vez, no título — não uma por linha. Um ícone
+                        repetido em todas as linhas não distingue nenhuma, e eram
+                        dez medalhas iguais em dez caixas iguais. Medido na
+                        13 fichas que têm prémios, A/B na mesma construção: 57px
+                        por linha de texto que ocupa uma linha só, contra 46px
+                        agora. */}
+                    <Titulo id="t-premios" icone={<Award size={18} aria-hidden="true" />}>
+                      {t.directorio.awards}
+                    </Titulo>
+                    <ul className="fc-lista fc-medida m-0 list-none p-0">
                       {coudelaria.premios.map((premio) => (
-                        <li
-                          key={premio}
-                          className="flex items-start gap-3 rounded-[var(--raio)] border border-[var(--border-soft)] bg-[var(--background-card)] p-3.5"
-                        >
-                          <Award
-                            size={16}
-                            className="mt-0.5 flex-shrink-0 text-[var(--foreground-muted)]"
-                            aria-hidden="true"
-                          />
-                          <span className="text-sm leading-relaxed text-[var(--foreground-secondary)]">
-                            {premio}
-                          </span>
-                        </li>
+                        <li key={premio}>{premio}</li>
                       ))}
                     </ul>
                   </section>
@@ -679,6 +684,16 @@ export default function FichaCoudelaria({
       </div>
 
       {/* ── Barra de contacto no telemóvel ─────────────────────────────────── */}
+      {/* A barra é `fixed`, logo não ocupa lugar nenhum no documento — e o
+          rodapé, que é irmão desta página e não filho dela, ficava por baixo
+          dela. Medido a 390×780 nas vinte e nove, no fim do rolo: a barra tem
+          65px e tapava **41px de cada um dos três últimos links do rodapé**
+          (Instagram, TikTok, Email) em **29 das 29** fichas, 87 links ao todo —
+          links que no telemóvel não havia rolo que alcançasse.
+
+          Quem tem de recuar é o documento, e a folha faz isso com o
+          `.fc-com-barra` — o `pb-28` deste contentor só protege o conteúdo da
+          ficha, que acaba antes do rodapé. */}
       {(telefone || email || website || direccoes) && (
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--border)] bg-[var(--background)]/95 px-3 pb-[max(0.625rem,env(safe-area-inset-bottom))] pt-2.5 backdrop-blur-md lg:hidden">
           <div className="flex items-center gap-2">
@@ -732,10 +747,25 @@ export default function FichaCoudelaria({
 
 // ─── Peças ────────────────────────────────────────────────────────────────────
 
-function Titulo({ id, children }: { id: string; children: React.ReactNode }) {
+/**
+ * O risco de luz à esquerda é o marcador do título de secção e não se troca.
+ * O `icone` é para quando a secção tem um símbolo próprio que vale a pena dizer
+ * **uma** vez — a medalha dos prémios — em vez de o repetir em cada linha da
+ * lista, onde deixaria de distinguir seja o que for.
+ */
+function Titulo({
+  id,
+  children,
+  icone,
+}: {
+  id: string;
+  children: React.ReactNode;
+  icone?: React.ReactNode;
+}) {
   return (
     <h2 id={id} className="titulo-pagina mb-4 flex items-center gap-2.5">
       <span className="h-5 w-px bg-[var(--border)]" aria-hidden="true" />
+      {icone ? <span className="flex-shrink-0 text-[var(--foreground-muted)]">{icone}</span> : null}
       {children}
     </h2>
   );

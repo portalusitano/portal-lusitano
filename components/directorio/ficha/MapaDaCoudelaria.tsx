@@ -67,6 +67,17 @@ export default function MapaDaCoudelaria({
       ? ([coudelaria.coordenadas_lat, coudelaria.coordenadas_lng] as [number, number])
       : null;
 
+  /* As coordenadas em cru saíram daqui.
+   *
+   * Estavam em 29 das 29 fichas — «39.2218, -7.6576» a 12px por baixo dos
+   * botões — e medidas nos pixéis dão **3,45:1** de contraste, abaixo do
+   * mínimo de 4,5:1. Mas o problema não é o contraste: é para quem aquilo é.
+   * Quem quer lá chegar tem o «Como chegar», que abre a aplicação de mapas do
+   * telefone com a rota feita; quem quer ver onde é tem o «Ver mapa». Um par
+   * de números que ninguém copia à mão, ilegível, repetido nas vinte e nove —
+   * o número continua no `flyTo` e no `hrefDireccoes`, que é onde ele
+   * trabalha. Se algum dia se provar que alguém os quer, a forma honesta é um
+   * botão que os copia, não texto cinzento. */
   return (
     <section className="cartao overflow-hidden" aria-labelledby="t-mapa">
       <div className="px-4 pt-4 sm:px-5">
@@ -103,11 +114,6 @@ export default function MapaDaCoudelaria({
               {f.ver_mapa}
             </button>
           </div>
-          {coordenadas && (
-            <p className="meta mt-3 font-mono tabular-nums">
-              {coordenadas[0].toFixed(4)}, {coordenadas[1].toFixed(4)}
-            </p>
-          )}
         </div>
       )}
     </section>

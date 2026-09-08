@@ -124,24 +124,64 @@ export default function Avaliacoes({
       eventos: t.directorio.ficha.visita_eventos,
     })[tipo] ?? tipo;
 
+  /* Sem uma única avaliação, esta secção não é uma secção: é um título de
+     página, um botão e uma caixa a tracejado a dizer que não há nada. Medido,
+     140px em 29 fichas das 29; agora 58px.
+
+     Um cartão que aparece em todas as fichas não convida ninguém; é papel de
+     parede. Com zero avaliações fica uma linha só, com o verbo do lado
+     direito: o que se pode fazer não se perde, perde-se o anúncio da ausência.
+
+     Quem manda é o `total`, não uma contagem feita à mão: à primeira avaliação
+     a secção volta inteira, com título e média, porque então tem o que
+     mostrar. */
+  const vazia = estatisticas.total === 0 && avaliacoes.length === 0;
+
   return (
     <section aria-labelledby="titulo-avaliacoes">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <h2 id="titulo-avaliacoes" className="titulo-pagina flex items-center gap-2.5">
+      {/* O título continua a existir para quem navega por marcos, mesmo
+          quando não se desenha: um `<section>` sem nome acessível é uma
+          paragem sem nome num leitor de ecrã. */}
+      <h2
+        id="titulo-avaliacoes"
+        className={vazia ? "sr-only" : "titulo-pagina flex items-center gap-2.5"}
+      >
+        {!vazia && (
           <MessageSquare size={20} className="text-[var(--foreground-muted)]" aria-hidden="true" />
-          {t.directorio.reviews}
-        </h2>
-        <button
-          type="button"
-          onClick={() => setAberto((v) => !v)}
-          aria-expanded={aberto}
-          aria-controls="formulario-avaliacao"
-          className="btn btn-secundario"
-        >
-          <Star size={15} aria-hidden="true" />
-          {t.directorio.rate_stud}
-        </button>
-      </div>
+        )}
+        {t.directorio.reviews}
+      </h2>
+
+      {vazia ? (
+        !aberto && (
+          <div className="fc-convite">
+            <p className="fc-convite__texto m-0">{t.directorio.share_experience}</p>
+            <button
+              type="button"
+              onClick={() => setAberto(true)}
+              aria-expanded={aberto}
+              aria-controls="formulario-avaliacao"
+              className="btn btn-secundario btn-sm flex-shrink-0"
+            >
+              <Star size={14} aria-hidden="true" />
+              {t.directorio.rate_stud}
+            </button>
+          </div>
+        )
+      ) : (
+        <div className="mb-5 mt-4 flex flex-wrap items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => setAberto((v) => !v)}
+            aria-expanded={aberto}
+            aria-controls="formulario-avaliacao"
+            className="btn btn-secundario"
+          >
+            <Star size={15} aria-hidden="true" />
+            {t.directorio.rate_stud}
+          </button>
+        </div>
+      )}
 
       {estatisticas.total > 0 && (
         <div className="mb-5 flex items-center gap-4 rounded-[var(--raio)] border border-[var(--border-soft)] bg-[var(--background-card)] p-4">
@@ -161,7 +201,7 @@ export default function Avaliacoes({
         <form
           id="formulario-avaliacao"
           onSubmit={submeter}
-          className="anim-crescer mb-6 rounded-[var(--raio-lg)] border border-[var(--border-soft)] bg-[var(--background-card)] p-4 sm:p-6"
+          className="anim-crescer mb-6 mt-4 rounded-[var(--raio-lg)] border border-[var(--border-soft)] bg-[var(--background-card)] p-4 sm:p-6"
           aria-label={t.directorio.share_experience}
         >
           <h3 className="titulo-seccao mb-4">{t.directorio.share_experience}</h3>
@@ -314,11 +354,7 @@ export default function Avaliacoes({
             </li>
           ))}
         </ul>
-      ) : (
-        <p className="meta rounded-[var(--raio)] border border-dashed border-[var(--border-soft)] px-4 py-8 text-center">
-          {t.directorio.no_reviews}
-        </p>
-      )}
+      ) : null}
     </section>
   );
 }
