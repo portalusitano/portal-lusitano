@@ -374,6 +374,77 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
      eles existem: pergunta ao browser quem está no caminho, com
      `elementFromPoint` a subir ao primeiro antepassado `fixed`. O globo não
      conhece classes de outros componentes.
+   - **E a janela útil também manda na câmara.** A regra acima só valia para a
+     colocação: quem apontava a câmara — o `centrarEm` do percurso pelas setas
+     — punha a coudelaria no centro da **lona**. Com a barra de cookies em pé,
+     que é o estado de qualquer primeira visita, oito dos trinta e dois passos
+     davam o foco a um nome a `opacity: 0`. Medido a 390×700: a faixa útil é
+     [118, 448] e o alfinete pousava a y≈327, **dentro** dela — não era o
+     `prender` a limitar (zero dos 32 passos) nem o ponto a cair na parte
+     tapada. Era a folga gasta do lado errado: uma etiqueta de ajuntamento
+     aberta mede 286px de altura e a faixa tem 326 úteis, ou seja vinte pixéis
+     de folga para cada lado, e centrar na lona punha o alfinete quarenta e
+     quatro abaixo do centro da faixa. As oito hipóteses falhavam todas. No
+     ajuntamento de cinco, que mede 241, falhava por **0,8px** — que é a
+     assinatura de uma folga mal repartida e não de um limite. O centro da
+     faixa é o sítio que deixa a maior folga **igual** dos dois lados, e é por
+     isso o que dá mais hipóteses a uma etiqueta alta. A conta é iterativa pela
+     mesma razão que a do zoom sobre o cursor: a `escala()` dá a derivada e
+     três passos chegam a menos de um pixel. Corre por tecla, não por quadro, e
+     continua sem animação. Nos quatro passos mais a sul o `prender` passa a
+     limitar, e não custa nada — são nomes de uma linha, e quem precisa da
+     centragem são os ajuntamentos, que estão no meio. Medido: **32 de 32
+     passos visíveis e activos** nas duas vistas e nos dois estados da barra,
+     contra 24 no pior.
+
+   - **Travar a entrada é chegar já, não parar a meio.** O `aoDescer` punha
+     `aEntrar = false` e mais nada, e a altura ficava no fotograma em que a
+     viagem ia — que a meio caminho é o espaço: África no quadro e as vinte e
+     nove coudelarias num borrão. Medido a 1400×950, com o carregar despachado
+     no quadro certo: quatro nomes contra os catorze do repouso, e o
+     espalhamento das etiquetas a cair de 489 para 141. Carregar em «Aproximar»
+     **piorava** — dois nomes, 104 —, porque o zoom é multiplicativo e a partir
+     de 2,0 seis dentes não chegam ao repouso. E ficava gravado: `h = 2,0000`
+     no `sessionStorage`, uma coudelaria legível e espalhamento zero, durante
+     meia hora e em todas as visitas ao mapa nesse separador. Três defesas,
+     cada uma válida por si: o `aoDescer` pousa, o `guardarVista` recusa-se a
+     guardar a meio de uma viagem — a promessa é sobre o que se guarda, não
+     sobre quem chama —, e a chave passou a `globo-terra:vista:2` para desfazer
+     o que ficou preso. Fica escrito que isto andava meio escondido por
+     acidente: o `ResizeObserver` tem lá dentro um `alturaVoo = alturaRepouso`
+     que o salvava sempre que a caixa mudasse de tamanho a seguir e ninguém
+     tivesse tocado no zoom. Duas condições que não são garantia nenhuma — e a
+     segunda desaparece assim que alguém aproxima.
+
+     A lição de método é outra, e é para guardar: **uma optimização pode não
+     criar um defeito e mesmo assim ser responsável por ele.** O
+     pré-carregamento das texturas fez a lona compor-se cerca de um segundo e
+     meio mais cedo, e com isso a viagem de entrada passou a estar a correr
+     muito mais vezes no instante em que alguém toca pela primeira vez. O
+     defeito era o mesmo desde sempre; o que mudou foi a probabilidade de o
+     encontrar, e foi assim que ele chegou ao ecrã de quem usa o site.
+
+   - **A roda é da página até alguém pegar no globo.** O `aoRodar` saía à
+     cabeça quando a lona era o ecrã e havia página por baixo — e no `/mapa`
+     isso é sempre verdade, com 380px por rolar a 1400×950 e 720px a 390×700,
+     tudo rodapé. Ou seja, num computador a roda **nunca** aproximava: medido,
+     seis dentes sobre o centro da lona, zero alteração no espalhamento, nas
+     duas vistas e com e sem `prefers-reduced-motion`. A cedência não se desfaz
+     — quem chega e rola para ler o que está por baixo não pode ficar preso a
+     um globo que nunca pediu —; o que muda é **quando** ela acaba: à página
+     até alguém pegar no globo, ao globo a partir daí, e ao sair do ecrã o
+     globo devolve-a. Medido depois: antes de pegar a página desce os mesmos
+     380px e há **zero** ouvintes bloqueantes; depois de pegar, seis dentes
+     levam o espalhamento de 495 a 1116 e outros seis trazem-no a 496. O sinal
+     é um `pointerdown` de rato ou caneta e os botões de aproximar, **nunca o
+     dedo**: num ecrã táctil o gesto que pegaria no globo é o mesmo com que se
+     rola a página, e ao `pointerdown` não há como distingui-los — prender o
+     dedo pelo primeiro toque deixava a página sem maneira de descer a partir
+     do segundo. Por isso o `touch-action` continua governado só pela
+     geometria, e isto mexe numa coisa só: a roda, que é um órgão de rato. O
+     ouvinte não passivo só passa a existir depois de alguém pegar — quem nunca
+     pegou continua com zero, que é o que este ficheiro exige desde o Lenis.
+
    - **Uma excepção sem camada**, e a razão: a regra global
      `button:not([role="switch"]) { min-height: 44px }` esticava a caixa de
      cada nome de 28 para 44px em telemóvel — e a caixa do nome _é_ a caixa do
@@ -771,5 +842,25 @@ os dígitos alinharem entre cartões, que é o que permite comparar de relance).
 - Para ver o site a sério: `next build` + `next start` e Playwright com
   `executablePath: "/opt/pw-browsers/chromium"` (o binário que o projecto pede
   não está instalado neste ambiente).
+- **Um banco de ensaio é uma afirmação sobre o produto, e verifica-se como
+  qualquer outra.** Nesta casa mede-se contra um PostgREST de mentira, porque
+  não há acesso à base verdadeira. O stub que se montou para medir o mapa
+  servia **doze das vinte e oito colunas** da tabela das coudelarias — para o
+  globo só interessam o nome, as coordenadas e a localidade —, e passou de mão
+  em mão como se fosse «as vinte e nove verdadeiras». Quem o herdou para medir
+  o directório concluiu, com números, que `especialidades`, `linhagens` e
+  `ano_fundacao` estavam vazias nas vinte e nove, escreveu-o no código e na
+  mensagem de commit, e desenhou a partir daí. Estão preenchidas 29, 29 e 21.
+  Remedido sobre os dados verdadeiros, a correcção que valia «17 de 26
+  procuras devolvem mais» valia **2 de 16**. Antes de escrever «isto está
+  vazio», «isto nunca aparece» ou «esta coluna não tem dados», confirma que a
+  coluna existe no esquema **e** que o que o stub serve a traz. O ficheiro de
+  ensaio bom fica em `scratchpad/coudelarias-ensaio.json`, e diz de si próprio
+  o que é verificado e o que é um substituto.
+- **Uma optimização pode não criar um defeito e ainda assim ser responsável por
+  ele.** Ver o que o pré-carregamento das texturas fez à entrada do globo, na
+  secção do `<GloboTerra>`: o defeito era o mesmo desde sempre e o que mudou
+  foi a probabilidade de o encontrar. Quando uma alteração muda tempos, vale a
+  pena perguntar que corridas passam a ganhar-se e a perder-se por causa dela.
 - Migrações em `supabase/migrations/` têm de ser idempotentes e validadas
   contra um PostgreSQL local antes de irem para o repositório.
