@@ -821,7 +821,7 @@ export default function GloboTerra({
     [coudelarias]
   );
 
-  /* ── Só se reconstrói a cena quando os pontos mudam de facto ─────────────
+  /* ── Filtrar não remonta a cena ──────────────────────────────────────────
      Quem nos chama passa `searchQuery ? filtradas : todas`: um array novo a
      cada tecla, quase sempre com o mesmo conteúdo. Como a cena inteira
      dependia da identidade desta lista, cada tecla deitava fora um contexto
@@ -829,11 +829,45 @@ export default function GloboTerra({
      mesmo tempo. Medido: vinte teclas davam treze contextos e o aviso
      «Too many active WebGL contexts» na consola.
 
-     Quem manda na montagem passa a ser a assinatura: uma cadeia com o que a
-     cena precisa de saber. Array novo com o mesmo conteúdo dá a mesma
-     assinatura, e o `useCallback` que monta a cena não se mexe. Sai dos
-     pontos e mais nada: os ajuntamentos são uma função pura desta lista e da
-     altura a que a câmara está, e essa muda dentro da cena. */
+     A assinatura resolveu **metade** disso: um array novo com o mesmo
+     conteúdo dá a mesma cadeia e não mexe em nada. O que ficou por resolver
+     foi o caso em que o conteúdo muda mesmo — e esse é justamente o que
+     acontece a cada tecla que filtra alguma coisa. Aí deitava-se fora o
+     contexto WebGL, as cinco texturas, a geometria, os onze mil pontos dos
+     contornos, as 4200 estrelas e os nós todos das etiquetas e das manchas,
+     para montar tudo igual com outro conjunto de alfinetes.
+
+     Medido, escrevendo «alter» tecla a tecla e apagando tudo — dez teclas,
+     contando o que o browser faz por baixo:
+
+                              antes      depois
+       contextos WebGL          6           0
+       texturas para a placa   72           0
+       shaders compilados      60           0
+       programas ligados       30           0
+       CPU em JavaScript     3041ms       233ms   (1400×950)
+       CPU em JavaScript     2869ms       171ms   (390×700)
+
+     São estes os números que valem, e não a duração das tarefas longas: no
+     banco de ensaio o WebGL é por software, e aí **desenhar um quadro custa
+     ~1100ms a 1400×950** — medido à parte, com uma seta, que desenha um
+     quadro e não mexe na lista. Esse chão entra em todas as medições de
+     tarefa longa e nenhuma alteração daqui lhe mexe; numa GPU a sério é duas
+     ordens de grandeza menor. Onde ele pesa menos, o ganho aparece: a
+     390×700 a tarefa longa das dez teclas caiu de 9 147 para 2 084ms.
+
+     O maior custo isolado eram 1 466ms de `texSubImage2D` — as cinco
+     texturas do planeta a subir para a placa seis vezes, para mostrar outro
+     conjunto de pontos.
+
+     Os pontos são dados. A Terra, as texturas, a atmosfera, as estrelas e os
+     contornos não mudam com um filtro — e a cena já sabia trocar o conjunto
+     de alfinetes sem se desmontar, porque é isso que o `reagrupar` faz
+     sempre que o zoom muda o raio dos ajuntamentos. O que faltava era dizer
+     lá dentro que a lista também pode mudar. Passa a ser a assinatura a
+     disparar uma **troca** (ver o `trocarPontos`, lá dentro) em vez de uma
+     montagem: a cena fica de pé e só os alfinetes, os nomes, a caixa dos
+     dados e o percurso das setas se refazem. */
   const assinatura = useMemo(
     () =>
       pontos
@@ -848,22 +882,35 @@ export default function GloboTerra({
      render. Os efeitos correm pela ordem em que estão escritos, por isso
      estes chegam sempre antes do efeito que monta a cena. */
   const pontosRef = useRef(pontos);
+  const assinaturaRef = useRef(assinatura);
   const aoEscolherRef = useRef(aoEscolher);
   const hrefDeRef = useRef(hrefDe);
   const encaminhadorRef = useRef(encaminhador);
   useEffect(() => {
     pontosRef.current = pontos;
+    assinaturaRef.current = assinatura;
     aoEscolherRef.current = aoEscolher;
     hrefDeRef.current = hrefDe;
     encaminhadorRef.current = encaminhador;
   });
 
+  /** A porta para dentro da cena viva: recebe a assinatura nova e troca os
+      pontos. Vale `null` enquanto não houver cena — antes de montar, depois
+      de desmontar, e no plano B de quem não tem WebGL. */
+  const trocarRef = useRef<((assinatura: string) => void) | null>(null);
+
   const montar = useCallback(() => {
     const el = caixa.current;
     if (!el) return () => {};
-    const pontos = pontosRef.current;
-    /** Quantos alfinetes pode haver, no pior caso: um por coudelaria. */
-    const TECTO = Math.max(1, pontos.length);
+    /* `let`, e não `const`: a lista troca-se em cena, sem remontar. Quem a
+       troca é o `trocarPontos`, lá em baixo. */
+    let pontos = pontosRef.current;
+    /** Quantos alfinetes cabem nos buffers. É uma **marca de água**, não a
+        contagem do momento: filtrar só encolhe, e reservar o que já se
+        reservou poupa a realocação no caminho comum. Cresce — e só cresce —
+        no `crescerAte`, quando chega uma lista maior do que qualquer uma que
+        já se viu. */
+    let TECTO = Math.max(1, pontos.length);
 
     /** O destino de uma coudelaria, ou `null` se quem nos usa não quiser um. */
     const hrefDe = (c: CoudelariaNoMapa) => hrefDeRef.current?.(c) ?? null;
@@ -1338,23 +1385,33 @@ export default function GloboTerra({
       return faixa && faixa.length > 1 && faixa[1] > 0 ? faixa[1] : 64;
     })();
 
-    const posPontos = new Float32Array(TECTO * 3);
-    const raioPontos = new Float32Array(TECTO);
-    const argolaPontos = new Float32Array(TECTO);
-    const brilhoArgolaPontos = new Float32Array(TECTO);
-    const brilhoPontos = new Float32Array(TECTO);
-    const geoPontos = new THREE.BufferGeometry();
-    geoPontos.setAttribute("position", new THREE.BufferAttribute(posPontos, 3));
-    geoPontos.setAttribute("raio", new THREE.BufferAttribute(raioPontos, 1));
-    geoPontos.setAttribute("argola", new THREE.BufferAttribute(argolaPontos, 1));
-    geoPontos.setAttribute("brilhoArgola", new THREE.BufferAttribute(brilhoArgolaPontos, 1));
-    geoPontos.setAttribute("brilho", new THREE.BufferAttribute(brilhoPontos, 1));
-    geoPontos.setDrawRange(0, 0);
-    /* Sem esfera de contenção calculada a partir de um buffer meio vazio: os
-       pontos por usar estão todos na origem, e uma esfera que os apanhasse
-       punha o `frustum culling` a decidir mal. O que se desenha é sempre um
-       punhado de pontos sobre a Península; não há nada a poupar em cortá-los. */
-    geoPontos.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), RAIO * 1.1);
+    /* Os cinco canais do alfinete. São `let` pela mesma razão que o `TECTO`:
+       uma lista maior do que a marca de água obriga a buffers maiores. */
+    let posPontos = new Float32Array(TECTO * 3);
+    let raioPontos = new Float32Array(TECTO);
+    let argolaPontos = new Float32Array(TECTO);
+    let brilhoArgolaPontos = new Float32Array(TECTO);
+    let brilhoPontos = new Float32Array(TECTO);
+    let geoPontos = new THREE.BufferGeometry();
+
+    /** Pendura os cinco canais na geometria do momento. Num sítio só, para
+        que crescer não seja uma segunda lista de nomes de atributos a poder
+        divergir desta. */
+    const armarGeometria = () => {
+      geoPontos.setAttribute("position", new THREE.BufferAttribute(posPontos, 3));
+      geoPontos.setAttribute("raio", new THREE.BufferAttribute(raioPontos, 1));
+      geoPontos.setAttribute("argola", new THREE.BufferAttribute(argolaPontos, 1));
+      geoPontos.setAttribute("brilhoArgola", new THREE.BufferAttribute(brilhoArgolaPontos, 1));
+      geoPontos.setAttribute("brilho", new THREE.BufferAttribute(brilhoPontos, 1));
+      geoPontos.setDrawRange(0, 0);
+      /* Sem esfera de contenção calculada a partir de um buffer meio vazio:
+         os pontos por usar estão todos na origem, e uma esfera que os
+         apanhasse punha o `frustum culling` a decidir mal. O que se desenha é
+         sempre um punhado de pontos sobre a Península; não há nada a poupar
+         em cortá-los. */
+      geoPontos.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), RAIO * 1.1);
+    };
+    armarGeometria();
 
     const alfinetes = new THREE.Points(
       geoPontos,
@@ -2302,6 +2359,41 @@ export default function GloboTerra({
     /* No pior caso cada ponto do quadro é uma mancha por si — ver a nota
        sobre as sobras solitárias mais abaixo. */
     const manchas: Mancha[] = Array.from({ length: TECTO }, criarMancha);
+
+    /* ── Crescer, e só crescer ────────────────────────────────────────────
+       Filtrar encolhe a lista, e uma lista mais curta cabe sempre no que já
+       está reservado — é por isso que o caminho comum não passa por aqui. O
+       caso que passa é o inverso: chegar à página com uma pesquisa no
+       endereço (`/mapa?q=alter`), montar com três pontos, e limpar a caixa.
+       Aí a lista cresce para vinte e nove e os buffers não chegam.
+
+       A geometria é **substituída**, e a velha é descartada. Não se troca o
+       atributo dentro da mesma geometria: o three guarda o buffer de GPU num
+       WeakMap com o atributo por chave, e um atributo que sai da geometria
+       deixa de estar na lista que o `dispose` percorre — o buffer ficava na
+       placa até o contexto se perder. Descartar a geometria inteira liberta
+       os cinco de uma vez, com API pública e sem contas nossas.
+
+       Não é um caminho quente: corre no máximo uma vez por cada valor novo
+       de marca de água, o que na prática é zero ou uma vez em toda a vida da
+       cena. */
+    const crescerAte = (quantos: number) => {
+      if (quantos <= TECTO) return;
+      TECTO = quantos;
+      posPontos = new Float32Array(TECTO * 3);
+      raioPontos = new Float32Array(TECTO);
+      argolaPontos = new Float32Array(TECTO);
+      brilhoArgolaPontos = new Float32Array(TECTO);
+      brilhoPontos = new Float32Array(TECTO);
+      const velha = geoPontos;
+      geoPontos = new THREE.BufferGeometry();
+      armarGeometria();
+      alfinetes.geometry = geoPontos;
+      velha.dispose();
+      /* No pior caso cada ponto do quadro é uma mancha por si — a mesma
+         conta que dimensiona o depósito lá em cima. */
+      while (manchas.length < TECTO) manchas.push(criarMancha());
+    };
 
     const escreverMancha = (m: Mancha, membros: CoudelariaNoMapa[]) => {
       const assinatura = membros.map((c) => c.id).join(",");
@@ -3490,17 +3582,22 @@ export default function GloboTerra({
      * centro é `theta = (MIRA.lon − L)·grau`, e a latitude o mesmo com o phi.
      */
     const FOLGA_CAIXA = 0.35;
-    const caixaDados = pontos.length
-      ? pontos.reduce(
-          (c, p) => ({
-            latMin: Math.min(c.latMin, p.coords[0]),
-            latMax: Math.max(c.latMax, p.coords[0]),
-            lonMin: Math.min(c.lonMin, p.coords[1]),
-            lonMax: Math.max(c.lonMax, p.coords[1]),
-          }),
-          { latMin: 90, latMax: -90, lonMin: 180, lonMax: -180 }
-        )
-      : { latMin: MIRA.lat, latMax: MIRA.lat, lonMin: MIRA.lon, lonMax: MIRA.lon };
+    /* Sai dos pontos, logo refaz-se quando eles trocam: filtrar até uma
+       coudelaria só tem de deixar o limite à volta **dessa**, senão a órbita
+       podia parar num sítio de onde o único ponto que resta não se vê. */
+    const medirCaixaDados = (ps: Ponto[]) =>
+      ps.length
+        ? ps.reduce(
+            (c, p) => ({
+              latMin: Math.min(c.latMin, p.coords[0]),
+              latMax: Math.max(c.latMax, p.coords[0]),
+              lonMin: Math.min(c.lonMin, p.coords[1]),
+              lonMax: Math.max(c.lonMax, p.coords[1]),
+            }),
+            { latMin: 90, latMax: -90, lonMin: 180, lonMax: -180 }
+          )
+        : { latMin: MIRA.lat, latMax: MIRA.lat, lonMin: MIRA.lon, lonMax: MIRA.lon };
+    let caixaDados = medirCaixaDados(pontos);
 
     const limites = () => {
       const s = escala();
@@ -3848,9 +3945,13 @@ export default function GloboTerra({
        existir — medido de fora, o foco saía do globo em todos os passos. A
        lista das vinte e nove nunca muda; as etiquetas mudam. Percorre-se a
        que não muda, e procura-se a etiqueta **depois** de a câmara pousar. */
-    const percurso = [...pontos].sort(
-      (x, y) => y.coords[0] - x.coords[0] || x.coords[1] - y.coords[1]
-    );
+    /* «A lista das vinte e nove nunca muda» valia enquanto a lista fosse a
+       da montagem. Com o filtro a trocá-la em cena, o percurso é das
+       coudelarias **que estão no mapa agora** — percorrer as que a pesquisa
+       tirou seria levar o foco a nomes que não existem. */
+    const ordenarPercurso = (ps: Ponto[]) =>
+      [...ps].sort((x, y) => y.coords[0] - x.coords[0] || x.coords[1] - y.coords[1]);
+    let percurso = ordenarPercurso(pontos);
     let indiceTour = -1;
 
     const centrarEm = (coords: [number, number]) => {
@@ -4523,12 +4624,61 @@ export default function GloboTerra({
     colocarCamara();
     reagrupar(true);
 
+    /* ── Trocar os pontos com a cena de pé ────────────────────────────────
+     *
+     * Tudo o que depende da lista, e mais nada: os ajuntamentos (que o
+     * `reagrupar` refaz do zero, como já faz a cada degrau de zoom), a caixa
+     * dos dados de que saem os limites da órbita, e o percurso das setas.
+     * A Terra, as cinco texturas, os onze mil pontos dos contornos, as 4200
+     * estrelas, a atmosfera, a câmara e o contexto WebGL ficam onde estão —
+     * um filtro não muda nenhum deles.
+     *
+     * O `reagrupar(true)` força, porque o raio dos ajuntamentos não mudou
+     * (a câmara não se mexeu) e sem o `true` a chamada saía pela porta do
+     * atalho. E é ele que limpa a escolha a meio, o apontado, o foco e as
+     * manchas — o mesmo asseio que já fazia quando o zoom desfazia grupos.
+     *
+     * O `indiceTour` recua para −1: as setas recomeçam do princípio da lista
+     * nova. Continuar num índice de uma lista que mudou de tamanho era
+     * apontar a uma coudelaria ao acaso.
+     */
+    const trocarPontos = () => {
+      pontos = pontosRef.current;
+      crescerAte(Math.max(1, pontos.length));
+      caixaDados = medirCaixaDados(pontos);
+      percurso = ordenarPercurso(pontos);
+      indiceTour = -1;
+      /* Os limites da órbita acabaram de mudar de tamanho: se a vista estava
+         encostada a um limite antigo mais largo, prende-se agora ao novo. */
+      prender();
+      colocarCamara();
+      reagrupar(true);
+      /* As etiquetas são nós novos e ainda não estão medidas. */
+      precisaMedir = true;
+      /* Um quadro, e um só. O `pedirQuadro` não encadeia — desenha uma vez e
+         pára, que é o que mantém a promessa de zero rAF em repouso. */
+      pedirQuadro();
+    };
+
+    /* A porta fica aberta enquanto a cena viver. Quem lhe bate é o efeito da
+       assinatura, lá em baixo; a comparação com a assinatura que a cena tem
+       dentro evita a troca redundante no quadro em que ela acaba de montar. */
+    let assinaturaViva = assinaturaRef.current;
+    trocarRef.current = (nova) => {
+      if (nova === assinaturaViva) return;
+      assinaturaViva = nova;
+      trocarPontos();
+    };
+
     /* O `pagehide` apanha o que o desmonte não apanha: fechar o separador,
        seguir uma ligação para fora do site, o browser a arrumar a página. */
     window.addEventListener("pagehide", guardarVista);
 
     return () => {
       desmontado = true;
+      /* Fecha-se a porta antes de tudo o resto: uma troca que chegasse
+         depois daqui iria mexer numa cena já descartada. */
+      trocarRef.current = null;
       guardarVista();
       window.removeEventListener("pagehide", guardarVista);
       cancelarContornos.abort();
@@ -4583,13 +4733,23 @@ export default function GloboTerra({
       renderizador.forceContextLoss();
       lona.remove();
     };
-    /* A assinatura não se lê aqui dentro — os pontos vêm do `pontosRef`. Está
-       nas dependências porque é ela, e não a identidade do array, que decide
-       quando é que vale a pena deitar a cena fora e montar outra. */
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assinatura]);
+    /* Sem dependências, e sem uma linha a calar o linter: a cena monta uma
+       vez por vida do componente e tudo o que vem de fora — os pontos, a
+       assinatura, o `hrefDe`, o encaminhador — entra por `ref`, que é
+       estável. A lista muda pela porta do `trocarRef`. A assinatura chegou a
+       estar aqui, e era ela que mandava deitar fora o contexto WebGL a cada
+       tecla da pesquisa. */
+  }, []);
 
   useEffect(() => montar(), [montar]);
+
+  /* A lista mudou de conteúdo: troca-se dentro da cena, sem a remontar. Corre
+     depois do efeito que monta — os efeitos correm pela ordem em que estão
+     escritos —, e no primeiro quadro não faz nada, porque a cena acabou de
+     nascer com esta mesma assinatura. */
+  useEffect(() => {
+    trocarRef.current?.(assinatura);
+  }, [assinatura]);
 
   const semImagem = estado === "sem-3d";
 
