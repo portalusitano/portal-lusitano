@@ -3887,11 +3887,29 @@ export default function GloboTerra({
       /* Num ponto que junta várias, o foco vai ao nome desta e não à cabeça
          do grupo: senão as setas passavam pelo grupo uma vez e as outras
          quatro coudelarias ficavam sem caminho. Abrir a lista primeiro, que
-         um elemento escondido não recebe foco. */
-      if (e.membros.length > 1) {
-        fixa = e;
-        actualizarActivo();
-      }
+         um elemento escondido não recebe foco.
+
+         ── E o `fixa` tem de ser limpo, não só posto ─────────────────────
+         Era só posto. A partir do primeiro ajuntamento por que o percurso
+         passava, o `fixa` ficava a apontar-lhe para sempre — e como o
+         `actualizarActivo` lê `fixa ?? focada`, **o `fixa` velho tapava o
+         `focada` novo**: todas as etiquetas de uma coudelaria só que viessem
+         a seguir deixavam de ser a activa.
+
+         Isso não é um detalhe de estilo. A etiqueta activa é a primeira a
+         escolher lugar, é a única a quem a regra de não pousar sobre um
+         alfinete cede, e é a única que fica onde estava em vez de procurar
+         outro sítio. Sem isso, uma etiqueta com o foco podia simplesmente
+         não caber — e o foco ficava num nome que ninguém vê.
+
+         Medido a 1400×950, um percurso de 32 passos: **três passos com o foco
+         numa etiqueta a `opacity: 0`**, e os três eram etiquetas de uma
+         coudelaria só, e nenhum dos três tinha `data-activo`. Os membros de
+         ajuntamento tinham-no todos — porque para esses o `fixa` era posto de
+         propósito. O primeiro passo do percurso também o tinha, porque aí o
+         `fixa` ainda era nulo. É a assinatura exacta desta linha. */
+      fixa = e.membros.length > 1 ? e : null;
+      actualizarActivo();
       (e.alvos.get(alvo.c.id) ?? e.cabeca).focus();
       pedirQuadro();
     };

@@ -310,6 +310,31 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
      tabulação continua a passar só pelos nomes que se lêem: uma segunda rota
      por bolhas que mudam de sítio a cada arrasto seria uma rota pior, não uma
      a mais.
+
+     **E a promessa da linha acima era falsa a meio do percurso.** Quem manda
+     na etiqueta activa é `fixa ?? focada`, e o `fixa` — que serve para abrir
+     a lista de um ajuntamento — era **posto e nunca limpo**. A partir do
+     primeiro ajuntamento por que o percurso passasse, o `fixa` velho tapava o
+     `focada` novo, e todas as etiquetas de uma coudelaria só que viessem a
+     seguir deixavam de ser a activa.
+
+     Não é um detalhe de estilo: a activa é a primeira a escolher lugar, é a
+     única a quem a regra de não pousar sobre um alfinete cede, e é a única
+     que fica onde estava em vez de procurar outro sítio. Sem isso, uma
+     etiqueta com o foco pode não caber — e o foco fica num nome que ninguém
+     vê. Medido a 1400×950, 32 passos: **três com o foco numa etiqueta a
+     `opacity: 0`**, e a assinatura era exacta — os três eram de uma
+     coudelaria só, os três sem `data-activo`, enquanto todos os membros de
+     ajuntamento o tinham (para esses o `fixa` era posto de propósito) e o
+     primeiro passo também (aí o `fixa` ainda era nulo).
+
+     Uma linha: o `fixa` passa a ser **escrito a cada passo**, com o
+     ajuntamento ou com nulo. Medido depois: **32 de 32 passos visíveis e
+     activos**, a 1400×950 e a 390×700, com zero reticências e zero
+     sobreposições. A lição de método é a que este ficheiro já repete: o
+     sintoma era «o foco cai num nome invisível» e a causa era um `??` — e
+     duas medições do sintoma não a tinham encontrado.
+
    - **A janela útil não é a lona.** O motor não escreve por baixo do que está
      fixo no ecrã — a barra de cookies, o cabeçalho. E não o faz sabendo que
      eles existem: pergunta ao browser quem está no caminho, com
