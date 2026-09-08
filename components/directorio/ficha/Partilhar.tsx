@@ -29,31 +29,31 @@ import { useLanguage } from "@/context/LanguageContext";
  * painel que só abre a pedido. Não faz concorrência ao acento porque nunca
  * está no ecrã ao mesmo tempo que ele sem alguém o ter pedido.
  *
- * ── E o Instagram não partilha links ─────────────────────────────────────
- * Isto não é uma limitação nossa. O Instagram **não tem endpoint de partilha
- * na web**: não existe um `instagram.com/share?url=` como existe o
- * `facebook.com/sharer`, e os esquemas `instagram://` que existem abrem a
- * aplicação — na câmara, no perfil, nas mensagens — sem aceitarem um endereço
- * para publicar. Um botão que abrisse `instagram://` levava a pessoa para
- * fora do site e não levava o link com ela; num computador não fazia
- * absolutamente nada.
+ * ── Porque é que não há Instagram ────────────────────────────────────────
+ * Chegou a haver, e saiu — com a razão escrita, para não voltar por engano.
  *
- * Por isso o botão faz a coisa mais próxima que é **verdadeira**, e diz o que
- * fez:
+ * O Instagram **não tem endpoint de partilha na web**: não existe um
+ * `instagram.com/share?url=` como existe o `facebook.com/sharer`, e os
+ * esquemas `instagram://` que existem abrem a aplicação — na câmara, no
+ * perfil, nas mensagens — sem aceitarem um endereço para publicar. Não é uma
+ * limitação nossa nem coisa que se resolva com mais código.
  *
- *  - onde há partilha nativa (praticamente todos os telemóveis), abre a folha
- *    do sistema — e é aí que o Instagram aparece a sério, com o link atrás;
- *  - onde não há, copia o endereço e escreve porquê, que é exactamente o
- *    caminho que o Instagram obriga a fazer: colar no story ou na bio.
+ * O que se podia fazer com honestidade era pouco: no telemóvel, a folha de
+ * partilha do sistema — que já está aqui, no «mais opções», e é onde o
+ * Instagram aparece a sério; no computador, copiar o link — que é o botão do
+ * lado. Um quadrado com o logótipo do Instagram a fazer uma dessas duas coisas
+ * estaria a prometer, **pelo ícone**, uma coisa que não faz: a marca diz
+ * «publico isto no Instagram» e o botão copiava um endereço.
  *
- * A alternativa era um quarto quadrado bonito que não fazia nada. Um botão
- * morto é pior do que um botão a menos.
+ * Entre um botão que promete a mais e nenhum botão, fica nenhum. Quem quiser
+ * levar isto ao Instagram tem o «copiar» ao lado e a folha do sistema por
+ * baixo, que é exactamente o caminho que o próprio Instagram obriga a fazer.
  */
 export default function Partilhar({ titulo, url }: { titulo: string; url: string }) {
   const { t } = useLanguage();
   const f = t.directorio.ficha;
   const [aberto, setAberto] = useState(false);
-  const [copiado, setCopiado] = useState<"link" | "instagram" | null>(null);
+  const [copiado, setCopiado] = useState(false);
   const painel = useRef<HTMLDivElement>(null);
   const botao = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -101,13 +101,10 @@ export default function Partilhar({ titulo, url }: { titulo: string; url: string
     }
   };
 
-  const avisar = (qual: "link" | "instagram") => {
-    setCopiado(qual);
-    setTimeout(() => setCopiado(null), 3000);
-  };
-
   const copiar = async () => {
-    if (await paraAAreaDeTransferencia("copiar-link")) avisar("link");
+    if (!(await paraAAreaDeTransferencia("copiar-link"))) return;
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 3000);
   };
 
   const partilhaNativa = async (conteudo: string) => {
@@ -119,23 +116,6 @@ export default function Partilhar({ titulo, url }: { titulo: string; url: string
       // Cancelado por quem partilha; não é erro.
       return true;
     }
-  };
-
-  /** Há folha de partilha do sistema? Pergunta-se no clique, e não em estado.
-      Guardar isto num `useState` obrigava a escrevê-lo dentro de um efeito —
-      que é o que o `react-hooks/set-state-in-effect` proíbe, e com razão: um
-      estado que nunca muda depois de montar não é estado, é uma pergunta. */
-  const haPartilhaNativa = () =>
-    typeof navigator !== "undefined" && typeof navigator.share === "function";
-
-  /* O Instagram, pela ordem do que é verdadeiro em cada sítio. Ver a nota no
-     cabeçalho: não há endereço de partilha para onde mandar isto. */
-  const paraOInstagram = async () => {
-    if (haPartilhaNativa()) {
-      await partilhaNativa("instagram");
-      return;
-    }
-    if (await paraAAreaDeTransferencia("instagram")) avisar("instagram");
   };
 
   const redes: {
@@ -181,29 +161,6 @@ export default function Partilhar({ titulo, url }: { titulo: string; url: string
       endereco: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(comUtm("facebook"))}`,
     },
     {
-      chave: "instagram",
-      etiqueta: "Instagram",
-      /* O gradiente do Instagram não cabe numa variável de cor, por isso os
-         três extremos vêm dos tokens e o `linearGradient` mora aqui. O `id`
-         é único no documento: este painel só existe uma vez de cada vez. */
-      icone: (
-        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-          <defs>
-            <linearGradient id="grad-instagram" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="var(--marca-instagram-1)" />
-              <stop offset="50%" stopColor="var(--marca-instagram-2)" />
-              <stop offset="100%" stopColor="var(--marca-instagram-3)" />
-            </linearGradient>
-          </defs>
-          <path
-            fill="url(#grad-instagram)"
-            d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"
-          />
-        </svg>
-      ),
-      accao: paraOInstagram,
-    },
-    {
       chave: "x",
       etiqueta: "X",
       icone: (
@@ -237,7 +194,7 @@ export default function Partilhar({ titulo, url }: { titulo: string; url: string
           ref={painel}
           role="dialog"
           aria-label={f.partilhar}
-          className="anim-crescer vidro absolute left-0 top-full z-50 mt-2 w-[24rem] origin-top rounded-[var(--raio-lg)] p-4"
+          className="anim-crescer vidro absolute left-0 top-full z-50 mt-2 w-[21rem] origin-top rounded-[var(--raio-lg)] p-4"
         >
           <div className="mb-3 flex items-center justify-between">
             <p className="rotulo-forte">{f.partilhar}</p>
@@ -256,11 +213,10 @@ export default function Partilhar({ titulo, url }: { titulo: string; url: string
 
           {/* Grelha de cinco colunas iguais, e não `flex-1`. Com `flex` as
               caixas ficavam do tamanho do que tinham dentro — medido: 72, 72,
-              73, 33 e 46 pixéis — e a fila lia-se torta; pior, a soma passava
-              a largura do painel e o «Copiar» saía **12px para fora**. Uma
-              grelha dá cinco quadrados iguais, que é o que faz uma fila de
-              marcas parecer deliberada, e nunca transborda. */}
-          <ul className="m-0 grid list-none grid-cols-5 gap-2 p-0">
+              33 e 46 pixéis — e a fila lia-se torta. Uma grelha dá quadrados
+              iguais, que é o que faz uma fila de marcas parecer deliberada, e
+              nunca transborda seja qual for o número deles. */}
+          <ul className="m-0 grid list-none grid-cols-4 gap-2 p-0">
             {redes.map((rede) => (
               <li key={rede.chave} className="min-w-0">
                 <button
@@ -278,32 +234,18 @@ export default function Partilhar({ titulo, url }: { titulo: string; url: string
               <button
                 type="button"
                 onClick={copiar}
-                aria-label={copiado === "link" ? f.link_copiado : f.copiar_link}
+                aria-label={copiado ? f.link_copiado : f.copiar_link}
                 className={quadrado}
               >
-                {copiado === "link" ? (
+                {copiado ? (
                   <Check size={16} className="text-[var(--ok)]" aria-hidden="true" />
                 ) : (
                   <Link2 size={16} aria-hidden="true" />
                 )}
-                <span className="meta">{copiado === "link" ? f.link_copiado : f.copiar_link}</span>
+                <span className="meta">{copiado ? f.link_copiado : f.copiar_link}</span>
               </button>
             </li>
           </ul>
-
-          {/* Porque é que carregar no Instagram copiou um link em vez de abrir
-              o Instagram. Só aparece depois de acontecer — uma explicação
-              permanente de uma coisa que ainda não se fez é ruído. */}
-          {copiado === "instagram" && (
-            <p role="status" className="meta mt-3 text-[var(--foreground-secondary)]">
-              <Check
-                size={13}
-                className="mr-1 inline-block align-[-2px] text-[var(--ok)]"
-                aria-hidden="true"
-              />
-              {f.instagram_como}
-            </p>
-          )}
 
           {/* O endereço à vista: sem `clipboard` — em http, ou num browser
               antigo — ainda se copia à mão, e vê-se para onde vai o link. */}

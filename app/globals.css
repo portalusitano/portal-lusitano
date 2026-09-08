@@ -98,15 +98,13 @@ html.dark {
      o que deixa achar o WhatsApp sem ler a palavra.
 
      O X não tem cor: a marca dele é preta sobre branco e branca sobre preto,
-     e o nosso fundo é preto. O Instagram é um gradiente, e está no SVG do
-     componente, porque um gradiente não cabe numa variável de cor. */
+     e o nosso fundo é preto. Houve aqui um gradiente do Instagram; saiu com o
+     botão, e a razão está escrita no `Partilhar.tsx` — o Instagram não aceita
+     links de fora, e um ícone que promete o que o botão não faz é pior do que
+     não ter botão. */
   --marca-whatsapp: #25d366;
   --marca-facebook: #1877f2;
   --marca-x: #ffffff;
-  /* Os extremos do gradiente do Instagram, para o `linearGradient` do ícone. */
-  --marca-instagram-1: #f9ce34;
-  --marca-instagram-2: #ee2a7b;
-  --marca-instagram-3: #6228d7;
   --surface-hover: rgba(255, 255, 255, 0.04);
   --scrollbar-track: transparent;
   --scrollbar-thumb: #2b2b2b;
@@ -2267,9 +2265,31 @@ body {
    * página, que continua a ser `.cartao`. */
   .vidro {
     border: 1px solid var(--border-soft);
-    background: color-mix(in srgb, var(--background-card) 72%, transparent);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    backdrop-filter: blur(24px) saturate(180%);
+    /* ── 68%, e o número foi medido, não escolhido ───────────────────────
+       O véu escuro é o que segura a legibilidade, e quanto mais fino ele for
+       mais vidro se vê — os dois puxam em sentidos contrários e há um ponto
+       onde se cruzam. Mediu-se: pôs-se a barra por cima de três fundos e
+       leu-se o contraste do texto contra os pixéis renderizados do painel.
+
+       Sobre uma fotografia do site, o véu quase não importa: 7,52:1 a 72% e
+       7,29:1 a 55%. Sobre um fundo claro — um cavalo branco contra o céu, ou
+       o tema claro — importa tudo:
+
+         véu 72% → 5,06:1     véu 66% → 4,42:1  ✗
+         véu 70% → 4,83:1     véu 64% → 4,27:1  ✗
+         véu 68% → 4,63:1     véu 60% → 3,90:1  ✗
+
+       68% é o degrau mais fino que ainda passa o mínimo de 4,5:1 para o texto
+       secundário. Abaixo disso ganha-se vidro e perde-se quem consegue ler a
+       segunda linha, e essa troca não se faz.
+
+       O que **sobe** é o resto: 24px de desfoque para 40, e 180% de saturação
+       para 200%. É a saturação que se lê como vidro — sem ela o painel só
+       lava a cor do que tapa e fica cinzento; com ela, o ocre do Alentejo
+       atravessa a barra de cookies. */
+    background: color-mix(in srgb, var(--background-card) 68%, transparent);
+    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    backdrop-filter: blur(40px) saturate(200%);
     box-shadow:
       0 1px 0 0 var(--elevate-2) inset,
       0 24px 48px -12px rgba(0, 0, 0, 0.7);
@@ -2282,9 +2302,13 @@ body {
      e uma sombra de contacto curta. */
   .vidro-leve {
     border: 1px solid var(--border-soft);
-    background: color-mix(in srgb, var(--background-card) 60%, transparent);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    backdrop-filter: blur(16px) saturate(180%);
+    /* Mais fino do que o `.vidro` e sem culpa: o que vive aqui dentro são
+       duas ou três palavras curtas em texto forte, e não um parágrafo. O
+       limite dos 68% foi medido para a segunda linha de um aviso, que aqui
+       não existe. */
+    background: color-mix(in srgb, var(--background-card) 55%, transparent);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    backdrop-filter: blur(24px) saturate(200%);
     box-shadow:
       0 1px 0 0 var(--elevate-2) inset,
       0 2px 8px -2px rgba(0, 0, 0, 0.5);
