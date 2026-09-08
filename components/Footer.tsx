@@ -21,6 +21,50 @@ import { abrirConsentimento } from "@/lib/consentimento";
 const LINHA_LEGAL =
   "rotulo inline-flex items-center transition-colors hover:text-[var(--foreground-secondary)]";
 
+/**
+ * ── O rodapé não carrega as páginas por antecipação ───────────────────────
+ *
+ * O `<Link>` do App Router pede a rota de destino assim que a âncora chega a
+ * 200px da janela. Numa página comprida o rodapé nunca lá chega; numa página
+ * que é exactamente uma janela de altura, chega **toda**. A `/mapa` é
+ * exactamente isso — a lona ocupa `100vh` —, e por isso o rodapé começa no
+ * pixel a seguir à dobra e as dezanove ligações dele entram na margem dos
+ * 200px logo no primeiro quadro.
+ *
+ * Medido no browser, `/mapa` em pt-PT, três carregamentos por vista, bytes
+ * contados com `request.sizes()`:
+ *
+ *                          com prefetch      sem            diferença
+ *   390×700   prefetch RSC   23 ped  97 200 B    4 ped  48 683 B
+ *             JavaScript     39 ped 553 915 B   31 ped 460 221 B
+ *             **total**      77 ped 1 450 577   47 ped 1 301 303   −149 274 B (−10,3%)
+ *   1400×950  total          94 ped 1 509 696   79 ped 1 474 020   −35 676 B (−2,4%)
+ *
+ * No telemóvel são **cento e quarenta e nove mil bytes e trinta pedidos** que
+ * toda a gente paga para que alguém possa não esperar. Não é só o payload das
+ * rotas: prefazer uma rota traz também os pedaços de JavaScript dela, e é daí
+ * que vem a maior parte (93 694 B).
+ *
+ * O que custa do outro lado, medido no mesmo build — o braço frio deita fora
+ * os pedidos que trazem `next-router-prefetch: 1`, que é exactamente o que
+ * este `prefetch={false}` faz: um clique numa ligação do rodapé até o destino
+ * ter um título no ecrã passa de **272ms para 505ms** de mediana (223–353
+ * contra 212–779, em rede local). E a espera não fica muda: quem a assinala é
+ * a `RouteProgressBar` que o `ClientShell` já monta.
+ *
+ * A razão para aceitar essa troca não é o número, é o que o rodapé é. O
+ * rodapé é um índice, não um caminho: ninguém navega o site através dele:
+ * vai-se lá quando já se sabe para onde se quer ir — as devoluções, o
+ * contacto, a privacidade, a minha conta. O caminho é a barra de cima, e essa
+ * mantém o prefetch inteiro. Um índice pode custar um quarto de segundo; a
+ * página que toda a gente abre não pode custar 149 KiB a quem nunca desce até
+ * ele.
+ *
+ * Nota para quem vier a mexer: no App Router `prefetch={false}` desliga **também**
+ * o prefetch ao passar o rato — o `mountLinkInstance` só regista a âncora
+ * quando o prefetch está ligado, e é desse registo que o `onNavigationIntent`
+ * depende. Não é como no Pages Router, onde o hover continuava a valer.
+ */
 export default memo(function Footer() {
   const { t } = useLanguage();
   const pathname = usePathname();
@@ -144,6 +188,7 @@ export default memo(function Footer() {
                         calada sem dar sinal. Com o elemento a ser caixa, é a
                         própria regra que passa a valer, sem número novo. */}
                     <LocalizedLink
+                      prefetch={false}
                       href={item.href}
                       className="meta inline-flex items-center transition-colors duration-200 hover:text-[var(--foreground-strong)]"
                     >
@@ -158,6 +203,7 @@ export default memo(function Footer() {
 
         {/* ── VENDER CTA ────────────────────────────── */}
         <LocalizedLink
+          prefetch={false}
           href="/vender-cavalo"
           className="group flex items-center justify-between gap-4 py-5"
           style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
@@ -197,7 +243,7 @@ export default memo(function Footer() {
                     <ArrowUpRight size={8} aria-hidden="true" />
                   </a>
                 ) : link.tipo === "interno" ? (
-                  <LocalizedLink href={link.href} className={LINHA_LEGAL}>
+                  <LocalizedLink prefetch={false} href={link.href} className={LINHA_LEGAL}>
                     {link.label}
                   </LocalizedLink>
                 ) : (
