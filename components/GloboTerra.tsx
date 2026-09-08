@@ -3954,6 +3954,11 @@ export default function GloboTerra({
     let percurso = ordenarPercurso(pontos);
     let indiceTour = -1;
 
+    /* O ponto para onde a centragem aponta, em coordenadas do mundo que roda.
+       Reaproveitado: a centragem corre a cada seta, e um vector novo por
+       tecla é lixo que não precisa de existir. */
+    const alvoLocal = new THREE.Vector3();
+
     const centrarEm = (coords: [number, number]) => {
       alturaVoo = alturaRepouso;
       zoomDoUtilizador = false;
@@ -3965,6 +3970,60 @@ export default function GloboTerra({
          precisava e não tinha. */
       orbita.theta = (MIRA.lon - coords[1]) * grau;
       orbita.phi = (MIRA.lat - coords[0]) * grau;
+
+      /* ── E o centro é o da faixa útil, não o da lona ────────────────────
+       *
+       * «A janela útil não é a lona» já era regra desta casa, mas só valia
+       * para a colocação: o motor não escreve por baixo do que está fixo no
+       * ecrã. A câmara não sabia da regra e apontava o ponto ao centro da
+       * **lona** — e por isso, com a barra de cookies em pé, o percurso das
+       * setas dava o foco a nomes que ninguém via.
+       *
+       * Medido a 390×700 com a barra em pé: a faixa útil é
+       * [118, 448] — 330px de 700 — e o alfinete pousava a y≈327, que é
+       * dentro da faixa. Não era o `prender` a limitar (zero dos 32 passos)
+       * nem o ponto a cair na parte tapada. Era a **folga gasta do lado
+       * errado**: uma etiqueta de ajuntamento aberta mede 286px de altura e
+       * a faixa mede 326 úteis, ou seja há 20px de folga para cada lado, e
+       * centrar na lona punha o alfinete 44px abaixo do centro da faixa. As
+       * oito hipóteses de colocação falhavam todas — «cima» não cabe por
+       * cima, «baixo» sai por baixo, e «meio» transbordava 24px. No
+       * ajuntamento de cinco, que mede 241, falhava por 0,8px: é a
+       * assinatura de uma folga mal repartida e não de um limite.
+       *
+       * O centro da faixa é o sítio que deixa a maior folga **igual** dos
+       * dois lados, e é por isso o que dá mais hipóteses a uma etiqueta
+       * alta. Com ele, a de 286 fica em [140, 426] e a de 241 em
+       * [162, 404] — as duas dentro de [120, 446].
+       *
+       * A conta é iterativa e não fechada pela mesma razão que a do zoom
+       * sobre o cursor, logo aqui em cima: a projecção de uma esfera vista
+       * de perto e de esguelha não se inverte em duas linhas, mas a
+       * `escala()` já dá a derivada — quantos radianos vale um pixel aqui —
+       * e com ela três passos chegam a menos de um pixel. Não corre por
+       * quadro; corre por tecla. O `prender` fica dentro do ciclo, como no
+       * zoom: corrigir para um sítio onde a órbita não pode ir e só depois
+       * limitar deixaria o desvio por medir.
+       *
+       * Sem animação, de propósito: o salto das setas é seco, e o porquê
+       * está escrito na nota que abre este percurso, logo acima. */
+      const meioUtil = (topoUtil + baseUtil) / 2;
+      /* Menos de um pixel de desvio não paga três matrizes e três
+         projecções — e sem estorvo nenhum no caminho é exactamente esse o
+         caso, porque aí a faixa é a lona. */
+      if (Math.abs(meioUtil - alturaCaixa / 2) >= 1) {
+        naEsferaEm(alvoLocal, coords[0], coords[1], RAIO * 1.004);
+        for (let i = 0; i < 3; i++) {
+          colocarCamara();
+          aplicarOrbita();
+          orbita.phi -= (meioUtil - ecraDe(alvoLocal).y) * escala().phi;
+          prender();
+        }
+        aplicarOrbita();
+      }
+
+      /* Repetido de propósito: quando o desvio não paga a correcção, o ciclo
+         não corre e é esta a única vez que a órbita se limita. */
       prender();
       colocarCamara();
       reagrupar();
