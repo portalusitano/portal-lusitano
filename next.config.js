@@ -235,6 +235,40 @@ const nextConfig = {
           },
         ],
       },
+      /* ── As texturas do globo, que a regra de cima esqueceu ──────────────
+         O `public/` do Next sai com `Cache-Control: public, max-age=0` por
+         omissão, e por isso este bloco existe: as fotografias, os ícones e
+         as fontes já foram tirados de lá um a um. Os cinco WebP do globo e
+         os contornos ficaram de fora — e são, somados, o recurso mais
+         pesado do site: 640 KiB de texturas mais 54 KiB de contornos, tudo
+         numa página só.
+
+         Medido, segunda visita ao `/mapa` no mesmo browser, cinco corridas:
+         **seis pedidos condicionais, trinta respostas, vinte e cinco delas
+         304**. Zero bytes de conteúdo (1800 no total, que são cabeçalhos),
+         mas seis idas e voltas ao servidor antes de a primeira textura
+         poder ser desenhada. Em rede local isso é ruído; num telemóvel com
+         100ms de latência é um quarto de segundo de globo preto por uma
+         pergunta cuja resposta se sabe de antemão.
+
+         A regra é a mesma que o `/images/` tem, e pela mesma razão: nomes
+         sem hash, conteúdo que muda quando alguém corre um guião do
+         `scripts/globo/` e faz um deploy. Não é uma excepção nova — é a
+         regra que já cá estava a valer para os ficheiros que a página do
+         mapa usa. Quem lhes mexer troca também o nome, como já é preciso
+         fazer no `/images/`. */
+      {
+        source: "/globo/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value:
+              process.env.NODE_ENV === "production"
+                ? "public, max-age=31536000, immutable"
+                : "public, max-age=0, must-revalidate",
+          },
+        ],
+      },
       // Cache icons for 1 year
       {
         source: "/icons/:path*",
