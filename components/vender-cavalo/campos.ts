@@ -30,7 +30,7 @@ import type { FormData } from "@/components/vender-cavalo/types";
  * campos, com o mesmo asterisco, perguntados quando servem para alguma coisa.
  * Ninguém publica sem os responder, porque o passo 4 é o passo do pagamento.
  *
- * Medido depois: **706px e 876px**, com quatro caixas antes do nome do cavalo
+ * Medido depois: **709px e 880px**, com quatro caixas antes do nome do cavalo
  * em vez de oito. E a conta por passo passou de `[27, 47, 20, 1]` para
  * `[24, 46, 20, 5]` — **a soma é a mesma, noventa e cinco**, que é a prova de
  * que nada foi tirado nem tornado opcional. A altura somada dos quatro passos

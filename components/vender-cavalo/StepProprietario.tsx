@@ -16,7 +16,7 @@ import { ApontamentoDoCampo, ligarCampo } from "@/components/vender-cavalo/apont
  * seja: das nove primeiras perguntas do formulário, seis eram sobre quem paga
  * e três sobre como se é contactado, e **o nome do cavalo era a décima**.
  * Medido no browser: **946px de rolo até à caixa do nome do cavalo a
- * 1400×950, e 1309px a 390×700**. Depois desta mudança são 706px e 876px, com
+ * 1400×950, e 1309px a 390×700**. Depois desta mudança são 709px e 880px, com
  * quatro caixas antes em vez de oito — e as quatro são o nome, o email, o
  * telefone e o WhatsApp de quem vende, que é o que o comprador precisa para
  * lhe falar.

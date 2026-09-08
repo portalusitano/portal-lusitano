@@ -56,7 +56,7 @@ import type { RegistoVerificado } from "@/components/vender-cavalo/usar-registo-
  * Medido no banco de ensaio, do cabeçalho da secção que manda procurar o Livro
  * Azul até à caixa que o recebia: **1 558px a 1400×950 e 2 842px a 390×700, e
  * uma fronteira de passo pelo meio**. Depois de o anexo passar para cá, a
- * mesma distância é de **297px e 334px, dentro do mesmo ecrã**.
+ * mesma distância é de **307px e 344px, dentro do mesmo ecrã**.
  *
  * Agora o documento chega primeiro e as perguntas vêm a seguir, que é a ordem
  * em que uma pessoa as consegue responder. Não é um campo novo nem um campo a
