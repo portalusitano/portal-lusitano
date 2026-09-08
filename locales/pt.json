@@ -582,7 +582,9 @@
       "visita_visita": "Visita",
       "visita_compra": "Compra",
       "visita_aulas": "Aulas",
-      "visita_eventos": "Evento"
+      "visita_eventos": "Evento",
+      "instagram_como": "O Instagram não aceita links de fora. O endereço fica copiado — cole-o no seu story ou na bio.",
+      "instagram_copiado": "Link copiado para o Instagram"
     }
   },
   "eventos": {

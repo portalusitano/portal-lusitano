@@ -50,7 +50,7 @@ export const BotaoIdioma = memo(function BotaoIdioma({
     <div
       role="group"
       aria-label={rotulo}
-      className={`idiomas ${className}`}
+      className={`idiomas vidro-leve ${className}`}
       style={{ "--idioma": activo } as React.CSSProperties}
     >
       {/* A pastilha vive fora dos botões e por baixo deles: assim desliza de

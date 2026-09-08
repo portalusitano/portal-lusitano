@@ -582,7 +582,9 @@
       "visita_visita": "Visit",
       "visita_compra": "Purchase",
       "visita_aulas": "Lessons",
-      "visita_eventos": "Event"
+      "visita_eventos": "Event",
+      "instagram_como": "Instagram does not accept links from other sites. The address is copied — paste it into your story or bio.",
+      "instagram_copiado": "Link copied for Instagram"
     }
   },
   "eventos": {

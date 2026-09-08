@@ -81,6 +81,32 @@ html.dark {
      com vermelhos literais espalhados por três ficheiros. */
   --erro: #f87171;
   --erro-rgb: 248 113 113;
+  /* ── As cores das marcas de quem partilha ──────────────────────────────
+     A regra da casa é que uma página nunca escreve uma cor literal, e estas
+     não são excepção: entram aqui como tokens, e é aqui que se mudam.
+
+     Mas são de uma família diferente das outras. `--gold`, `--ok` e `--erro`
+     são o **nosso** vocabulário — mudam se mudarmos de ideias. Estas quatro
+     não nos pertencem: são a identidade de outra pessoa, e a única coisa que
+     as pode mudar é a marca mudar. É a mesma natureza dos graus «Ouro» e
+     «Prata» do pedigree, onde a cor é o próprio dado.
+
+     Por isso não gastam o acento nem lhe fazem concorrência: aparecem num
+     ícone de 16px, uma vez cada, dentro de um painel que só abre a pedido —
+     e o `CLAUDE.md` diz que o acento é «do tamanho de um ícone». Aqui é
+     literalmente isso, e o que faz é reconhecimento, não decoração: a cor é
+     o que deixa achar o WhatsApp sem ler a palavra.
+
+     O X não tem cor: a marca dele é preta sobre branco e branca sobre preto,
+     e o nosso fundo é preto. O Instagram é um gradiente, e está no SVG do
+     componente, porque um gradiente não cabe numa variável de cor. */
+  --marca-whatsapp: #25d366;
+  --marca-facebook: #1877f2;
+  --marca-x: #ffffff;
+  /* Os extremos do gradiente do Instagram, para o `linearGradient` do ícone. */
+  --marca-instagram-1: #f9ce34;
+  --marca-instagram-2: #ee2a7b;
+  --marca-instagram-3: #6228d7;
   --surface-hover: rgba(255, 255, 255, 0.04);
   --scrollbar-track: transparent;
   --scrollbar-thumb: #2b2b2b;
@@ -132,6 +158,10 @@ html.light {
   --ok-rgb: 5 150 105;
   --erro: #dc2626;
   --erro-rgb: 220 38 38;
+  /* A marca do X é preta sobre branco e branca sobre preto — é a única das
+     quatro que muda com o tema, e é o próprio desenho dela que o manda. As
+     outras três são a mesma cor em qualquer chão. */
+  --marca-x: #000000;
   --surface-hover: rgba(9, 9, 11, 0.04);
   --scrollbar-track: transparent;
   --scrollbar-thumb: #d4d4d8;
@@ -2194,6 +2224,86 @@ body {
   .seleccao__gatilho[data-aberto] .seleccao__seta {
     transform: rotate(180deg);
     color: var(--foreground-strong);
+  }
+
+  /* ── Vidro: a superfície que flutua por cima do conteúdo ────────────────
+   *
+   * Já havia três destas no site — a lista da `<Seleccao>`, os botões do
+   * globo e a pílula do mapa — e as três eram a mesma ideia copiada com
+   * números diferentes: desfoque de 20 num sítio e de 10 noutro, fundo a 92%
+   * ali e a 78% acolá. Três vidros não são um sistema. Isto é a receita, num
+   * sítio só, e é por aqui que se muda.
+   *
+   * O que a faz ler como **vidro** e não como plástico fosco são três coisas,
+   * e nenhuma é o desfoque:
+   *
+   * 1. **A saturação.** É a diferença que se vê. Desfocar sozinho lava a cor
+   *    do que está por baixo e o painel fica cinzento; com `saturate` a cor
+   *    atravessa e o vidro ganha o tom do que tapa — uma fotografia de um
+   *    cavalo castanho por baixo tinge o painel de castanho, que é
+   *    exactamente o que o vidro a sério faz.
+   * 2. **O risco de luz no topo** (`inset 0 1px 0`). É o brilho especular da
+   *    aresta. Sem ele o painel não tem espessura: é um rectângulo
+   *    translúcido, não um objecto.
+   * 3. **A sombra que o assenta.** Larga e baixa, para dizer a que distância
+   *    do conteúdo é que ele flutua.
+   *
+   * ── E as duas defesas, que não são opcionais ───────────────────────────
+   *
+   * **Sem `backdrop-filter` o fundo passa a opaco.** Um painel a 72% de
+   * translucidez por cima de uma fotografia, sem desfoque nenhum por trás, é
+   * texto ilegível — e é o que acontece num browser que não suporte a
+   * propriedade. A alternativa a um vidro que não desfoca não é um vidro
+   * mais fraco: é uma superfície sólida.
+   *
+   * **Quem pede menos transparência recebe menos transparência.** O
+   * `prefers-reduced-transparency` existe para quem tem dificuldade em ler
+   * texto sobre fundos ocupados, e é a mesma família de respeito que o
+   * `prefers-reduced-motion` que este ficheiro já cumpre.
+   *
+   * O desfoque custa: cada superfície destas é uma camada que o browser tem
+   * de compor com o que está por baixo. Serve para o que **flutua** — painéis,
+   * avisos, barras por cima de conteúdo — e não para o que está assente na
+   * página, que continua a ser `.cartao`. */
+  .vidro {
+    border: 1px solid var(--border-soft);
+    background: color-mix(in srgb, var(--background-card) 72%, transparent);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+    box-shadow:
+      0 1px 0 0 var(--elevate-2) inset,
+      0 24px 48px -12px rgba(0, 0, 0, 0.7);
+  }
+
+  /* A mesma receita para um controlo pequeno. O que muda é só a sombra: a do
+     `.vidro` diz «isto flutua a vinte e quatro pixéis do conteúdo», e numa
+     pastilha de trinta pixéis de altura isso lê-se como um borrão por baixo
+     de um botão. Aqui fica o risco de luz da aresta, que é o que dá espessura,
+     e uma sombra de contacto curta. */
+  .vidro-leve {
+    border: 1px solid var(--border-soft);
+    background: color-mix(in srgb, var(--background-card) 60%, transparent);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    backdrop-filter: blur(16px) saturate(180%);
+    box-shadow:
+      0 1px 0 0 var(--elevate-2) inset,
+      0 2px 8px -2px rgba(0, 0, 0, 0.5);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .vidro,
+    .vidro-leve {
+      background: var(--background-elevated);
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .vidro,
+    .vidro-leve {
+      background: var(--background-elevated);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
   }
 
   .seleccao__lista {

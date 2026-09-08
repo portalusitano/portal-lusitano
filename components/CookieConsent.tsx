@@ -217,7 +217,7 @@ export default function CookieConsent() {
             se lê — o pouco que passa não é uma transparência elegante, é uma
             frase por cima de outra. O vidro é a borda e a sombra; o fundo é
             fundo. */
-        className="rounded-[28px] border border-[var(--border-soft)] bg-[var(--background-elevated)] p-4 shadow-[0_12px_60px_rgba(0,0,0,0.7)] sm:p-6"
+        className="vidro rounded-[28px] p-4 sm:p-6"
       >
         {/* ── Uma barra tem de ter altura de barra ────────────────────────
             Empilhada — título, parágrafo, dois botões, «Escolher», nota — dava

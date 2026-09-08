@@ -80,7 +80,7 @@ export default function PWAInstallPrompt() {
       className="fixed inset-x-3 bottom-3 z-[9990] mx-auto max-w-6xl opacity-0 animate-[slideUp_0.4s_cubic-bezier(0.22,1,0.36,1)_forwards] lg:inset-x-6 lg:bottom-6"
       style={{ willChange: "transform, opacity", marginBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div className="relative rounded-[28px] border border-[var(--border-soft)] bg-[var(--background-elevated)] p-4 shadow-[0_12px_60px_rgba(0,0,0,0.8)] sm:p-5">
+      <div className="vidro relative rounded-[28px] p-4 sm:p-5">
         <button
           onClick={handleDismiss}
           className="absolute right-4 top-4 text-[var(--foreground-muted)] transition-colors hover:text-[var(--foreground)] lg:hidden"
