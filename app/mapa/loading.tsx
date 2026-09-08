@@ -162,8 +162,16 @@ export default function Loading() {
         </div>
         {/* Duas linhas, porque duas é o que a frase ocupa: medido em pt-PT,
             34px de altura nas duas vistas. São dois blocos de `.meta`, logo
-            quem lhes dá a altura é a folha. */}
-        <p className="meta mapa-dica animate-pulse w-full">
+            quem lhes dá a altura é a folha.
+
+            O `vidro` está aqui pela mesma razão que todas as outras classes
+            desta página estão: o esqueleto tem de ter a **forma** do que vem
+            a seguir, e a dica ganhou chão próprio para se poder ler sobre o
+            planeta. Sem ele o esqueleto ficava 2px mais baixo e o rodapé
+            inteiro — que está preso em baixo e cresce para cima — subia
+            esses 2px quando o conteúdo chegasse. Medido: salto vertical de
+            2px sem esta linha, **0px** com ela, nas duas vistas. */}
+        <p className="meta vidro mapa-dica animate-pulse w-full">
           <span className="block rounded bg-[var(--background-elevated)] text-transparent">
             &nbsp;
           </span>

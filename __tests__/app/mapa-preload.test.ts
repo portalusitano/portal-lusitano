@@ -20,7 +20,7 @@ import { describe, expect, it } from "vitest";
  * módulos porque o `GloboTerra` monta uma cena WebGL ao ser importado.
  */
 const RAIZ = process.cwd();
-const LAYOUT = readFileSync(join(RAIZ, "app/mapa/layout.tsx"), "utf8");
+const PAGINA = readFileSync(join(RAIZ, "app/mapa/page.tsx"), "utf8");
 const GLOBO = readFileSync(join(RAIZ, "components/GloboTerra.tsx"), "utf8");
 
 /** Só as cadeias entre aspas — assim os caminhos citados em comentários e em
@@ -31,7 +31,7 @@ function caminhosDoGlobo(fonte: string): Set<string> {
 }
 
 describe("os ficheiros do globo anunciados no documento", () => {
-  const anunciados = caminhosDoGlobo(LAYOUT);
+  const anunciados = caminhosDoGlobo(PAGINA);
   const pedidos = caminhosDoGlobo(GLOBO);
 
   it("o layout anuncia alguma coisa", () => {
@@ -57,8 +57,8 @@ describe("os ficheiros do globo anunciados no documento", () => {
        Conta-se por chamadas ao `preload` e não por ficheiro: assim um
        ficheiro acrescentado à lista sem o `crossOrigin` faz o teste falhar em
        vez de passar por descuido. */
-    const chamadas = LAYOUT.match(/\bpreload\(/g) ?? [];
-    const comCrossOrigin = LAYOUT.match(/crossOrigin: "anonymous"/g) ?? [];
+    const chamadas = PAGINA.match(/\bpreload\(/g) ?? [];
+    const comCrossOrigin = PAGINA.match(/crossOrigin: "anonymous"/g) ?? [];
     expect(chamadas.length).toBeGreaterThan(0);
     expect(comCrossOrigin.length).toBe(chamadas.length);
   });

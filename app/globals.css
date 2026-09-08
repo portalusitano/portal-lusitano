@@ -3927,8 +3927,67 @@ body {
     background: var(--foreground-strong);
   }
 
+  /* ── A única peça flutuante sem chão, e a que mais precisava de um ─────
+     Medido nos pixéis renderizados, com a mesma conta que deu os 68% do
+     `.vidro`: a dica lê-se a **2,88:1** no computador e a **2,91:1** no
+     telemóvel — texto ténue sobre o Alentejo ao sol, com nada por baixo.
+     O mínimo para texto corrido é 4,5:1.
+
+     A comparação que decide está na mesma página e no mesmo papel: a fila de
+     estado (`.mapa-estado`) é a mesma coisa — uma segunda linha a flutuar
+     sobre o mapa — e, por ter chão, lê-se a 15,47:1 e 16,75:1. Duas linhas
+     irmãs, uma a 2,9 e outra a 16, e a diferença é só o vidro.
+
+     Não se resolve com cor: por baixo passa uma fotografia do planeta, e
+     nenhuma cor de texto garante um mínimo contra um fundo que muda de pixel
+     para pixel. Quem o garante é o véu, e a receita medida do site é o
+     `.vidro` — que a classe usa em vez de repetir números aqui.
+
+     O desfoque desce de 40px para 20, e é o único botão que a receita abre.
+     A razão: isto é uma frase de uma ou duas linhas por cima de uma cena 3D
+     que se está a compor, não um painel que abre a pedido — desfocar é
+     compor mais uma camada contra o que está por baixo, e aqui o que está
+     por baixo é a coisa mais cara da página.
+
+     ── E não custa um nome ────────────────────────────────────────────────
+     A dica continua com `pointer-events: none`, por isso o motor do globo
+     não a vê — e não precisa de a ver: quem a protege é a caixa da faixa,
+     que é `fixed` e vai da borda do gatilho até ao fundo. É o gatilho que a
+     sondagem apanha, e é a caixa do `.mapa-rodape` inteiro que ela mede.
+     Medido antes e depois: zero nomes por baixo dela. */
   .mapa-dica {
     max-width: 46ch;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    --vidro-desfoque: 20px;
+    /* ── E o véu certo com a tinta errada continua a não dar ─────────────
+       O véu sozinho não chegou: medido com ele posto, a dica continuava nos
+       2,79:1. A causa não é o chão, é a tinta. O `.meta` escreve em
+       `--foreground-muted`, que é `#666` — e `#666` sobre **preto puro** dá
+       3,66:1. É o melhor caso que essa cor pode dar em todo o site: não há
+       fundo nenhum, por mais escuro, que a leve aos 4,5:1. Nenhum véu podia
+       ter resolvido isto.
+
+       A receita do `.vidro` diz de si própria qual é a tinta para que foi
+       medida: «68% é o degrau mais fino que ainda passa o mínimo de 4,5:1
+       para o **texto secundário**». Usava-se o véu certo com a tinta errada.
+       Fica `--foreground-secondary`, que é a tinta com que a conta dos 68%
+       foi feita.
+
+       O `.meta` continua a dar o tamanho e a entrelinha, que estão certos —
+       o que muda é só a cor, e muda porque esta frase não é uma legenda ao
+       lado de um dado: é a única instrução da página, por cima de uma
+       fotografia do planeta. */
+    color: var(--foreground-secondary);
+    /* A sombra do `.vidro` diz «isto flutua a vinte e quatro pixéis do
+       conteúdo», e por baixo de uma pastilha de trinta e quatro pixéis de
+       altura isso lê-se como um borrão — é a razão por que o `.vidro-leve`
+       existe, e é dele que vem esta. O véu fica nos 68% do `.vidro`, que é
+       o degrau medido para a **segunda linha** de um aviso, que é o que
+       isto é. */
+    box-shadow:
+      0 1px 0 0 var(--elevate-2) inset,
+      0 2px 8px -2px rgba(0, 0, 0, 0.5);
     text-align: center;
     /* Texto que não se carrega não pode roubar o arrasto ao globo. A caixa
        da faixa já o cobre, por isso o motor conta com ele na mesma. */
@@ -3969,7 +4028,17 @@ body {
      do mapa a flutuar por cima dele. `visibility` e não `opacity`: o que sai
      do ecrã tem de sair também da ordem de tabulação. */
   .mapa-barra[data-fora],
-  .mapa-rodape[data-fora] {
+  .mapa-rodape[data-fora],
+  /* ── …e por baixo de quem chegou depois também não ────────────────────
+     Duas razões, dois nomes, uma aparência: `data-fora` é o mapa a sair de
+     baixo da peça, `data-tapada` é outra coisa fixa a assentar por cima
+     dela — hoje o aviso de cookies, que na primeira visita tapa o gatilho
+     das regiões a **cem por cento** nas duas vistas e lhe come o clique.
+     Quem o mede é o `MapaClient`, a perguntar ao browser quem está no
+     caminho; a razão por extenso está lá. Aqui só se pinta o resultado, e
+     é o mesmo em ambos os casos: o que não se pode usar não se escreve. */
+  .mapa-barra[data-tapada],
+  .mapa-rodape[data-tapada] {
     visibility: hidden;
     opacity: 0;
     transition:
