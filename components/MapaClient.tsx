@@ -151,13 +151,41 @@ const LinhaCoudelaria = memo(function LinhaCoudelaria({
   );
 });
 
+/**
+ * Um distintivo que está em quase todos não distingue nada — e por isso não
+ * se escreve.
+ *
+ * Isto já tinha sido meio corrigido: o «Destaque» era `.selo-destaque`, o
+ * dourado, e passou a `.selo-forte`, branco, porque vinte das vinte e nove
+ * coudelarias o traziam e sessenta e nove por cento de uma grelha vestida com
+ * o acento é o acento a deixar de assinalar seja o que for.
+ *
+ * **Mudar a cor não chegou, e não podia chegar.** O problema nunca foi o
+ * dourado: era um rótulo que quase toda a gente tem. Um branco em vinte e nove
+ * cartões de vinte e nove continua a ocupar o canto superior esquerdo de cada
+ * fotografia — o sítio de mais valor do cartão — para dizer uma coisa que não
+ * separa nenhum deles dos outros. O dono do produto viu-o em produção e disse
+ * exactamente isso: «está tudo em destaque e não pode estar».
+ *
+ * A regra passa a ser sobre o **conjunto que está no ecrã**, e não sobre a
+ * linha: o distintivo escreve-se enquanto for de uma minoria — **até um quarto
+ * do que se vê** — e cala-se acima disso. Um quarto e não metade porque o que
+ * está em metade de uma grelha não é um destaque, é um estado por omissão com
+ * outro nome.
+ *
+ * É deliberadamente uma decisão de apresentação e não de dados: a coluna
+ * `destaque` continua a valer o que vale, a ordenação continua a usá-la, e no
+ * dia em que ela voltar a marcar poucos o distintivo reaparece sozinho. Também
+ * se recalcula com o filtro — filtrar por uma região onde só uma é destaque faz
+ * o distintivo voltar, e está certo que volte: ali ele distingue.
+ */
+function destaqueDistingue(coudelarias: readonly { destaque: boolean }[]): boolean {
+  const comDestaque = coudelarias.reduce((n, c) => n + (c.destaque ? 1 : 0), 0);
+  return comDestaque > 0 && comDestaque * 4 <= coudelarias.length;
+}
+
 /* ── Cartão da grelha ────────────────────────────────────────────────────
    Duas mudanças, e as duas por regras que já existiam.
-
-   O distintivo era `.selo-destaque`, o dourado. Vinte das vinte e nove
-   coudelarias são «destaque»: sessenta e nove por cento da grelha vestida com
-   o acento é o acento a deixar de assinalar seja o que for. Passa a
-   `.selo-forte`, branco, como manda o sistema.
 
    E a faixa da fotografia só existe quando há fotografia mesmo — a de disco
    ou a da base, nunca uma emprestada. A coudelaria que não tem nenhuma não
@@ -169,11 +197,14 @@ const CartaoGrelha = memo(function CartaoGrelha({
   capa,
   featuredLabel,
   horsesLabel,
+  mostrarDestaque,
 }: {
   coudelaria: Coudelaria;
   capa: string | null;
   featuredLabel: string;
   horsesLabel: string;
+  /** Ver `destaqueDistingue`: quem decide é o conjunto, não a linha. */
+  mostrarDestaque: boolean;
 }) {
   return (
     <LocalizedLink
@@ -188,7 +219,7 @@ const CartaoGrelha = memo(function CartaoGrelha({
             className="transition-transform duration-500 group-hover:scale-105"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
           />
-          {coudelaria.destaque && (
+          {mostrarDestaque && coudelaria.destaque && (
             <div className="selo selo-forte absolute left-2 top-2 rounded-full">
               {featuredLabel}
             </div>
@@ -206,7 +237,7 @@ const CartaoGrelha = memo(function CartaoGrelha({
               <MapPin size={10} aria-hidden="true" />
               {coudelaria.regiao}
             </span>
-            {coudelaria.destaque && (
+            {mostrarDestaque && coudelaria.destaque && (
               <span className="selo selo-forte rounded-full">{featuredLabel}</span>
             )}
           </div>
@@ -470,6 +501,8 @@ export default function MapaClient({
     () => filtrar(coudelarias, { procura, regiao }),
     [coudelarias, procura, regiao]
   );
+  /* Recalcula-se com o filtro de propósito — ver `destaqueDistingue`. */
+  const destaqueVale = useMemo(() => destaqueDistingue(visiveis), [visiveis]);
   const regioes = useMemo(() => contarPorRegiao(coudelarias, porTexto), [coudelarias, porTexto]);
   /* A régua das barras de quota. `contarPorRegiao` devolve da maior para a
      menor, por isso a maior é a primeira — e é ela que vale 100%. */
@@ -1261,6 +1294,7 @@ export default function MapaClient({
                     capa={capaDoCartao(c.foto_capa, c.slug, capas)}
                     featuredLabel={t.mapa.featured}
                     horsesLabel={t.mapa.horses}
+                    mostrarDestaque={destaqueVale}
                   />
                 </div>
               ))}

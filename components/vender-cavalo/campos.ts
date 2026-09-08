@@ -88,6 +88,25 @@ export interface CampoDoFormulario {
    */
   exigidoQuando?: (f: FormData) => boolean;
   /**
+   * Este campo desenha-se, mas não trava ninguém.
+   *
+   * É o único mecanismo deste ficheiro que **desfaz** a regra de que tudo é
+   * obrigatório, e por isso não se usa sem uma decisão escrita do dono do
+   * produto. A que existe é esta: a terceira geração — os quatro avós, nome e
+   * registo — deixou de ser exigida, porque **um Livro Azul nem sempre a
+   * imprime**. Para quem não a tem, obrigatório queria dizer não publicar ou
+   * inventar, e nenhuma das duas recolhe rigor.
+   *
+   * É diferente do `exigidoQuando`: esse diz «só é exigido nestas condições» e
+   * existe para não trancar alguém fora de um campo que o formulário nem
+   * desenha. Este diz «nunca é exigido», e o campo está sempre no ecrã.
+   *
+   * Um campo assim tem de o dizer no rótulo. Num formulário em que oitenta e
+   * sete perguntas levam asterisco, silêncio não se lê como «podes saltar» —
+   * lê-se como um asterisco esquecido.
+   */
+  opcional?: true;
+  /**
    * Uma frase própria, quando a genérica não chega — é o caso dos campos que
    * já tinham prosa traduzida e revista antes deste trabalho. É uma chave de
    * `MensagensValidacao`.
@@ -348,6 +367,7 @@ export const CAMPOS: readonly CampoDoFormulario[] = [
     passo: 2,
     tipo: "texto",
     seccao: "avos",
+    opcional: true,
     nome: ["Nome do avô paterno", "Paternal grandsire's name", "Nombre del abuelo paterno"],
   },
   {
@@ -356,6 +376,7 @@ export const CAMPOS: readonly CampoDoFormulario[] = [
     passo: 2,
     tipo: "texto",
     seccao: "avos",
+    opcional: true,
     nome: [
       "Registo do avô paterno",
       "Paternal grandsire's registration",
@@ -368,6 +389,7 @@ export const CAMPOS: readonly CampoDoFormulario[] = [
     passo: 2,
     tipo: "texto",
     seccao: "avos",
+    opcional: true,
     nome: ["Nome da avó paterna", "Paternal granddam's name", "Nombre de la abuela paterna"],
   },
   {
@@ -376,6 +398,7 @@ export const CAMPOS: readonly CampoDoFormulario[] = [
     passo: 2,
     tipo: "texto",
     seccao: "avos",
+    opcional: true,
     nome: [
       "Registo da avó paterna",
       "Paternal granddam's registration",
@@ -388,6 +411,7 @@ export const CAMPOS: readonly CampoDoFormulario[] = [
     passo: 2,
     tipo: "texto",
     seccao: "avos",
+    opcional: true,
     nome: ["Nome do avô materno", "Maternal grandsire's name", "Nombre del abuelo materno"],
   },
   {
@@ -396,6 +420,7 @@ export const CAMPOS: readonly CampoDoFormulario[] = [
     passo: 2,
     tipo: "texto",
     seccao: "avos",
+    opcional: true,
     nome: [
       "Registo do avô materno",
       "Maternal grandsire's registration",
@@ -408,6 +433,7 @@ export const CAMPOS: readonly CampoDoFormulario[] = [
     passo: 2,
     tipo: "texto",
     seccao: "avos",
+    opcional: true,
     nome: ["Nome da avó materna", "Maternal granddam's name", "Nombre de la abuela materna"],
   },
   {
@@ -416,6 +442,7 @@ export const CAMPOS: readonly CampoDoFormulario[] = [
     passo: 2,
     tipo: "texto",
     seccao: "avos",
+    opcional: true,
     nome: [
       "Registo da avó materna",
       "Maternal granddam's registration",
@@ -1009,6 +1036,7 @@ export function estaPreenchido(campo: CampoDoFormulario, formData: FormData): bo
 
 /** Este campo é exigido no estado actual do formulário? */
 export function eExigido(campo: CampoDoFormulario, formData: FormData): boolean {
+  if (campo.opcional) return false;
   return campo.exigidoQuando ? campo.exigidoQuando(formData) : true;
 }
 

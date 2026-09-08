@@ -195,9 +195,9 @@ export default function StepLinhagem(props: StepProps) {
             "Abuelos, linaje y criadero de origen"
           )}
           nota={tr(
-            "A terceira geração está na mesma página do Livro Azul.",
-            "The third generation is on the same page of the Blue Book.",
-            "La tercera generación está en la misma página del Libro Azul."
+            "A terceira geração está na mesma página do Livro Azul — e é a única parte do anúncio que se pode deixar em branco, porque nem todos os Livros Azuis a trazem.",
+            "The third generation is on the same page of the Blue Book — and it is the only part of the listing you may leave blank, because not every Blue Book carries it.",
+            "La tercera generación está en la misma página del Libro Azul — y es la única parte del anuncio que se puede dejar en blanco, porque no todos los Libros Azules la traen."
           )}
           {...conta("avos")}
         >
@@ -210,7 +210,10 @@ export default function StepLinhagem(props: StepProps) {
                     htmlFor={avo.nome}
                     className="block text-sm text-[var(--foreground-secondary)] mb-1"
                   >
-                    {tr("Nome", "Name", "Nombre")} *
+                    {tr("Nome", "Name", "Nombre")}{" "}
+                    <span className="vc-opcional">
+                      {tr("(opcional)", "(optional)", "(opcional)")}
+                    </span>
                   </label>
                   <input
                     id={avo.nome}
@@ -227,7 +230,10 @@ export default function StepLinhagem(props: StepProps) {
                     htmlFor={avo.registo}
                     className="block text-sm text-[var(--foreground-secondary)] mb-1"
                   >
-                    {tr("Nº de Registo", "Registration No.", "Nº de Registro")} *
+                    {tr("Nº de Registo", "Registration No.", "Nº de Registro")}{" "}
+                    <span className="vc-opcional">
+                      {tr("(opcional)", "(optional)", "(opcional)")}
+                    </span>
                   </label>
                   <input
                     id={avo.registo}

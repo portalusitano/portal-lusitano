@@ -194,3 +194,31 @@ describe("a conta de uma secção", () => {
     }
   });
 });
+
+/**
+ * O `opcional` é o único mecanismo que desfaz a regra de que tudo é
+ * obrigatório, e por isso quem o usa fica escrito aqui. Se alguém acrescentar
+ * um nono campo opcional sem uma decisão, este teste reprova — que é o ponto.
+ */
+describe("os campos que se podem deixar em branco", () => {
+  it("são a terceira geração, e mais nenhum", () => {
+    const opcionais = CAMPOS.filter((c) => c.opcional).map((c) => c.id);
+    expect(opcionais).toEqual([
+      "avo_paterno_nome",
+      "avo_paterno_registo",
+      "avo_paterno_mae_nome",
+      "avo_paterno_mae_registo",
+      "avo_materno_nome",
+      "avo_materno_registo",
+      "avo_materno_mae_nome",
+      "avo_materno_mae_registo",
+    ]);
+  });
+
+  it("continuam desenhados — opcional não é escondido", () => {
+    for (const campo of CAMPOS.filter((c) => c.opcional)) {
+      expect(campo.passo, campo.id).toBe(2);
+      expect(campo.seccao, campo.id).toBe("avos");
+    }
+  });
+});

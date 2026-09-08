@@ -74,11 +74,27 @@ const completo = (extra: Partial<FormData> = {}): EstadoFormulario => ({
   termosAceites: true,
 });
 
-describe("nada é opcional", () => {
+describe("o que é obrigatório, e o que deixou de ser", () => {
   it("um formulário vazio não deixa passar um único passo", () => {
     for (const passo of [1, 2, 3, 4]) {
       expect(validarPasso(passo, estado({}), m).length, `passo ${passo}`).toBeGreaterThan(0);
     }
+  });
+
+  it("os oito da terceira geração deixam passar em branco, e são os únicos", () => {
+    /* A decisão é do dono do produto: um Livro Azul nem sempre imprime os
+       avós, e para quem não os tem «obrigatório» queria dizer não publicar ou
+       inventar. Este teste é o par do de cima — o que aquele exercita por
+       exclusão, este afirma por inclusão, para que apagar um `opcional` não
+       passe por baixo dos dois. */
+    for (const campo of CAMPOS.filter((c) => c.opcional)) {
+      const base = completo({ [campo.chave]: "" } as Partial<FormData>);
+      expect(campos(validarPasso(campo.passo, base, m)), campo.id).toEqual([]);
+    }
+    const todosEmBranco = completo(
+      Object.fromEntries(CAMPOS.filter((c) => c.opcional).map((c) => [c.chave, ""]))
+    );
+    expect(validarPasso(2, todosEmBranco, m)).toEqual([]);
   });
 
   it("com tudo respondido, os quatro passos passam", () => {
@@ -89,9 +105,10 @@ describe("nada é opcional", () => {
 
   it("tirar qualquer campo obrigatório trava o passo dele, e só o dele", () => {
     // É este o teste que substitui os vinte `if` que a validação tinha: em vez
-    // de confiar numa lista escrita à mão, exercita os noventa e oito campos
-    // do catálogo, um de cada vez.
-    for (const campo of CAMPOS) {
+    // de confiar numa lista escrita à mão, exercita os campos do catálogo, um
+    // de cada vez. Os oito marcados `opcional` ficam de fora **por definição**
+    // — o teste a seguir é que trata deles, e afirma o contrário.
+    for (const campo of CAMPOS.filter((c) => !c.opcional)) {
       const vazio = Array.isArray(initialFormData[campo.chave]) ? [] : "";
       const base = completo({ [campo.chave]: vazio } as Partial<FormData>);
       // Tirar um campo pode tirar a condição de outro do ecrã — tirar
@@ -247,7 +264,7 @@ describe("as regras que não são «está preenchido?»", () => {
   });
 
   it("espaços em branco não contam como resposta em nenhum campo de texto", () => {
-    for (const campo of CAMPOS.filter((c) => c.tipo === "texto")) {
+    for (const campo of CAMPOS.filter((c) => c.tipo === "texto" && !c.opcional)) {
       const base = completo({ [campo.chave]: "   " } as Partial<FormData>);
       expect(campos(validarPasso(campo.passo, base, m)), campo.id).toContain(campo.id);
     }
@@ -328,14 +345,17 @@ describe("as contas do progresso", () => {
     // 27 + 47 + 20 + 1. Um particular, com uma égua, sem trial. A medição está
     // no relatório; este teste é o que impede que os portões desapareçam sem
     // que alguém dê por isso.
-    // Antes deste trabalho: [27, 47, 20, 1] — noventa e cinco portões, com o
-    // passo 1 a pedir vinte e sete respostas das quais seis eram sobre a
-    // factura. Agora: [24, 46, 20, 5]. **A soma é a mesma, noventa e cinco.**
-    // Nada foi tirado nem tornado opcional; cinco campos da factura passaram
-    // para o passo do pagamento e o Livro Azul passou para o passo 1, para
-    // vir antes das perguntas que responde.
-    expect(faltamPorPasso(estado({}), m)).toEqual([24, 46, 20, 5]);
-    expect(faltamPorPasso(estado({}), m).reduce((a, b) => a + b, 0)).toBe(95);
+    // Antes: [27, 47, 20, 1] — noventa e cinco portões, com o passo 1 a pedir
+    // vinte e sete respostas das quais seis eram sobre a factura. Depois de a
+    // ordem mudar: [24, 46, 20, 5], **com a mesma soma** — mover não é tirar.
+    //
+    // Agora são [24, 38, 20, 5] e a soma é **oitenta e sete**, e a diferença
+    // de oito é uma decisão do dono do produto e não um efeito lateral: a
+    // terceira geração — quatro avós, nome e registo — deixou de ser exigida,
+    // porque um Livro Azul nem sempre a imprime. Os oito campos continuam
+    // desenhados e dizem «(opcional)» no rótulo.
+    expect(faltamPorPasso(estado({}), m)).toEqual([24, 38, 20, 5]);
+    expect(faltamPorPasso(estado({}), m).reduce((a, b) => a + b, 0)).toBe(87);
     expect(quantosFaltam(1, estado({}), m)).toBe(24);
   });
 });

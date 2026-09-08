@@ -7003,3 +7003,27 @@ body:has(.fc-ficha) {
     color: var(--foreground-secondary);
   }
 }
+
+/* ===========================================================================
+ * `.vc-opcional` — o contrário do asterisco
+ *
+ * Num formulário em que oitenta e sete perguntas levam asterisco, um rótulo
+ * calado não se lê como «podes saltar»: lê-se como um asterisco esquecido. Os
+ * oito campos da terceira geração são os únicos que se podem deixar em branco
+ * — decisão do dono do produto, porque um Livro Azul nem sempre imprime os
+ * avós — e por isso dizem-no por escrito, ao lado do nome.
+ *
+ * Fica um degrau abaixo do rótulo e não dois: é `--foreground-muted` num
+ * rótulo que já é `--foreground-secondary`, o que dá 3,45:1 — abaixo do mínimo
+ * de texto corrido, e de propósito, porque isto **não** é texto corrido: é uma
+ * marca de estado ao lado de um nome que se lê a 7,89:1, e a informação não se
+ * perde se ela não for lida. O que não se pode fazer é o contrário — pôr o
+ * nome do campo a 3,45:1.
+ * ========================================================================== */
+@layer components {
+  .vc-opcional {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--foreground-muted);
+  }
+}
