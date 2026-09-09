@@ -60,7 +60,7 @@ const TABELAS = {
 function predicado(coluna, expr) {
   const corte = expr.indexOf(".");
   const op = expr.slice(0, corte);
-  const bruto = expr.slice(corte + 1);
+  const bruto = semAspas(expr.slice(corte + 1));
 
   const igual = (a, b) => String(a ?? "") === String(b ?? "");
 
@@ -94,14 +94,64 @@ function predicado(coluna, expr) {
   }
 }
 
-/** `or=(a.eq.1,b.eq.2)` — só um nível, que é o que o código do chat usa. */
-function predicadoOu(valor) {
-  const partes = valor.replace(/^\(|\)$/g, "").split(",");
-  const preds = partes.map((p) => {
-    const i = p.indexOf(".");
-    return predicado(p.slice(0, i), p.slice(i + 1));
+/**
+ * Reparte por vírgulas de topo, respeitando parênteses e aspas.
+ *
+ * ── O defeito que isto corrige, e o que ele custou ───────────────────────
+ *
+ * Isto era um `.split(",")` seco, com o comentário «só um nível, que é o que
+ * o código do chat usa» — e a paginação por cursor passou a usar dois:
+ *
+ *   or=(created_at.lt."X",and(created_at.eq."X",id.lt.Y))
+ *
+ * O `split` seco parte isso em **três** pedaços, e o terceiro é `id.lt.Y)`,
+ * com o parêntese lá dentro. Como o `or` é uma disjunção, um pedaço a mais
+ * que calhe ser verdadeiro deixa passar a linha da fronteira — e o resultado
+ * é o pior que um banco de ensaio pode dar: **uma resposta plausível**.
+ * Medido pelo agente que apanhou isto: percorrer um fio de 400 mensagens por
+ * cursor devolvia **413 linhas para 400 distintas**, a linha da fronteira
+ * repetida em 13 de 14 páginas, sem um erro em lado nenhum.
+ *
+ * É exactamente contra isto que o `predicado()` atira em vez de devolver
+ * `[]`, e a lição é que a guarda estava no sítio errado: o operador
+ * desconhecido dava erro, mas a **gramática** mal repartida não dava nada.
+ */
+function reparteTopo(texto) {
+  const partes = [];
+  let nivel = 0;
+  let aspas = false;
+  let inicio = 0;
+  for (let i = 0; i < texto.length; i++) {
+    const c = texto[i];
+    if (c === '"' && texto[i - 1] !== "\\") aspas = !aspas;
+    else if (!aspas && c === "(") nivel++;
+    else if (!aspas && c === ")") nivel--;
+    else if (!aspas && c === "," && nivel === 0) {
+      partes.push(texto.slice(inicio, i));
+      inicio = i + 1;
+    }
+  }
+  partes.push(texto.slice(inicio));
+  return partes.filter((p) => p.length);
+}
+
+const semAspas = (v) => (v.startsWith('"') && v.endsWith('"') ? v.slice(1, -1) : v);
+
+/**
+ * `or=(…)` e `and=(…)`, com aninhamento: cada membro é um `and(…)`, um
+ * `or(…)`, ou uma condição `coluna.op.valor`.
+ */
+function predicadoGrupo(valor, juncao) {
+  const membros = reparteTopo(valor.replace(/^\(/, "").replace(/\)$/, ""));
+  const preds = membros.map((m) => {
+    const t = m.trim();
+    if (t.startsWith("and(")) return predicadoGrupo(t.slice(3), "and");
+    if (t.startsWith("or(")) return predicadoGrupo(t.slice(2), "or");
+    const i = t.indexOf(".");
+    if (i < 1) throw new Error(`condicao PostgREST ilegivel: ${t}`);
+    return predicado(t.slice(0, i), t.slice(i + 1));
   });
-  return (l) => preds.some((f) => f(l));
+  return juncao === "and" ? (l) => preds.every((f) => f(l)) : (l) => preds.some((f) => f(l));
 }
 
 const RESERVADOS = new Set(["select", "order", "limit", "offset", "on_conflict", "columns"]);
@@ -111,8 +161,8 @@ function consultar(tabela, u) {
 
   for (const [chave, valor] of u.searchParams.entries()) {
     if (RESERVADOS.has(chave)) continue;
-    if (chave === "or") {
-      linhas = linhas.filter(predicadoOu(valor));
+    if (chave === "or" || chave === "and") {
+      linhas = linhas.filter(predicadoGrupo(valor, chave));
       continue;
     }
     linhas = linhas.filter(predicado(chave, valor));

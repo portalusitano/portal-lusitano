@@ -6,7 +6,7 @@ import LocalizedLink from "@/components/LocalizedLink";
 import { ArrowUpRight, Globe, Plus } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
-import { eRotaDeEntrada } from "@/lib/rotas-de-entrada";
+import { eRotaSemRodape } from "@/lib/rotas-sem-rodape";
 import { CONTACT_EMAIL, SOCIAL_LINKS } from "@/lib/constants";
 import { abrirConsentimento } from "@/lib/consentimento";
 
@@ -265,8 +265,9 @@ export default memo(function Footer() {
     [t.footer.sell_horse, t.footer.sell_horse_subtitle, t.footer.map_title, t.footer.map_subtitle]
   );
 
-  // Ver a nota no Navbar: nas páginas de entrada o ecrã é só o painel.
-  if (eRotaDeEntrada(pathname)) return null;
+  // Nas páginas de entrada o ecrã é só o painel, e no `/mapa` é só o mapa.
+  // A razão de cada uma está no `lib/rotas-sem-rodape`.
+  if (eRotaSemRodape(pathname)) return null;
 
   return (
     <footer className="bg-[var(--background)] relative overflow-hidden">

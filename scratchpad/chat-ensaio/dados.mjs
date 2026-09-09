@@ -90,7 +90,7 @@ const CORPOS = {
 
 export const CAVALOS = [
   {
-    id: "aaaaaaa1-0000-4000-8000-000000000001",
+    id: "0aa00001-0000-4000-8000-000000000001",
     nome: "Zambujeiro do Vale",
     foto_principal: "/logo.webp",
     preco: 18500,
@@ -99,7 +99,7 @@ export const CAVALOS = [
     status: "active",
   },
   {
-    id: "aaaaaaa1-0000-4000-8000-000000000002",
+    id: "0aa00001-0000-4000-8000-000000000002",
     nome: "Índia",
     foto_principal: null, // sem fotografia: não se inventa um rectângulo cinzento
     preco: null, // sem preço
@@ -108,7 +108,7 @@ export const CAVALOS = [
     status: "active",
   },
   {
-    id: "aaaaaaa1-0000-4000-8000-000000000003",
+    id: "0aa00001-0000-4000-8000-000000000003",
     nome: "Vencedor da Broa de Cima e do Casal do Monte Alentejano",
     foto_principal: "/logo.webp",
     preco: 120000,
@@ -117,7 +117,7 @@ export const CAVALOS = [
     status: "sold",
   },
   {
-    id: "aaaaaaa1-0000-4000-8000-000000000004",
+    id: "0aa00001-0000-4000-8000-000000000004",
     nome: "Faísca",
     foto_principal: "/logo.webp",
     preco: 7200,
@@ -187,7 +187,7 @@ const GUIÃO = [
     // A conversa órfã: o anúncio foi apagado e a rota escreve «Anúncio removido».
     papel: "comprador",
     outro: OUTROS[2],
-    cavalo: { id: "aaaaaaa1-0000-4000-8000-00000000dead" },
+    cavalo: { id: "0aa0dead-0000-4000-8000-000000000000" },
     compradorNome: EU.nome,
     mensagens: [{ de: "eu", corpo: CORPOS.comEndereco, hMin: 90 * 24 * 60, lida: true }],
   },
@@ -212,7 +212,7 @@ export function construir({ vazio = false } = {}) {
   const mensagens = [];
 
   GUIÃO.forEach((g, idx) => {
-    const conversaId = `ccccccc1-0000-4000-8000-${String(idx + 1).padStart(12, "0")}`;
+    const conversaId = `0cc0${String(idx + 1).padStart(4, "0")}-0000-4000-8000-${String(idx + 1).padStart(12, "0")}`;
     const lista = g.n ? fioComprido(g.n, g.outro.id) : g.mensagens;
 
     const ordenadas = [...lista].sort((a, b) => b.hMin - a.hMin);
@@ -222,7 +222,13 @@ export function construir({ vazio = false } = {}) {
       const meu = m.de === "eu";
       if (!meu && !m.lida) porLerAqui += 1;
       mensagens.push({
-        id: `mmmmmmm1-${String(idx).padStart(4, "0")}-4000-8000-${String(j).padStart(12, "0")}`,
+        // `destinatario_id`, `entregue_at`: colunas que a migração
+        // `20260909000001_chat_tempo_real` acrescenta, escritas aqui
+        // exactamente como o gatilho e o backfill dela as escrevem —
+        // senão o caminho novo mede-se contra o esquema velho.
+        destinatario_id: meu ? g.outro.id : EU.id,
+        entregue_at: meu || m.lida ? quando(m.hMin * MIN - 30_000) : null,
+        id: `0be0${String(idx).padStart(4, "0")}-${String(j).padStart(4, "0")}-4000-8000-${String(j).padStart(12, "0")}`,
         conversa_id: conversaId,
         remetente_id: meu ? EU.id : g.outro.id,
         corpo: m.corpo,
@@ -239,6 +245,7 @@ export function construir({ vazio = false } = {}) {
       vendedor_id: g.papel === "comprador" ? g.outro.id : EU.id,
       comprador_nome: g.compradorNome,
       ultima_mensagem_at: quando(ultima.hMin * MIN),
+      ultima_mensagem_previa: ultima.corpo.slice(0, 200),
       arquivada_comprador: false,
       arquivada_vendedor: false,
       created_at: quando(ordenadas[0].hMin * MIN),
@@ -251,7 +258,7 @@ export function construir({ vazio = false } = {}) {
   for (let i = 0; i < 25; i++) {
     const outro = OUTROS[i % OUTROS.length];
     const cavalo = CAVALOS[i % CAVALOS.length];
-    const conversaId = `ddddddd1-0000-4000-8000-${String(i).padStart(12, "0")}`;
+    const conversaId = `0dd0${String(i).padStart(4, "0")}-0000-4000-8000-${String(i).padStart(12, "0")}`;
     const hMin = (i + 1) * 6 * 60;
     conversas.push({
       id: conversaId,
@@ -260,13 +267,16 @@ export function construir({ vazio = false } = {}) {
       vendedor_id: i % 2 ? outro.id : EU.id,
       comprador_nome: i % 2 ? EU.nome : outro.nome,
       ultima_mensagem_at: quando(hMin * MIN),
+      ultima_mensagem_previa: `Olá, ainda tem o ${cavalo.nome}? (fio ${i + 1})`.slice(0, 200),
       arquivada_comprador: false,
       arquivada_vendedor: false,
       created_at: quando(hMin * MIN + DIA),
       _porLer: i === 3 ? 1 : 0,
     });
     mensagens.push({
-      id: `eeeeeee1-0000-4000-8000-${String(i).padStart(12, "0")}`,
+      destinatario_id: i === 3 ? EU.id : i % 2 ? outro.id : EU.id,
+      entregue_at: i === 3 ? null : quando(hMin * MIN - 30_000),
+      id: `0ee0${String(i).padStart(4, "0")}-0000-4000-8000-${String(i).padStart(12, "0")}`,
       conversa_id: conversaId,
       remetente_id: i === 3 ? outro.id : EU.id,
       corpo: `Olá, ainda tem o ${cavalo.nome}? (fio ${i + 1})`,
