@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { MessagesSquare, Loader2, Check, X } from "lucide-react";
+import LocalizedLink from "@/components/LocalizedLink";
 import { useToast } from "@/context/ToastContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { MAX_MENSAGEM } from "@/lib/marketplace-chat";
 
 interface Props {
@@ -11,17 +13,23 @@ interface Props {
 }
 
 /**
- * In-portal contact for a listing.
+ * O primeiro contacto, a partir do anúncio.
  *
- * Rendered only when the listing is linked to a seller account, so the caller
- * decides whether portal messaging is possible at all; when it is not, the page
- * keeps showing the published phone and email instead.
+ * Só é desenhado quando o anúncio está ligado a uma conta de vendedor — quem
+ * decide isso é a página, e sem conta continuam a aparecer o telefone e o
+ * email publicados.
+ *
+ * **Estava escrito em português dentro do JSX**, numa página que tem selector
+ * de língua: a frase de abertura da conversa — a que a pessoa vai mesmo enviar
+ * — saía em português a quem estava a ler em inglês ou em espanhol. Era a pior
+ * das nove, porque é a única que sai do site e chega a outra pessoa.
  */
 export default function ContactarVendedor({ cavaloId, cavaloNome }: Props) {
   const { showToast } = useToast();
+  const { t } = useLanguage();
   const [aberto, setAberto] = useState(false);
-  const [mensagem, setMensagem] = useState(
-    `Bom dia, tenho interesse no cavalo "${cavaloNome}". Ainda está disponível?`
+  const [mensagem, setMensagem] = useState(() =>
+    t.chat.contactar_modelo.replace("{nome}", cavaloNome)
   );
   const [aEnviar, setAEnviar] = useState(false);
   const [enviada, setEnviada] = useState(false);
@@ -29,7 +37,7 @@ export default function ContactarVendedor({ cavaloId, cavaloNome }: Props) {
   const enviar = async () => {
     const corpo = mensagem.trim();
     if (!corpo) {
-      showToast("error", "Escreva uma mensagem antes de enviar");
+      showToast("error", t.chat.contactar_vazia);
       return;
     }
 
@@ -42,18 +50,18 @@ export default function ContactarVendedor({ cavaloId, cavaloNome }: Props) {
       });
 
       if (res.status === 401) {
-        // Come back to this listing after signing in.
+        // Voltar a este anúncio depois de entrar.
         window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
         return;
       }
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao enviar mensagem");
+      if (!res.ok) throw new Error(data.error || t.chat.erro_enviar);
 
       setEnviada(true);
-      showToast("success", "Mensagem enviada ao vendedor");
+      showToast("success", t.chat.contactar_sucesso);
     } catch (e) {
-      showToast("error", e instanceof Error ? e.message : "Erro ao enviar mensagem");
+      showToast("error", e instanceof Error ? e.message : t.chat.erro_enviar);
     } finally {
       setAEnviar(false);
     }
@@ -61,17 +69,20 @@ export default function ContactarVendedor({ cavaloId, cavaloNome }: Props) {
 
   if (enviada) {
     return (
-      <div className="border border-[var(--border-soft)] bg-[var(--elevate-1)] px-4 py-4 text-center">
+      <div className="cartao px-4 py-4 text-center">
         <Check
           size={18}
           className="mx-auto mb-2"
           style={{ color: "var(--ok)" }}
           aria-hidden="true"
         />
-        <p className="text-sm text-[var(--foreground)]">Mensagem enviada</p>
-        <a href="/minha-conta/mensagens" className="inline-block mt-3 rotulo-forte hover:underline">
-          Ver as minhas mensagens →
-        </a>
+        <p className="text-sm text-[var(--foreground-strong)]">{t.chat.contactar_enviada}</p>
+        <LocalizedLink
+          href="/minha-conta/mensagens"
+          className="mt-3 inline-block text-xs text-[var(--foreground-secondary)] underline underline-offset-2 transition-colors hover:text-[var(--foreground-strong)]"
+        >
+          {t.chat.contactar_ver} →
+        </LocalizedLink>
       </div>
     );
   }
@@ -83,30 +94,37 @@ export default function ContactarVendedor({ cavaloId, cavaloNome }: Props) {
         className="btn btn-primario w-full gap-3 rounded-full py-4"
       >
         <MessagesSquare size={16} aria-hidden="true" />
-        Mensagem no portal
+        {t.chat.contactar_abrir}
       </button>
     );
   }
 
   return (
-    <div className="border border-[var(--border)] p-4 space-y-3">
+    <div className="cartao space-y-3 p-4">
       <div className="flex items-center justify-between">
-        <span className="rotulo">Mensagem ao vendedor</span>
+        <span className="rotulo">{t.chat.contactar_titulo}</span>
         <button
           onClick={() => setAberto(false)}
-          aria-label="Fechar"
-          className="text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
+          aria-label={t.chat.contactar_fechar}
+          className="text-[var(--foreground-secondary)] transition-colors hover:text-[var(--foreground-strong)]"
         >
-          <X size={14} />
+          <X size={14} aria-hidden="true" />
         </button>
       </div>
 
+      <label htmlFor="contactar-vendedor" className="sr-only">
+        {t.chat.escrever_rotulo}
+      </label>
       <textarea
+        id="contactar-vendedor"
         rows={4}
         value={mensagem}
         maxLength={MAX_MENSAGEM}
         onChange={(e) => setMensagem(e.target.value)}
-        className="w-full bg-transparent border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--border-hover)] focus:outline-none resize-y"
+        /* A mesma caixa do fio: quem escreve aqui a primeira mensagem escreve
+           as seguintes lá dentro, e duas caixas diferentes para o mesmo gesto
+           leem-se como dois sítios. */
+        className="chat-redaccao__caixa block w-full"
       />
 
       <button
@@ -114,12 +132,18 @@ export default function ContactarVendedor({ cavaloId, cavaloNome }: Props) {
         disabled={aEnviar}
         className="btn btn-primario w-full gap-2 rounded-full py-3"
       >
-        {aEnviar ? <Loader2 size={14} className="animate-spin" /> : <MessagesSquare size={14} />}
-        Enviar
+        {aEnviar ? (
+          <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+        ) : (
+          <MessagesSquare size={14} aria-hidden="true" />
+        )}
+        {t.chat.enviar}
       </button>
 
-      <p className="rotulo text-center">
-        A conversa fica no portal · O seu contacto não é partilhado
+      {/* A promessa da página inicial, dita onde ela se cumpre. É texto e não
+          legenda — com a tinta da `.meta` media 3,66:1. */}
+      <p className="text-center text-[11px] leading-relaxed text-[var(--foreground-secondary)]">
+        {t.chat.contactar_nota}
       </p>
     </div>
   );

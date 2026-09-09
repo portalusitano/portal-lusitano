@@ -7514,3 +7514,575 @@ body:has(.fc-ficha) {
     color: var(--gold);
   }
 }
+
+/* ── Chat ──────────────────────────────────────────────────────────────────
+ * O fio de conversa entre comprador e vendedor. O que aqui está resolve três
+ * coisas que o ecrã anterior não resolvia, e todas as três se mediram.
+ *
+ * 1. **O compositor estava fora do ecrã.** Medido no fio de vinte e quatro
+ *    mensagens: o documento inteiro rolava (3845px a 390×700, 3370 a
+ *    1400×950) e a caixa de escrever aterrava em y=744 numa janela de 700 e em
+ *    y=994 numa de 950 — ou seja, **fora do ecrã nas duas vistas**, ao abrir.
+ *    Quem abria uma conversa tinha de rolar para poder responder. Aqui a
+ *    página não rola: rola a **lista das mensagens**, que é a única coisa que
+ *    tem mais do que cabe, e o compositor é uma linha da grelha que está
+ *    sempre lá.
+ *
+ * 2. **Duas vistas, uma casa.** Ao largo, a caixa de entrada e o fio lado a
+ *    lado. Ao estreito, um de cada vez — e o movimento não se inventa: é a
+ *    `.pilha` do painel de regiões do `/mapa`, com o `--d-drill` e o
+ *    `--ease-in-out-cubic`, porque abrir uma conversa é entrar num sítio e há
+ *    caminho de volta. A única coisa que muda é a altura: lá é medida do
+ *    conteúdo e animada, aqui é a do palco e constante — um fio de conversa
+ *    não muda de altura quando se lhe acrescenta uma mensagem, muda de rolo.
+ *    Por isso o `--altura-pilha` é escrito aqui e o `ResizeObserver` de lá
+ *    não faz falta nenhuma.
+ *
+ * 3. **O contraste.** Medido nos pixéis, no fio aberto: 13 das 39 leituras
+ *    abaixo do mínimo, a pior a 3,45:1 — todas horas e datas escritas com a
+ *    tinta da `.meta`, que sobre estas superfícies não chega aos 4,5 e nunca
+ *    poderia. É a mesma lição que a ficha da coudelaria já pagou com a
+ *    `.fc-nota`: uma hora ao lado de um recado é texto, não legenda.
+ * ------------------------------------------------------------------------ */
+@layer components {
+  /* ── O palco ───────────────────────────────────────────────────────────
+     Abaixo do cabeçalho fixo, que mede 3.5rem em telemóvel e 5rem a partir de
+     `md` — os mesmos números que o `.mapa-palco` usa, e pela mesma razão. */
+  .chat-palco {
+    --chat-topo: 3.5rem;
+    padding-top: var(--chat-topo);
+  }
+
+  /* A altura desconta duas coisas: o cabeçalho fixo, que se sabe daqui, e o
+     que estiver fixo em baixo, que **não** se sabe daqui — quem o mede é o
+     `useEstorvoDeBaixo`, perguntando ao browser quem está no caminho. Medido a
+     390×700 na primeira visita: o aviso de cookies tapava 252 dos 644 pixéis
+     desta caixa, com a caixa de escrever lá dentro. */
+  .chat {
+    height: calc(100dvh - var(--chat-topo) - var(--chat-estorvo, 0px));
+    /* O chão é baixo de propósito. Com um estorvo grande em baixo, o que tem
+       de sobreviver é a cabeça e a caixa de escrever — as duas são linhas
+       `auto` da grelha —, e é o fio que encolhe. Um chão alto de mais punha a
+       coluna a passar por baixo do estorvo outra vez, que é o defeito que isto
+       existe para corrigir. */
+    min-height: 18rem;
+  }
+
+  @media (min-width: 768px) {
+    .chat-palco {
+      --chat-topo: 5rem;
+    }
+  }
+
+  /* A pilha do `/mapa`, com a altura do palco em vez da altura medida. */
+  .chat__pilha {
+    --altura-pilha: 100%;
+    height: 100%;
+  }
+
+  .chat__pilha > .pilha__nivel {
+    height: 100%;
+    min-height: 0;
+  }
+
+  /* ── Ao largo: os dois ao mesmo tempo ──────────────────────────────────
+     A partir daqui a pilha deixa de ser uma pilha e passa a ser uma grelha de
+     duas colunas. O que estava «fora» volta ao sítio: sem isto, a caixa de
+     entrada ficaria a `opacity: 0` num ecrã onde há espaço para os dois.
+     Quem tira o `inert` é o componente — um atributo não se desfaz em CSS. */
+  @media (min-width: 1024px) {
+    .chat__pilha {
+      display: grid;
+      grid-template-columns: minmax(0, 21rem) minmax(0, 1fr);
+      overflow: visible;
+    }
+
+    .chat__pilha > .pilha__nivel,
+    .chat__pilha > .pilha__nivel[data-fora="sim"] {
+      position: relative;
+      inset: auto;
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
+
+    /* A hairline entre as duas colunas é a única coisa que as separa: duas
+       chapas de fundos diferentes lado a lado leriam-se como duas páginas. */
+    .chat__pilha > .pilha__nivel + .pilha__nivel {
+      border-left: 1px solid var(--border-soft);
+    }
+  }
+
+  /* ── Uma coluna: cabeça fixa, meio que rola, pé fixo ───────────────────
+     É esta grelha que põe o compositor no ecrã. O `minmax(0, 1fr)` do meio é
+     o que impede a linha do rolo de crescer com o conteúdo — sem o zero, uma
+     grelha dá `auto` à faixa e o fio empurra o compositor para fora. */
+  .chat-coluna {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .chat-coluna__rolo {
+    position: relative;
+    overflow-y: auto;
+    /* O rolo é desta caixa e não da página: sem isto, chegar ao fim de um fio
+       comprido continuava a puxar o documento inteiro. */
+    overscroll-behavior: contain;
+  }
+
+  /* ── A cabeça de cada coluna ───────────────────────────────────────────
+     Assente na página e não a flutuar: o `CLAUDE.md` diz que o que flutua é
+     `.vidro` e o que assenta é chapa. Esta assenta — está encostada ao topo da
+     coluna e não passa por cima de nada. */
+  .chat-cabeca {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--border-soft);
+    background: var(--background);
+  }
+
+  /* ── A caixa de entrada ────────────────────────────────────────────────── */
+  .chat-linha {
+    display: flex;
+    width: 100%;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-soft);
+    transition: background-color var(--d-fast) var(--ease-out);
+  }
+
+  .chat-linha:hover {
+    background: var(--elevate-1);
+  }
+
+  /* Escolhida é branca, não dourada — a mesma regra do `.chip-activo`, do dia
+     de hoje no calendário e da página actual na paginação. Sobre preto, quem
+     assinala uma escolha é o contraste. O risco à esquerda é o que a distingue
+     de um simples hover, que também acende o fundo. */
+  .chat-linha[aria-current="true"] {
+    background: var(--elevate-2);
+    box-shadow: inset 2px 0 0 0 var(--foreground-strong);
+  }
+
+  .chat-linha__nome {
+    font-size: 0.875rem;
+    line-height: 1.3;
+    color: var(--foreground-strong);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* A pré-visualização e o nome do cavalo são texto, não legenda: é o que
+     alguém lê para decidir qual das trinta conversas abrir. Com a tinta da
+     `.meta` media 3,66:1; com esta, 8,37:1. */
+  .chat-linha__resumo,
+  .chat-linha__cavalo {
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--foreground-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chat-linha__cavalo {
+    font-size: 0.6875rem;
+  }
+
+  /* A hora da última mensagem: é o único número desta linha, e a mono é para
+     números — assim as horas alinham em coluna entre linhas. */
+  .chat-linha__hora {
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 0.6875rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--foreground-secondary);
+    white-space: nowrap;
+  }
+
+  .chat-conta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 0.375rem;
+    border-radius: 999px;
+    background: var(--foreground-strong);
+    color: var(--background);
+    font-size: 0.6875rem;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── O assunto: de que cavalo é que se está a falar ────────────────────
+     Uma vez, no topo do fio, e nunca repetido em cada mensagem. */
+  .chat-assunto {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+    flex: 1;
+  }
+
+  /* A ligação para o anúncio é uma ligação de texto dentro de uma linha, e a
+     ela aplica-se o mínimo de 24×24 do WCAG 2.5.8 e não os 44 de um comando.
+     Media 14px de altura; a folga vertical leva-a a 24 sem mexer na linha,
+     porque a linha já é mais alta do que ela. */
+  .chat-assunto__anuncio {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    min-width: 24px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color var(--d-fast) var(--ease-out);
+  }
+
+  .chat-assunto__anuncio:hover {
+    color: var(--foreground-strong);
+  }
+
+  .chat-assunto__foto {
+    display: block;
+    position: relative;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex: none;
+    overflow: hidden;
+    border-radius: var(--raio-sm);
+    background: var(--background-elevated);
+  }
+
+  /* ── O fio ─────────────────────────────────────────────────────────────── */
+  .chat-fio {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 1rem 1.25rem;
+  }
+
+  /* O separador de dia. A palavra não usa `.rotulo`: essa escreve em
+     `--foreground-muted`, que sobre preto puro dá 3,66:1 e nunca poderia
+     chegar aos 4,5 — foi a única leitura que ficou abaixo do mínimo depois de
+     tudo o resto passar. É a mesma lição, e a mesma tinta, da `.mapa-dica`. */
+  .chat-dia__texto {
+    font-size: 0.6875rem;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    color: var(--foreground-secondary);
+  }
+
+  .chat-dia {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1.25rem 0 0.75rem;
+  }
+
+  .chat-dia::before,
+  .chat-dia::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border-soft);
+  }
+
+  .chat-dia:first-child {
+    margin-top: 0;
+  }
+
+  /* ── Os blocos e os balões ─────────────────────────────────────────────
+     Um turno de fala é um bloco; dentro dele os balões encostam-se, e só o
+     primeiro e o último é que arredondam do lado de quem fala. É esse recorte
+     que faz três frases seguidas lerem-se como uma pessoa e não como três. */
+  .chat-bloco {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    margin-top: 0.625rem;
+  }
+
+  .chat-bloco[data-minha="sim"] {
+    align-items: flex-end;
+  }
+
+  .chat-bloco[data-minha="nao"] {
+    align-items: flex-start;
+  }
+
+  .chat-balao {
+    max-width: min(85%, 34rem);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--foreground);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--raio);
+  }
+
+  /* A minha é a chapa levantada; a da outra parte é a chapa do cartão. As duas
+     sem uma gota de acento: quem escreve não é um estado destacado, é o outro
+     lado da conversa. */
+  .chat-balao[data-minha="sim"] {
+    background: var(--elevate-2);
+    border-color: var(--border);
+  }
+
+  .chat-balao[data-minha="nao"] {
+    background: var(--background-card);
+    border-color: var(--border-soft);
+  }
+
+  .chat-balao[data-estado="a-enviar"] {
+    opacity: 0.62;
+  }
+
+  .chat-balao[data-estado="falhou"] {
+    border-color: var(--erro);
+  }
+
+  /* Cantos: dentro de um bloco os balões encostam-se do lado de quem fala. */
+  .chat-bloco[data-minha="sim"] .chat-balao:not(:last-of-type) {
+    border-bottom-right-radius: var(--raio-sm);
+  }
+  .chat-bloco[data-minha="sim"] .chat-balao:not(:first-of-type) {
+    border-top-right-radius: var(--raio-sm);
+  }
+  .chat-bloco[data-minha="nao"] .chat-balao:not(:last-of-type) {
+    border-bottom-left-radius: var(--raio-sm);
+  }
+  .chat-bloco[data-minha="nao"] .chat-balao:not(:first-of-type) {
+    border-top-left-radius: var(--raio-sm);
+  }
+
+  /* A hora e o estado de entrega: uma vez por bloco, no fim, e não por baixo
+     de cada frase. A tinta é a secundária pela razão medida no topo deste
+     bloco — a `.meta` dava 3,45:1. */
+  .chat-rodape-bloco {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-top: 0.25rem;
+    font-size: 0.6875rem;
+    line-height: 1.2;
+    color: var(--foreground-secondary);
+  }
+
+  .chat-rodape-bloco time {
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .chat-rodape-bloco[data-estado="falhou"] {
+    color: var(--erro);
+  }
+
+  .chat-rodape-bloco svg {
+    flex: none;
+  }
+
+  .chat-repetir {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    color: var(--erro);
+  }
+
+  /* ── O compositor ──────────────────────────────────────────────────────── */
+  .chat-redaccao {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.625rem;
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--border-soft);
+    background: var(--background);
+  }
+
+  /* Cresce com o que se escreve e pára. Medido antes: a caixa tinha 87px fixos
+     e uma mensagem de 4000 caracteres dava 3077px de texto lá dentro — uma
+     janela de três linhas sobre trinta e seis. Aqui cresce até nove linhas e
+     só depois é que rola, que é o limite que a caixa tem de ter para não comer
+     o fio inteiro. */
+  .chat-redaccao__caixa {
+    flex: 1;
+    min-width: 0;
+    /* O mesmo alvo do botão redondo que está ao lado: medida a 41px, ficava
+       três abaixo do mínimo e desalinhada dele. */
+    min-height: 44px;
+    max-height: 11rem;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--foreground);
+    background: var(--background-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--raio);
+    resize: none;
+    overflow-y: auto;
+    transition:
+      border-color var(--d-fast) var(--ease-out),
+      box-shadow var(--d-fast) var(--ease-out);
+  }
+
+  .chat-redaccao__caixa::placeholder {
+    color: var(--foreground-muted);
+  }
+
+  .chat-redaccao__caixa:focus {
+    outline: none;
+    border-color: var(--border-hover);
+    box-shadow: 0 0 0 3px var(--elevate-1);
+  }
+
+  /* A conta dos caracteres que faltam. Mono, porque é um número, e assim não
+     dança de largura enquanto se escreve. */
+  .chat-restam {
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 0.6875rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--foreground-secondary);
+    align-self: center;
+  }
+
+  /* O botão de enviar é branco, que é o botão principal desta casa. O dourado
+     fica para publicar um anúncio, e responder a um recado não é isso. */
+  /* Medido a 44 e desenhado a 43: uma caixa `flex` com `h-11` numa linha de
+     `align-items: center` acabava em 43,x e o arredondamento do browser dava
+     43. O mínimo é o mínimo. */
+  .chat-atalho {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    /* Em pixéis e não em `rem`: medido a 43×43 com `2.75rem`, porque o
+       `rem` desta casa não é exactamente dezasseis e o mínimo é o mínimo. */
+    min-width: 44px;
+    min-height: 44px;
+    color: var(--foreground-secondary);
+    transition: color var(--d-fast) var(--ease-out);
+  }
+
+  .chat-atalho:hover {
+    color: var(--foreground-strong);
+  }
+
+  .chat-enviar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    flex: none;
+    border-radius: 999px;
+    background: var(--foreground-strong);
+    color: var(--background);
+    transition:
+      opacity var(--d-fast) var(--ease-out),
+      transform var(--d-fast) var(--ease-out);
+  }
+
+  .chat-enviar:disabled {
+    opacity: 0.35;
+  }
+
+  .chat-enviar:not(:disabled):hover {
+    transform: scale(1.04);
+  }
+
+  /* ── O aviso de que chegou coisa nova enquanto se lia para trás ────────
+     Flutua por cima do fio, e por isso é vidro — e é dos pequenos, logo
+     `.vidro-leve`, cuja sombra é de contacto e não de vinte e quatro pixéis. */
+  .chat-ha-novas {
+    position: sticky;
+    bottom: 0.75rem;
+    z-index: 2;
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.4375rem 0.875rem;
+    border-radius: 999px;
+    color: var(--foreground-strong);
+    font-size: 0.75rem;
+    animation: chat-subir var(--d-fast) var(--ease-out) both;
+  }
+
+  @keyframes chat-subir {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ── O esqueleto ───────────────────────────────────────────────────────
+     «Ainda não carregou» e «não há conversas» eram o mesmo ecrã em branco.
+     Medido: 700ms depois de entrar, a caixa de entrada tinha zero linhas e
+     nada escrito. O esqueleto usa o `animate-pulse` do Tailwind, que é a
+     excepção que o `CLAUDE.md` aceita aos ciclos infinitos — só existe
+     enquanto o conteúdo não chegou. */
+  .chat-esqueleto__linha {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .chat-esqueleto__bloco {
+    background: var(--elevate-1);
+    border-radius: var(--raio-sm);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-ha-novas,
+  .chat-balao,
+  .chat-linha,
+  .chat-enviar {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .chat-enviar:not(:disabled):hover {
+    transform: none;
+  }
+}
+
+/* ── A caixa de um balão é a caixa dele, e mais nada ────────────────────────
+ * Sem camada, e a razão é a mesma que está escrita nas etiquetas do globo: a
+ * regra global `button:not([role="switch"]) { min-height: 44px }` é CSS sem
+ * camada, e CSS sem camada ganha a qualquer `@layer`. Aqui apanhava o botão
+ * que repete um envio falhado, que é uma palavra sublinhada dentro de uma
+ * linha de texto de 11px: esticada a 44 empurra o rodapé do bloco e desalinha
+ * a hora que está ao lado dela. O alvo de toque não se perde — passa para um
+ * `::after` transparente, que não entra na medida do elemento.
+ * ------------------------------------------------------------------------ */
+@media (pointer: coarse) {
+  button.chat-repetir {
+    min-height: 0;
+    position: relative;
+  }
+
+  button.chat-repetir::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, 44px);
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+}
