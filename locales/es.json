@@ -2479,6 +2479,42 @@
     "contactar_nota": "La conversación se queda en el portal · Sus datos de contacto no se comparten",
     "contactar_vazia": "Escriba un mensaje antes de enviar",
     "contactar_sucesso": "Mensaje enviado al vendedor",
-    "restam": "caracteres restantes"
+    "restam": "caracteres restantes",
+    "contactar_precisa_conta": "Para enviar un mensaje necesita una cuenta",
+    "contactar_precisa_conta_nota": "La conversación se queda en el portal y el vendedor le responde aquí. Entrar lleva unos segundos y le devuelve a este anuncio.",
+    "contactar_entrar": "Entrar y escribir"
+  },
+  "perfil": {
+    "editor_titulo": "Foto de perfil",
+    "retrato_actual": "Su foto de perfil",
+    "escolher": "Añadir foto",
+    "trocar": "Cambiar foto",
+    "escolher_outra": "Elegir otra",
+    "apagar": "Quitar foto",
+    "guardar": "Guardar foto",
+    "fechar": "Cerrar",
+    "ampliar": "Ampliación",
+    "recorte_rotulo": "Encuadrar la foto",
+    "recorte_dica": "Arrastre para encuadrar, o use las flechas del teclado. Mayúsculas para pasos mayores, Inicio para empezar de nuevo, + y − para ampliar.",
+    "formatos": "JPEG, PNG, WebP o AVIF, hasta 20 MB. Se guarda un cuadrado de 512 píxeles.",
+    "fase": {
+      "a-ler": "Leyendo la foto…",
+      "a-descodificar": "Abriendo la foto — en una de 12 megapíxeles esto puede tardar unos segundos.",
+      "a-recortar": "Recortando…",
+      "a-enviar": "Enviando…",
+      "pronto": "Listo"
+    },
+    "erro": {
+      "tipo": "Ese archivo no es una imagen que el navegador sepa abrir ({detalhe}). Guárdela como JPEG o PNG e inténtelo de nuevo.",
+      "grande-demais": "La foto ocupa {detalhe} y el límite son 20 MB. Elija otra, o redúzcala en el móvil antes de enviarla.",
+      "vazio": "Ese archivo está vacío. Elija otro.",
+      "pixeis-demais": "La foto es demasiado grande para abrirla aquí ({detalhe} puntos). Use una versión más pequeña — bastan 2000 puntos de lado.",
+      "pequena-demais": "La foto es demasiado pequeña ({detalhe}) y se vería borrosa. Elija una de al menos 64 puntos de lado.",
+      "ilegivel": "No se pudo abrir esa foto. Pruebe con otra, o guárdela como JPEG antes de enviarla.",
+      "rede": "La conexión se cortó a mitad del envío. Compruebe la conexión y pulse de nuevo «Guardar foto».",
+      "sessao": "La sesión ha caducado. Vuelva a entrar y la foto le estará esperando.",
+      "servidor": "El servidor no pudo guardar la foto. Inténtelo de nuevo dentro de un momento.",
+      "indisponivel": "Todavía no se pueden guardar fotos de perfil. Vuelva dentro de unos días."
+    }
   }
 }

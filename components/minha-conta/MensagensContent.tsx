@@ -15,6 +15,10 @@ import { PREFIXO_LOCAL, type MensagemNoEcra } from "@/components/chat/tipos";
 import { useEcraLargo } from "@/components/chat/ecra-largo";
 import { useEstorvoDeBaixo } from "@/components/chat/estorvos";
 
+/** Uma conversa como a caixa a mostra: a da API mais o retrato da outra
+ *  parte, que a camada de dados ainda não serve. Ver `components/perfil`. */
+type ConversaNaCaixa = ChatConversa & { outraParteAvatar?: string | null };
+
 /**
  * A página das mensagens: a caixa de entrada e o fio.
  *
@@ -58,7 +62,11 @@ export default function MensagensContent() {
   const palco = useRef<HTMLDivElement>(null);
   const estorvo = useEstorvoDeBaixo(palco);
 
-  const [conversas, setConversas] = useState<ChatConversa[]>([]);
+  /* O retrato da outra parte é opcional porque a rota que o serve está a ser
+     feita do outro lado. Enquanto não vier, o `Avatar` desenha iniciais — que
+     é o que desenharia de qualquer maneira a quem não tem fotografia. Quando
+     vier, entra por aqui e não há uma linha de interface para mudar. */
+  const [conversas, setConversas] = useState<ConversaNaCaixa[]>([]);
   const [aCarregar, setACarregar] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -98,7 +106,7 @@ export default function MensagensContent() {
   }, [carregarConversas]);
 
   const abrir = useCallback(
-    async (c: ChatConversa) => {
+    async (c: ConversaNaCaixa) => {
       setAberta({
         id: c.id,
         cavaloId: c.cavaloId,
@@ -108,6 +116,7 @@ export default function MensagensContent() {
         cavaloFoto: c.cavaloFoto,
         cavaloPreco: c.cavaloPreco,
         cavaloStatus: null,
+        outraParteAvatar: c.outraParteAvatar ?? null,
       });
       setMensagens([]);
       setRascunho(lerRascunho(c.id));

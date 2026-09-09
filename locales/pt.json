@@ -2479,6 +2479,42 @@
     "contactar_nota": "A conversa fica no portal · O seu contacto não é partilhado",
     "contactar_vazia": "Escreva uma mensagem antes de enviar",
     "contactar_sucesso": "Mensagem enviada ao vendedor",
-    "restam": "caracteres restantes"
+    "restam": "caracteres restantes",
+    "contactar_precisa_conta": "Para enviar mensagem precisa de uma conta",
+    "contactar_precisa_conta_nota": "A conversa fica no portal e o vendedor responde-lhe aqui. Entrar leva alguns segundos e traz-lhe de volta a este anúncio.",
+    "contactar_entrar": "Entrar e escrever"
+  },
+  "perfil": {
+    "editor_titulo": "Fotografia de perfil",
+    "retrato_actual": "A sua fotografia de perfil",
+    "escolher": "Adicionar fotografia",
+    "trocar": "Alterar fotografia",
+    "escolher_outra": "Escolher outra",
+    "apagar": "Remover fotografia",
+    "guardar": "Guardar fotografia",
+    "fechar": "Fechar",
+    "ampliar": "Ampliação",
+    "recorte_rotulo": "Enquadrar a fotografia",
+    "recorte_dica": "Arraste para enquadrar, ou use as setas do teclado. Shift para passos maiores, Home para recomeçar, + e − para ampliar.",
+    "formatos": "JPEG, PNG, WebP ou AVIF, até 20 MB. Guarda-se um quadrado de 512 pixéis.",
+    "fase": {
+      "a-ler": "A ler a fotografia…",
+      "a-descodificar": "A abrir a fotografia — numa de 12 megapíxeis isto pode demorar alguns segundos.",
+      "a-recortar": "A recortar…",
+      "a-enviar": "A enviar…",
+      "pronto": "Pronto"
+    },
+    "erro": {
+      "tipo": "Esse ficheiro não é uma imagem que o navegador saiba abrir ({detalhe}). Guarde-a como JPEG ou PNG e tente outra vez.",
+      "grande-demais": "A fotografia tem {detalhe} e o limite é 20 MB. Escolha outra, ou reduza-a no telemóvel antes de a enviar.",
+      "vazio": "Esse ficheiro está vazio. Escolha outro.",
+      "pixeis-demais": "A fotografia é grande demais para abrir aqui ({detalhe} pontos). Use uma versão mais pequena — chegam bem 2000 pontos de lado.",
+      "pequena-demais": "A fotografia é pequena demais ({detalhe}) e ficaria desfocada. Escolha uma com pelo menos 64 pontos de lado.",
+      "ilegivel": "Não foi possível abrir essa fotografia. Tente outra, ou guarde-a como JPEG antes de a enviar.",
+      "rede": "A ligação falhou a meio do envio. Verifique a ligação à internet e carregue outra vez em «Guardar fotografia».",
+      "sessao": "A sessão expirou. Volte a entrar e a fotografia fica à sua espera.",
+      "servidor": "O servidor não conseguiu guardar a fotografia. Tente outra vez daqui a pouco.",
+      "indisponivel": "Ainda não é possível guardar fotografias de perfil. Volte dentro de dias."
+    }
   }
 }
