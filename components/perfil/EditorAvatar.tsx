@@ -86,7 +86,7 @@ export default function EditorAvatar({ perfil, nomeParaIniciais, onFechar, onGra
 
   const frase = useCallback(
     (
-      codigo: CodigoDeRecusa | "rede" | "sessao" | "servidor" | "indisponivel",
+      codigo: CodigoDeRecusa | "rede" | "sessao" | "recusado" | "servidor" | "indisponivel",
       detalhe?: string
     ) => {
       const base = (tp.erro as Record<string, string>)[codigo] ?? tp.erro.servidor;

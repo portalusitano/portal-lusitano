@@ -2496,7 +2496,7 @@
     "ampliar": "Ampliação",
     "recorte_rotulo": "Enquadrar a fotografia",
     "recorte_dica": "Arraste para enquadrar, ou use as setas do teclado. Shift para passos maiores, Home para recomeçar, + e − para ampliar.",
-    "formatos": "JPEG, PNG, WebP ou AVIF, até 20 MB. Guarda-se um quadrado de 512 pixéis.",
+    "formatos": "JPEG, PNG, WebP ou AVIF, até 20 MB. Guarda-se um quadrado de 256 pixéis.",
     "fase": {
       "a-ler": "A ler a fotografia…",
       "a-descodificar": "A abrir a fotografia — numa de 12 megapíxeis isto pode demorar alguns segundos.",
@@ -2513,6 +2513,7 @@
       "ilegivel": "Não foi possível abrir essa fotografia. Tente outra, ou guarde-a como JPEG antes de a enviar.",
       "rede": "A ligação falhou a meio do envio. Verifique a ligação à internet e carregue outra vez em «Guardar fotografia».",
       "sessao": "A sessão expirou. Volte a entrar e a fotografia fica à sua espera.",
+      "recusado": "O servidor recusou este envio. Não é a sua sessão — voltar a entrar não resolve. Tente daqui a pouco; se continuar, escreva-nos.",
       "servidor": "O servidor não conseguiu guardar a fotografia. Tente outra vez daqui a pouco.",
       "indisponivel": "Ainda não é possível guardar fotografias de perfil. Volte dentro de dias."
     }

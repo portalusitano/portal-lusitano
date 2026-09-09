@@ -57,7 +57,7 @@ export const ROTA_FOTOGRAFIA = "/api/perfil/fotografia";
 /** O erro que se mostra, já com um código que o ecrã traduz. */
 export class ErroDePerfil extends Error {
   constructor(
-    public codigo: "rede" | "sessao" | "grande-demais" | "servidor" | "indisponivel",
+    public codigo: "rede" | "sessao" | "recusado" | "grande-demais" | "servidor" | "indisponivel",
     public detalhe?: string
   ) {
     super(codigo);
@@ -92,7 +92,25 @@ export async function lerPerfil(sinal?: AbortSignal): Promise<Perfil | null> {
 }
 
 function erroDaResposta(res: Response): ErroDePerfil {
-  if (res.status === 401 || res.status === 403) return new ErroDePerfil("sessao");
+  /**
+   * ── 401 e 403 não são a mesma frase ──────────────────────────────────
+   *
+   * Estavam juntos, e os dois escreviam «A sessão expirou. Volte a entrar e a
+   * fotografia fica à sua espera.» Para o 401 isso é verdade e é o conselho
+   * certo. Para o 403 é um beco: **o 403 é a resposta a quem está autenticado
+   * e mesmo assim foi recusado** — o servidor sabe quem é e diz que não. Sair
+   * e voltar a entrar dá exactamente a mesma recusa, e quem seguir o conselho
+   * perde a sessão que tinha e volta ao mesmo sítio.
+   *
+   * Apanhado a exercitar o ecrã: um `403 {"error":"Forbidden: invalid
+   * origin"}` — a guarda de origem do próprio site — escreveu «a sessão
+   * expirou» a alguém cuja sessão estava perfeitamente viva.
+   *
+   * Um conselho que não pode resolver o problema é pior do que não dar
+   * conselho nenhum: gasta a única acção que a pessoa tinha.
+   */
+  if (res.status === 401) return new ErroDePerfil("sessao");
+  if (res.status === 403) return new ErroDePerfil("recusado");
   if (res.status === 413) return new ErroDePerfil("grande-demais");
   if (res.status === 404 || res.status === 501) return new ErroDePerfil("indisponivel");
   return new ErroDePerfil("servidor", String(res.status));

@@ -2496,7 +2496,7 @@
     "ampliar": "Ampliación",
     "recorte_rotulo": "Encuadrar la foto",
     "recorte_dica": "Arrastre para encuadrar, o use las flechas del teclado. Mayúsculas para pasos mayores, Inicio para empezar de nuevo, + y − para ampliar.",
-    "formatos": "JPEG, PNG, WebP o AVIF, hasta 20 MB. Se guarda un cuadrado de 512 píxeles.",
+    "formatos": "JPEG, PNG, WebP o AVIF, hasta 20 MB. Se guarda un cuadrado de 256 píxeles.",
     "fase": {
       "a-ler": "Leyendo la foto…",
       "a-descodificar": "Abriendo la foto — en una de 12 megapíxeles esto puede tardar unos segundos.",
@@ -2513,6 +2513,7 @@
       "ilegivel": "No se pudo abrir esa foto. Pruebe con otra, o guárdela como JPEG antes de enviarla.",
       "rede": "La conexión se cortó a mitad del envío. Compruebe la conexión y pulse de nuevo «Guardar foto».",
       "sessao": "La sesión ha caducado. Vuelva a entrar y la foto le estará esperando.",
+      "recusado": "El servidor rechazó este envío. No es su sesión — volver a entrar no lo resuelve. Inténtelo en un momento; si continúa, escríbanos.",
       "servidor": "El servidor no pudo guardar la foto. Inténtelo de nuevo dentro de un momento.",
       "indisponivel": "Todavía no se pueden guardar fotos de perfil. Vuelva dentro de unos días."
     }

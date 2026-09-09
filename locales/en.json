@@ -2496,7 +2496,7 @@
     "ampliar": "Zoom",
     "recorte_rotulo": "Frame the photo",
     "recorte_dica": "Drag to frame it, or use the arrow keys. Shift for larger steps, Home to start over, + and − to zoom.",
-    "formatos": "JPEG, PNG, WebP or AVIF, up to 20 MB. A 512-pixel square is saved.",
+    "formatos": "JPEG, PNG, WebP or AVIF, up to 20 MB. A 256-pixel square is saved.",
     "fase": {
       "a-ler": "Reading the photo…",
       "a-descodificar": "Opening the photo — on a 12-megapixel one this can take a few seconds.",
@@ -2513,6 +2513,7 @@
       "ilegivel": "That photo could not be opened. Try another, or save it as JPEG before sending.",
       "rede": "The connection dropped mid-upload. Check your internet and press “Save photo” again.",
       "sessao": "Your session expired. Sign in again and the photo will be waiting.",
+      "recusado": "The server refused this upload. It is not your session — signing in again will not help. Try shortly; if it persists, write to us.",
       "servidor": "The server could not save the photo. Please try again shortly.",
       "indisponivel": "Profile photos cannot be saved yet. Please come back in a few days."
     }
