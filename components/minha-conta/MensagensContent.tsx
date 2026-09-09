@@ -1,51 +1,81 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import { ArrowLeft, MessagesSquare } from "lucide-react";
 import LocalizedLink from "@/components/LocalizedLink";
-import { AlertTriangle, ArrowLeft, ImageIcon, Loader2, MessagesSquare, Send } from "lucide-react";
 import { useToast } from "@/context/ToastContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { useMensagensPorLer } from "@/context/MensagensContext";
-import { MAX_MENSAGEM, type ChatConversa, type ChatMensagem } from "@/lib/marketplace-chat";
+import { resumirMensagem, type ChatConversa, type ChatMensagem } from "@/lib/marketplace-chat";
+import CaixaEntrada from "@/components/chat/CaixaEntrada";
+import Fio, { type ConversaAberta } from "@/components/chat/Fio";
+import { fundirMensagens } from "@/components/chat/fundir";
+import { apagarRascunho, guardarRascunho, lerRascunho } from "@/components/chat/rascunhos";
+import { PREFIXO_LOCAL, type MensagemNoEcra } from "@/components/chat/tipos";
+import { useEcraLargo } from "@/components/chat/ecra-largo";
+import { useEstorvoDeBaixo } from "@/components/chat/estorvos";
 
-interface ConversaAberta {
-  id: string;
-  cavaloId: string;
-  papel: "comprador" | "vendedor";
-  outraParte: string;
-  cavaloNome: string;
-  cavaloFoto: string | null;
-  cavaloPreco: number | null;
-  cavaloStatus: string | null;
-}
-
-function formatarData(iso: string): string {
-  const data = new Date(iso);
-  const agora = new Date();
-  const mesmoDia = data.toDateString() === agora.toDateString();
-
-  return mesmoDia
-    ? data.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })
-    : data.toLocaleDateString("pt-PT", { day: "2-digit", month: "short" });
-}
-
+/**
+ * A página das mensagens: a caixa de entrada e o fio.
+ *
+ * ## O que aqui se decidiu, e porquê
+ *
+ * **Duas vistas, uma casa.** Ao largo os dois painéis convivem; ao estreito é
+ * um de cada vez, e o movimento entre eles é o da `.pilha` do painel de
+ * regiões do `/mapa` — `--d-drill`, `--ease-in-out-cubic`, e o nível que sai a
+ * levar `inert`. Abrir uma conversa é entrar num sítio e há caminho de volta,
+ * que é exactamente o que esse idioma já diz; inventar aqui um segundo seria
+ * duas ideias de profundidade na mesma casa.
+ *
+ * **O envio é optimista.** A mensagem aparece antes de o servidor responder —
+ * medido antes, o tempo entre carregar em enviar e a ver no fio era de 832ms
+ * no telemóvel e 737ms no computador, com o ecrã parado pelo meio. E recua com
+ * franqueza: se falhar, fica lá, marcada, com um botão para repetir. Antes
+ * desaparecia sem deixar rasto e o texto ficava na caixa — o que se via era
+ * uma mensagem que se escreveu, se enviou, e não existe.
+ *
+ * **O rascunho é da conversa.** Era uma variável só para todas: medido, o
+ * rascunho escrito no fio de um cavalo aparecia na caixa do fio seguinte,
+ * pronto a ser enviado à pessoa errada.
+ *
+ * ## A costura para o que vem a seguir
+ *
+ * Toda a entrada de mensagens passa pelo `fundirMensagens`, que junta o que o
+ * servidor diz ao que está no ecrã sem duplicar o eco da minha própria
+ * mensagem. É por aí que o tempo real entra quando existir: uma linha que
+ * chegue por um canal é uma chamada a mais a essa função, e não um segundo
+ * caminho de dados.
+ */
 export default function MensagensContent() {
   const { showToast } = useToast();
+  const { t } = useLanguage();
   const { recarregar: recarregarPorLer } = useMensagensPorLer();
+  const ecraLargo = useEcraLargo();
+
+  /* Quanto é que há para deixar em baixo por causa de quem está fixo no ecrã.
+     Na primeira visita o aviso de cookies tapava 252 dos 644 pixéis da coluna,
+     e a caixa de escrever ia lá dentro. */
+  const palco = useRef<HTMLDivElement>(null);
+  const estorvo = useEstorvoDeBaixo(palco);
+
   const [conversas, setConversas] = useState<ChatConversa[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [aCarregar, setACarregar] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
   const [aberta, setAberta] = useState<ConversaAberta | null>(null);
-  const [mensagens, setMensagens] = useState<ChatMensagem[]>([]);
+  const [mensagens, setMensagens] = useState<MensagemNoEcra[]>([]);
   const [aCarregarFio, setACarregarFio] = useState(false);
   const [rascunho, setRascunho] = useState("");
-  const [aEnviar, setAEnviar] = useState(false);
 
-  const fimDoFio = useRef<HTMLDivElement>(null);
+  // Para devolver o foco à linha de onde se saiu, que é de onde ele veio.
+  const linhas = useRef(new Map<string, HTMLButtonElement>());
+  const registarLinha = useCallback((id: string, n: HTMLButtonElement | null) => {
+    if (n) linhas.current.set(id, n);
+    else linhas.current.delete(id);
+  }, []);
 
   const carregarConversas = useCallback(async () => {
-    setLoading(true);
+    setACarregar(true);
     setErro(null);
     try {
       const res = await fetch("/api/conversas");
@@ -53,292 +83,254 @@ export default function MensagensContent() {
         window.location.href = "/login";
         return;
       }
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao carregar mensagens");
-      setConversas(data.conversas || []);
+      const dados = await res.json();
+      if (!res.ok) throw new Error(dados.error || t.chat.erro_carregar);
+      setConversas(dados.conversas || []);
     } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro ao carregar mensagens");
+      setErro(e instanceof Error ? e.message : t.chat.erro_carregar);
     } finally {
-      setLoading(false);
+      setACarregar(false);
     }
-  }, []);
+  }, [t.chat.erro_carregar]);
 
   useEffect(() => {
     carregarConversas();
   }, [carregarConversas]);
 
-  // Keep the newest message in view when a thread opens or grows.
-  useEffect(() => {
-    fimDoFio.current?.scrollIntoView({ block: "end" });
-  }, [mensagens]);
+  const abrir = useCallback(
+    async (c: ChatConversa) => {
+      setAberta({
+        id: c.id,
+        cavaloId: c.cavaloId,
+        papel: c.papel,
+        outraParte: c.outraParte,
+        cavaloNome: c.cavaloNome,
+        cavaloFoto: c.cavaloFoto,
+        cavaloPreco: c.cavaloPreco,
+        cavaloStatus: null,
+      });
+      setMensagens([]);
+      setRascunho(lerRascunho(c.id));
+      setACarregarFio(true);
+      try {
+        const res = await fetch(`/api/conversas/${c.id}`);
+        const dados = await res.json();
+        if (!res.ok) throw new Error(dados.error || t.chat.erro_abrir);
+        setAberta(dados.conversa);
+        setMensagens(fundirMensagens([], dados.mensagens || []));
+        setConversas((prev) => prev.map((x) => (x.id === c.id ? { ...x, porLer: 0 } : x)));
+        // E o distintivo da navegação, que de outra forma só acertaria no
+        // próximo minuto e daria a ideia de haver mensagens que já foram lidas.
+        recarregarPorLer();
+      } catch (e) {
+        showToast("error", e instanceof Error ? e.message : t.chat.erro_abrir);
+      } finally {
+        setACarregarFio(false);
+      }
+    },
+    [recarregarPorLer, showToast, t.chat.erro_abrir]
+  );
 
-  const abrir = async (conversaId: string) => {
-    setACarregarFio(true);
-    try {
-      const res = await fetch(`/api/conversas/${conversaId}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao abrir conversa");
+  const fechar = useCallback(() => {
+    const id = aberta?.id;
+    setAberta(null);
+    setMensagens([]);
+    setRascunho("");
+    // O foco volta à linha de onde saiu. Sem isto ficava no `<body>` — medido,
+    // a tabulação seguinte recomeçava em «Skip to main content», ou seja quem
+    // fechou um fio pelo teclado tinha de atravessar a página inteira outra vez.
+    if (id) requestAnimationFrame(() => linhas.current.get(id)?.focus());
+  }, [aberta?.id]);
 
-      setAberta(data.conversa);
-      setMensagens(data.mensagens || []);
-      // Opening the thread marked them read server-side; clear the badge here too.
-      setConversas((prev) => prev.map((c) => (c.id === conversaId ? { ...c, porLer: 0 } : c)));
-      // E o distintivo da navegação, que de outra forma só acertaria no
-      // próximo minuto e daria a ideia de haver mensagens que já foram lidas.
-      recarregarPorLer();
-    } catch (e) {
-      showToast("error", e instanceof Error ? e.message : "Erro ao abrir conversa");
-    } finally {
-      setACarregarFio(false);
-    }
-  };
+  /* O rascunho segue a conversa e não a caixa. */
+  const escrever = useCallback(
+    (v: string) => {
+      setRascunho(v);
+      if (aberta) guardarRascunho(aberta.id, v);
+    },
+    [aberta]
+  );
 
-  const enviar = async () => {
+  /**
+   * Enviar: a mensagem entra no fio já, e o servidor confirma-a depois.
+   *
+   * O corpo é guardado antes de a caixa ser limpa; se o pedido falhar, a
+   * mensagem fica no fio marcada como falhada, e o `repetir` volta a partir
+   * dela. Limpar a caixa e perder o texto era o que acontecia antes.
+   */
+  const enviarCorpo = useCallback(
+    async (corpo: string, idLocal: string) => {
+      if (!aberta) return;
+      try {
+        const res = await fetch(`/api/conversas/${aberta.id}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mensagem: corpo }),
+        });
+        const dados = await res.json();
+        if (!res.ok) throw new Error(dados.error || t.chat.erro_enviar);
+
+        const confirmada = dados.mensagem as ChatMensagem;
+        setMensagens((prev) => fundirMensagens(prev, [confirmada]));
+        setConversas((prev) =>
+          prev.map((c) =>
+            c.id === aberta.id
+              ? {
+                  ...c,
+                  ultimaMensagem: resumirMensagem(corpo),
+                  ultimaMensagemAt: confirmada.createdAt,
+                }
+              : c
+          )
+        );
+      } catch {
+        setMensagens((prev) =>
+          prev.map((m) => (m.id === idLocal ? { ...m, aEnviar: false, falhou: true } : m))
+        );
+      }
+    },
+    [aberta, t.chat.erro_enviar]
+  );
+
+  const enviar = useCallback(() => {
     const corpo = rascunho.trim();
     if (!corpo || !aberta) return;
 
-    setAEnviar(true);
-    try {
-      const res = await fetch(`/api/conversas/${aberta.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mensagem: corpo }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao enviar mensagem");
+    const idLocal = `${PREFIXO_LOCAL}${Date.now()}`;
+    setMensagens((prev) => [
+      ...prev,
+      {
+        id: idLocal,
+        corpo,
+        createdAt: new Date().toISOString(),
+        minha: true,
+        lida: false,
+        aEnviar: true,
+      },
+    ]);
+    setRascunho("");
+    apagarRascunho(aberta.id);
+    void enviarCorpo(corpo, idLocal);
+  }, [aberta, enviarCorpo, rascunho]);
 
-      setMensagens((prev) => [...prev, data.mensagem]);
-      setRascunho("");
-      setConversas((prev) =>
-        prev.map((c) =>
-          c.id === aberta.id
-            ? { ...c, ultimaMensagem: corpo, ultimaMensagemAt: data.mensagem.createdAt }
-            : c
-        )
+  const repetir = useCallback(
+    (id: string) => {
+      const falhada = mensagens.find((m) => m.id === id);
+      if (!falhada) return;
+      setMensagens((prev) =>
+        prev.map((m) => (m.id === id ? { ...m, falhou: false, aEnviar: true } : m))
       );
-    } catch (e) {
-      showToast("error", e instanceof Error ? e.message : "Erro ao enviar mensagem");
-    } finally {
-      setAEnviar(false);
-    }
-  };
+      void enviarCorpo(falhada.corpo, id);
+    },
+    [enviarCorpo, mensagens]
+  );
 
-  // ── Thread view ───────────────────────────────────────────────────────────
-  if (aberta) {
-    return (
-      <div className="min-h-screen bg-[var(--background)] px-5 sm:px-8 py-16 sm:py-24">
-        <div className="max-w-2xl mx-auto">
-          <button
-            onClick={() => {
-              setAberta(null);
-              setMensagens([]);
-            }}
-            className="inline-flex items-center gap-2 rotulo hover:text-[var(--foreground-strong)] transition-colors mb-8"
-          >
-            <ArrowLeft size={12} />
-            Todas as mensagens
-          </button>
+  /* Fechar com Escape é o que esta tecla faz em todo o lado — e só ao estreito,
+     onde fechar quer dizer alguma coisa. Ao largo o fio não tapa nada. */
+  useEffect(() => {
+    if (ecraLargo || !aberta) return;
+    const aoTeclar = (e: KeyboardEvent) => {
+      if (e.key === "Escape") fechar();
+    };
+    document.addEventListener("keydown", aoTeclar);
+    return () => document.removeEventListener("keydown", aoTeclar);
+  }, [ecraLargo, aberta, fechar]);
 
-          <header
-            data-revelar=""
-            suppressHydrationWarning
-            className="flex items-center gap-4 pb-6 border-b border-[var(--border)]"
+  // Ao estreito, o nível de fora leva `inert`; ao largo os dois estão no ecrã
+  // e nenhum leva. Um atributo não se desfaz em CSS, e é por isso que a medida
+  // do ecrã também é lida em JavaScript.
+  const nivelDeFora = ecraLargo ? -1 : aberta ? 0 : 1;
+
+  return (
+    <div className="chat-palco bg-[var(--background)]">
+      <div
+        ref={palco}
+        className="chat"
+        style={estorvo ? ({ "--chat-estorvo": `${estorvo}px` } as React.CSSProperties) : undefined}
+      >
+        <div className="pilha chat__pilha">
+          {/* ── Nível 0: a caixa de entrada ───────────────────────────── */}
+          <div
+            className="pilha__nivel"
+            data-fora={nivelDeFora === 0 ? "sim" : "nao"}
+            data-lado="atras"
+            aria-hidden={nivelDeFora === 0 ? true : undefined}
+            inert={nivelDeFora === 0 ? true : undefined}
           >
-            <div className="relative w-14 h-14 shrink-0 bg-[var(--background-secondary)]/30">
-              {aberta.cavaloFoto ? (
-                <Image
-                  src={aberta.cavaloFoto}
-                  alt={aberta.cavaloNome}
-                  fill
-                  sizes="56px"
-                  className="object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <ImageIcon size={14} className="text-[var(--foreground-muted)]" />
+            <div className="chat-coluna">
+              <div className="chat-cabeca">
+                <LocalizedLink
+                  href="/minha-conta"
+                  aria-label={t.chat.voltar_conta}
+                  className="chat-atalho -ml-2"
+                >
+                  <ArrowLeft size={18} aria-hidden="true" />
+                </LocalizedLink>
+                <div className="min-w-0 flex-1">
+                  <h1 className="titulo-seccao truncate">{t.chat.titulo}</h1>
+                  <p className="text-[11px] leading-tight text-[var(--foreground-secondary)]">
+                    {t.chat.subtitulo}
+                  </p>
                 </div>
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-base font-normal text-[var(--foreground)] truncate">
-                {aberta.outraParte}
-              </p>
-              <LocalizedLink
-                href={`/comprar/${aberta.cavaloId}`}
-                className="text-[11px] text-[var(--foreground-muted)] hover:text-[var(--foreground-strong)] transition-colors truncate block"
-              >
-                {aberta.cavaloNome} →
-              </LocalizedLink>
-            </div>
-            <span className="shrink-0 rotulo">
-              {aberta.papel === "comprador" ? "Compra" : "Venda"}
-            </span>
-          </header>
-
-          <div className="py-6 space-y-4 min-h-[40vh]">
-            {aCarregarFio ? (
-              <div className="flex justify-center py-12 text-[var(--foreground-muted)]">
-                <Loader2 size={16} className="animate-spin" />
               </div>
-            ) : (
-              mensagens.map((m) => (
-                <div key={m.id} className={`flex ${m.minha ? "justify-end" : "justify-start"}`}>
-                  <div
-                    className={`max-w-[80%] px-4 py-3 ${
-                      m.minha
-                        ? "bg-[var(--elevate-1)] border border-[var(--border-soft)]"
-                        : "bg-[var(--background-secondary)]/40 border border-[var(--border)]"
-                    }`}
-                  >
-                    <p className="text-sm text-[var(--foreground)] whitespace-pre-wrap break-words">
-                      {m.corpo}
-                    </p>
-                    <p className="text-[11px] uppercase tracking-wider text-[var(--foreground-muted)] mt-2 text-right">
-                      {formatarData(m.createdAt)}
-                    </p>
-                  </div>
-                </div>
-              ))
-            )}
-            <div ref={fimDoFio} />
+
+              <div className="chat-coluna__rolo">
+                <CaixaEntrada
+                  conversas={conversas}
+                  abertaId={aberta?.id ?? null}
+                  aCarregar={aCarregar}
+                  erro={erro}
+                  onAbrir={abrir}
+                  onTentarDeNovo={carregarConversas}
+                  registarLinha={registarLinha}
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="border-t border-[var(--border)] pt-5 space-y-3">
-            <textarea
-              rows={3}
-              value={rascunho}
-              maxLength={MAX_MENSAGEM}
-              placeholder="Escreva a sua mensagem…"
-              onChange={(e) => setRascunho(e.target.value)}
-              onKeyDown={(e) => {
-                // Enter sends, Shift+Enter makes a new line.
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  enviar();
-                }
-              }}
-              className="w-full bg-transparent border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--border-hover)] focus:outline-none resize-y"
-            />
-            <button
-              onClick={enviar}
-              disabled={aEnviar || rascunho.trim().length === 0}
-              className="inline-flex items-center gap-2 px-6 py-3 border border-[var(--border-soft)] rotulo-forte hover:bg-[var(--elevate-1)] transition-colors disabled:opacity-40"
-            >
-              {aEnviar ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
-              Enviar
-            </button>
+          {/* ── Nível 1: o fio ─────────────────────────────────────────── */}
+          <div
+            className="pilha__nivel"
+            data-fora={nivelDeFora === 1 ? "sim" : "nao"}
+            data-lado="frente"
+            aria-hidden={nivelDeFora === 1 ? true : undefined}
+            inert={nivelDeFora === 1 ? true : undefined}
+          >
+            {aberta ? (
+              /* A `key` é o que faz mudar de conversa ser um componente novo em
+                 vez de o mesmo com o conteúdo trocado. Sem ela era preciso
+                 limpar, num efeito, tudo o que o fio guarda — a última mensagem
+                 conhecida, o aviso de novas, o rolo —, e limpar estado dentro de
+                 um efeito é a cascata de renders que a casa já recusou no
+                 `Farol` do formulário de anúncio. */
+              <Fio
+                key={aberta.id}
+                conversa={aberta}
+                mensagens={mensagens}
+                aCarregar={aCarregarFio}
+                rascunho={rascunho}
+                onRascunho={escrever}
+                onEnviar={enviar}
+                onRepetir={repetir}
+                onVoltar={fechar}
+                ecraLargo={ecraLargo}
+              />
+            ) : (
+              /* Ao largo há sempre uma coluna à direita, e um rectângulo vazio
+                 lê-se como um erro de carregamento. Diz-se o que fazer. */
+              <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
+                <MessagesSquare
+                  size={24}
+                  className="text-[var(--foreground-secondary)]"
+                  aria-hidden="true"
+                />
+                <p className="max-w-xs text-sm text-[var(--foreground-secondary)]">
+                  {conversas.length > 0 ? t.chat.escolher_fio : t.chat.vazio_nota}
+                </p>
+              </div>
+            )}
           </div>
         </div>
-      </div>
-    );
-  }
-
-  // ── Inbox ─────────────────────────────────────────────────────────────────
-  return (
-    <div className="min-h-screen bg-[var(--background)] px-5 sm:px-8 py-16 sm:py-24">
-      <div className="max-w-3xl mx-auto">
-        <LocalizedLink
-          href="/minha-conta"
-          className="inline-flex items-center gap-2 rotulo hover:text-[var(--foreground-strong)] transition-colors mb-10"
-        >
-          <ArrowLeft size={12} />A minha conta
-        </LocalizedLink>
-
-        <header data-revelar="" suppressHydrationWarning className="mb-12">
-          <h1 className="titulo-gradiente text-[1.75rem] md:text-[2.5rem] font-normal leading-[120%] tracking-tighter">
-            As minhas mensagens
-          </h1>
-          <p className="text-sm text-[var(--foreground-muted)] mt-3 max-w-xl">
-            Conversas com compradores e vendedores, dentro do portal.
-          </p>
-        </header>
-
-        {loading && (
-          <div className="flex items-center justify-center py-24 text-[var(--foreground-muted)]">
-            <Loader2 size={18} className="animate-spin" />
-          </div>
-        )}
-
-        {!loading && erro && (
-          <div className="border border-red-400/30 p-8 text-center">
-            <AlertTriangle size={18} className="mx-auto text-red-400/70 mb-3" />
-            <p className="text-sm text-[var(--foreground-muted)]">{erro}</p>
-            <button
-              onClick={carregarConversas}
-              className="mt-5 rotulo-forte hover:text-[var(--foreground-strong)]/70 transition-colors"
-            >
-              Tentar novamente
-            </button>
-          </div>
-        )}
-
-        {!loading && !erro && conversas.length === 0 && (
-          <div className="cartao p-10 text-center">
-            <MessagesSquare size={22} className="mx-auto text-[var(--foreground-muted)] mb-4" />
-            <p className="text-sm text-[var(--foreground)]">Ainda não tem mensagens.</p>
-            <p className="text-xs text-[var(--foreground-muted)] mt-2 max-w-sm mx-auto">
-              Quando contactar um vendedor, ou alguém se interessar por um anúncio seu, a conversa
-              aparece aqui.
-            </p>
-            <LocalizedLink
-              href="/comprar"
-              className="inline-block mt-7 px-6 py-3 border border-[var(--border-soft)] rotulo-forte hover:bg-[var(--elevate-1)] transition-colors"
-            >
-              Ver cavalos à venda
-            </LocalizedLink>
-          </div>
-        )}
-
-        {!loading && !erro && conversas.length > 0 && (
-          <div className="space-y-px bg-[var(--elevate-1)]">
-            {conversas.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => abrir(c.id)}
-                className="w-full bg-[var(--background)] p-5 flex items-center gap-4 text-left hover:bg-[var(--elevate-1)] transition-colors"
-              >
-                <div className="relative w-14 h-14 shrink-0 bg-[var(--background-secondary)]/30">
-                  {c.cavaloFoto ? (
-                    <Image
-                      src={c.cavaloFoto}
-                      alt={c.cavaloNome}
-                      fill
-                      sizes="56px"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <ImageIcon size={14} className="text-[var(--foreground-muted)]" />
-                    </div>
-                  )}
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <p className="text-sm text-[var(--foreground)] truncate">{c.outraParte}</p>
-                    <span className="shrink-0 text-[11px] uppercase tracking-wider text-[var(--foreground-muted)]">
-                      {formatarData(c.ultimaMensagemAt)}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-[var(--foreground-muted)] truncate mt-0.5">
-                    {c.cavaloNome}
-                  </p>
-                  {c.ultimaMensagem && (
-                    <p className="text-xs text-[var(--foreground-muted)] truncate mt-1">
-                      {c.ultimaMensagem}
-                    </p>
-                  )}
-                </div>
-
-                {c.porLer > 0 && (
-                  <span className="shrink-0 min-w-[20px] h-5 px-1.5 flex items-center justify-center bg-[var(--foreground-strong)] text-black text-[10px] font-bold rounded-full">
-                    {c.porLer}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
