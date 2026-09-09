@@ -1023,6 +1023,78 @@ filtro**, o que fazia do caminho real o único que não beneficiava da correcç�
 vinte e nove em silêncio — um link partilhado entre as duas páginas mentia sem
 o dizer.
 
+### O cromado do `/mapa` — segunda passagem
+
+**O vidro do mapa é um só, e não é o `.vidro`.** Eram quatro receitas escritas à
+mão — pílula, fila de estado, gatilho e painel — com a mesma linha copiada em
+quatro sítios. A primeira leitura foi que deviam passar a `.vidro` com o botão
+do desfoque, como a `.mapa-dica` já faz; mediu-se antes de o fazer e a medição
+diz o contrário. Sobre a chapa clara com que os 68% foram medidos, o `.vidro`
+tirava um ponto e meio a **todas** as leituras: o chip inactivo caía de 4,46:1
+para 2,75, o nome da região de 11,09 para 6,65. A causa é o `--elevate-1` do
+`.chip`, branco a 4%, que assenta por cima do véu e levanta o chão local — os
+68% foram medidos para texto **directamente** sobre o véu, e aqui não é esse o
+caso. **Um número medido num contexto não é o mesmo número noutro.** Os 82%
+ficam; o que estava mesmo em falta eram as duas defesas obrigatórias, que estas
+quatro não tinham: medido com `prefers-reduced-transparency: reduce`, três das
+quatro continuavam translúcidas e com desfoque. Contra a intuição, tirar o
+desfoque quase não mexe no contraste (4,46 → 4,40) — desfocar uma chapa lisa não
+muda um pixel; o que o desfoque impede é que a estrutura do que está por baixo se
+leia como letras. Quem mexe no contraste é a defesa: com chão opaco o chip vai a
+6,72:1.
+
+**Um comando é para comandar o que está no ecrã.** A regra «sai quem deixa de ter
+o mapa por baixo» é a certa para a peça encostada ao fundo e quase sempre
+verdadeira para a encostada ao topo: basta um pixel de lona. Medido a 390×700,
+descendo os 832px do rolo, a lona a 0,49 da janela já perdera metade dos nomes e
+a pílula continuava pousada até aos 0,07, sem um único nome legível por baixo,
+durante quinhentos pixéis de rolo. Segunda condição, e o número sai da tabela e
+não de um gosto: **o cromado sai quando o mapa deixa de ser a maior parte do
+ecrã.** No computador nada muda — lá a lona nunca desce dos 0,60.
+
+**E o que apaga o cromado tem de apagar o atalho que aponta para ele.** O
+`data-tapada` é `visibility: hidden`, e o browser recusa-se a focar um alvo
+invisível: o atalho «Saltar o globo e ir às regiões» deixava o foco no `<body>` e
+a tabulação seguinte aterrava no rodapé do site — à letra o defeito que o atalho
+existe para evitar. Não era um estado, eram três: o aviso de cookies (toda a
+primeira visita), a página rolada até ao fundo, e uma pesquisa sem resultados,
+onde o alvo nem existe.
+
+**O globo não se desfaz para se trocar de vista.** Trocar para «Lista» e voltar
+era o motor 3D a nascer outra vez: cinco voltas intercaladas entre dois
+servidores, soma das tarefas longas por troca, **3799ms → 1379** no computador e
+**3283 → 1006** no telemóvel. O palco fica no documento com `hidden`, e é o
+`display: none` que faz o `IntersectionObserver` do próprio motor parar o ciclo —
+zero rAF em repouso nas três alturas. O que fica de fora do palco escondido é o
+cromado, senão há dois `<h1>` e dois `id="mapa-procura"`. E quem chega à lista
+não paga um globo: só se monta quando alguém o pede.
+
+**Um distintivo decide-se sobre o conjunto, não sobre o que sobrou do funil.** O
+selo «Destaque» calculava a proporção sobre os visíveis, com a justificação
+escrita de que «filtrar por uma região onde só uma é destaque faz o distintivo
+voltar». Medido: a proporção é 69% no total e **54–100% em cada uma das cinco
+regiões** — nenhuma o faz. E o conjunto mudava a cada tecla: a escrever «veiga»,
+`vei` acendia um selo e `veig` apagava-o. Enumerados os 4096 subconjuntos de uma
+colecção com esta proporção, **40 — um por cento — davam a resposta contrária à
+do conjunto todo**, e é a raridade que faz disto um defeito e não uma regra: um
+por cento é pouco de mais para se ler como sinal e muito para nunca se ver.
+**Antes de escrever «assim o distintivo volta quando distinguir», enumera os
+estados que a página pode mesmo alcançar e conta em quantos ele volta.**
+
+**Sem JavaScript o `/mapa` era um vazio com comandos mortos por cima.** A página
+renderiza — quem a revela é o `html:not(.js) div[hidden][id^="S:"]` —, e o que
+ficava no ecrã era uma caixa de pesquisa que não pesquisa, um interruptor que não
+troca, um gatilho que não abre e «Arraste para rodar» para um globo que não
+existe, com **zero ligações para uma coudelaria** no documento. As vinte e nove
+passam a estar lá dentro de um `<noscript>`, que é o preço certo: zero nós e zero
+paragens de tabulação para quem tem JavaScript, contra as 29 que uma lista
+`sr-only` custaria a toda a gente.
+
+**E uma afirmação minha que era falsa:** escrevi que a página não rola por cima
+da lona. Rola — seis dentes de roda no centro descem os 380px inteiros no
+computador, e um arrasto de dedo desce 185–225px no telemóvel. O que estava
+partido era a transição do cromado, não o deslocamento.
+
 ### A ordem por que se pergunta (`/vender-cavalo`)
 
 São **noventa e oito** campos no catálogo, dos quais **noventa** são exigidos —
