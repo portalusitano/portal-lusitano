@@ -225,6 +225,16 @@ function DirectorioInterior({
   // que dava o pior dos dois mundos: um link que não reproduzia o que se via
   // e, ao estreitar o filtro na página 3, um ecrã vazio.
   const filtros = useMemo(() => lerFiltros(searchParams), [searchParams]);
+  /* O endereço do mapa com o que está filtrado aqui. Só os dois eixos que a
+     outra página conhece: a actividade e a página não existem lá, e mandar
+     parâmetros que o destino ignora é prometer um filtro que ele não aplica. */
+  const caminhoDoMapa = useMemo(() => {
+    const p = new URLSearchParams();
+    if (filtros.search) p.set("q", filtros.search);
+    if (filtros.regiao) p.set("regiao", filtros.regiao);
+    const cauda = p.toString();
+    return cauda ? `/mapa?${cauda}` : "/mapa";
+  }, [filtros.search, filtros.regiao]);
 
   // A caixa de texto é o único controlo que não pode ler directamente do URL:
   // escrever uma entrada de histórico por tecla estragava o botão «anterior».
@@ -641,7 +651,15 @@ function DirectorioInterior({
                 {noMapa.length}
               </span>
             </button>
-            <LocalizedLink href="/mapa" className="btn btn-subtil btn-sm">
+            {/* **A ligação leva os filtros com ela.** Era um `/mapa` seco: quem
+                estivesse a ver três coudelarias do Alentejo carregava em «mapa
+                completo» e recebia as vinte e nove, sem um aviso. O módulo dos
+                sinónimos foi escrito porque «entre as duas páginas há links nos
+                dois sentidos» — e este, que é o link a sério que as pessoas
+                usam, era justamente o que não os aproveitava.
+                Escreve-se `q` e não `search` porque `q` é o nome canónico do
+                site e é o que o `/mapa` lê primeiro. */}
+            <LocalizedLink href={caminhoDoMapa} className="btn btn-subtil btn-sm">
               {t.directorio.map_full}
             </LocalizedLink>
           </div>

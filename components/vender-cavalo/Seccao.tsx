@@ -45,17 +45,27 @@ export default function Seccao({ titulo, total, feitos, nota, children }: Seccao
               medidas estão no `globals.css`, ao lado da classe. */}
           {nota && <p className="vc-nota mt-0.5">{nota}</p>}
         </div>
-        {/* `aria-label` porque «7 / 12» lido em voz alta é «sete barra doze».
+        {/* **Uma secção que não exige nada não escreve conta nenhuma.**
+            A conta é «quantas respostas esta secção pede e quantas já lá
+            estão», e onde não se pede nenhuma ela não tem o que dizer: escrevia
+            «0 / 0», que é pior do que o silêncio. É o caso da terceira geração
+            do pedigree, cujos oito campos são todos opcionais — quem lhes conta
+            a história é a nota do cabeçalho, que diz por palavras que se podem
+            deixar em branco.
+
+            `aria-label` porque «7 / 12» lido em voz alta é «sete barra doze».
             O texto que se vê fica curto; o que se ouve fica em português. */}
-        <p
-          className="seccao-campos__conta"
-          aria-label={`${feitos} de ${total} respondidos`}
-          data-completa={completa ? "sim" : "nao"}
-        >
-          <span className="tabular-nums">{feitos}</span>
-          <span aria-hidden="true"> / </span>
-          <span className="tabular-nums">{total}</span>
-        </p>
+        {total > 0 && (
+          <p
+            className="seccao-campos__conta"
+            aria-label={`${feitos} de ${total} respondidos`}
+            data-completa={completa ? "sim" : "nao"}
+          >
+            <span className="tabular-nums">{feitos}</span>
+            <span aria-hidden="true"> / </span>
+            <span className="tabular-nums">{total}</span>
+          </p>
+        )}
       </div>
       <div className="seccao-campos__corpo">{children}</div>
     </section>

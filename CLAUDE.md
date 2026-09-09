@@ -240,7 +240,10 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
      dos polígonos à vista.
    - **As sobras não ficam anónimas.** Nem todos os vinte e nove nomes cabem:
      em desktop escrevem-se catorze — eram treze antes de as etiquetas de par
-     encolherem a caixa —, em telemóvel oito. Os que sobram juntam-se
+     encolherem a caixa —, em telemóvel dez. (O número deste parágrafo esteve
+     em «oito» e o de baixo em «dez para nove»: dois números diferentes no mesmo
+     ficheiro, e nenhum certo. Medido em repouso, cookies aceites: **14 em 12 de
+     12 carregamentos** a 1400×950 e **9,90 de média em 10** a 390×700.) Os que sobram juntam-se
      em manchas com um algarismo, e apontar uma abre a lista de quem lá está.
      As manchas calculam-se **depois** da colocação e só apanham as sobras —
      nunca podem tirar o nome a ninguém. Agrupam no ecrã e não no terreno, e
@@ -835,9 +838,18 @@ a cor de base das entradas está numa utilidade no JSX.
 `position: sticky` prende ao contentor mais próximo, e o do `body` nunca se
 desloca. A ficha teve um `lg:sticky lg:top-28` letra morta: medido a 1400×950,
 a rolar 0→2400px o topo da coluna ia de 577 a −1823, pixel a pixel com o rolo.
-Custava **10 das 29 fichas com o contacto fora do ecrã em mais de metade do
-percurso de leitura**; corrigido, o contacto está no ecrã em 82,6% do percurso
-contra 58,9%. Quem corrige é `overflow-x: clip`, que é **mais** restritivo do
+**Os números que aqui estiveram não se reproduzem, e um deles é
+aritmeticamente impossível.** Dizia-se «10 das 29 fichas com o contacto fora do
+ecrã em mais de metade do percurso» e «82,6% contra 58,9%». Refeita a medição
+sobre as vinte e nove, 201 posições de rolo cada, com o mesmo A/B na mesma
+página: **83,4% contra 74,8%**, e **0 de 29** fichas com o contacto fora em mais
+de metade — nos dois braços. E o par não podia estar certo: o que a correcção
+compra é exactamente `curso` pixéis de rolo, logo o ganho em pontos percentuais
+é `curso ÷ maxScroll`. O curso medido nas vinte e nove vai de **0 a 302px**
+(oito fichas têm ≤ 39px e quatro têm zero), portanto 23,7 pontos exigiriam um
+documento de ≤ 2224px — e o próprio parágrafo fala de rolar 0→2400px, que
+implica um documento ≥ 3350px e um tecto de 12,6 pontos. Uma página mais alta só
+**encolhe** o ganho. O ganho é real e é pequeno. Quem corrige é `overflow-x: clip`, que é **mais** restritivo do
 que o `hidden` — nem por programa deixa deslocar — e não cria contentor. Está
 aplicado por página (`body:has(.fc-ficha)`) e não na origem, porque a regra é
 de todo o site e a troca lá merece a sua própria medição. **A lição vale para
@@ -1001,15 +1013,21 @@ de 1077 para 133ms, e a letra de 36 para 29ms de mediana.
 **O nome canónico da pesquisa é `q`**, porque é o que o `/mapa` já escreve e é
 o que está nas ligações já partilhadas. Cada página aceita o nome da outra como
 sinónimo de entrada e continua a escrever o seu, senão a mesma pesquisa passa a
-ter dois endereços. Antes disto, `/mapa?search=alter` devolvia as vinte e nove
+ter dois endereços. **Isto esteve escrito antes de ser verdade dos dois lados**:
+o `comSinonimos` existia só no mapa e `/directorio?q=alter` continuou a devolver
+as vinte e nove em silêncio até alguém ir medir. E faltava a outra metade, que é
+a que as pessoas usam: os dois links entre as páginas — «Mapa completo» no
+directório e «Ver lista» no mapa — eram endereços secos e **deitavam fora o
+filtro**, o que fazia do caminho real o único que não beneficiava da correcção. Antes disto, `/mapa?search=alter` devolvia as vinte e nove
 **e apagava o parâmetro do endereço**, e `/directorio?q=alter` devolvia as
 vinte e nove em silêncio — um link partilhado entre as duas páginas mentia sem
 o dizer.
 
 ### A ordem por que se pergunta (`/vender-cavalo`)
 
-São noventa e seis respostas e todas são obrigatórias — é uma decisão do dono,
-escrita no commit `63b9210`, e não se desfaz aqui. O que se decide aqui é
+São **noventa e oito** campos no catálogo, dos quais **noventa** são exigidos —
+oito passaram a opcionais por decisão do dono (ver mais abaixo). A regra de que
+o resto é todo obrigatório vem do commit `63b9210` e não se desfaz aqui. O que se decide aqui é
 **quando** se pergunta cada uma, e isso mede-se.
 
 **Primeiro o cavalo, depois a factura.** Das nove primeiras perguntas, seis
@@ -1033,9 +1051,27 @@ pontos», e um cavalo só a tem depois de ir a uma classificação — um poldro
 nunca foi, por definição. Quem não tivesse nenhuma inventava um número ou não
 publicava. É a mesma armadilha que as vinte e sete perguntas de sim/não
 existem para não repetir: obrigatório quer dizer **respondido**, e «não tem» é
-uma resposta. Um toque escreve «Não classificado». **Os oito números de
-registo de avós são o mesmo caso e continuam por resolver** — um Livro Azul
-nem sempre os imprime.
+uma resposta. Um toque escreve «Não classificado».
+
+**E a terceira geração foi pelo mesmo caminho, por decisão do dono.** São oito
+campos — **quatro nomes e quatro registos**, não «oito números de registo», que
+foi como aqui esteve escrito — e passaram a poder ficar em branco, porque um
+Livro Azul nem sempre imprime os avós e para quem não os tem «obrigatório»
+queria dizer não publicar ou inventar. Continuam desenhados e dizem
+`(opcional)` no rótulo: num formulário onde noventa perguntas levam asterisco, o
+silêncio lê-se como um asterisco esquecido, não como «podes saltar». A conta por
+passo passou de `[24, 46, 20, 5]` para `[24, 38, 20, 5]`, e a diferença de oito
+está travada por dois testes que se cobrem um ao outro — um exercita por
+exclusão, o outro afirma por inclusão.
+
+E obrigou a separar o que estava junto: a secção chamava-se «Avós, linhagem e
+coudelaria de origem» e a conta do cabeçalho dizia **«0 / 2» por cima de dez
+caixas**, porque só contava as duas que ainda são exigidas. Um número verdadeiro
+no sítio errado lê-se como um número errado. São duas secções, pela mesma regra
+que este formulário já tinha aplicado à facturação: um cabeçalho que precisa de
+um «e» para caber duas coisas está a dizer que ali estão duas secções. E **uma
+secção que não exige nada não escreve conta nenhuma** — escrevia «0 / 0», que é
+pior do que o silêncio; quem lhe conta a história é a nota do cabeçalho.
 
 **No passo que cobra, a tecla Enter não paga.** O `onSubmit` do formulário é
 um só e no passo 4 chama o checkout; medido, uma tecla Enter com a caixa dos

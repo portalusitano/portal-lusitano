@@ -454,7 +454,7 @@ export const CAMPOS: readonly CampoDoFormulario[] = [
     chave: "linhagem_principal",
     passo: 2,
     tipo: "escolha",
-    seccao: "avos",
+    seccao: "linhagem",
     nome: ["Linhagem principal", "Main lineage", "Linaje principal"],
   },
   {
@@ -462,7 +462,7 @@ export const CAMPOS: readonly CampoDoFormulario[] = [
     chave: "coudelaria_origem",
     passo: 2,
     tipo: "texto",
-    seccao: "avos",
+    seccao: "linhagem",
     nome: ["Coudelaria de origem", "Stud of origin", "Criadero de origen"],
   },
 

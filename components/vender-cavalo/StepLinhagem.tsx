@@ -188,11 +188,20 @@ export default function StepLinhagem(props: StepProps) {
           </div>
         </Seccao>
 
+        {/* **Eram três coisas debaixo de um cabeçalho com dois «e».** O
+            próprio formulário já tinha aprendido isto noutro sítio: «um
+            cabeçalho que precisa de um "e" para caber duas coisas está a dizer
+            que ali estão duas secções». Aqui eram três — avós, linhagem e
+            coudelaria de origem — e desde que a terceira geração passou a
+            opcional deixaram de seguir a mesma regra, o que torna a mistura
+            indefensável: a conta do cabeçalho dizia **«0 / 2» por cima de dez
+            caixas**, porque só contava as duas que ainda são exigidas. Um
+            número verdadeiro no sítio errado lê-se como um número errado. */}
         <Seccao
           titulo={tr(
-            "Avós, linhagem e coudelaria de origem",
-            "Grandparents, lineage and stud of origin",
-            "Abuelos, linaje y criadero de origen"
+            "Avós (terceira geração)",
+            "Grandparents (third generation)",
+            "Abuelos (tercera generación)"
           )}
           nota={tr(
             "A terceira geração está na mesma página do Livro Azul — e é a única parte do anúncio que se pode deixar em branco, porque nem todos os Livros Azuis a trazem.",
@@ -248,7 +257,21 @@ export default function StepLinhagem(props: StepProps) {
               </div>
             ))}
           </div>
+        </Seccao>
 
+        <Seccao
+          titulo={tr(
+            "Linhagem e coudelaria de origem",
+            "Lineage and stud of origin",
+            "Linaje y criadero de origen"
+          )}
+          nota={tr(
+            "As duas são obrigatórias, ao contrário dos avós.",
+            "Both are required, unlike the grandparents above.",
+            "Ambas son obligatorias, al contrario de los abuelos."
+          )}
+          {...conta("linhagem")}
+        >
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label

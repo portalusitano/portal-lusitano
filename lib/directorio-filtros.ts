@@ -98,7 +98,17 @@ export function lerFiltros(params: LeitorParams): FiltrosDirectorio {
       : 1;
 
   return {
-    search: texto(params.get("search")),
+    /* ── `q` é o nome que o `/mapa` escreve, e lê-se aqui como sinónimo ──
+       O nome canónico da pesquisa em todo o site é `q`, porque é o que o mapa
+       já escrevia e é o que está nas ligações que andam por aí. Este lado
+       continua a **escrever** `search`, para a mesma pesquisa não passar a ter
+       dois endereços, mas passa a **ler** os dois.
+       Sem isto, `/directorio?q=alter` devolvia as vinte e nove em silêncio:
+       um link copiado do mapa e colado aqui ignorava o filtro sem o dizer, que
+       é a pior maneira de uma página falhar — não há nada no ecrã a que
+       culpar. Foi assim medido, e é a metade que faltava do que o
+       `app/mapa/sinonimos.ts` já fazia do outro lado. */
+    search: texto(params.get("search") ?? params.get("q")),
     regiao: texto(params.get("regiao"), 60),
     actividade: lerActividade(params),
     ordenar,
