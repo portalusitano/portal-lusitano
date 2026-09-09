@@ -1,6 +1,8 @@
 import { memo } from "react";
 import LocalizedLink from "@/components/LocalizedLink";
 import { Heart, User, Plus, MessagesSquare } from "lucide-react";
+import Avatar from "@/components/perfil/Avatar";
+import { useRetratoProprio } from "@/components/perfil/useRetratoProprio";
 import { useHorseFavorites } from "@/context/HorseFavoritesContext";
 import { useMensagensPorLer } from "@/context/MensagensContext";
 import { BotaoIdioma } from "./BotaoIdioma";
@@ -35,6 +37,10 @@ export const NavIcons = memo(function NavIcons({
 }: NavIconsProps) {
   const { favoritesCount } = useHorseFavorites();
   const { porLer } = useMensagensPorLer();
+  /* Sem sessão isto é `null` e não custa um pedido: o `useRetratoProprio` lê
+     primeiro o `user_metadata` que o `AuthProvider` já tinha, e só pergunta à
+     rota quando há sessão e o retrato não vem por aí. */
+  const { perfil } = useRetratoProprio();
 
   return (
     <div className="flex items-center gap-2 md:gap-4">
@@ -87,13 +93,26 @@ export const NavIcons = memo(function NavIcons({
         </LocalizedLink>
       )}
 
-      {/* Conta */}
+      {/* Conta — com o retrato de quem tem sessão.
+          Aqui o retrato está **sozinho**, sem nome ao lado, e por isso leva
+          nome acessível a sério em vez de `alt=""`. Sem sessão fica o ícone
+          que sempre esteve: um disco com iniciais para quem não entrou não
+          identificaria ninguém. */}
       <LocalizedLink
         href="/minha-conta"
         className="hidden md:flex text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors p-2 min-w-[44px] min-h-[44px] items-center justify-center active:scale-95 touch-manipulation"
         aria-label={t.nav.my_account}
       >
-        <User size={20} strokeWidth={1.5} />
+        {perfil ? (
+          <Avatar
+            nome={perfil.nome}
+            src={perfil.avatarUrl}
+            tamanho="sm"
+            className="avatar--barra"
+          />
+        ) : (
+          <User size={20} strokeWidth={1.5} />
+        )}
       </LocalizedLink>
 
       {/* Publicar anúncio — a acção que sustenta o marketplace, por isso é o

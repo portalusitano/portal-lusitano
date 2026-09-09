@@ -5,6 +5,8 @@ import Image from "next/image";
 import { ArrowLeft, ArrowDown, Check, CheckCheck, Clock } from "lucide-react";
 import LocalizedLink from "@/components/LocalizedLink";
 import { useLanguage } from "@/context/LanguageContext";
+import Avatar from "@/components/perfil/Avatar";
+import { nomeParaRetrato, retratoDaOutraParte } from "@/components/perfil/outra-parte";
 import { LISTING_STATUS } from "@/lib/marketplace-listings";
 import { agruparFio, type ItemDoFio } from "./agrupar";
 import { estadoDaMensagem, type EstadoEntrega, type MensagemNoEcra } from "./tipos";
@@ -20,6 +22,14 @@ export interface ConversaAberta {
   cavaloFoto: string | null;
   cavaloPreco: number | null;
   cavaloStatus: string | null;
+  /**
+   * O retrato da outra parte, quando a camada de dados o trouxer.
+   *
+   * Opcional de propósito: a rota que o há-de servir está a ser feita do outro
+   * lado. Enquanto não vier, o `Avatar` desenha iniciais — que é o que
+   * desenharia de qualquer maneira a quem não tem fotografia.
+   */
+  outraParteAvatar?: string | null;
 }
 
 interface Props {
@@ -190,16 +200,29 @@ export default function Fio({
         )}
 
         <div className="chat-assunto">
-          {/* Sem fotografia não há fotografia — nem um rectângulo cinzento a
-              fingir uma. É a regra que o `CLAUDE.md` escreve para a ficha
-              rápida do globo, e a razão é a mesma: um rectângulo com um ícone
-              de imagem promete uma fotografia que não existe, e ocupa o lugar
-              dela em oito das trinta conversas do banco de ensaio. */}
-          {conversa.cavaloFoto && (
-            <div className="chat-assunto__foto">
-              <Image src={conversa.cavaloFoto} alt="" fill sizes="44px" className="object-cover" />
-            </div>
-          )}
+          {/* O retrato de quem está do outro lado, com a fotografia do anúncio
+              como selo ao canto — o mesmo par da linha da caixa de entrada, e
+              pela mesma razão: o assunto é o cavalo, mas quem está a falar é
+              uma pessoa. Sem fotografia não há rectângulo cinzento nem aqui
+              nem lá; há iniciais, ou o ícone quando nem nome há. */}
+          <span className="chat-retrato">
+            <Avatar
+              nome={nomeParaRetrato(conversa.outraParte)}
+              src={retratoDaOutraParte(conversa)}
+              tamanho="md"
+            />
+            {conversa.cavaloFoto && (
+              <span className="chat-retrato__anuncio">
+                <Image
+                  src={conversa.cavaloFoto}
+                  alt=""
+                  fill
+                  sizes="20px"
+                  className="object-cover"
+                />
+              </span>
+            )}
+          </span>
 
           <div className="min-w-0 flex-1">
             {/* `tabIndex={-1}` e `data-foco`: é aqui que o foco assenta ao
@@ -263,6 +286,8 @@ export default function Fio({
                   minha={item.minha}
                   mensagens={item.mensagens}
                   lingua={language}
+                  nomeDaOutraParte={nomeParaRetrato(conversa.outraParte)}
+                  retratoDaOutra={retratoDaOutraParte(conversa)}
                   onRepetir={onRepetir}
                   rotuloRepetir={t.chat.repetir}
                   rotulos={{
@@ -311,6 +336,8 @@ function BlocoDeFio({
   minha,
   mensagens,
   lingua,
+  nomeDaOutraParte,
+  retratoDaOutra,
   onRepetir,
   rotuloRepetir,
   rotulos,
@@ -318,6 +345,8 @@ function BlocoDeFio({
   minha: boolean;
   mensagens: MensagemNoEcra[];
   lingua: string;
+  nomeDaOutraParte: string | null;
+  retratoDaOutra: string | null;
   onRepetir: (id: string) => void;
   rotuloRepetir: string;
   rotulos: Record<EstadoEntrega, string>;
@@ -327,6 +356,21 @@ function BlocoDeFio({
 
   return (
     <div className="chat-bloco" data-minha={minha ? "sim" : "nao"}>
+      {/* O retrato só vai nos blocos da outra parte, e um por bloco.
+          Um em cada mensagem seria a mesma cara repetida seis vezes seguidas
+          num fio de quatrocentas — é ruído, não informação —, e nas minhas
+          não vai nenhum, porque quem está a ler já sabe quem escreveu aquilo.
+          É decoração: o nome está na cabeça do fio, e uma cara com o mesmo
+          nome ao lado faz um leitor de ecrã dizer duas vezes a mesma coisa. */}
+      {!minha && (
+        <Avatar
+          nome={nomeDaOutraParte}
+          src={retratoDaOutra}
+          tamanho="sm"
+          className="chat-bloco__retrato"
+        />
+      )}
+
       {mensagens.map((m) => (
         <p
           key={m.id}

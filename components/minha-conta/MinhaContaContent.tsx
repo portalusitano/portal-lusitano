@@ -16,6 +16,7 @@ import {
   BellRing,
   FileText,
 } from "lucide-react";
+import RetratoDaConta from "@/components/perfil/RetratoDaConta";
 import { useLanguage } from "@/context/LanguageContext";
 import { logout } from "@/app/minha-conta/actions";
 
@@ -170,8 +171,6 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
     });
   }, [visible]);
 
-  const initials =
-    [customer.firstName?.[0], customer.lastName?.[0]].filter(Boolean).join("").toUpperCase() || "M";
   // Juntava-se sem espaço: «AnaFerreira».
   const fullName = [customer.firstName, customer.lastName].filter(Boolean).join(" ") || "Membro";
   const memberSince = customer.createdAt
@@ -217,14 +216,14 @@ export default function MinhaContaContent({ customer }: { customer: Customer }) 
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
               {/* Avatar + name */}
               <div className="flex items-end gap-5 sm:gap-6">
-                {/* Avatar */}
-                <div className="relative flex-shrink-0">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[var(--foreground-strong)] flex items-center justify-center">
-                    <span className="text-xl sm:text-2xl font-bold text-black tracking-wider select-none">
-                      {initials}
-                    </span>
-                  </div>
-                </div>
+                {/* ── O retrato, e o comando que o troca ────────────────────
+                    Era um disco branco com iniciais calculadas aqui e uma
+                    escala própria — o quinto desenho da mesma coisa no site, e
+                    o único sem maneira de lá pôr uma fotografia. Passa a ser o
+                    `<Avatar>` do sistema, no degrau `lg`, com o editor atrás
+                    de um `next/dynamic`: quem entra na conta para ver os
+                    anúncios não descarrega o recorte. */}
+                <RetratoDaConta className="flex-shrink-0" />
 
                 {/* Name + editorial accent */}
                 <div className="relative pl-4">

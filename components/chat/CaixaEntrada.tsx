@@ -5,10 +5,12 @@ import { AlertTriangle, MessagesSquare } from "lucide-react";
 import LocalizedLink from "@/components/LocalizedLink";
 import { useLanguage } from "@/context/LanguageContext";
 import type { ChatConversa } from "@/lib/marketplace-chat";
+import Avatar from "@/components/perfil/Avatar";
+import { nomeParaRetrato, retratoDaOutraParte } from "@/components/perfil/outra-parte";
 import { quandoNaLista } from "./formatar";
 
 interface Props {
-  conversas: ChatConversa[];
+  conversas: (ChatConversa & { outraParteAvatar?: string | null })[];
   abertaId: string | null;
   aCarregar: boolean;
   erro: string | null;
@@ -116,14 +118,37 @@ export default function CaixaEntrada({
             aria-current={c.id === abertaId ? "true" : undefined}
             className="chat-linha"
           >
-            {/* Oito das trinta conversas do banco de ensaio são de anúncios
-                sem fotografia. Um rectângulo cinzento com um ícone promete uma
-                que não existe — a regra é a mesma da ficha rápida do globo. */}
-            {c.cavaloFoto && (
-              <span className="chat-assunto__foto">
-                <Image src={c.cavaloFoto} alt="" fill sizes="44px" className="object-cover" />
-              </span>
-            )}
+            {/* ── Quem escreveu, e não só sobre que cavalo ──────────────────
+                Medido antes, nas duas vistas: das trinta linhas, **zero**
+                mostravam seja o que for sobre a pessoa do outro lado — só o
+                anúncio. E o nome assentava em **duas abcissas**, 16px nas oito
+                linhas sem fotografia do anúncio e 72px nas vinte e duas com:
+                uma coluna de nomes com dois começos não é uma coluna.
+
+                O retrato resolve as duas de uma vez, porque está sempre lá.
+                Quem não tem fotografia leva iniciais, e quem nem nome tem —
+                seis das trinta — leva o ícone de pessoa: um rectângulo
+                cinzento a fingir uma fotografia é o que o `CLAUDE.md` proíbe
+                na ficha rápida do globo, e «CI» dentro de um disco seria pior,
+                porque as quatro conversas de «Comprador interessado» ficariam
+                com o mesmo carimbo.
+
+                A fotografia do anúncio não se perde: passa a um selo pequeno
+                ao canto do retrato, que é onde ela responde à pergunta que faz
+                — «de que cavalo é esta conversa?» — sem disputar o lugar de
+                quem a escreveu. */}
+            <span className="chat-retrato">
+              <Avatar
+                nome={nomeParaRetrato(c.outraParte)}
+                src={retratoDaOutraParte(c)}
+                tamanho="md"
+              />
+              {c.cavaloFoto && (
+                <span className="chat-retrato__anuncio">
+                  <Image src={c.cavaloFoto} alt="" fill sizes="20px" className="object-cover" />
+                </span>
+              )}
+            </span>
 
             <span className="min-w-0 flex-1">
               <span className="flex items-baseline justify-between gap-3">
