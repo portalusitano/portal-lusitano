@@ -42,6 +42,7 @@ import {
 } from "@/lib/mapa-coudelarias";
 import { capaDoCartao, iniciaisDe } from "@/lib/directorio-capas";
 import { comSinonimos } from "@/app/mapa/sinonimos";
+import { destaqueDistingue } from "@/app/mapa/destaque";
 /* ── As mesmas duas regras que as etiquetas do globo usam ─────────────────
    Não é um empréstimo ao motor 3D: o módulo diz de si próprio que são «regras
    sobre os dados e não sobre o desenho», e a lista mostra os mesmos vinte e
@@ -184,39 +185,6 @@ const LinhaCoudelaria = memo(function LinhaCoudelaria({
   );
 });
 
-/**
- * Um distintivo que está em quase todos não distingue nada — e por isso não
- * se escreve.
- *
- * Isto já tinha sido meio corrigido: o «Destaque» era `.selo-destaque`, o
- * dourado, e passou a `.selo-forte`, branco, porque vinte das vinte e nove
- * coudelarias o traziam e sessenta e nove por cento de uma grelha vestida com
- * o acento é o acento a deixar de assinalar seja o que for.
- *
- * **Mudar a cor não chegou, e não podia chegar.** O problema nunca foi o
- * dourado: era um rótulo que quase toda a gente tem. Um branco em vinte e nove
- * cartões de vinte e nove continua a ocupar o canto superior esquerdo de cada
- * fotografia — o sítio de mais valor do cartão — para dizer uma coisa que não
- * separa nenhum deles dos outros. O dono do produto viu-o em produção e disse
- * exactamente isso: «está tudo em destaque e não pode estar».
- *
- * A regra passa a ser sobre o **conjunto que está no ecrã**, e não sobre a
- * linha: o distintivo escreve-se enquanto for de uma minoria — **até um quarto
- * do que se vê** — e cala-se acima disso. Um quarto e não metade porque o que
- * está em metade de uma grelha não é um destaque, é um estado por omissão com
- * outro nome.
- *
- * É deliberadamente uma decisão de apresentação e não de dados: a coluna
- * `destaque` continua a valer o que vale, a ordenação continua a usá-la, e no
- * dia em que ela voltar a marcar poucos o distintivo reaparece sozinho. Também
- * se recalcula com o filtro — filtrar por uma região onde só uma é destaque faz
- * o distintivo voltar, e está certo que volte: ali ele distingue.
- */
-function destaqueDistingue(coudelarias: readonly { destaque: boolean }[]): boolean {
-  const comDestaque = coudelarias.reduce((n, c) => n + (c.destaque ? 1 : 0), 0);
-  return comDestaque > 0 && comDestaque * 4 <= coudelarias.length;
-}
-
 /* ── Cartão da grelha ────────────────────────────────────────────────────
    Duas mudanças, e as duas por regras que já existiam.
 
@@ -357,11 +325,17 @@ const NaoCarregou = memo(function NaoCarregou({
   dica,
   tentarLabel,
   directorioLabel,
+  paraODirectorio,
+  paraOMapa,
 }: {
   titulo: string;
   dica: string;
   tentarLabel: string;
   directorioLabel: string;
+  /** O directório com os filtros que estavam acesos aqui — ver `paraODirectorio`. */
+  paraODirectorio: string;
+  /** `/mapa` na língua em que se está. Recarregar não pode mudar de idioma. */
+  paraOMapa: string;
 }) {
   return (
     <div className="cartao-seco mapa-falha">
@@ -379,13 +353,19 @@ const NaoCarregou = memo(function NaoCarregou({
               fica ao lado, de contorno. Estavam os dois em segundo plano, um
               de contorno e outro subtil, num ecrã que só tem estas duas
               saídas. */}
-          <LocalizedLink href="/directorio" className="btn btn-primario btn-sm">
+          {/* Com os filtros que estavam acesos: quem procurava «alter» quando a
+              base falhou não tem de os escrever outra vez do outro lado. */}
+          <LocalizedLink href={paraODirectorio} className="btn btn-primario btn-sm">
             {directorioLabel}
           </LocalizedLink>
           {/* Recarregar a página é o que resolve isto, e é por isso que o botão
               existe em vez de um `reset()` de fronteira de erro: a falha está no
-              servidor, não numa árvore de React que se possa voltar a montar. */}
-          <a href="/mapa" className="btn btn-secundario btn-sm">
+              servidor, não numa árvore de React que se possa voltar a montar.
+              Continua a ser um `<a>` — o que se quer é a ida ao servidor — mas
+              com o caminho da língua em que se está: escrito `/mapa` seco,
+              «tentar outra vez» em `/en/mapa` mandava para a versão
+              portuguesa. */}
+          <a href={paraOMapa} className="btn btn-secundario btn-sm">
             {tentarLabel}
           </a>
         </div>
@@ -571,8 +551,10 @@ export default function MapaClient({
     () => filtrar(coudelarias, { procura: procuraFiltro, regiao }),
     [coudelarias, procuraFiltro, regiao]
   );
-  /* Recalcula-se com o filtro de propósito — ver `destaqueDistingue`. */
-  const destaqueVale = useMemo(() => destaqueDistingue(visiveis), [visiveis]);
+  /* Sobre o conjunto todo e não sobre o que sobrou do funil — a razão, com
+     os números que a mudaram, está em `app/mapa/destaque.ts`. Era `visiveis`,
+     e com isso o distintivo só aparecia a meio de uma palavra escrita. */
+  const destaqueVale = useMemo(() => destaqueDistingue(coudelarias), [coudelarias]);
   const regioes = useMemo(() => contarPorRegiao(coudelarias, porTexto), [coudelarias, porTexto]);
   /* A régua das barras de quota. `contarPorRegiao` devolve da maior para a
      menor, por isso a maior é a primeira — e é ela que vale 100%. */
@@ -628,10 +610,18 @@ export default function MapaClient({
      a montar o globo a cada tecla. */
   useEffect(() => {
     const busca = consultaDoMapa({ procura, regiao, vista: viewMode });
+    /* A âncora vai junto. Sem ela, `/mapa?q=veiga#topo` ficava
+       `/mapa?q=veiga` no primeiro render — este efeito monta o endereço de
+       raiz e o `hash` não entrava na conta —, e o que se perdia não era um
+       enfeite: é o `#` que o `scroll-behavior: smooth` e o
+       `scroll-padding-top` do site usam, e é o que fica no que se copia da
+       barra. Reescrever o endereço é actualizar o que mudou, não apagar o que
+       ninguém tocou. */
+    const ancora = window.location.hash;
     window.history.replaceState(
       null,
       "",
-      busca ? `${window.location.pathname}?${busca}` : window.location.pathname
+      (busca ? `${window.location.pathname}?${busca}` : window.location.pathname) + ancora
     );
   }, [procura, regiao, viewMode]);
 
@@ -1032,6 +1022,44 @@ export default function MapaClient({
     };
   }, [viewMode, falhou, regioesAbertas]);
 
+  /* ── O link para o directório leva os filtros com ele ──────────────────
+     Era um `/directorio` seco. Quem estivesse a ver as treze do Alentejo, ou
+     a procurar «veiga», e carregasse na saída para o directório recebia as
+     vinte e nove — sem um aviso, que é a pior maneira de uma página falhar,
+     porque não há nada no ecrã a que culpar. É a metade que faltava do que o
+     `app/mapa/sinonimos.ts` já explicava: «entre as duas páginas há links nos
+     dois sentidos», e eram justamente esses links que não os aproveitavam. O
+     lado de lá já leva `q` e `regiao` para cá.
+
+     Escreve-se `search` e não `q` porque `search` é o nome que o **destino**
+     escreve na sua própria barra de endereço; mandar `q` funciona (o
+     directório lê os dois) mas fá-lo reescrever o endereço à chegada, e um
+     endereço que muda de forma sozinho é um endereço que não se copia. Cada
+     lado escreve o nome de quem recebe.
+
+     Só estes dois eixos, e pela mesma razão que o outro lado dá: a vista e a
+     página não existem no directório, e mandar um parâmetro que o destino
+     ignora é prometer um filtro que ele não aplica. */
+  const paraODirectorio = useMemo(() => {
+    const p = new URLSearchParams();
+    if (procuraFiltro.trim()) p.set("search", procuraFiltro.trim());
+    if (regiao) p.set("regiao", regiao);
+    const cauda = p.toString();
+    return cauda ? `/directorio?${cauda}` : "/directorio";
+  }, [procuraFiltro, regiao]);
+
+  /* `/mapa` na língua em que se está: recarregar não pode mudar de idioma. */
+  const paraOMapa = useMemo(() => {
+    const d = localizeHref("/mapa", language);
+    return typeof d === "string" ? d : "/mapa";
+  }, [language]);
+
+  /* O painel das regiões só está alcançável quando existe no documento **e**
+     está visível. As condições são as mesmas que o desenham e as que o
+     apagam; quem as lê é o atalho de teclado, mais abaixo. */
+  const regioesAlcancaveis =
+    !falhou && visiveis.length > 0 && !rodapeFora && !rodapeTapada && !mapaMinoritario;
+
   const contagem = `${formatarNumero(visiveis.length, language)} ${
     visiveis.length === 1 ? t.mapa.result_one : t.mapa.results
   }`;
@@ -1051,6 +1079,8 @@ export default function MapaClient({
       dica={t.mapa.offline_hint}
       tentarLabel={t.mapa.offline_retry}
       directorioLabel={t.mapa.all_studs}
+      paraODirectorio={paraODirectorio}
+      paraOMapa={paraOMapa}
     />
   ) : (
     <SemResultados
@@ -1408,10 +1438,42 @@ export default function MapaClient({
             nomes e das manchas — que são conteúdo, e não se tiram. Quem quer
             filtrar por região não pode ter de os atravessar todos. Com a base
             em baixo o painel não existe, e um atalho para um sítio vazio é
-            uma promessa falha: sai do caminho também. */}
+            uma promessa falha: sai do caminho também.
+
+            ── E a condição tinha de acompanhar todas as maneiras de o painel
+               deixar de estar alcançável, não só uma ────────────────────────
+            A frase acima estava escrita e só cobria o `falhou`. Entretanto o
+            painel ganhou mais três maneiras de sair do ecrã, e as três deixam
+            o `#mapa-regioes` sem foco possível — o `[data-fora]` e o
+            `[data-tapada]` são `visibility: hidden`, e o browser recusa-se a
+            focar um alvo invisível. Medido a 1400×950, carregando em Enter no
+            atalho e vendo onde o foco fica e para onde vai a tabulação
+            seguinte:
+
+              cookies aceites          → #mapa-regioes, e a seguir o gatilho ✓
+              cookies por responder    → foco no `<body>`, e a seguir
+                                         «Encontrar cavalo», no rodapé do site
+              rolado até ao fundo      → o mesmo
+              `?q=xpto` (zero à vista) → o alvo nem sequer existe no documento
+
+            São três estados, e o primeiro é **toda a primeira visita**: o
+            aviso de cookies tapa o gatilho a cem por cento e o cromado
+            apaga-se por baixo dele, de propósito. É à letra o defeito que este
+            atalho existe para evitar — a tabulação a sair do conteúdo e a
+            aterrar no rodapé do site —, e quem o causou foi a correcção que
+            apaga o cromado: apagou a peça e deixou de pé o atalho que aponta
+            para ela.
+
+            Quem desaparece é o atalho e não o painel, e a razão está na linha
+            de cima: enquanto o aviso lá está, o painel **não se pode usar** —
+            está tapado a cem por cento e o clique é do aviso. Um atalho para
+            um sítio que não se pode usar não é acessibilidade, é uma
+            armadilha, e a armadilha custa mais a quem só tem teclado. O aviso
+            é a primeira coisa na ordem de tabulação de uma primeira visita;
+            respondido, o cromado volta e o atalho com ele. */}
           <a
             href="#mapa-regioes"
-            hidden={falhou}
+            hidden={!regioesAlcancaveis}
             className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[10001] focus:bg-[var(--foreground-strong)] focus:px-6 focus:py-3 focus:text-sm focus:font-bold focus:uppercase focus:tracking-wider focus:text-black"
           >
             {t.mapa.skip_to_regions}
@@ -1478,7 +1540,7 @@ export default function MapaClient({
                 </li>
               ))}
             </ul>
-            <LocalizedLink href="/directorio" className="btn btn-primario btn-sm">
+            <LocalizedLink href={paraODirectorio} className="btn btn-primario btn-sm">
               {t.mapa.all_studs}
             </LocalizedLink>
           </div>
