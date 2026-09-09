@@ -448,6 +448,68 @@ sempre à classe. Fora da camada, o `padding` do `.campo` calava o `pl-11`.
      ouvinte não passivo só passa a existir depois de alguém pegar — quem nunca
      pegou continua com zero, que é o que este ficheiro exige desde o Lenis.
 
+   - **Um contexto perdido volta, e se não voltar refaz-se a cena.** É a causa
+     do ecrã preto que o dono do produto via no telefone. Reproduzida de duas
+     maneiras realistas a 390×700 — vinte lonas WebGL na mesma página (o tecto
+     dos dezasseis do Chrome) e a perda com o separador escondido —, e nas
+     duas o browser manda `webglcontextlost` **e mais nada, nem ao fim de seis
+     segundos**: o `webglcontextrestored` só chega se alguém chamar o
+     `restoreContext()`, e nenhum browser o chama sozinho. O código esperava
+     por esse evento e a cena montava uma vez por vida do componente, logo um
+     contexto que não voltasse não voltava nunca. O que se via: planeta preto,
+     sete nomes a flutuar com os fios a apontar alfinetes que já não existem, e
+     «VISTA 3D SUSPENSA» escrito **por cima** de «3 coudelarias» — os dois
+     textos ilegíveis ao mesmo tempo.
+
+     Três metades, e nenhuma chega sozinha: espera-se pela reposição do browser
+     e, se não vier, **refaz-se a cena** — nunca num separador escondido ou fora
+     do ecrã, três tentativas, com a conta a recomeçar ao fim de um minuto de
+     vida sã; a caixa inteira — lona, nomes e comandos — **apaga-se junta**, em
+     vez de a mensagem escrever por cima dos nomes; e leva `inert` enquanto não
+     há cena, porque **vinte e sete ligações invisíveis e focáveis** é uma
+     armadilha para quem só tem teclado. Medido em quatro cenários: a vista
+     volta em todos, com uma lona e um contexto vivo, 29/29, zero
+     sobreposições, zero rAF em repouso, e zero ligações invisíveis focáveis. À
+     quarta perda seguida desiste, e a frase passa a dizer a verdade.
+
+   - **O `ResizeObserver` não refaz o mundo para uma caixa do mesmo tamanho.**
+     Com o palco escondido, ele disparava com a largura a zero — que o `|| 1`
+     transformava em um — e corria a cadeia toda: `setSize`, `alturaParaCaber`,
+     `prender`, `colocarCamara`, `reagrupar`, `pedirEstorvos`. Ao reaparecer
+     corria tudo outra vez. A guarda é de assinatura, e o padrão já estava no
+     ficheiro (o `medidaDaPrisao` do `verSePrende`): se a medida for a mesma,
+     sai à cabeça; e uma medida degenerada não descreve caixa nenhuma. Medido
+     em A/B intercalado sobre Mapa→Lista→Mapa: **4332 → 824ms** a 1400×950 e
+     **3146 → 530ms** a 390×700. Rodar o ecrã continua a refazer o
+     enquadramento, que é o que ele existe para fazer.
+
+   - **A segunda linha da etiqueta ficou legível, e quem conta é a cor.**
+     «Beja» sobre o Alentejo ao sol media 2,05:1 e via-se a olho numa
+     fotografia do telefone. Medido: **47 de 47 abaixo de 4,5:1 → 0 de 70**,
+     com o pior caso a passar de 2,03 para 4,53. E fica escrito o que **não**
+     comprou nada: reforçar só a sombra leva o pior caso de 2,03 a 2,30 — cem
+     por cento continuam abaixo do mínimo. Uma sombra espalha luz, não muda a
+     tinta.
+
+   - **Duas coisas que se mediram, não compraram nada e foram revertidas.**
+     Arrancar a entrada no `revelar` (a viagem corre inteira atrás de uma caixa
+     a `opacity: 0` — zero de nove quadros com imagem) baixa o percurso das
+     setas para 27–29 em 32, porque a cascata de nascimento conta o atraso
+     desde que o nó entra no DOM e tem `fill-mode: backwards`. E pôr uma
+     transição no realce do alfinete — apontar um nome desenha **um quadro**,
+     logo o ponto comuta enquanto o nome transita — custa o mesmo percurso.
+     As duas estão escritas no ficheiro com a assinatura exacta, para não serem
+     tentadas outra vez às cegas.
+
+   - **E a lição de método que mais vale desta passagem: medir em sequência,
+     numa máquina com carga, disfarça-se de regressão.** O percurso das setas
+     media 30,5 contra 31,5 e parecia ter piorado; em A/B **intercalado**, com
+     os dois builds servidos ao mesmo tempo, deu igual ou melhor em 8 de 8
+     pares. O mesmo com os discos «1»: sequencial dava 0,75 contra 0,25,
+     intercalado dá **0,00 contra 0,11 em nove cargas**. Quando a diferença que
+     se procura é da ordem da variância da máquina, a ordem das medições **é**
+     a medição.
+
    - **Uma excepção sem camada**, e a razão: a regra global
      `button:not([role="switch"]) { min-height: 44px }` esticava a caixa de
      cada nome de 28 para 44px em telemóvel — e a caixa do nome _é_ a caixa do
