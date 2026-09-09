@@ -6,7 +6,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import Avatar from "./Avatar";
 import { ACEITA, validarDimensoes, validarFicheiro, type CodigoDeRecusa } from "./ficheiro";
 import { abrirFotografia, recortarParaBlob, type Fase, type FotografiaAberta } from "./desenhar";
-import { apagarAvatar, gravarAvatar, ErroDePerfil, type Perfil } from "./api";
+import { apagarFotografia, gravarFotografia, ErroDePerfil, type Perfil } from "./api";
 import {
   deslocar,
   limitarEnquadramento,
@@ -139,7 +139,7 @@ export default function EditorAvatar({ perfil, nomeParaIniciais, onFechar, onGra
         setEstado((e) => (e.passo === "a-gravar" ? { ...e, fase } : e))
       );
       setEstado({ passo: "a-gravar", fase: "a-enviar", fraccao: 0 });
-      const novo = await gravarAvatar(blob, {
+      const novo = await gravarFotografia(blob, {
         aoProgredir: (f) => setEstado((e) => (e.passo === "a-gravar" ? { ...e, fraccao: f } : e)),
       });
       foto.largar();
@@ -156,7 +156,7 @@ export default function EditorAvatar({ perfil, nomeParaIniciais, onFechar, onGra
     setErro(null);
     setAApagar(true);
     try {
-      const novo = await apagarAvatar();
+      const novo = await apagarFotografia();
       esquecerPerfil(novo);
       onGravado(novo);
       onFechar();
@@ -334,7 +334,7 @@ export default function EditorAvatar({ perfil, nomeParaIniciais, onFechar, onGra
           <div className="flex items-center gap-4">
             <Avatar
               nome={nomeParaIniciais}
-              src={perfil?.avatarUrl ?? null}
+              src={perfil?.fotografia ?? null}
               tamanho="xl"
               rotulo={tp.retrato_actual}
             />
@@ -344,7 +344,7 @@ export default function EditorAvatar({ perfil, nomeParaIniciais, onFechar, onGra
                   mantém-no na ordem de tabulação e no alcance do Enter. */}
               <label className="btn btn-secundario btn-sm cursor-pointer">
                 <Upload size={14} aria-hidden="true" />
-                {perfil?.avatarUrl ? tp.trocar : tp.escolher}
+                {perfil?.fotografia ? tp.trocar : tp.escolher}
                 <input
                   type="file"
                   accept={ACEITA}
@@ -357,7 +357,7 @@ export default function EditorAvatar({ perfil, nomeParaIniciais, onFechar, onGra
                 />
               </label>
 
-              {perfil?.avatarUrl && (
+              {perfil?.fotografia && (
                 <button
                   type="button"
                   onClick={apagar}

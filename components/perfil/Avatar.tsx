@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { User } from "lucide-react";
 import { iniciaisDe } from "./iniciais";
@@ -70,6 +71,35 @@ interface Props {
 }
 
 export default function Avatar({ nome, src, tamanho = "md", rotulo, className }: Props) {
+  /**
+   * ── Uma fotografia que não carrega volta a ser iniciais ─────────────────
+   *
+   * Sem isto, um `src` que falha deixa a caixa **vazia**: um disco escuro do
+   * tamanho de uma cara, sem nada lá dentro, e as iniciais — que existem
+   * exactamente para este momento — nunca chegam a ser desenhadas, porque o
+   * ramo delas só corre quando não há `src`.
+   *
+   * Apanhado no ecrã, medido: quatro das oito primeiras linhas da caixa de
+   * entrada com `naturalWidth` a zero e um disco vazio no lugar do retrato.
+   * Ali a causa era do banco de ensaio, mas as causas em produção não faltam e
+   * nenhuma delas é rara — um ficheiro apagado, o balde fora do ar, um
+   * endereço que o `remotePatterns` do `next.config` não conhece (esse
+   * devolve **400** e não uma imagem), ou simplesmente estar sem rede a meio
+   * do carregamento.
+   *
+   * Um disco vazio não é um estado que este componente saiba dizer. Ele sabe
+   * dizer três coisas — uma cara, umas iniciais, ou um ícone de pessoa —, e
+   * quando a primeira não vem a resposta certa é a segunda, que é a mesma que
+   * se daria a quem nunca pôs fotografia.
+   *
+   * Guarda-se **qual** o endereço que falhou, e não um sim/não. Assim, quem
+   * acaba de trocar a fotografia tem a nova tentada de graça — a comparação
+   * deixa de bater — sem um efeito a repor estado, que é uma renderização em
+   * cascata a pagar por uma coisa que a própria comparação já diz.
+   */
+  const [srcFalhado, setSrcFalhado] = useState<string | null>(null);
+  const falhou = !!src && srcFalhado === src;
+
   const iniciais = iniciaisDe(nome);
   const decorativo = !rotulo;
   const lado = PIXEIS[tamanho];
@@ -87,7 +117,7 @@ export default function Avatar({ nome, src, tamanho = "md", rotulo, className }:
       className={className ? `avatar ${className}` : "avatar"}
       {...acessibilidade}
     >
-      {src ? (
+      {src && !falhou ? (
         /* `alt=""` sempre: o nome acessível, quando é preciso, está no
            invólucro. Duas fontes de nome no mesmo sítio é o defeito que este
            componente existe para não repetir em cinco sítios. */
@@ -98,6 +128,7 @@ export default function Avatar({ nome, src, tamanho = "md", rotulo, className }:
           height={lado}
           sizes={`${lado}px`}
           className="avatar__foto"
+          onError={() => setSrcFalhado(src)}
         />
       ) : iniciais ? (
         <span className="avatar__iniciais">{iniciais}</span>

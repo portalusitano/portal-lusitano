@@ -27,13 +27,32 @@
  * pediu alguma coisa e tem de saber se resultou.
  */
 
+/**
+ * ── Uma palavra só, do lado do cano ──────────────────────────────────────
+ *
+ * Este ficheiro foi escrito para rotas que ainda não existiam, e escolheu
+ * `avatar`; do outro lado escolheu-se `fotografia`. Nenhuma das metades estava
+ * errada e nenhuma delas partiu: o `tsc` ficou verde, porque tudo isto se lê
+ * com cuidado — a chave é opcional, um 404 é silêncio, e o ecrã sabe desenhar
+ * a ausência. O que dava era **iniciais para sempre**, em toda a gente, sem um
+ * erro em lado nenhum.
+ *
+ * Ganha o `fotografia`, e não por gosto: é a palavra que o
+ * `lib/perfil/contrato` e o `lib/chat/vista-publica` fixaram **por teste**,
+ * com a razão de segurança escrita ao lado — e uma lista de chaves que existe
+ * para nenhum contacto escapar não se reescreve por conveniência de quem a
+ * consome. É também a palavra da casa: `foto_capa`, `foto_principal`.
+ *
+ * O `Avatar` continua a chamar-se `Avatar` do lado do desenho, que é o nome
+ * certo para o círculo no ecrã. O que tem de ser uma palavra só é o **cano**.
+ */
 export interface Perfil {
   nome: string | null;
-  avatarUrl: string | null;
+  fotografia: string | null;
 }
 
 export const ROTA_PERFIL = "/api/perfil";
-export const ROTA_AVATAR = "/api/perfil/avatar";
+export const ROTA_FOTOGRAFIA = "/api/perfil/fotografia";
 
 /** O erro que se mostra, já com um código que o ecrã traduz. */
 export class ErroDePerfil extends Error {
@@ -51,7 +70,7 @@ function perfilDaResposta(dados: unknown): Perfil {
   const o = (p ?? {}) as Record<string, unknown>;
   return {
     nome: typeof o.nome === "string" ? o.nome : null,
-    avatarUrl: typeof o.avatarUrl === "string" ? o.avatarUrl : null,
+    fotografia: typeof o.fotografia === "string" ? o.fotografia : null,
   };
 }
 
@@ -89,13 +108,13 @@ function erroDaResposta(res: Response): ErroDePerfil {
  * para um botão parado durante segundos. Um `upload.onprogress` custa vinte
  * linhas e é a diferença entre «está a acontecer» e «isto bloqueou».
  */
-export function gravarAvatar(
+export function gravarFotografia(
   ficheiro: Blob,
   opcoes: { aoProgredir?: (fraccao: number) => void; sinal?: AbortSignal } = {}
 ): Promise<Perfil> {
   return new Promise((resolver, rejeitar) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", ROTA_AVATAR);
+    xhr.open("POST", ROTA_FOTOGRAFIA);
     xhr.responseType = "json";
 
     xhr.upload.onprogress = (e) => {
@@ -118,16 +137,16 @@ export function gravarAvatar(
     opcoes.sinal?.addEventListener("abort", () => xhr.abort(), { once: true });
 
     const corpo = new FormData();
-    corpo.append("avatar", ficheiro, "avatar.webp");
+    corpo.append("fotografia", ficheiro, "fotografia.webp");
     xhr.send(corpo);
   });
 }
 
 /** Apagar o retrato. Devolve o perfil como ficou. */
-export async function apagarAvatar(): Promise<Perfil> {
+export async function apagarFotografia(): Promise<Perfil> {
   let res: Response;
   try {
-    res = await fetch(ROTA_AVATAR, { method: "DELETE" });
+    res = await fetch(ROTA_FOTOGRAFIA, { method: "DELETE" });
   } catch {
     throw new ErroDePerfil("rede");
   }

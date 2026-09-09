@@ -42,7 +42,7 @@ export default function RetratoDaConta({ className }: { className?: string }) {
   return (
     <div className={className}>
       <div className="flex items-center gap-4">
-        <Avatar nome={nome} src={perfil?.avatarUrl ?? null} tamanho="lg" />
+        <Avatar nome={nome} src={perfil?.fotografia ?? null} tamanho="lg" />
         <button
           type="button"
           onClick={() => setAberto((a) => !a)}
@@ -50,7 +50,7 @@ export default function RetratoDaConta({ className }: { className?: string }) {
           className="btn btn-secundario btn-sm"
         >
           <Camera size={14} aria-hidden="true" />
-          {perfil?.avatarUrl ? t.perfil.trocar : t.perfil.escolher}
+          {perfil?.fotografia ? t.perfil.trocar : t.perfil.escolher}
         </button>
       </div>
 

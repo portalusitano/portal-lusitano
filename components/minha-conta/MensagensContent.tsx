@@ -17,7 +17,7 @@ import { useEstorvoDeBaixo } from "@/components/chat/estorvos";
 
 /** Uma conversa como a caixa a mostra: a da API mais o retrato da outra
  *  parte, que a camada de dados ainda não serve. Ver `components/perfil`. */
-type ConversaNaCaixa = ChatConversa & { outraParteAvatar?: string | null };
+type ConversaNaCaixa = ChatConversa & { outraParteFoto?: string | null };
 
 /**
  * A página das mensagens: a caixa de entrada e o fio.
@@ -116,7 +116,7 @@ export default function MensagensContent() {
         cavaloFoto: c.cavaloFoto,
         cavaloPreco: c.cavaloPreco,
         cavaloStatus: null,
-        outraParteAvatar: c.outraParteAvatar ?? null,
+        outraParteFoto: c.outraParteFoto ?? null,
       });
       setMensagens([]);
       setRascunho(lerRascunho(c.id));

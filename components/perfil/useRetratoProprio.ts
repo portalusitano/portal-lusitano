@@ -50,7 +50,7 @@ function retratoDaSessao(metadata: Record<string, unknown> | undefined): Perfil 
   const url = metadata.avatar_url;
   const nome = metadata.full_name;
   if (typeof url !== "string" || url.length === 0) return null;
-  return { avatarUrl: url, nome: typeof nome === "string" ? nome : null };
+  return { fotografia: url, nome: typeof nome === "string" ? nome : null };
 }
 
 export function useRetratoProprio(): { perfil: Perfil | null; recarregar: () => void } {

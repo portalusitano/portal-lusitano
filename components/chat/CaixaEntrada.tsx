@@ -10,7 +10,7 @@ import { nomeParaRetrato, retratoDaOutraParte } from "@/components/perfil/outra-
 import { quandoNaLista } from "./formatar";
 
 interface Props {
-  conversas: (ChatConversa & { outraParteAvatar?: string | null })[];
+  conversas: (ChatConversa & { outraParteFoto?: string | null })[];
   abertaId: string | null;
   aCarregar: boolean;
   erro: string | null;

@@ -33,8 +33,8 @@ export function nomeParaRetrato(outraParte: string | null | undefined): string |
  * qualquer maneira. No dia em que vier, não há uma linha de interface para
  * mudar.
  */
-export function retratoDaOutraParte(c: { outraParteAvatar?: string | null }): string | null {
-  return typeof c.outraParteAvatar === "string" && c.outraParteAvatar.length > 0
-    ? c.outraParteAvatar
+export function retratoDaOutraParte(c: { outraParteFoto?: string | null }): string | null {
+  return typeof c.outraParteFoto === "string" && c.outraParteFoto.length > 0
+    ? c.outraParteFoto
     : null;
 }

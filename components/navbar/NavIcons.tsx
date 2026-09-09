@@ -106,7 +106,7 @@ export const NavIcons = memo(function NavIcons({
         {perfil ? (
           <Avatar
             nome={perfil.nome}
-            src={perfil.avatarUrl}
+            src={perfil.fotografia}
             tamanho="sm"
             className="avatar--barra"
           />

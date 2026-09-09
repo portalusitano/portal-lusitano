@@ -29,7 +29,7 @@ export interface ConversaAberta {
    * lado. Enquanto não vier, o `Avatar` desenha iniciais — que é o que
    * desenharia de qualquer maneira a quem não tem fotografia.
    */
-  outraParteAvatar?: string | null;
+  outraParteFoto?: string | null;
 }
 
 interface Props {
