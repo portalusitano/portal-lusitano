@@ -51,7 +51,16 @@ export default function Vizinhas({ vizinhas, regiao }: { vizinhas: Vizinha[]; re
           <h2 id="t-vizinhas" className="titulo-pagina mb-1">
             {f.vizinhas_titulo}
           </h2>
-          <p className="meta">{f.vizinhas_nota}</p>
+          {/* Esta frase não é uma legenda: é o que impede o número de mentir.
+              Medidas as 87 distâncias que as 29 fichas escrevem, **17 passam
+              dos 50 km e duas dizem 121 e 129 km** — e sob um título que
+              promete «mais próximas» só esta linha explica que o número é uma
+              recta entre coordenadas e não um caminho. Em `.meta` lia-se a
+              **3,66:1** nos pixéis, abaixo do mínimo de 4,5 para texto que se
+              lê; com a tinta secundária, **8,37:1**. Uma ressalva que não se lê
+              é uma ressalva que não existe, e sem ela o que fica no ecrã é a
+              promessa do título. */}
+          <p className="fc-nota">{f.vizinhas_nota}</p>
         </div>
         {regiao && (
           <LocalizedLink
@@ -64,7 +73,32 @@ export default function Vizinhas({ vizinhas, regiao }: { vizinhas: Vizinha[]; re
         )}
       </div>
 
-      <ul className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3">
+      {/* ── `grid-cols-1` não é decoração: é o que impede o cartão de sair do
+          ecrã ───────────────────────────────────────────────────────────────
+          Sem ele a grelha não declara coluna nenhuma abaixo dos `sm`, e a
+          coluna implícita é uma faixa `auto`. Um item de grelha em faixa `auto`
+          leva `min-width: auto`, ou seja **não encolhe abaixo do seu
+          min-content** — e o min-content deste cartão é a fotografia de 96px
+          mais a palavra mais longa da morada, que em «Monte Mayor, EN 114 Km
+          145.5, 7050-…» dá 493px dentro de um contentor de 358.
+
+          Medido a 390×780 nas 29 do banco de ensaio: **18 fichas e 54 dos 87
+          cartões passavam da borda direita do ecrã, até 187px.** E não havia
+          barra de deslocamento a denunciá-lo, porque o `overflow-x: clip` que a
+          ficha põe no `body` — pela boa razão de fazer o `sticky` prender —
+          corta o que passa **sem deixar deslocar**: a morada acabava cortada a
+          meio de uma palavra na borda do vidro, sem reticências, como se a
+          página estivesse partida. O `truncate` que este cartão já tinha nunca
+          podia disparar, porque a caixa que ele havia de encher já era maior do
+          que o ecrã.
+
+          Os `sm:grid-cols-2` e `lg:grid-cols-3` nunca tiveram o problema, e
+          isso é a assinatura da causa: o Tailwind escreve-os
+          `repeat(n, minmax(0, 1fr))`, e esse `0` é exactamente o mínimo que
+          faltava. O telemóvel era a única vista sem uma dessas classes. Medido
+          depois: **0 fichas e 0 cartões**, nas duas vistas, com a morada a
+          acabar em reticências como estava escrito. */}
+      <ul className="m-0 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3">
         {vizinhas.map((v, i) => (
           <li key={v.slug}>
             <Revelar atraso={atrasoEmGrelha(i)}>
@@ -102,9 +136,18 @@ export default function Vizinhas({ vizinhas, regiao }: { vizinhas: Vizinha[]; re
                     {v.nome}
                   </span>
                   {/* A distância à frente do sítio: é o número que se compara
-                      entre os três cartões, e em mono alinha em coluna. */}
-                  <span className="meta flex min-w-0 items-center gap-1.5">
-                    <span className="flex-shrink-0 font-mono tabular-nums text-[var(--foreground-secondary)]">
+                      entre os três cartões, e em mono alinha em coluna.
+
+                      A linha toda escreve-se com a tinta secundária e não com
+                      a `.meta`: metade dela já era secundária — o número — e a
+                      outra metade, a terra, lia-se a **3,45:1** contra os
+                      **7,89:1** do número, na mesma linha e no mesmo papel.
+                      Num cartão que tem três coisas escritas, a terra é a que
+                      responde a «onde», que é a pergunta desta secção; e até
+                      agora nem se via, porque em 54 dos 87 cartões a caixa saía
+                      do ecrã (ver a grelha, acima). */}
+                  <span className="fc-nota flex min-w-0 items-center gap-1.5">
+                    <span className="flex-shrink-0 font-mono tabular-nums">
                       {f.vizinhas_km.replace("{km}", kmLegivel(v.km, locale))}
                     </span>
                     {v.localizacao && (

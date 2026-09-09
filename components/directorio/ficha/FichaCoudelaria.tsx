@@ -65,18 +65,28 @@ interface Props {
  * razões para contactar aquela coudelaria, e o meio de o fazer.
  *
  * **A ordem é a de quem decide**, e é a mesma nos dois tamanhos: quem são →
- * o que dizem de si → o que fazem → **os factos e como lhes chegar** → as
- * provas (fotografias, história, cavalos, prémios, testemunhos, avaliações) →
- * onde fica → e, no fim, para onde ir a seguir.
+ * o que dizem de si → o que fazem (especialidades e serviços) → **os factos e
+ * como lhes chegar** → as provas, da mais forte para a mais longa
+ * (fotografias, cavalos, prémios, testemunhos, história, avaliações) → o
+ * pedido ao dono → e, no fim, para onde ir a seguir.
+ *
+ * **A ordem escrita aqui e a ordem que se media não eram a mesma**, e a
+ * diferença estava toda no telemóvel. Os dois blocos que este texto chama «os
+ * factos e como lhes chegar» estavam partidos em dois, e a segunda metade —
+ * serviços e «Onde fica» — caía **depois de todas as provas**, em 29 de 29;
+ * a «História», que é a maior das provas e a única sem tamanho, estava em
+ * segundo lugar e enterrava as outras três debaixo de até 2,5 ecrãs de prosa.
+ * As duas correcções estão comentadas no sítio, cada uma com o seu número. Um
+ * comentário que descreve uma ordem não a garante: ela mede-se.
  *
  * No ecrã grande os factos e o contacto vivem numa coluna à direita que
  * acompanha a leitura. No telemóvel não há coluna à direita — havia uma
  * pilha, e o contacto ficava a 47% da altura da página, atrás da galeria,
- * dos cavalos e do bloco inteiro de avaliações. Aqui os dois blocos da
- * coluna entram pelo meio do conteúdo, cada um no ponto em que alguém os
- * procura. Quem faz isso é o `display: contents` — abaixo de `lg` os
- * invólucros não desenham caixa nenhuma, e os quatro blocos passam a ser
- * irmãos numa coluna de flex, onde uma ordem os arruma.
+ * dos cavalos e do bloco inteiro de avaliações. Aqui os blocos da coluna
+ * entram pelo meio do conteúdo, cada um no ponto em que alguém os procura.
+ * Quem faz isso é o `display: contents` — abaixo de `lg` os invólucros não
+ * desenham caixa nenhuma, e os cinco blocos passam a ser irmãos numa coluna
+ * de flex, onde uma ordem os arruma.
  *
  * Três regras que valem para tudo o que está aqui:
  *
@@ -290,8 +300,11 @@ export default function FichaCoudelaria({
               ) : null}
             </div>
 
-            {/* Provas: o que sustenta o que a abertura diz. */}
-            <div className="order-3 space-y-10 lg:order-none sm:space-y-12">
+            {/* Provas: o que sustenta o que a abertura diz.
+                Fotografias → cavalos → prémios → testemunhos → história, e a
+                razão está escrita no bloco da história, lá em baixo: é lá que
+                a ordem se decide, porque é ela que muda de sítio. */}
+            <div className="order-4 space-y-10 lg:order-none sm:space-y-12">
               {/* As fotografias sobem à frente da história de propósito: é o
                   que se vê que faz alguém ler o que está escrito, e não o
                   contrário. Com história e sem esta troca, quem chega ao
@@ -312,47 +325,6 @@ export default function FichaCoudelaria({
                   titulo={<Titulo id="t-fotografias">{f.fotografias}</Titulo>}
                 />
               )}
-
-              {historia.length > 0 && (
-                <Revelar atraso={60}>
-                  <section aria-labelledby="t-historia">
-                    <Titulo id="t-historia">{t.directorio.history}</Titulo>
-                    {/* `.fc-medida` e não `max-w-prose`: medido nas 17 fichas com
-                        história, o `prose` do Tailwind dava 76,2 caracteres por
-                        linha em mediana — o `ch` é a largura do zero da Geist,
-                        que é estreito. A regra está no bloco `.fc-` do
-                        `globals.css`, com o número. */}
-                    <div className="fc-medida space-y-3">
-                      {historia.map((paragrafo, i) => (
-                        <p key={i} className="leading-relaxed text-[var(--foreground-secondary)]">
-                          {paragrafo}
-                        </p>
-                      ))}
-                    </div>
-                  </section>
-                </Revelar>
-              )}
-
-              {coudelaria.premios?.length ? (
-                <Revelar atraso={60}>
-                  <section aria-labelledby="t-premios">
-                    {/* A medalha uma vez, no título — não uma por linha. Um ícone
-                        repetido em todas as linhas não distingue nenhuma, e eram
-                        dez medalhas iguais em dez caixas iguais. Medido na
-                        13 fichas que têm prémios, A/B na mesma construção: 57px
-                        por linha de texto que ocupa uma linha só, contra 46px
-                        agora. */}
-                    <Titulo id="t-premios" icone={<Award size={18} aria-hidden="true" />}>
-                      {t.directorio.awards}
-                    </Titulo>
-                    <ul className="fc-lista fc-medida m-0 list-none p-0">
-                      {coudelaria.premios.map((premio) => (
-                        <li key={premio}>{premio}</li>
-                      ))}
-                    </ul>
-                  </section>
-                </Revelar>
-              ) : null}
 
               {cavalos.length > 0 && (
                 <Revelar atraso={60}>
@@ -422,6 +394,27 @@ export default function FichaCoudelaria({
                 </Revelar>
               )}
 
+              {coudelaria.premios?.length ? (
+                <Revelar atraso={60}>
+                  <section aria-labelledby="t-premios">
+                    {/* A medalha uma vez, no título — não uma por linha. Um ícone
+                        repetido em todas as linhas não distingue nenhuma, e eram
+                        dez medalhas iguais em dez caixas iguais. Medido na
+                        13 fichas que têm prémios, A/B na mesma construção: 57px
+                        por linha de texto que ocupa uma linha só, contra 46px
+                        agora. */}
+                    <Titulo id="t-premios" icone={<Award size={18} aria-hidden="true" />}>
+                      {t.directorio.awards}
+                    </Titulo>
+                    <ul className="fc-lista fc-medida m-0 list-none p-0">
+                      {coudelaria.premios.map((premio) => (
+                        <li key={premio}>{premio}</li>
+                      ))}
+                    </ul>
+                  </section>
+                </Revelar>
+              ) : null}
+
               {coudelaria.testemunhos?.length ? (
                 <Revelar atraso={60}>
                   <section aria-labelledby="t-testemunhos">
@@ -451,6 +444,50 @@ export default function FichaCoudelaria({
                   </section>
                 </Revelar>
               ) : null}
+
+              {/* ── A história é a última das provas, e é por ser a maior ──
+                  Um muro só é um muro se tiver alguma coisa atrás.
+
+                  A «História» é a única secção desta página que não tem
+                  tamanho: medido nas 29 do banco de ensaio a 390×780, vai de
+                  97px a **1973px — 2,5 ecrãs de prosa seguida**, dez
+                  parágrafos, sem um subtítulo, uma imagem ou uma pausa que
+                  digam a quem rola quanto falta. Sete das vinte e nove passam
+                  de um ecrã inteiro.
+
+                  Estava em segundo lugar, logo a seguir às fotografias, e
+                  atrás dela ficavam os cavalos, os prémios e os testemunhos —
+                  isto é, **as três provas curtas e de alto sinal ficavam
+                  enterradas debaixo da mais longa e mais lenta**. É a mesma
+                  troca que já se tinha feito uma vez, quando as fotografias
+                  subiram à frente da história; só que se parou a meio.
+
+                  A ordem agora é a da força da prova para quem está a decidir:
+                  o que se vê (fotografias), o produto com dados a sério
+                  (cavalos), o que outros reconheceram (prémios), o que outros
+                  disseram (testemunhos), e por fim o que a coudelaria diz de
+                  si em texto corrido. Nada se esconde e nada se corta — a
+                  história continua inteira, e quem rola chega lá. O que muda é
+                  que **deixa de estar entre o leitor e tudo o resto**. */}
+              {historia.length > 0 && (
+                <Revelar atraso={60}>
+                  <section aria-labelledby="t-historia">
+                    <Titulo id="t-historia">{t.directorio.history}</Titulo>
+                    {/* `.fc-medida` e não `max-w-prose`: medido nas 17 fichas com
+                        história, o `prose` do Tailwind dava 76,2 caracteres por
+                        linha em mediana — o `ch` é a largura do zero da Geist,
+                        que é estreito. A regra está no bloco `.fc-` do
+                        `globals.css`, com o número. */}
+                    <div className="fc-medida space-y-3">
+                      {historia.map((paragrafo, i) => (
+                        <p key={i} className="leading-relaxed text-[var(--foreground-secondary)]">
+                          {paragrafo}
+                        </p>
+                      ))}
+                    </div>
+                  </section>
+                </Revelar>
+              )}
 
               <Revelar atraso={60}>
                 <Avaliacoes
@@ -618,10 +655,33 @@ export default function FichaCoudelaria({
                 </Revelar>
               </div>
 
-              {/* Segunda metade: o que se lê depois de decidir que vale a pena.
-                  No telemóvel entra a seguir às avaliações; o «Como chegar»
-                  que alguém possa querer antes disso está na barra fixa. */}
-              <div className="order-4 space-y-4 lg:order-none lg:mt-4">
+              {/* ── Segunda metade: o resto dos factos ───────────────────────
+                  O que esta coluna tem é tudo «os factos e como lhes chegar», e
+                  no telemóvel isso vem **antes** das provas, como a ordem lá em
+                  cima diz. Estava depois — de todas elas.
+
+                  A razão escrita para o estar era falsa, e mediu-se: «o "Como
+                  chegar" que alguém possa querer antes disso está na barra
+                  fixa». A barra só mostra o «Como chegar» quando não há telefone
+                  **nem** website, e há telefone em 29 das 29 — medido no
+                  browser, a barra escreve «Enviar email | Telefonar» em 29 de
+                  29 e o «Como chegar» em **zero**. O caminho de recurso nunca
+                  disparou.
+
+                  E o preço disso: a 390×780, «Serviços» caía a 57% da altura da
+                  página em mediana (71% na mais rica) e «Onde fica» a 60% (74%),
+                  ou seja **depois da galeria, da história, dos prémios, dos
+                  cavalos, dos testemunhos e das avaliações, em 29 de 29**. Os
+                  serviços são metade da resposta a «o que é que esta coudelaria
+                  faz» — a outra metade são as especialidades, que estão logo
+                  abaixo do nome. As duas metades da mesma resposta estavam a uma
+                  mediana de 2 400px uma da outra, desenhadas de duas maneiras
+                  diferentes.
+
+                  No ecrã grande não muda um pixel: os `lg:order-none` deixam
+                  tudo na ordem do documento, e a coluna continua a ser Ficha →
+                  Contacto → Serviços → Onde fica → «É esta a sua coudelaria?». */}
+              <div className="order-3 space-y-4 lg:order-none lg:mt-4">
                 {coudelaria.servicos?.length ? (
                   <Revelar direccao="left" atraso={60}>
                     <section className="cartao p-4 sm:p-5" aria-labelledby="t-servicos">
@@ -656,9 +716,18 @@ export default function FichaCoudelaria({
                     />
                   </Revelar>
                 )}
+              </div>
 
-                {/* Só quando o cartão do contacto não o traz já: o mesmo
-                    botão duas vezes na mesma coluna lê-se como um erro. */}
+              {/* ── O pedido ao dono, e é o único bloco desta página que não é
+                  para quem chegou a ela ─────────────────────────────────────
+                  Por isso fica no fim no telemóvel, depois das provas: quem
+                  entra à procura de um cavalo não tem nada a fazer aqui, e quem
+                  é dono da coudelaria chega-lhe depois de ver a ficha inteira.
+                  Antes vinha antes das «Coudelarias mais próximas» na mesma
+                  posição — mas colado aos serviços e ao mapa, que são para a
+                  outra pessoa. Só quando o cartão do contacto não o traz já: o
+                  mesmo botão duas vezes na mesma coluna lê-se como um erro. */}
+              <div className="order-5 space-y-4 lg:order-none lg:mt-4">
                 {temContactoDirecto && (
                   <Revelar direccao="left" atraso={60}>
                     <section className="cartao p-4 sm:p-5" aria-labelledby="t-reclamar">
