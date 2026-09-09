@@ -1,6 +1,6 @@
 import { memo } from "react";
 import LocalizedLink from "@/components/LocalizedLink";
-import { Search, Heart, User, Plus, MessagesSquare } from "lucide-react";
+import { Heart, User, Plus, MessagesSquare } from "lucide-react";
 import { useHorseFavorites } from "@/context/HorseFavoritesContext";
 import { useMensagensPorLer } from "@/context/MensagensContext";
 import { BotaoIdioma } from "./BotaoIdioma";
@@ -22,7 +22,6 @@ interface NavIconsProps {
     common: { search: string };
   };
   isMobileOpen: boolean;
-  onSearchClick: () => void;
   onLanguageChoose: (codigo: "pt" | "en" | "es") => void;
   onMobileToggle: () => void;
 }
@@ -31,7 +30,6 @@ export const NavIcons = memo(function NavIcons({
   language,
   t,
   isMobileOpen,
-  onSearchClick,
   onLanguageChoose,
   onMobileToggle,
 }: NavIconsProps) {
@@ -40,14 +38,14 @@ export const NavIcons = memo(function NavIcons({
 
   return (
     <div className="flex items-center gap-2 md:gap-4">
-      {/* Pesquisa */}
-      <button
-        onClick={onSearchClick}
-        className="hidden lg:flex text-[var(--foreground-secondary)] hover:text-[var(--foreground-strong)] transition-colors p-2 min-w-[44px] min-h-[44px] items-center justify-center active:scale-95 touch-manipulation"
-        aria-label={t.common.search}
-      >
-        <Search size={20} strokeWidth={1.5} />
-      </button>
+      {/* ── A lupa saiu da barra ────────────────────────────────────────────
+          Era um ícone sozinho, sem palavra, a abrir uma modal — e o site tem
+          caixas de pesquisa **escritas** onde a pesquisa serve para alguma
+          coisa: no `/comprar`, no `/directorio` e no `/mapa`, todas com o
+          marcador a dizer o que procuram. Um ícone mudo ao lado delas é um
+          quarto sítio para a mesma acção, e o único que não diz o que faz.
+          Quem tinha o hábito continua a ter o atalho `/`, que a barra do mapa
+          anuncia. */}
 
       {/* Idioma */}
       <BotaoIdioma

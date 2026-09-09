@@ -7402,3 +7402,115 @@ body:has(.fc-ficha) {
     color: var(--foreground-muted);
   }
 }
+
+/* ===========================================================================
+ * O título que se escreve, e a pastilha que vive dentro dele
+ *
+ * Duas peças do herói da página inicial, e as duas trazem uma decisão que vale
+ * a pena ficar escrita.
+ *
+ * **O acento vai no cursor.** A referência que deu origem a isto punha a linha
+ * escrita a azul forte — o acento da marca dela — numa superfície do tamanho de
+ * meia página. Aqui não pode ser: o dourado é do tamanho de um ícone, e gastá-lo
+ * assim deixa de assinalar seja o que for. Quem dá ênfase à linha é o contraste
+ * (branco forte contra o gradiente do resto do título) e o dourado fica no
+ * cursor, que tem dois pixéis de largura. É a mesma decisão que já foi tomada
+ * para o alfinete do globo e para o sublinhado da navegação activa.
+ *
+ * **A linha não muda de largura a cada letra.** Um irmão invisível com a frase
+ * mais comprida reserva o espaço; sem ele, o que está por baixo do título
+ * saltava a cada letra escrita. É reserva por layout e não por medida em JS: não
+ * custa uma leitura forçada e acerta-se sozinha quando a fonte acaba de
+ * carregar.
+ *
+ * **A pastilha é `.selo-neutro` e não `.selo-destaque`**, pela mesma razão de
+ * sempre: aparece uma vez em cada carregamento, mas o que ela diz — o verbo do
+ * site — não é raro, é o assunto. O dourado guarda-se para o que é excepção.
+ * ========================================================================== */
+@layer components {
+  .titulo-escrito {
+    position: relative;
+    display: inline-grid;
+  }
+
+  /* As duas ocupam a mesma célula da grelha: a reserva dá a largura, o texto
+     escreve-se por cima dela. */
+  .titulo-escrito__reserva,
+  .titulo-escrito__texto {
+    grid-area: 1 / 1;
+    white-space: pre;
+  }
+
+  .titulo-escrito__reserva {
+    visibility: hidden;
+  }
+
+  .titulo-escrito__texto {
+    color: var(--foreground-strong);
+  }
+
+  /* O cursor segue o fim do texto sem uma medida em JS: é um `::after` do
+     próprio texto, e por isso é empurrado por ele letra a letra. Um irmão
+     posicionado precisaria de saber a largura do texto, que é uma leitura de
+     layout por letra escrita. */
+  /* O cursor só existe enquanto a linha se escreve. Sem JavaScript, e com
+     movimento reduzido, a frase está completa e um cursor a piscar sobre texto
+     parado seria um adorno — que é o que essa preferência pede para não haver. */
+  .titulo-escrito__texto[data-escrever="sim"]::after {
+    content: "";
+    display: inline-block;
+    width: 2px;
+    height: 0.82em;
+    margin-left: 0.06em;
+    vertical-align: baseline;
+    background: var(--gold);
+    animation: piscar-cursor 1.1s steps(1, end) infinite;
+  }
+
+  @keyframes piscar-cursor {
+    0%,
+    50% {
+      opacity: 1;
+    }
+    50.01%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  /* Com movimento reduzido não há cursor nenhum: a frase está escrita inteira
+     e um cursor a piscar sobre texto parado é um adorno, que é exactamente o
+     que essa preferência pede para não haver. */
+  @media (prefers-reduced-motion: reduce) {
+    .titulo-escrito__texto[data-escrever="sim"]::after {
+      display: none;
+    }
+  }
+
+  /* A pastilha dentro do título. Herda o tamanho da letra do `<h1>` e por isso
+     acompanha os três degraus do título sem números próprios. */
+  .titulo-pastilha {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.12em 0.5em 0.18em;
+    border: 1px solid var(--border-soft);
+    border-radius: 999px;
+    background: var(--background-elevated);
+    color: var(--foreground-strong);
+    /* O gradiente do `.titulo-gradiente` é um `background-clip: text` no pai;
+       aqui dentro tem de ser desligado, senão a pastilha herda-o e o texto sai
+       recortado sobre a chapa. */
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+    -webkit-text-fill-color: var(--foreground-strong);
+    vertical-align: baseline;
+  }
+
+  .titulo-pastilha svg {
+    flex: none;
+    width: 0.62em;
+    height: 0.62em;
+    color: var(--gold);
+  }
+}

@@ -11,6 +11,22 @@ import GrelhaHolofote from "@/components/ui/GrelhaHolofote";
 import { usePassoVivo } from "@/components/ui/usePassoVivo";
 import { ImageIcon, Search } from "lucide-react";
 import type { SellerListing } from "@/lib/marketplace-listings";
+import TituloEscrito from "@/components/TituloEscrito";
+
+/**
+ * As frases da segunda linha do título.
+ *
+ * A primeira é a que vai no HTML e a que fica de pé com `prefers-reduced-motion`
+ * — por isso é a mais completa das três, e não a mais curta. As outras duas
+ * dizem os outros dois inventários do site. Três e não seis: a linha volta ao
+ * princípio ao fim de cerca de vinte segundos, e uma volta que ninguém chega a
+ * ver inteira é uma promessa de variedade que não se cumpre.
+ */
+const FRASES_DO_TITULO = [
+  "o mercado do Lusitano",
+  "a coudelaria certa",
+  "o cavalo que procura",
+] as const;
 
 interface Props {
   destaques: SellerListing[];
@@ -479,9 +495,23 @@ export default function HomeContent({ destaques, recentes, totalAtivos }: Props)
 
         <div className="relative z-10 mx-auto max-w-6xl text-center">
           <Revelar duracao={600}>
+            {/* ── A primeira frase deixou de escolher um público ──────────────
+                «O mercado do Lusitano. Num só sítio.» dizia o que o site é, e
+                dizia-o bem — mas dizia-o uma vez só, e este site tem três
+                inventários: cavalos à venda, coudelarias e as ligações entre
+                eles. A segunda linha passa a escrever-se por turnos, e com isso
+                a mesma altura de página diz as três coisas.
+                A pastilha herda o tamanho da letra do `<h1>`, por isso acompanha
+                os três degraus do título sem números próprios. */}
             <h1 className="titulo-gradiente mx-auto mb-8 flex flex-col gap-2 text-4xl font-normal leading-[100%] tracking-[-0.01em] sm:text-5xl md:mb-12 md:text-[4rem]">
-              <span>O mercado do Lusitano.</span>
-              <span>Num só sítio.</span>
+              <span className="inline-flex flex-wrap items-center justify-center gap-x-[0.3em] gap-y-2">
+                Portal Lusitano
+                <span className="titulo-pastilha">
+                  <Search aria-hidden="true" />
+                  encontra
+                </span>
+              </span>
+              <TituloEscrito frases={FRASES_DO_TITULO} />
             </h1>
           </Revelar>
 

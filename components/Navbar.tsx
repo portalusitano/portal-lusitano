@@ -31,7 +31,10 @@ export default memo(function Navbar() {
 
   // Stable callbacks — prevent NavIcons and MobileMenu from re-rendering on every
   // scroll event (which causes `scrolled` state to update and re-render Navbar)
-  const handleSearchClick = useCallback(() => setIsSearchOpen(true), []);
+  /* A lupa da barra saiu — ver o `NavIcons`. A modal fica, e o `Ctrl+K` lá em
+     baixo é agora a **única** porta para ela. Não é uma porta escondida por
+     descuido: é um atalho para quem o conhece, e as três caixas de pesquisa
+     escritas do site continuam onde estavam. */
   const handleSearchClose = useCallback(() => setIsSearchOpen(false), []);
   const handleMobileToggle = useCallback(() => setIsMobileOpen((prev) => !prev), []);
   const handleMobileClose = useCallback(() => setIsMobileOpen(false), []);
@@ -160,7 +163,6 @@ export default memo(function Navbar() {
           language={language}
           t={t}
           isMobileOpen={isMobileOpen}
-          onSearchClick={handleSearchClick}
           onLanguageChoose={escolherIdioma}
           onMobileToggle={handleMobileToggle}
         />
