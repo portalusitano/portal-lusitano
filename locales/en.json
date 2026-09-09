@@ -1538,7 +1538,22 @@
     "offline_title": "The map could not load the stud farms",
     "offline_hint": "This is not your search: our database did not answer. Try again in a moment — the directory is still working.",
     "offline_retry": "Try again",
-    "skip_to_regions": "Skip the globe, go to the regions"
+    "skip_to_regions": "Skip the globe, go to the regions",
+    "globo_layer_label": "Studs marked on the globe",
+    "globo_studs_count": "{n} studs",
+    "globo_stud_count_one": "1 stud",
+    "globo_place_studs": "{place}: {n} studs",
+    "globo_open_stud": "View stud",
+    "globo_open_stud_of": "View {name}'s page",
+    "globo_controls_label": "Globe view",
+    "globo_zoom_in": "Zoom in",
+    "globo_zoom_out": "Zoom out",
+    "globo_reset_view": "Reset view",
+    "globo_restoring_title": "Restoring the 3D view",
+    "globo_restoring_hint": "The browser released the graphics memory. The view will be back in a moment.",
+    "globo_unavailable_title": "3D view unavailable",
+    "globo_unavailable_hint": "This browser could not open the 3D scene. All {n} studs are in the list.",
+    "globo_lost_hint": "The browser did not give the graphics memory back. All {n} studs are in the list."
   },
   "cavalos_favoritos": {
     "title": "Favorite Horses",

@@ -1538,7 +1538,22 @@
     "offline_title": "O mapa não conseguiu carregar as coudelarias",
     "offline_hint": "Não é a sua pesquisa: foi a nossa base de dados que não respondeu. Tente daqui a pouco — o directório continua a funcionar.",
     "offline_retry": "Tentar outra vez",
-    "skip_to_regions": "Saltar o globo e ir às regiões"
+    "skip_to_regions": "Saltar o globo e ir às regiões",
+    "globo_layer_label": "Coudelarias assinaladas no globo",
+    "globo_studs_count": "{n} coudelarias",
+    "globo_stud_count_one": "1 coudelaria",
+    "globo_place_studs": "{place}: {n} coudelarias",
+    "globo_open_stud": "Ver coudelaria",
+    "globo_open_stud_of": "Ver a ficha de {name}",
+    "globo_controls_label": "Vista do globo",
+    "globo_zoom_in": "Aproximar",
+    "globo_zoom_out": "Afastar",
+    "globo_reset_view": "Repor a vista",
+    "globo_restoring_title": "A repor a vista 3D",
+    "globo_restoring_hint": "O navegador libertou a memória gráfica. A vista volta num instante.",
+    "globo_unavailable_title": "Vista 3D indisponível",
+    "globo_unavailable_hint": "Este navegador não conseguiu abrir a cena 3D. As {n} coudelarias estão todas na lista.",
+    "globo_lost_hint": "O navegador não devolveu a memória gráfica. As {n} coudelarias estão todas na lista."
   },
   "cavalos_favoritos": {
     "title": "Cavalos Favoritos",

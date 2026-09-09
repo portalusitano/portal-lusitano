@@ -1538,7 +1538,22 @@
     "offline_title": "El mapa no ha podido cargar las yeguadas",
     "offline_hint": "No es su búsqueda: nuestra base de datos no ha respondido. Inténtelo dentro de un momento — el directorio sigue funcionando.",
     "offline_retry": "Intentar de nuevo",
-    "skip_to_regions": "Saltar el globo e ir a las regiones"
+    "skip_to_regions": "Saltar el globo e ir a las regiones",
+    "globo_layer_label": "Yeguadas señaladas en el globo",
+    "globo_studs_count": "{n} yeguadas",
+    "globo_stud_count_one": "1 yeguada",
+    "globo_place_studs": "{place}: {n} yeguadas",
+    "globo_open_stud": "Ver yeguada",
+    "globo_open_stud_of": "Ver la ficha de {name}",
+    "globo_controls_label": "Vista del globo",
+    "globo_zoom_in": "Acercar",
+    "globo_zoom_out": "Alejar",
+    "globo_reset_view": "Restablecer la vista",
+    "globo_restoring_title": "Restableciendo la vista 3D",
+    "globo_restoring_hint": "El navegador liberó la memoria gráfica. La vista vuelve enseguida.",
+    "globo_unavailable_title": "Vista 3D no disponible",
+    "globo_unavailable_hint": "Este navegador no pudo abrir la escena 3D. Las {n} yeguadas están todas en la lista.",
+    "globo_lost_hint": "El navegador no devolvió la memoria gráfica. Las {n} yeguadas están todas en la lista."
   },
   "cavalos_favoritos": {
     "title": "Caballos Favoritos",
