@@ -957,6 +957,51 @@ em cru sob o mapa (12px a 3,45:1, e para ninguém — quem quer lá chegar tem o
 que a barra fixa do telemóvel tapava sem rolo que lá chegasse, porque o rodapé
 é irmão da ficha e não filho, e o `pb-28` do contentor não o alcança.
 
+**Um comentário que descreve uma ordem não a garante.** O cabeçalho do
+componente diz «o que fazem → os factos e como lhes chegar → as provas», e no
+telemóvel os serviços e o «Onde fica» caíam **depois de todas as provas, em 29
+de 29** — a 57% e 60% da altura da página. A razão escrita para isso ser
+aceitável era falsa, e mediu-se: «o "Como chegar" está na barra fixa» — a barra
+só o mostra sem telefone nem website, e há telefone em 29/29; medida, escreve
+«Enviar email | Telefonar» em 29 de 29 e «Como chegar» em zero. Corrigido:
+serviços 2640 → 1448px, «Onde fica» 2769 → 1578px. No computador não se mexe um
+pixel. **E um muro só é um muro se tiver alguma coisa atrás**: a «História» é a
+única secção sem tamanho (97 a 1973px, sete das 29 acima de um ecrã) e estava em
+segundo lugar, com os cavalos, os prémios e os testemunhos por baixo. Passa a
+ser a última das provas, e as secções de prova atrás de mais de um ecrã de prosa
+caem de 12 (em 7 fichas) para zero.
+
+**O que o `overflow-x: clip` corta, corta em silêncio.** Abaixo dos `sm`, a
+grelha das «Coudelarias mais próximas» não declarava coluna nenhuma, e um item
+em faixa implícita `auto` leva `min-width: auto`: não encolhe abaixo do
+min-content, que aqui é 493px dentro de um contentor de 358. Medido a 390×780:
+**18 fichas e 54 dos 87 cartões passavam da borda direita, até 187px**, com a
+morada cortada a meio de uma palavra. Não havia barra de deslocamento a
+denunciá-lo, porque o `clip` que esta página põe no `body` — pela boa razão de
+fazer o `sticky` prender — corta **sem deixar deslocar**. Os `sm:grid-cols-2`
+nunca tiveram o problema, e é essa a assinatura: o Tailwind escreve-os
+`repeat(n, minmax(0, 1fr))`. **A defesa de uma regra pode esconder o defeito de
+outra: depois de pôr um `clip` num contentor, o que se mede deixa de ser o
+deslocamento e passa a ser a caixa.**
+
+**E o «curso de 0 a 302px» do `sticky` era o retrato de um banco pobre.**
+Remedido no elemento verdadeiro com a prosa dos seeds do repositório, o curso
+vai de **0 a 1766px, mediana 303** — 939 de mediana nas catorze fichas cujo
+artigo passa de 1400px. Não há composição de grelha a corrigir: o bloco que
+contém a coluna já é a coluna do artigo em 27 das 29. O que sobra são as duas
+fichas em que a barra é **mais alta** do que o artigo, e essas são exactamente
+as duas do buraco da coluna esquerda — curso zero de um lado e vazio do outro
+são o mesmo facto visto duas vezes. **Antes de concluir que uma barra lateral
+não acompanha a leitura, confirma que o banco de ensaio tem leitura para
+acompanhar.**
+
+A `.fc-nota` é a irmã da `.vc-nota`: tamanho de legenda, papel de texto. As três
+linhas desta página que respondem a uma pergunta — a ressalva «Distâncias em
+linha recta», a terra de cada cartão de vizinho e o sítio sob «Onde fica» —
+escreviam-se com a tinta da `.meta`, 3,45–3,66:1 nos pixéis; passam a
+7,89–8,37:1. A ressalva não é decoração: das 87 distâncias que as 29 fichas
+escrevem, **dezassete passam dos 50 km e duas dizem 121 e 129 km**.
+
 **Do recorte da fotografia de topo ficou um «não comprou nada» medido.** A
 janela de 2,92:1 mostra 52% da altura da fotografia mediana e 23% na pior. A
 correcção óbvia — subir o `object-position` — foi ensaiada em sete valores
