@@ -2895,12 +2895,39 @@ body {
     text-overflow: ellipsis;
     font-size: 10px;
     line-height: 1.3;
-    /* Era `--foreground-muted` (#666): sobre uma fotografia do planeta, com
-       o terreno claro do Alentejo por baixo, a segunda linha desaparecia. */
-    color: var(--foreground-secondary);
+    /* ── A segunda linha sobre terreno claro ────────────────────────────
+       Aqui esteve `--foreground-muted` (#666) e depois
+       `--foreground-secondary` (#a1a4a5), com a nota de que a primeira troca
+       tinha resolvido o problema. **Reduziu e não resolveu.** Medido nos
+       pixéis renderizados, com a caixa do texto (um `Range` sobre o conteúdo,
+       e não a caixa da linha, que é da largura do nome e é quase toda fundo
+       vazio): a 1400×950, em 4 cargas, **47 de 47 segundas linhas abaixo de
+       4,5:1 e 23 abaixo de 3:1**, com «Beja» a 2,03:1 sobre o Alentejo ao
+       sol. As primeiras linhas, que são brancas, nunca falham — 0 de 55.
+
+       A causa é a segunda linha pagar a hierarquia **duas vezes**: em cor e
+       em sombra. E das duas, a que conta é a cor. Medido, com a sombra
+       reforçada e a cor na mesma: 2,03 → 2,30:1, e continuavam **100%**
+       abaixo de 4,5. Reforçar o halo não compra o que parece comprar — sobre
+       terreno quase branco, um cinzento médio não chega a lado nenhum, por
+       muito que se lhe escureça o campo à volta.
+
+       Fica `--foreground`, que é o token do texto corrente — a localidade é
+       texto e não um sussurro —, e a sombra sobe ao nível da do nome mais um
+       lóbulo apertado, porque a letra é menor e tem menos tinta para segurar
+       o campo. A hierarquia continua nos outros dois sinais que já a
+       carregavam: 10px contra 12px, e peso 400 contra 500.
+
+       Medido depois: a 1400×950, 6 cargas, 70 caixas, **0 abaixo de 4,5:1**,
+       pior «Beja» a 4,53:1. A 390×700, 5 cargas, **0 de 15** contra 15 de 15
+       antes, e a pior passa de «Comporta» 2,65 para «Alter do Chão» 4,92.
+       O tamanho da caixa não muda — nem `font-size` nem `line-height` —, e
+       por isso a colocação e as suas nove invariantes não dão por nada. */
+    color: var(--foreground);
     text-shadow:
-      0 1px 3px rgba(0, 0, 0, 0.95),
-      0 0 10px rgba(0, 0, 0, 0.7);
+      0 1px 3px rgba(0, 0, 0, 0.98),
+      0 0 4px rgba(0, 0, 0, 0.95),
+      0 0 12px rgba(0, 0, 0, 0.85);
   }
 
   /* Quando não há espaço para as duas linhas, fica a primeira. Vale mais um

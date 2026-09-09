@@ -789,8 +789,31 @@ function alturaParaCaber(aspecto: number) {
 
 type Ponto = { c: CoudelariaNoMapa; coords: [number, number] };
 
-/** Estado visível do componente. */
-type Estado = "a-carregar" | "pronto" | "sem-3d" | "perdido";
+/** Estado visível do componente.
+
+    `a-refazer` é a cena a nascer outra vez depois de o browser lhe ter tirado
+    o contexto — ver a secção «Quando a reposição não vem», lá em baixo. É um
+    estado à parte de `a-carregar` porque diz outra coisa a quem está a ver:
+    um vem antes de haver mapa, o outro vem depois de o ter havido. */
+type Estado = "a-carregar" | "a-refazer" | "pronto" | "sem-3d" | "perdido";
+
+/** Quanto se espera pelo `webglcontextrestored` antes de refazer a cena à
+    mão. Medido no banco de ensaio: quando o browser repõe o contexto por
+    iniciativa dele, o evento chega no mesmo quadro em que se perde — dos
+    dois eventos medidos, `lost@11588` e `restored@11588`. 1200ms é folga com
+    duas ordens de grandeza e não se nota, porque o que está no ecrã durante
+    essa espera já é a palavra que explica o que se passa. */
+const ESPERA_PELA_REPOSICAO = 1200;
+/** Quantas vezes se refaz a cena antes de desistir. Três: um despejo é um
+    acidente, três seguidos são uma máquina que não tem memória gráfica para
+    isto, e insistir numa dessas é gastar-lhe a bateria a abrir contextos que
+    o browser volta a fechar. */
+const MAX_RECUPERACOES = 3;
+/** Um contexto que viveu isto e só depois morreu não faz parte de um ciclo:
+    a conta das recuperações recomeça. Sem isto, três acidentes espalhados por
+    uma tarde no mesmo separador esgotavam a conta e a quarta perda ficava
+    preta para sempre. */
+const VIDA_SA = 60_000;
 
 /** O destino de uma coudelaria, por omissão: a ficha dela. */
 const fichaPorOmissao = (c: CoudelariaNoMapa) =>
@@ -899,7 +922,18 @@ export default function GloboTerra({
       de desmontar, e no plano B de quem não tem WebGL. */
   const trocarRef = useRef<((assinatura: string) => void) | null>(null);
 
-  const montar = useCallback(() => {
+  /* ── Recuperar de uma perda de contexto ──────────────────────────────────
+   *
+   * `geracao` é o número de vezes que a cena já teve de nascer outra vez.
+   * Muda-o quem perde o contexto e não o vê voltar; quem lhe responde é o
+   * efeito lá em baixo, que desmonta a cena morta e monta uma viva. A conta
+   * das tentativas vive numa `ref` de propósito: tem de atravessar as
+   * montagens, que é justamente o que ela existe para contar.
+   */
+  const [geracao, setGeracao] = useState(0);
+  const recuperacoes = useRef(0);
+
+  const montar = useCallback((refeita: boolean) => {
     const el = caixa.current;
     if (!el) return () => {};
     /* `let`, e não `const`: a lista troca-se em cena, sem remontar. Quem a
@@ -984,6 +1018,10 @@ export default function GloboTerra({
     let quadroPedido = 0;
     let desmontado = false;
     let contextoVivo = true;
+    /** Quando é que este contexto nasceu. Serve a uma pergunta só, e está
+        respondida na secção da perda de contexto: um contexto que viveu uma
+        vida inteira e depois morreu não faz parte de um ciclo de despejos. */
+    const nasceuEm = performance.now();
     let noEcra = false;
     let escondido = document.hidden;
     let inicio = 0;
@@ -1462,6 +1500,31 @@ export default function GloboTerra({
        ponto, a argola, e o quanto de cada um. Escrever os quatro números num
        sítio só é o que impede um estado de ficar por metade — foi o que
        aconteceu enquanto o realce mexia no tamanho e a escolha no brilho. */
+    /* ── Acender é um interruptor, e uma tentativa de o transformar em
+     *    transição foi medida e revertida ──────────────────────────────────
+     *
+     * O `aceso` é um booleano: o raio do ponto e o da argola saltam do valor
+     * de repouso para o de apontado num quadro. O nome que lhe pertence, esse,
+     * esbate-se em `--d-fast` por uma transição de CSS — ou seja a marca e o
+     * nome, que são a mesma afirmação («este»), são ditos a dois tempos.
+     * Medido, apontando um nome e contando os quadros que o motor desenha:
+     * **um quadro**, a 390×700 e a 1400×950. Um quadro é a definição de
+     * comutar.
+     *
+     * Escreveu-se a transição — uma fracção 0→1 por alfinete, no relógio do
+     * `--d-fast` e na curva do `--ease-out`, com os buffers escritos num sítio
+     * só. E **não entrou**, porque custou o que não podia custar: o percurso
+     * das setas a 1400×950 caiu de **32/32 para 28–32 conforme a corrida**,
+     * contra 32/32 em quatro corridas da versão sem ela. O que se ganhava não
+     * se chegava sequer a ver no banco — com o WebGL por software os quadros
+     * distam centenas de milissegundos e uma transição de 200ms cabe em dois
+     * quadros, portanto a prova do ganho era aritmética e a prova do custo era
+     * medida. Entre as duas, ganha a medida.
+     *
+     * Fica escrito para quem voltar: o caminho é provável mas tem de ser
+     * medido contra as nove invariantes, e o suspeito a investigar primeiro é
+     * o que a transição faz ao número de quadros desenhados por tecla — a
+     * colocação corre uma vez por quadro e tem histerese. */
     const escreverPonto = (a: Alfinete, aceso: boolean, escolha: number, brilho: number) => {
       const p = pontoDoEcra;
       /* A argola do apontado abre para fora da da pilha; a da escolha abre
@@ -1506,6 +1569,7 @@ export default function GloboTerra({
       geoPontos.attributes.brilhoArgola.needsUpdate = true;
       geoPontos.attributes.brilho.needsUpdate = true;
     };
+
 
     /** Acender ou apagar um alfinete: abre-se ou fecha-se a argola dele. */
     const realcar = (a: Alfinete, ligado: boolean) => {
@@ -3474,7 +3538,14 @@ export default function GloboTerra({
        alguma coisa nova para ver, e só se serve quando há alguém a ver. */
     const duracao = parado ? 0 : DURACAO_ENTRADA;
     /* Quem volta ao mapa não faz a viagem outra vez: entra onde estava. */
-    let aEntrar = !parado && !vistaGuardada;
+    /* `!refeita`: a entrada é a chegada ao mapa, e uma cena refeita não é uma
+       chegada — é a mesma vista a voltar depois de o browser ter tirado a
+       memória gráfica. Repetir os dois segundos e meio de viagem do espaço
+       seria mandar de volta ao princípio quem não saiu do sítio, que é
+       exactamente o defeito que o `vistaGuardada` aqui ao lado veio corrigir.
+       Quem tinha mexido no zoom volta pelo `sessionStorage`; quem não tinha
+       volta ao repouso, que é onde estava. */
+    let aEntrar = !parado && !vistaGuardada && !refeita;
     if (vistaGuardada) {
       alturaVoo = Math.min(ALTURA_MAXIMA, Math.max(ALTURA_MINIMA, vistaGuardada.h));
       orbita.theta = vistaGuardada.t;
@@ -3492,6 +3563,36 @@ export default function GloboTerra({
     function desenhar() {
       quadroPedido = 0;
       if (aEntrar) {
+        /* ── Uma viagem que ninguém vê, e a correcção que não entrou ──────
+         *
+         * O relógio arranca no primeiro quadro desenhado, e a caixa do globo
+         * está a `opacity: 0` até o `revelar` disparar — que espera pela
+         * primeira das cinco texturas ou pelos quatro segundos da rede de
+         * segurança. Medido no banco, com o WebGL por software, que é o que
+         * um telemóvel fraco parece: dos 9 quadros dentro dos 2600ms a
+         * 390×700 e dos 8 a 1400×950, **zero tinham a caixa opaca**. A caixa
+         * só ficava opaca a 3254ms e a 4930ms, isto é 654ms e 2330ms **depois
+         * de a viagem ter acabado**. A entrada corria inteira atrás de preto.
+         *
+         * A correcção óbvia — arrancar o relógio no `revelar` em vez de no
+         * primeiro quadro — foi escrita, medida, e **revertida**: passava o
+         * percurso das setas a 1400×950 de **32/32 para 27–29/32**, com o
+         * foco a cair em nomes a `opacity: 0`. A assinatura é exacta e está
+         * aqui para quem voltar: o nome tinha `style.opacity = "1"` e a
+         * computada a zero, com `animation: etiqueta-nascer` e um atraso de
+         * 2,56s. A cascata de nascimento conta o atraso a partir do instante
+         * em que o nó entra no DOM (`--entrada`, até 3000ms) e tem
+         * `animation-fill-mode: backwards`, ou seja **durante o atraso impõe
+         * `opacity: 0` por cima do que o motor escreve em linha**. Hoje as
+         * duas coisas partem do mesmo instante e cruzam-se sem se verem;
+         * afastar a viagem para a frente descola-as, e a cascata passa a
+         * apagar nomes que o motor já tinha colocado.
+         *
+         * Ou seja: a entrada não se pode mover sozinha. Quem a mover tem de
+         * mover com ela o relógio da cascata — passar o `--entrada` a ser
+         * escrito quando a viagem arranca, e não quando o nó nasce. Fica por
+         * fazer, com a medição feita, porque é uma alteração à colocação e a
+         * colocação tem nove invariantes a defender. */
         // O relógio da entrada arranca no primeiro quadro que se vê, não no
         // momento em que o componente monta: fora do ecrã não há entrada.
         if (!inicio) inicio = performance.now();
@@ -3545,7 +3646,11 @@ export default function GloboTerra({
 
     function revelar() {
       if (desmontado) return;
-      setEstado((e) => (e === "a-carregar" ? "pronto" : e));
+      /* `a-refazer` também: é a mesma cena a nascer, só que pela segunda vez.
+         Sem esta metade, uma cena refeita ficava a zero de opacidade para
+         sempre com a frase da recuperação por cima — que é o defeito que se
+         estava a corrigir, com outro nome. */
+      setEstado((e) => (e === "a-carregar" || e === "a-refazer" ? "pronto" : e));
       pedirQuadro();
     }
     /* Rede de segurança: se nem o `load` nem o `error` chegarem — um proxy
@@ -4290,15 +4395,80 @@ export default function GloboTerra({
        continuava a rodar a 60 por segundo em cima de uma tela morta —
        medido. Agora o relógio pára e diz-se o que se passou. O three já
        trata do `preventDefault` e de reconstruir o estado no `restored`;
-       o que falta aqui é o relógio e a palavra ao utilizador. */
+       o que falta aqui é o relógio e a palavra ao utilizador.
+
+       ── Quando a reposição não vem ───────────────────────────────────────
+
+       E não vem. O que aqui estava esperava pelo `webglcontextrestored` e
+       mais nada — a cena monta uma vez por vida do componente, num efeito sem
+       dependências —, de modo que um contexto que não voltasse não voltava
+       nunca. O que a pessoa via era um rectângulo preto com os nomes das
+       coudelarias a flutuar por cima dele e uma frase a dizer que a vista
+       «volta assim que ele a devolver»: uma promessa que ninguém estava a
+       cumprir. É o «às vezes fica preto» das capturas.
+
+       Reproduzido a 390×700 com `deviceScaleFactor: 3`, das duas maneiras por
+       que um telemóvel perde mesmo um contexto — e nas duas o
+       `webglcontextrestored` **não chegou**, nem passados seis segundos:
+
+         despejo pelo tecto dos 16 contextos    lost, lost — e mais nada
+         perda com o separador escondido        lost, lost — e mais nada
+
+       (Dois `lost` porque são dois ouvintes, o do three e o nosso.) Só o
+       caminho artificial — `WEBGL_lose_context.restoreContext()`, que nenhum
+       browser chama sozinho — dava a reposição; e aí o three faz o que
+       promete e a cena volta inteira. Por isso este bloco não substitui a
+       reposição do browser: espera por ela, e refaz a cena se ela não vier.
+
+       Três decisões, e as razões:
+
+       1. **Espera-se primeiro.** Refazer é abrir um contexto novo, e um
+          contexto novo é mais caro do que o que o browser já tem meio
+          reposto. `ESPERA_PELA_REPOSICAO` dá-lhe a vez.
+       2. **Não se refaz às escuras.** Num separador escondido ou com a lona
+          fora do ecrã, um contexto novo é apenas o próximo a ser despejado —
+          e é justamente essa a situação em que o telefone o tirou. Fica em
+          espera; quem volta a bater aqui é o `visibilitychange` e o
+          observador de vista, que já sabem quando é que a página se vê.
+       3. **Não se insiste para sempre.** `MAX_RECUPERACOES` tentativas, com
+          a conta a recomeçar sempre que um contexto viveu `VIDA_SA` antes de
+          morrer. Esgotadas, fica-se em `perdido` — e a frase muda para o que
+          é verdade, em vez de prometer uma volta que já não se vai tentar. */
+    let relogioRecuperar = 0;
+    const talvezRefazer = () => {
+      window.clearTimeout(relogioRecuperar);
+      relogioRecuperar = 0;
+      if (contextoVivo || desmontado) return;
+      /* Escondido ou fora do ecrã: não se abre nada. Volta-se a ser chamado
+         quando a página se vir outra vez. */
+      if (document.hidden || !noEcra) return;
+      if (recuperacoes.current >= MAX_RECUPERACOES) {
+        setEstado("perdido");
+        return;
+      }
+      recuperacoes.current += 1;
+      setEstado("a-refazer");
+      /* Sair do efeito antes de mexer no estado que o volta a correr: mudar a
+         geração desmonta esta cena de dentro do ouvinte dela própria. */
+      queueMicrotask(() => setGeracao((g) => g + 1));
+    };
     const aoPerderContexto = () => {
       contextoVivo = false;
       parar();
-      setEstado("perdido");
+      /* Uma perda ao fim de uma vida inteira é um acidente, não um ciclo. */
+      if (performance.now() - nasceuEm > VIDA_SA) recuperacoes.current = 0;
+      /* Diz-se já que a vista vai voltar — é verdade nos dois desfechos, quer
+         o browser a repona quer a refaçamos nós — e assim não há um piscar de
+         «suspensa» antes de «a repor». Só quando a conta se esgotar é que a
+         palavra passa a ser outra. */
+      setEstado(recuperacoes.current >= MAX_RECUPERACOES ? "perdido" : "a-refazer");
+      relogioRecuperar = window.setTimeout(talvezRefazer, ESPERA_PELA_REPOSICAO);
     };
     const aoReporContexto = () => {
       contextoVivo = true;
-      setEstado((e) => (e === "perdido" ? "pronto" : e));
+      window.clearTimeout(relogioRecuperar);
+      relogioRecuperar = 0;
+      setEstado((e) => (e === "perdido" || e === "a-refazer" ? "pronto" : e));
       retomar();
     };
     lona.addEventListener("webglcontextlost", aoPerderContexto);
@@ -4308,8 +4478,11 @@ export default function GloboTerra({
     const observadorVista = new IntersectionObserver(
       ([entrada]) => {
         noEcra = entrada.isIntersecting;
-        if (noEcra) retomar();
-        else {
+        if (noEcra) {
+          retomar();
+          /* A lona voltou ao ecrã: se estava à espera para refazer, é agora. */
+          if (!contextoVivo) talvezRefazer();
+        } else {
           parar();
           largarOGlobo();
         }
@@ -4321,7 +4494,12 @@ export default function GloboTerra({
     const aoMudarSeparador = () => {
       escondido = document.hidden;
       if (escondido) parar();
-      else retomar();
+      else {
+        retomar();
+        /* O caso comum do telemóvel: o contexto foi-se enquanto a pessoa
+           estava noutra aplicação, e é ao voltar que se refaz. */
+        if (!contextoVivo) talvezRefazer();
+      }
     };
     document.addEventListener("visibilitychange", aoMudarSeparador);
 
@@ -4740,10 +4918,40 @@ export default function GloboTerra({
        pergunta escreve não pode cair dentro de um quadro de colocação. */
     const relogiosPrisao = [0, 700, 2600].map((t) => window.setTimeout(verSePrende, t));
 
+    /** A caixa da última vez que isto correu a sério. Ver a guarda de
+        assinatura, já a seguir. */
+    let medidaDaCaixa = "";
     const observador = new ResizeObserver(() => {
+      /* ── Uma caixa que não mudou não refaz nada ────────────────────────
+       *
+       * O palco do globo deixou de ser desmontado ao trocar para a vista de
+       * lista: fica no documento com `hidden`. Isso poupou dois terços das
+       * tarefas longas por troca, e deixou aqui o que restava.
+       *
+       * Com o palco escondido o observador dispara com `clientWidth` a zero,
+       * o `|| 1` transformava-o numa lona de **1×1**, e a partir daí corria a
+       * cadeia inteira — `setSize`, `alturaParaCaber`, `prender`,
+       * `colocarCamara`, `reagrupar` (que recria as vinte e nove etiquetas) e
+       * `pedirEstorvos`. Ao reaparecer, corria tudo outra vez para voltar
+       * exactamente ao tamanho que já tinha. Duas passagens completas por
+       * troca de vista, para pôr a caixa onde ela estava.
+       *
+       * Duas guardas, e as duas dizem a mesma coisa por lados diferentes:
+       *
+       *  1. **Uma medida degenerada não descreve caixa nenhuma.** Zero de
+       *     largura é «isto não está no ecrã», não é «isto agora mede um
+       *     pixel»; enquadrar uma cena para 1×1 é deitar fora trabalho feito
+       *     para responder a uma pergunta que ninguém fez.
+       *  2. **A mesma medida não é uma mudança.** É a guarda que o
+       *     `verSePrende` já usa aqui ao lado, com o `medidaDaPrisao`, e pela
+       *     mesma razão. */
+      const l = el.clientWidth;
+      const a = el.clientHeight;
+      if (l < 1 || a < 1) return;
+      const assinaturaDaCaixa = `${l}x${a}`;
+      if (assinaturaDaCaixa === medidaDaCaixa) return;
+      medidaDaCaixa = assinaturaDaCaixa;
       esquecerCaixa();
-      const l = el.clientWidth || 1;
-      const a = el.clientHeight || 1;
       larguraCaixa = l;
       alturaCaixa = a;
       renderizador.setSize(l, a);
@@ -4843,6 +5051,7 @@ export default function GloboTerra({
       window.removeEventListener("pagehide", guardarVista);
       cancelarContornos.abort();
       window.clearTimeout(relogioRevelar);
+      window.clearTimeout(relogioRecuperar);
       for (const r of relogiosEstorvo) window.clearTimeout(r);
       for (const r of relogiosPrisao) window.clearTimeout(r);
       window.clearTimeout(relogioClique);
@@ -4901,7 +5110,11 @@ export default function GloboTerra({
        tecla da pesquisa. */
   }, []);
 
-  useEffect(() => montar(), [montar]);
+  /* A `geracao` é a única coisa que pode remontar esta cena, e só sobe quando
+     o browser lhe tirou o contexto e não o devolveu. Filtrar, mudar de região
+     ou trocar de destino continua a não desmontar nada — entra pelo
+     `trocarRef`, logo a seguir. */
+  useEffect(() => montar(geracao > 0), [montar, geracao]);
 
   /* A lista mudou de conteúdo: troca-se dentro da cena, sem a remontar. Corre
      depois do efeito que monta — os efeitos correm pela ordem em que estão
@@ -4912,6 +5125,45 @@ export default function GloboTerra({
   }, [assinatura]);
 
   const semImagem = estado === "sem-3d";
+  /* ── A cena vai-se toda, e não só a lona ────────────────────────────────
+     A camada dos nomes e os comandos são filhos desta caixa, e é de propósito
+     que a opacidade os apanha a todos. Sem contexto WebGL não há planeta —
+     e um nome sem o ponto a que aponta não é um nome num mapa, é uma palavra
+     em cima de preto. Medido a 390×700 com o contexto perdido: a frase
+     «VISTA 3D SUSPENSA» caía por cima de «3 coudelarias», que é a sobreposição
+     que este ficheiro promete não ter em lado nenhum, e sete nomes ficavam a
+     apontar alfinetes que já não existiam. A caixa apaga-se com a mesma
+     transição de 900ms com que apareceu; o que fica é a palavra, sozinha.
+     Quando a cena refeita revelar, tudo volta pelo mesmo caminho. */
+  const semCena = estado === "a-carregar" || estado === "a-refazer" || semImagem || estado === "perdido";
+  /* Invisível **e** fora do caminho. Um nome a zero de opacidade continua a
+     receber o dedo e a tabulação: durante a recuperação ficavam sete ligações
+     por cima de preto, apontáveis e focáveis, a levar a fichas escolhidas por
+     um mapa que já não está no ecrã. O `a-carregar` fica de fora de propósito
+     — aí ainda não há nada colocado, e mexer-lhe seria mudar o que já estava
+     medido sem uma razão medida. */
+  const cenaMorta = estado === "a-refazer" || semImagem || estado === "perdido";
+  const aviso =
+    estado === "a-refazer"
+      ? {
+          titulo: "A repor a vista 3D",
+          texto: "O navegador libertou a memória gráfica. A vista volta num instante.",
+        }
+      : semImagem
+        ? {
+            titulo: "Vista 3D indisponível",
+            texto: `Este navegador não conseguiu abrir a cena 3D. As ${pontos.length} coudelarias estão todas na lista.`,
+          }
+        : estado === "perdido"
+          ? {
+              /* Aqui já se tentou refazer o que havia a tentar. Dizer «volta
+                 assim que ele a devolver» era prometer uma coisa que já não se
+                 vai tentar; o que sobra de verdadeiro é o caminho que
+                 funciona, e esse é a lista. */
+              titulo: "Vista 3D indisponível",
+              texto: `O navegador não devolveu a memória gráfica. As ${pontos.length} coudelarias estão todas na lista.`,
+            }
+          : null;
 
   return (
     /* ── A roda é do globo ────────────────────────────────────────────────
@@ -4939,23 +5191,28 @@ export default function GloboTerra({
       <div
         ref={caixa}
         className="h-full w-full cursor-grab touch-none active:cursor-grabbing"
+        inert={cenaMorta}
         style={{
-          opacity: estado === "a-carregar" || semImagem ? 0 : 1,
+          opacity: semCena ? 0 : 1,
           transition: "opacity 900ms var(--ease-out)",
         }}
       />
-      {(semImagem || estado === "perdido") && (
-        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 px-8 text-center">
-          <p className="rotulo-forte">
-            {semImagem ? "Vista 3D indisponível" : "Vista 3D suspensa"}
-          </p>
-          <p className="meta max-w-[36ch]">
-            {semImagem
-              ? `Este navegador não conseguiu abrir a cena 3D. As ${pontos.length} coudelarias estão todas na lista.`
-              : "O navegador libertou a memória gráfica. A vista volta assim que ele a devolver."}
-          </p>
-        </div>
-      )}
+      {/* A região viva existe sempre, mesmo vazia. Um `aria-live` que só
+          aparece no DOM ao mesmo tempo que o texto não anuncia nada em vários
+          leitores de ecrã — quem escuta tem de já cá estar quando a frase
+          chega. É `polite` porque não interrompe: um leitor a cortar a frase
+          a meio de cada perda de contexto seria pior do que o silêncio. */}
+      <div
+        aria-live="polite"
+        className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 px-8 text-center"
+      >
+        {aviso && (
+          <>
+            <p className="rotulo-forte">{aviso.titulo}</p>
+            <p className="meta max-w-[36ch]">{aviso.texto}</p>
+          </>
+        )}
+      </div>
       {/* A tabulação passa só pelos nomes que estão à vista — um foco em cima
           de nada não é um caminho. O caminho para as outras são as setas, que
           percorrem as {pontos.length} por ordem de latitude e trazem cada uma
