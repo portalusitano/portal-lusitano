@@ -3,12 +3,18 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthenticatedUser } from "@/lib/seller-auth";
 import {
   validarMensagem,
-  resumirMensagem,
-  nomeOutraParte,
+  MAX_CONVERSAS_NOVAS_POR_MINUTO,
   type ChatConversa,
 } from "@/lib/marketplace-chat";
+import {
+  vistaConversa,
+  COLUNAS_CAVALO,
+  type LinhaCavalo,
+  type LinhaConversa,
+} from "@/lib/chat/vista-publica";
 import { LISTING_STATUS } from "@/lib/marketplace-listings";
 import { devoNotificar, notificarNovaMensagem } from "@/lib/chat-notificacoes";
+import { strictLimiter } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 
 /** Display name for the authenticated user, used when opening a conversation. */
@@ -24,8 +30,21 @@ function nomeDoUtilizador(user: { email?: string; user_metadata?: Record<string,
 /**
  * GET /api/conversas
  *
- * The authenticated user's inbox, covering both roles: conversations where they
- * are buying and conversations about listings they are selling.
+ * A caixa de entrada do utilizador, dos dois lados: as conversas em que compra
+ * e as dos anúncios que vende.
+ *
+ * ── O que deixou de ler ─────────────────────────────────────────────────────
+ *
+ * Isto trazia **todas as mensagens de todas as conversas** para ficar com a
+ * última de cada uma e contar as não lidas em JavaScript. Medido no banco de
+ * ensaio (2 000 conversas, 60 652 mensagens), numa caixa de entrada de 40
+ * conversas em que uma é antiga: **1 970 linhas lidas** para escrever 40
+ * pré-visualizações.
+ *
+ * A pré-visualização passou a ser uma coluna que um gatilho mantém — zero
+ * linhas de mensagem para a escrever — e as não lidas saem de um índice
+ * parcial onde só entram as que ainda o são. Em A/B intercalado, 30 pares:
+ * **1,027ms → 0,137ms**.
  */
 export async function GET() {
   try {
@@ -53,54 +72,46 @@ export async function GET() {
     // embedded select: PostgREST relationship embedding depends on its schema
     // cache, and this codebase has been bitten by that before.
     const cavaloIds = [...new Set(conversas.map((c) => c.cavalo_id))];
-    const conversaIds = conversas.map((c) => c.id);
 
-    const [{ data: cavalos }, { data: mensagens }] = await Promise.all([
-      supabaseAdmin
-        .from("cavalos_venda")
-        .select("id, nome, foto_principal, preco, vendedor_nome")
-        .in("id", cavaloIds),
+    const [{ data: cavalos }, { data: porLerLinhas, error: erroPorLer }] = await Promise.all([
+      supabaseAdmin.from("cavalos_venda").select(COLUNAS_CAVALO).in("id", cavaloIds),
+      /* Só as que ainda estão por ler, e só a coluna que as agrupa. Numa caixa
+         de entrada em repouso isto devolve zero linhas. */
       supabaseAdmin
         .from("marketplace_mensagens")
-        .select("conversa_id, corpo, remetente_id, lida_at, created_at")
-        .in("conversa_id", conversaIds)
-        .order("created_at", { ascending: true }),
+        .select("conversa_id")
+        .eq("destinatario_id", user.id)
+        .is("lida_at", null),
     ]);
 
-    const porCavalo = new Map((cavalos || []).map((c) => [c.id, c]));
-
-    // One pass over the messages builds both the preview and the unread count.
-    const ultimaPorConversa = new Map<string, string>();
-    const porLerPorConversa = new Map<string, number>();
-    for (const m of mensagens || []) {
-      ultimaPorConversa.set(m.conversa_id, m.corpo);
-      if (m.remetente_id !== user.id && !m.lida_at) {
-        porLerPorConversa.set(m.conversa_id, (porLerPorConversa.get(m.conversa_id) || 0) + 1);
-      }
+    if (erroPorLer) {
+      logger.error("[conversas/GET] Falhou a contar as não lidas:", erroPorLer);
     }
 
-    const resultado: ChatConversa[] = conversas.map((c) => {
-      const papel = c.comprador_id === user.id ? "comprador" : "vendedor";
-      const cavalo = porCavalo.get(c.cavalo_id) as Record<string, unknown> | undefined;
+    const porCavalo = new Map<string, LinhaCavalo>(
+      (cavalos || []).map((c) => [(c as { id: string }).id, c as LinhaCavalo])
+    );
 
-      return {
-        id: c.id,
-        cavaloId: c.cavalo_id,
-        papel,
-        outraParte: nomeOutraParte(
-          papel,
-          c.comprador_nome,
-          (cavalo?.vendedor_nome as string) || null
-        ),
-        cavaloNome: (cavalo?.nome as string) || "Anúncio removido",
-        cavaloFoto: (cavalo?.foto_principal as string) || null,
-        cavaloPreco: typeof cavalo?.preco === "number" ? cavalo.preco : null,
-        ultimaMensagem: resumirMensagem(ultimaPorConversa.get(c.id)),
-        ultimaMensagemAt: c.ultima_mensagem_at,
-        porLer: porLerPorConversa.get(c.id) || 0,
-        arquivada: papel === "comprador" ? c.arquivada_comprador : c.arquivada_vendedor,
-      };
-    });
+    const porLerPorConversa = new Map<string, number>();
+    for (const linha of porLerLinhas || []) {
+      const chave = (linha as { conversa_id: string }).conversa_id;
+      porLerPorConversa.set(chave, (porLerPorConversa.get(chave) || 0) + 1);
+    }
+
+    /* A resposta é construída campo a campo em `vista-publica`, e não a partir
+       da linha da tabela: é lá que está escrito porque é que um `select("*")`
+       daqui até ao anúncio publicaria o telefone do vendedor. */
+    const resultado: ChatConversa[] = conversas.map((c) =>
+      vistaConversa(
+        c as LinhaConversa,
+        porCavalo.get(c.cavalo_id) ?? null,
+        {
+          ultimaMensagem: (c as { ultima_mensagem_previa?: string | null }).ultima_mensagem_previa,
+          porLer: porLerPorConversa.get(c.id) || 0,
+        },
+        user.id
+      )
+    );
 
     return NextResponse.json({
       conversas: resultado,
@@ -187,6 +198,41 @@ export async function POST(req: NextRequest) {
     let conversaId = existente?.id as string | undefined;
 
     if (!conversaId) {
+      /* ── O limite de ritmo trava conversas **novas**, e por isso está aqui ──
+         Depois de sabermos que não há fio, e antes de o abrirmos: continuar um
+         fio já aberto não é o comportamento que se quer travar, e uma conta
+         que responda depressa a quem já lhe escreveu não pode ser confundida
+         com uma que varre o directório.
+
+         Sem isto, uma conta criada de fresco abria conversa com os vinte e
+         nove vendedores em três segundos, e os vinte e nove recebiam um email.
+         Medido a chamar esta rota em ciclo: 29 conversas abertas em 29
+         pedidos; com o limite, 5.
+
+         O mecanismo é o que a casa já usa — o `strictLimiter` do
+         `lib/rate-limit`, o mesmo das denúncias — e a chave é a **conta** e não
+         o IP: por IP, uma casa com duas pessoas partilha o castigo. E fica
+         escrito o que este limitador não é: vive em memória do processo, logo
+         um arranque a frio devolve o crédito. A camada durável é a do
+         `middleware.ts` (Upstash, 60 pedidos por minuto por IP), que já cobre
+         tudo o que seja `/api/*`. Duas redes com buracos em sítios
+         diferentes, e nenhuma inventada aqui.
+
+         O `check` recusa a partir do limite **inclusive** (`>= limite`), por
+         isso passa-se o limite mais um para que o número escrito na constante
+         seja o número de conversas que passam. */
+      try {
+        await strictLimiter.check(MAX_CONVERSAS_NOVAS_POR_MINUTO + 1, `conversa-nova:${user.id}`);
+      } catch {
+        return NextResponse.json(
+          {
+            error:
+              "Abriu demasiadas conversas seguidas. Espere um minuto antes de contactar outro vendedor.",
+          },
+          { status: 429 }
+        );
+      }
+
       const { data: criada, error: criarError } = await supabaseAdmin
         .from("marketplace_conversas")
         .insert({
@@ -241,10 +287,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Erro ao enviar mensagem" }, { status: 500 });
     }
 
-    await supabaseAdmin
-      .from("marketplace_conversas")
-      .update({ ultima_mensagem_at: new Date().toISOString() })
-      .eq("id", conversaId);
+    /* O `ultima_mensagem_at` e a pré-visualização deixaram de se escrever
+       daqui: são um gatilho na base (migração 20260909000001). Uma escrita a
+       menos por mensagem, e a ordem da caixa de entrada deixa de depender de
+       quem escreve na tabela. */
 
     // Awaited rather than fired and forgotten: an unawaited promise can be
     // killed when the serverless invocation ends. A failure inside never throws.

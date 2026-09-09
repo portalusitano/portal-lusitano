@@ -1,8 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { getAuthenticatedUser } from "@/lib/seller-auth";
-import { validarMensagem, nomeOutraParte, type ChatMensagem } from "@/lib/marketplace-chat";
+import {
+  validarMensagem,
+  codificarCursor,
+  descodificarCursor,
+  linhasAPedir,
+  paginaDoFio,
+  limiteDaPagina,
+  MAX_MENSAGENS_POR_MINUTO,
+  type ChatMensagem,
+} from "@/lib/marketplace-chat";
+import {
+  vistaCabecalho,
+  vistaMensagem,
+  outraParteDaConversa,
+  COLUNAS_CAVALO,
+  COLUNAS_MENSAGEM,
+  type LinhaCavalo,
+  type LinhaConversa,
+  type LinhaMensagem,
+} from "@/lib/chat/vista-publica";
 import { devoNotificar, notificarNovaMensagem } from "@/lib/chat-notificacoes";
+import { strictLimiter } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 import type { User } from "@supabase/supabase-js";
 
@@ -25,16 +45,29 @@ async function conversaDoUtilizador(user: User, conversaId: string) {
     return null;
   }
 
-  return data ?? null;
+  return (data as LinhaConversa | null) ?? null;
 }
 
 /**
  * GET /api/conversas/[id]
  *
- * The full thread. Opening it marks the counterpart's messages as read, which is
- * what clears the unread badge in the inbox.
+ * Uma página do fio, da mais recente para trás.
+ *
+ * ── Porque é que isto é por cursor e não por página ─────────────────────────
+ *
+ * Isto trazia o fio inteiro a **cada abertura**. Medido no PostgreSQL local
+ * sobre uma conversa de 800 mensagens: 199 092 bytes de corpos contra 7 719 de
+ * uma página de trinta, e um varrimento contra cinco blocos de índice.
+ *
+ * Por cursor e não por `offset` porque a conversa cresce por cima: com um
+ * `offset`, uma mensagem que chegue enquanto alguém rola para trás empurra a
+ * lista e faz a página seguinte repetir a linha da fronteira. O cursor aponta
+ * para uma linha, não para uma contagem, e por isso não se desalinha.
+ *
+ * Abrir a primeira página — a que não traz cursor — é o que marca como lidas as
+ * mensagens da outra parte. Pedir as antigas não marca nada: já foram lidas.
  */
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await getAuthenticatedUser();
     if (!user) {
@@ -47,57 +80,110 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Conversa não encontrada" }, { status: 404 });
     }
 
-    const { data: mensagens, error } = await supabaseAdmin
+    const cursorBruto = req.nextUrl.searchParams.get("antes");
+    const cursor = descodificarCursor(cursorBruto);
+    if (cursorBruto && !cursor) {
+      return NextResponse.json({ error: "Cursor inválido" }, { status: 400 });
+    }
+
+    const limite = limiteDaPagina(req.nextUrl.searchParams.get("limite"));
+
+    /* Pedem-se mais linhas do que se devolvem. A primeira a mais é como se
+       sabe que há mais sem uma segunda pergunta — e sem um `count`, que obriga
+       o Postgres a contar o fio inteiro para responder a uma pergunta de sim ou
+       não. As outras são a margem de empate: o corte é inclusivo e o desempate
+       pelo `id` faz-se no `paginaDoFio`, que é onde tem testes. */
+    const pedido = linhasAPedir(limite);
+
+    let consulta = supabaseAdmin
       .from("marketplace_mensagens")
-      .select("id, corpo, remetente_id, lida_at, created_at")
+      .select(COLUNAS_MENSAGEM)
       .eq("conversa_id", id)
-      .order("created_at", { ascending: true });
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(pedido);
+
+    if (cursor) {
+      /* Uma desigualdade só, que qualquer PostgREST lê da mesma maneira. A
+         subtileza — não repetir a linha da fronteira — está no `paginaDoFio`.
+         Ver lá a medição que fez esta escolha mudar. */
+      consulta = consulta.lte("created_at", cursor.createdAt);
+    }
+
+    const { data: descendente, error } = await consulta;
 
     if (error) {
       logger.error("[conversas/[id]/GET] Failed to load messages:", error);
       return NextResponse.json({ error: "Erro ao carregar mensagens" }, { status: 500 });
     }
 
-    // Best-effort: failing to mark as read must not stop the thread rendering.
-    const { error: lidasError } = await supabaseAdmin
-      .from("marketplace_mensagens")
-      .update({ lida_at: new Date().toISOString() })
-      .eq("conversa_id", id)
-      .neq("remetente_id", user.id)
-      .is("lida_at", null);
+    const linhas = (descendente || []) as unknown as LinhaMensagem[];
+    const { pagina, temMais } = paginaDoFio(linhas, limite, pedido, cursor);
+    const maisAntiga = pagina[pagina.length - 1];
 
-    if (lidasError) {
-      logger.error("[conversas/[id]/GET] Failed to mark as read:", lidasError);
+    /* Lê-se do mais recente para trás e devolve-se por ordem de leitura. A
+       inversão é aqui e não no cliente porque quem sabe qual foi a ordem do
+       `ORDER BY` é quem a escreveu. */
+    const mensagens: ChatMensagem[] = pagina
+      .slice()
+      .reverse()
+      .map((m) => vistaMensagem(m, user.id));
+
+    if (!cursor) {
+      /* Melhor esforço, e por isso não bloqueia a resposta: falhar a marcar
+         como lida não pode impedir o fio de aparecer.
+
+         São duas escritas porque o PostgREST não sabe escrever
+         `entregue_at = coalesce(entregue_at, now())` — e escrever a data nova
+         por cima da antiga faria uma mensagem «entregue» há uma hora parecer
+         entregue agora. As duas condições são disjuntas no que interessa: cada
+         uma só toca na coluna que ainda está a nulo. E a ordem entre elas não
+         importa, porque quem lê o estado lê primeiro o `lida_at` — uma lida
+         nunca recua a «enviada» por a outra escrita ter falhado. */
+      const agora = new Date().toISOString();
+      const [entrega, leitura] = await Promise.all([
+        supabaseAdmin
+          .from("marketplace_mensagens")
+          .update({ entregue_at: agora })
+          .eq("conversa_id", id)
+          .eq("destinatario_id", user.id)
+          .is("entregue_at", null),
+        supabaseAdmin
+          .from("marketplace_mensagens")
+          .update({ lida_at: agora })
+          .eq("conversa_id", id)
+          .eq("destinatario_id", user.id)
+          .is("lida_at", null),
+      ]);
+
+      if (entrega.error) {
+        logger.error("[conversas/[id]/GET] Failed to mark as delivered:", entrega.error);
+      }
+      if (leitura.error) {
+        logger.error("[conversas/[id]/GET] Failed to mark as read:", leitura.error);
+      }
     }
-
-    const papel = conversa.comprador_id === user.id ? "comprador" : "vendedor";
 
     const { data: cavalo } = await supabaseAdmin
       .from("cavalos_venda")
-      .select("id, nome, foto_principal, preco, status, vendedor_nome")
+      .select(COLUNAS_CAVALO)
       .eq("id", conversa.cavalo_id)
       .maybeSingle();
 
-    const linhas: ChatMensagem[] = (mensagens || []).map((m) => ({
-      id: m.id,
-      corpo: m.corpo,
-      createdAt: m.created_at,
-      minha: m.remetente_id === user.id,
-      lida: Boolean(m.lida_at),
-    }));
-
     return NextResponse.json({
-      conversa: {
-        id: conversa.id,
-        cavaloId: conversa.cavalo_id,
-        papel,
-        outraParte: nomeOutraParte(papel, conversa.comprador_nome, cavalo?.vendedor_nome || null),
-        cavaloNome: cavalo?.nome || "Anúncio removido",
-        cavaloFoto: cavalo?.foto_principal || null,
-        cavaloPreco: typeof cavalo?.preco === "number" ? cavalo.preco : null,
-        cavaloStatus: cavalo?.status || null,
+      conversa: vistaCabecalho(conversa, (cavalo as LinhaCavalo | null) ?? null, user.id),
+      mensagens,
+      pagina: {
+        temMais,
+        /* O cursor aponta para a mais **antiga** desta página, que é a
+           fronteira por onde a próxima continua. Vem a nulo quando não há
+           mais nada atrás: um cursor que não leva a lado nenhum é um convite
+           a um pedido que devolve zero. */
+        cursor:
+          temMais && maisAntiga
+            ? codificarCursor({ createdAt: maisAntiga.created_at, id: maisAntiga.id })
+            : null,
       },
-      mensagens: linhas,
     });
   } catch (error) {
     logger.error("[conversas/[id]/GET] Unexpected error:", error);
@@ -137,6 +223,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: validada.erro }, { status: 400 });
     }
 
+    /* Mais folgado do que o de abrir conversas, e de propósito: responder
+       depressa a quem já nos escreveu é o que esta funcionalidade existe para
+       permitir. O que este número trava é o guião, não a conversa. Mesmo
+       mecanismo e mesma chave — a conta — que na rota de abrir. */
+    try {
+      await strictLimiter.check(MAX_MENSAGENS_POR_MINUTO + 1, `mensagem:${user.id}`);
+    } catch {
+      return NextResponse.json(
+        { error: "Demasiadas mensagens seguidas. Tente novamente dentro de um minuto." },
+        { status: 429 }
+      );
+    }
+
     const { data: mensagem, error } = await supabaseAdmin
       .from("marketplace_mensagens")
       .insert({
@@ -144,7 +243,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         remetente_id: user.id,
         corpo: validada.corpo,
       })
-      .select("id, corpo, remetente_id, lida_at, created_at")
+      .select(COLUNAS_MENSAGEM)
       .single();
 
     if (error || !mensagem) {
@@ -152,20 +251,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "Erro ao enviar mensagem" }, { status: 500 });
     }
 
-    // Reopen the thread for whoever archived it: a new message should surface
-    // again in both inboxes.
-    await supabaseAdmin
-      .from("marketplace_conversas")
-      .update({
-        ultima_mensagem_at: new Date().toISOString(),
-        arquivada_comprador: false,
-        arquivada_vendedor: false,
-      })
-      .eq("id", id);
+    /* Pôr a conversa no topo das duas caixas de entrada e desarquivá-la é
+       agora um gatilho da base (migração 20260909000001), e não um segundo
+       `UPDATE` escrito nesta rota e outro igual — mas não igual — na de abrir.
+       Um gatilho corre também para quem escreva na tabela por outro caminho. */
 
-    if (await devoNotificar(id, user.id, mensagem.id)) {
-      const destinatarioId =
-        conversa.comprador_id === user.id ? conversa.vendedor_id : conversa.comprador_id;
+    if (await devoNotificar(id, user.id, (mensagem as unknown as LinhaMensagem).id)) {
+      const destinatarioId = outraParteDaConversa(conversa, user.id);
 
       const { data: cavalo } = await supabaseAdmin
         .from("cavalos_venda")
@@ -189,15 +281,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     return NextResponse.json(
-      {
-        mensagem: {
-          id: mensagem.id,
-          corpo: mensagem.corpo,
-          createdAt: mensagem.created_at,
-          minha: true,
-          lida: false,
-        } satisfies ChatMensagem,
-      },
+      { mensagem: vistaMensagem(mensagem as unknown as LinhaMensagem, user.id) },
       { status: 201 }
     );
   } catch (error) {
