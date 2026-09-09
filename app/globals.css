@@ -3662,8 +3662,6 @@ body {
     padding: 0.25rem;
     border: 1px solid var(--border-soft);
     border-radius: 0.875rem;
-    background: color-mix(in srgb, var(--background-card) 82%, transparent);
-    backdrop-filter: blur(14px);
   }
 
   /* A hairline que separa o modo de vista do comando de pesquisa. São duas
@@ -3724,6 +3722,24 @@ body {
     padding-block: 0.5rem;
   }
 
+  /* ── E o marcador é a única coisa que diz o que a caixa faz ────────────
+     A etiqueta desta caixa é `sr-only`: para quem vê, o que diz «Pesquisar…»
+     é o marcador, e mais nada. Medido nos pixéis renderizados: **3,64:1** nas
+     duas vistas e nos dois tamanhos — o `.campo::placeholder` escreve em
+     `--foreground-muted`, e esta caixa ainda por cima baixou o chão a preto
+     puro, onde `#666` não passa dos 3,66. Fica a tinta secundária, que é a
+     mesma troca que a `.mapa-dica` fez três parágrafos abaixo e pela mesma
+     razão: aqui o texto ténue não é uma legenda ao lado de um dado, é o nome
+     do comando principal da página.
+
+     Está preso a `.mapa-procura` de propósito. O `.campo::placeholder` é de
+     todo o site e mede 3,64:1 em todo o lado; trocá-lo na origem é uma
+     decisão de sistema, com a sua própria medição, e não se faz de passagem
+     a partir do mapa. */
+  .mapa-procura .campo::placeholder {
+    color: var(--foreground-secondary);
+  }
+
   /* A tecla de atalho. Sai de cena assim que o campo tem foco ou texto — a
      partir daí já não é uma dica, é um estorvo em cima do que se escreveu. */
   .mapa-tecla {
@@ -3742,7 +3758,14 @@ body {
     font-family: var(--font-geist-mono), ui-monospace, monospace;
     font-size: 0.6875rem;
     line-height: 1.4;
-    color: var(--foreground-muted);
+    /* Medido nos pixéis renderizados, com a tinta isolada por diferença:
+       `--foreground-muted` dava **2,82:1** dentro da caixa de pesquisa, que
+       tem `background: var(--background)` — preto puro, o pior chão que esta
+       folha tem. É a mesma conta que o `.mapa-dica` já pagou aqui ao lado:
+       `#666` sobre preto puro dá 3,66:1 no melhor dos casos e não há fundo,
+       por mais escuro, que a leve aos 4,5. A moldura da tecla é que é ténue —
+       essa fica —, o algarismo lá dentro não pode ser. */
+    color: var(--foreground-secondary);
   }
 
   /* Com o campo já em foco a tecla deixou de ser uma dica: é uma etiqueta
@@ -3772,8 +3795,6 @@ body {
     padding: 0.25rem 0.5rem;
     border: 1px solid var(--border-soft);
     border-radius: 999px;
-    background: color-mix(in srgb, var(--background-card) 82%, transparent);
-    backdrop-filter: blur(14px);
   }
 
   .mapa-regioes {
@@ -3793,8 +3814,6 @@ body {
     padding: 0.5rem 0.75rem;
     border: 1px solid var(--border-soft);
     border-radius: 0.75rem;
-    background: color-mix(in srgb, var(--background-card) 82%, transparent);
-    backdrop-filter: blur(14px);
     color: var(--foreground);
     text-align: left;
     cursor: pointer;
@@ -3802,6 +3821,17 @@ body {
       color var(--d-fast) var(--ease-out),
       border-color var(--d-fast) var(--ease-out),
       background var(--d-fast) var(--ease-out);
+  }
+
+  /* ── A conta é o dado, e estava escrita em tinta de legenda ───────────
+     O gatilho diz duas coisas: onde se está e quantas se vêem. A primeira
+     estava a 17,1:1 e a segunda — que é a resposta à pergunta com que se
+     chega a um mapa — a **3,41:1** sobre o chão escuro, e a **2,17:1** com o
+     Alentejo ao sol por baixo do vidro. Um algarismo que não se lê não conta
+     nada. `.meta` continua a dar-lhe o tamanho e a mono o alinhamento; o que
+     muda é a tinta, e passa a ser a mesma com que o véu de 82% foi medido. */
+  .mapa-regioes__gatilho .meta {
+    color: var(--foreground-secondary);
   }
 
   .mapa-regioes__gatilho:hover,
@@ -3846,8 +3876,9 @@ body {
     margin-bottom: 0.5rem;
     border: 1px solid var(--border-soft);
     border-radius: 0.75rem;
-    background: color-mix(in srgb, var(--background-card) 92%, transparent);
-    backdrop-filter: blur(14px);
+    /* Mais espesso do que as outras três, e por uma razão de conteúdo: aqui
+       por baixo passa uma lista que se rola, e é sobre ela que se escolhe. */
+    --mapa-veu: 92%;
     animation: crescer var(--d-fast) var(--ease-out);
     transform-origin: bottom center;
   }
@@ -3925,6 +3956,86 @@ body {
   .mapa-regioes__lista button:hover .mapa-quota__cheio,
   .mapa-regioes__lista button:focus-visible .mapa-quota__cheio {
     background: var(--foreground-strong);
+  }
+
+  /* ── O vidro do cromado do mapa é um só — e não é o `.vidro` ───────────
+     Eram **quatro** receitas escritas à mão, a mesma linha copiada em quatro
+     sítios: a pílula, a fila de estado, o gatilho das regiões e o painel. O
+     sistema diz «o que flutua é vidro, e é um só», e a primeira leitura era
+     que estas quatro deviam passar a `.vidro` com o botão do desfoque, como
+     a `.mapa-dica` já faz.
+
+     Mediu-se antes de o fazer, e a medição diz o contrário. Ensaio: uma chapa
+     de `#f0f0f0` por baixo da lona — que é o pior chão que uma superfície
+     translúcida apanha aqui, e é o mesmo ensaio com que os 68% do `.vidro`
+     foram medidos («um cavalo branco contra o céu, ou o tema claro») —, e o
+     contraste lido nos pixéis renderizados, com o texto isolado por diferença
+     contra a mesma captura com a tinta a transparente:
+
+                                  82% · blur 14      68% · blur 20 · sat 200
+       chip inactivo da pílula       4,46:1                 2,75:1  ✗
+       gatilho: nome da região      11,09:1                 6,65:1
+       gatilho: a conta              2,17:1  ✗              1,32:1  ✗
+
+     (A conta do gatilho passou a 4,96:1 neste mesmo ensaio, e foi por outra
+     razão — a tinta —, escrita mais abaixo. O que a coluna da direita mostra
+     é que o véu mais fino tirava um ponto e meio a **todas** as leituras.)
+
+     Passar ao `.vidro` **tirava** um ponto e meio a cada leitura e punha o
+     comando principal da página abaixo do mínimo. A razão é o `.chip`: o
+     fundo dele é `--elevate-1`, branco a 4%, e essa camada assenta **por
+     cima** do véu — levanta o chão local e come o contraste que o véu tinha
+     comprado. Os 68% foram medidos para texto directamente sobre o véu, e
+     aqui não é esse o caso.
+
+     Por isso o véu fica nos 82%, e o que muda é o que estava mesmo em falta:
+     as **duas defesas obrigatórias** que o `.vidro` tem e estas quatro não
+     tinham. Sem elas, num browser sem `backdrop-filter` — e há-os — o que
+     resta é 82% de véu sem desfoque nenhum por cima de uma fotografia do
+     planeta, que é a definição de texto por cima de texto; e quem pediu ao
+     sistema operativo menos transparência levava vidro na mesma, que é uma
+     preferência ignorada e não um número.
+
+     Sobre a mesma chapa clara, e vale a pena escrever porque contraria a
+     intuição: **tirar o desfoque quase não mexe no contraste** (o chip cai de
+     4,46 para 4,40) — desfocar uma chapa lisa não muda um pixel, e o que o
+     desfoque faz não é escurecer, é impedir que a estrutura do que está por
+     baixo se leia como letras. O que **mexe** é a defesa: com o chão opaco do
+     `--background-elevated` o chip vai a **6,72:1** e a conta do gatilho a
+     7,34. As duas defesas não são um remendo de acessibilidade — são o único
+     estado em que esta superfície é honesta quando o desfoque não existe.
+
+     E a receita passa a estar escrita **uma vez**. O único número que muda de
+     superfície para superfície é o véu, e por isso é o único que sai como
+     botão (`--mapa-veu`), pela mesma lógica com que o `.vidro` abre o
+     `--vidro-desfoque` e mais nada. */
+  .mapa-pilula,
+  .mapa-estado,
+  .mapa-regioes__gatilho,
+  .mapa-regioes__painel {
+    background: color-mix(in srgb, var(--background-card) var(--mapa-veu, 82%), transparent);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .mapa-pilula,
+    .mapa-estado,
+    .mapa-regioes__gatilho,
+    .mapa-regioes__painel {
+      background: var(--background-elevated);
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .mapa-pilula,
+    .mapa-estado,
+    .mapa-regioes__gatilho,
+    .mapa-regioes__painel {
+      background: var(--background-elevated);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
   }
 
   /* ── A única peça flutuante sem chão, e a que mais precisava de um ─────
@@ -4114,6 +4225,89 @@ body {
     border-radius: 999px;
     background: var(--background-elevated);
     color: var(--foreground-secondary);
+  }
+
+  /* ── O que fica no sítio do mapa quando não há JavaScript ─────────────
+     Só existe dentro de um `<noscript>`, por isso quem tem JavaScript não
+     paga um nó por isto. Cobre a lona inteira porque é isso que substitui: um
+     rectângulo preto do tamanho da janela. Rola por dentro — vinte e nove
+     nomes não cabem num ecrã de telefone e a página por baixo é `100dvh`.
+
+     Sem receita nova: a caixa é a superfície de cartão que a página já usa
+     para a falha (`.mapa-falha` é a irmã), as linhas são as mesmas hairlines
+     do painel das regiões e a saída é o botão por omissão do sistema. Vidro
+     aqui seria mentira — não há nada por baixo para o atravessar. */
+  .mapa-semjs {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow-y: auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem;
+    background: var(--background);
+  }
+
+  /* ── E os comandos que não comandam saem do caminho ────────────────────
+     A pílula, a fila de estado e o gatilho das regiões são React puro: sem o
+     `$RC` do cliente não há nada por trás deles. Medido, o que ficava no ecrã
+     eram uma caixa de pesquisa que não pesquisa, um interruptor entre duas
+     vistas que não troca, um botão «Explorar Regiões» que não abre e a
+     instrução «Arraste para rodar» para um globo que não existe — os quatro
+     por cima da lista que os substitui, e a pílula em cima do título dela.
+
+     Quem sabe que o `$RC` não vem é a classe `js` do `<html>`, que o
+     `globals.css` já usa três parágrafos acima para revelar este conteúdo. É
+     o mesmo sinal, e não um segundo inventado. */
+  html:not(.js) .mapa-barra,
+  html:not(.js) .mapa-rodape {
+    display: none;
+  }
+
+  .mapa-semjs__caixa {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+    width: min(100%, 34rem);
+    padding: 1.25rem;
+    border: 1px solid var(--border-soft);
+    border-radius: 0.75rem;
+    background: var(--background-card);
+  }
+
+  .mapa-semjs__lista {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--border-soft);
+  }
+
+  .mapa-semjs__lista li {
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .mapa-semjs__lista a {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    /* O mesmo chão de toque dos outros alvos desta página. */
+    min-height: 44px;
+    padding: 0.5rem 0.25rem;
+    color: var(--foreground);
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+
+  .mapa-semjs__lista a:hover {
+    color: var(--foreground-strong);
+  }
+
+  .mapa-semjs__lista a > span:first-child {
+    min-width: 0;
+    flex: 1 1 auto;
   }
 
   /* Centrada no que se vê da lona, não na lona: com o palco a ocupar a janela

@@ -112,4 +112,36 @@ describe("o ida-e-volta da barra de endereço", () => {
     });
     expect(lerEstadoDoMapa({ vista: "seja-o-que-for" }, REGIOES).vista).toBe("globo");
   });
+
+  /**
+   * ── A vista pedida é o que decide o anúncio das texturas ───────────────
+   *
+   * A `app/mapa/page.tsx` só anuncia as seis texturas do globo (569,3 KiB,
+   * prioridade alta) quando a vista pedida é o globo — senão
+   * `/mapa?vista=lista`, que é uma grelha de cartões, descarregava-as para
+   * nada. Quem decide é esta função, e a decisão tem de falhar do lado
+   * seguro: **o que não for explicitamente a lista é o globo**, porque uma
+   * leitura errada aqui não deixa um mapa sem texturas — deixa-o à espera
+   * delas no fim da cadeia do `import()`, que é o defeito que o anúncio
+   * existe para corrigir.
+   *
+   * Sem esta prova, alguém acrescenta uma terceira vista ou mexe no valor por
+   * omissão e o `/mapa` perde o adiantamento de um segundo e meio em silêncio
+   * — não há ecrã onde isso se veja, só um planeta que compõe mais tarde.
+   */
+  it("a vista pedida decide o anúncio das texturas, e o que não é lista é globo", () => {
+    const vista = (p: Record<string, string | string[] | undefined>) =>
+      lerEstadoDoMapa(p, REGIOES).vista;
+    // Os endereços que a página recebe mesmo.
+    expect(vista({})).toBe("globo");
+    expect(vista({ vista: "lista" })).toBe("list");
+    expect(vista({ q: "alter", vista: "lista" })).toBe("list");
+    expect(vista({ regiao: "Alentejo" })).toBe("globo");
+    expect(vista({ q: "alter" })).toBe("globo");
+    // E o que não se reconhece cai no globo, que é o lado seguro.
+    expect(vista({ vista: "mapa" })).toBe("globo");
+    expect(vista({ vista: "" })).toBe("globo");
+    expect(vista({ vista: undefined })).toBe("globo");
+    expect(vista({ vista: ["lista", "globo"] })).toBe("list");
+  });
 });

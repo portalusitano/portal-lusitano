@@ -511,6 +511,14 @@ export default function MapaClient({
      mapa fica com o ecrã e quem quer filtrar continua a ter o instrumento à
      mão, com o nome escrito por extenso. */
   const [regioesAbertas, setRegioesAbertas] = useState(false);
+
+  /* Ver o bloco «O globo não se desfaz para se trocar de vista», mais abaixo:
+     o palco do mapa fica no documento assim que tiver sido pedido uma vez, e
+     não nasce para quem chegou directamente à lista. */
+  const [globoNasceu, setGloboNasceu] = useState(partida.vista === "globo");
+  useEffect(() => {
+    if (viewMode === "globo") setGloboNasceu(true);
+  }, [viewMode]);
   const gatilhoRegioes = useRef<HTMLButtonElement>(null);
   const campoProcura = useRef<HTMLInputElement>(null);
   const lona = useRef<HTMLDivElement>(null);
@@ -605,7 +613,9 @@ export default function MapaClient({
   const regiaoDoPainel = regiao ?? regiaoAnterior.current;
   const listaDoPainel = useMemo(
     () =>
-      regiaoDoPainel ? filtrar(coudelarias, { procura: procuraFiltro, regiao: regiaoDoPainel }) : [],
+      regiaoDoPainel
+        ? filtrar(coudelarias, { procura: procuraFiltro, regiao: regiaoDoPainel })
+        : [],
     [coudelarias, procuraFiltro, regiaoDoPainel]
   );
 
@@ -802,6 +812,55 @@ export default function MapaClient({
   const rodape = useRef<HTMLDivElement>(null);
   const [barraFora, setBarraFora] = useState(false);
   const [rodapeFora, setRodapeFora] = useState(false);
+
+  /* ── …e «ter mapa por baixo» não chega ─────────────────────────────────
+     A regra de cima é «sai quem deixa de ter o mapa por baixo», e é a certa
+     para o rodapé do mapa, que está encostado ao fundo e é o primeiro a ficar
+     sem chão. Para a pílula, que está encostada ao topo, ela é quase sempre
+     verdadeira: basta **um pixel** de lona por baixo dela para a pílula ficar.
+
+     Medido a 390×700, descendo os 832px do rolo de quinze em quinze,
+     contando as etiquetas que cabem inteiras na janela e olhando para a
+     pílula:
+
+       lona no ecrã   0,66   0,58   0,49   0,41   0,33   0,16   0,07
+       nomes inteiros 10/10   8/10   5/10    2/9    0/9   0/10   0/10
+       pílula                à vista em todas elas, até aos 0,07
+
+     Ou seja: a caixa de pesquisa e o interruptor de vistas ficavam pousados
+     por cima de uma tira de mapa onde já não havia **um único nome legível**,
+     e ficavam lá durante quinhentos pixéis de rolo. Um comando é para
+     comandar o que está no ecrã; quando o que ele comanda deixou de estar no
+     ecrã, ele é um objecto a flutuar por cima do rodapé de outra pessoa.
+
+     A segunda condição é uma só e sai da mesma tabela: **o cromado sai quando
+     o mapa deixa de ser a maior parte do ecrã.** Meio ecrã não é um número
+     escolhido — é onde a linha de cima cruza a de baixo: a 0,49 já se perdeu
+     metade dos nomes. E não mexe no computador, que é o caso que a regra
+     anterior protegia de propósito: lá o rolo inteiro são 380px e a lona
+     nunca desce dos **0,60**, com 13 dos 14 nomes de pé — a pílula fica onde
+     estava, como já ficava.
+
+     Um `IntersectionObserver` sobre o palco com limiar em 0,5. O palco tem
+     exactamente `100dvh`, logo a fracção dele que se vê **é** a fracção da
+     janela que ele ocupa; não há aqui uma segunda medida a manter sincronizada
+     com a primeira. Dispara nas passagens e mais nada — zero leituras de
+     layout por deslocamento, que é o que este ficheiro exige. */
+  const [mapaMinoritario, setMapaMinoritario] = useState(false);
+  useEffect(() => {
+    setMapaMinoritario(false);
+    const alvo = palco.current;
+    if (!alvo) return;
+    const observador = new IntersectionObserver(
+      ([e]) => setMapaMinoritario(e.intersectionRatio < 0.5),
+      {
+        threshold: [0.5],
+      }
+    );
+    observador.observe(alvo);
+    return () => observador.disconnect();
+  }, [viewMode, falhou]);
+
   useEffect(() => {
     setBarraFora(false);
     setRodapeFora(false);
@@ -1215,7 +1274,12 @@ export default function MapaClient({
                     style={{ width: `${maiorRegiao > 0 ? (total / maiorRegiao) * 100 : 0}%` }}
                   />
                 </span>
-                <span className="w-5 text-right font-mono text-xs tabular-nums text-[var(--foreground-muted)]">
+                {/* A conta é o dado desta linha, e estava em tinta de
+                    legenda: medida nos pixéis renderizados, **3,31:1**. A
+                    barra ao lado dá a proporção, o algarismo dá o número — e
+                    um número que não se lê não dá nada. Tinta secundária, a
+                    mesma do gatilho e a mesma com que o véu foi medido. */}
+                <span className="w-5 text-right font-mono text-xs tabular-nums text-[var(--foreground-secondary)]">
                   {total}
                 </span>
                 <ChevronRight
@@ -1278,70 +1342,165 @@ export default function MapaClient({
     </Pilha>
   );
 
-  if (noMapa) {
-    return (
-      /* Uma `div`, e não um `<main>`: o `app/layout.tsx` já embrulha tudo num
+  /* ── O globo não se desfaz para se trocar de vista ─────────────────────
+   * Trocar de «Mapa» para «Lista» e voltar desmontava o `<GloboTerra>` e
+   * montava-o outra vez: contexto WebGL novo, cinco texturas descodificadas e
+   * carregadas outra vez, onze mil pontos de contorno outra vez, e a colocação
+   * das vinte e nove etiquetas do zero. Medido no banco (três voltas por
+   * vista, tarefas longas do `PerformanceObserver`), o pico de uma volta:
+   *
+   *                     ir para a lista        voltar ao mapa
+   *   1400×950   antes    703 / 942ms            1914 / 2521ms
+   *              depois    50 /  77ms            1217 / 1346ms
+   *   390×700    antes    211 / 151ms            2833 / 3648ms
+   *              depois    59 /  77ms             433 /  773ms
+   *
+   * O que sobra de volta ao mapa é o `ResizeObserver` a acordar com a caixa a
+   * medir outra vez o que media — e isso é do motor, não daqui; fica escrito
+   * no relatório o que falta desse lado. O banco corre em SwiftShader, por isso
+   * os números absolutos são generosos; a razão entre eles é que é a medida.
+   *
+   * O palco fica no documento e leva `hidden` — não `opacity: 0`. A diferença
+   * é o que este ficheiro exige em três sítios: `hidden` dá `display: none`, e
+   * um elemento sem caixa não intersecta a janela, logo o
+   * `IntersectionObserver` do próprio motor dá-o por fora do ecrã e pára o
+   * ciclo. Medido: **zero chamadas de `requestAnimationFrame` em quatro
+   * segundos de repouso** nas três alturas — no mapa, na lista com o globo lá
+   * escondido, e no mapa outra vez. O motor também larga a roda ao sair do
+   * ecrã, por isso o ouvinte não passivo dele não sobrevive à troca.
+   *
+   * ── E quem chega à lista não paga um globo ────────────────────────────
+   * Deixar o palco montado sempre tinha um custo simétrico e pior: chegar a
+   * `/mapa?vista=lista` — que é o endereço de quem não quer o globo, e é o que
+   * o `/directorio` manda — passava a descarregar o pedaço do three.js, as
+   * cinco texturas e os contornos para uma página que mostra uma grelha. O
+   * `globoNasceu` é a condição honesta: **o globo nasce quando alguém o pede,
+   * e a partir daí não se desfaz.** Quem chega pela lista continua a não pagar
+   * nada; quem chega pelo mapa não volta a pagar.
+   *
+   * O que fica de fora do palco escondido é o cromado: sem isso havia dois
+   * `<h1>`, dois `id="mapa-procura"` e dois `id="mapa-regioes"` no mesmo
+   * documento — a tecla `/` focava o campo errado e o atalho «Saltar o globo»
+   * saltava para o painel que não estava no ecrã. Medido depois: um `<h1>`,
+   * zero ids repetidos, e o mesmo número de paragens de tabulação na lista.
+   */
+  const palcoMapa = (globoNasceu || noMapa) && (
+    /* Uma `div`, e não um `<main>`: o `app/layout.tsx` já embrulha tudo num
          `<main id="main-content">`, e um dentro do outro dava dois marcos
          «principal» ao leitor de ecrã. */
-      <div key="globo" ref={palco} className="mapa-palco">
-        {/* O título da página continua a existir para quem não vê o mapa. Não
+    <div key="globo" ref={palco} className="mapa-palco" hidden={!noMapa}>
+      {noMapa && (
+        <>
+          {/* O título da página continua a existir para quem não vê o mapa. Não
             se escreve por cima dele: um herói com um `<h1>` e um subtítulo
             eram, medidas, vinte e duas rem de cromado à frente do único
             conteúdo que esta página tem. O mapa é o título. */}
-        <h1 className="sr-only">
-          {titulo.antes}
-          {titulo.meio}
-          {titulo.depois}
-        </h1>
-        <p className="sr-only">{t.mapa.subtitle}</p>
+          <h1 className="sr-only">
+            {titulo.antes}
+            {titulo.meio}
+            {titulo.depois}
+          </h1>
+          <p className="sr-only">{t.mapa.subtitle}</p>
 
-        {/* ── O atalho para o painel ─────────────────────────────────────
+          {/* ── O atalho para o painel ─────────────────────────────────────
             Medido com o teclado: entre a caixa de pesquisa e as regiões estão
             os dois botões de aproximação do globo e as dezassete paragens dos
             nomes e das manchas — que são conteúdo, e não se tiram. Quem quer
             filtrar por região não pode ter de os atravessar todos. Com a base
             em baixo o painel não existe, e um atalho para um sítio vazio é
             uma promessa falha: sai do caminho também. */}
-        <a
-          href="#mapa-regioes"
-          hidden={falhou}
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[10001] focus:bg-[var(--foreground-strong)] focus:px-6 focus:py-3 focus:text-sm focus:font-bold focus:uppercase focus:tracking-wider focus:text-black"
-        >
-          {t.mapa.skip_to_regions}
-        </a>
+          <a
+            href="#mapa-regioes"
+            hidden={falhou}
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[10001] focus:bg-[var(--foreground-strong)] focus:px-6 focus:py-3 focus:text-sm focus:font-bold focus:uppercase focus:tracking-wider focus:text-black"
+          >
+            {t.mapa.skip_to_regions}
+          </a>
 
-        {/* Com a base em baixo não há nada para comandar: uma caixa de
+          {/* Com a base em baixo não há nada para comandar: uma caixa de
             pesquisa que não tem o que pesquisar e um interruptor entre duas
             vistas que estão as duas vazias são dois comandos a fingir que
             funcionam. A fila sai; o que fica no ecrã é a falha e as saídas
             dela. */}
-        {!falhou && (
-          <div
-            ref={barra}
-            className="mapa-barra"
-            data-fora={barraFora ? "" : undefined}
-            data-tapada={barraTapada ? "" : undefined}
-          >
-            <div className="mapa-pilula">{comandos}</div>
-            {barraEstado}
-          </div>
-        )}
+          {!falhou && (
+            <div
+              ref={barra}
+              className="mapa-barra"
+              data-fora={barraFora || mapaMinoritario ? "" : undefined}
+              data-tapada={barraTapada ? "" : undefined}
+            >
+              <div className="mapa-pilula">{comandos}</div>
+              {barraEstado}
+            </div>
+          )}
+        </>
+      )}
+      {/* ── E sem JavaScript o mapa é um rectângulo preto ──────────────
+            Medido no browser com o JavaScript desligado, e o que se vê não é
+            uma página em branco: o conteúdo **está** lá — quem o revela é a
+            regra `html:not(.js) div[hidden][id^="S:"]` do `globals.css` —, e
+            o que fica no ecrã é a pílula, o gatilho «Explorar Regiões» e a
+            dica «Arraste para rodar», tudo por cima de um vazio de novecentos
+            e cinquenta pixéis. Quatro comandos que não comandam nada, uma
+            instrução para um gesto que não existe, e **zero ligações para uma
+            coudelaria** no documento (com `?vista=lista` são vinte e nove, com
+            `?regiao=Alentejo` treze; só a vista do globo não trazia nenhuma,
+            porque o nível de dentro do painel não monta sem uma região).
 
-        <div ref={lona} className="mapa-lona vista-troca">
-          {visiveis.length > 0 ? (
-            /* Antes recebia `searchQuery ? filtradas : todas`, o que deixava a
+            A saída não é uma lista `sr-only`: essa custava vinte e nove
+            paragens de tabulação à vista onde este ficheiro já conta com
+            cuidado as dezassete do globo, e custava-as a **toda** a gente para
+            servir quem não tem JavaScript. O `<noscript>` é a mesma lista pelo
+            preço certo: não entra no DOM de quem tem JavaScript — zero nós,
+            zero paragens, zero bytes de layout — e é o documento inteiro para
+            quem não tem. Medido: 29 ligações no HTML em bruto do `/mapa`
+            contra 0, e as paragens de tabulação da vista do mapa inalteradas.
+
+            Não leva `<noscript>` na vista da lista porque lá a grelha já está
+            escrita no documento e já é a resposta.
+
+            O texto sai das chaves que já existem — este componente não pode
+            acrescentar linhas aos dicionários, e uma frase escrita à mão em
+            português dentro do JSX seria uma quarta língua. Ficam propostas no
+            relatório. */}
+      <noscript>
+        <div className="mapa-semjs">
+          <div className="mapa-semjs__caixa">
+            <h2 className="titulo-seccao">{t.mapa.nearby_title}</h2>
+            <p className="meta">{t.mapa.subtitle}</p>
+            <ul className="mapa-semjs__lista">
+              {coudelarias.map((c) => (
+                <li key={c.id}>
+                  <LocalizedLink href={caminhoDaCoudelaria(c.slug)}>
+                    <span>{nomeCurto(c.nome)}</span>
+                    <span className="meta">{sitioCurto(c.localizacao)}</span>
+                  </LocalizedLink>
+                </li>
+              ))}
+            </ul>
+            <LocalizedLink href="/directorio" className="btn btn-primario btn-sm">
+              {t.mapa.all_studs}
+            </LocalizedLink>
+          </div>
+        </div>
+      </noscript>
+
+      <div ref={lona} className="mapa-lona vista-troca">
+        {visiveis.length > 0 ? (
+          /* Antes recebia `searchQuery ? filtradas : todas`, o que deixava a
                região escolhida sem efeito nenhum sobre o globo. Agora recebe o
                que o funil deu. */
-            <GloboTerra coudelarias={visiveis} aoEscolher={(c) => irParaFicha(c.slug)} />
-          ) : (
-            <div className="mapa-vazio">{vazio}</div>
-          )}
-        </div>
+          <GloboTerra coudelarias={visiveis} aoEscolher={(c) => irParaFicha(c.slug)} />
+        ) : (
+          <div className="mapa-vazio">{vazio}</div>
+        )}
+      </div>
 
+      {noMapa && (
         <div
           ref={rodape}
           className="mapa-rodape"
-          data-fora={rodapeFora ? "" : undefined}
+          data-fora={rodapeFora || mapaMinoritario ? "" : undefined}
           data-tapada={rodapeTapada ? "" : undefined}
         >
           {!falhou && visiveis.length > 0 && (
@@ -1399,12 +1558,18 @@ export default function MapaClient({
             </p>
           )}
         </div>
-      </div>
-    );
-  }
+      )}
+    </div>
+  );
+
+  if (noMapa) return palcoMapa;
 
   return (
-    /* `dvh` e não o `min-h-screen` do Tailwind, que compila para `100vh`.
+    <>
+      {/* O palco do mapa, escondido — ver «O globo não se desfaz para se
+          trocar de vista». Aqui é `false` até alguém ter pedido o mapa. */}
+      {palcoMapa}
+      {/* `dvh` e não o `min-h-screen` do Tailwind, que compila para `100vh`.
        Num telemóvel `100vh` é a janela **grande** — a que existe quando a
        barra de endereço já se recolheu —, por isso com a barra à vista a
        caixa é mais alta do que o que se vê e sobra deslocamento que não leva
@@ -1412,34 +1577,34 @@ export default function MapaClient({
        desta mesma página já usa (`.mapa-palco` é `100dvh`), e uma página com
        duas respostas para «quanto é um ecrã» é uma página com um bug à
        espera. Só morde quando os resultados são poucos — com as vinte e nove
-       o conteúdo passa a caixa de longe. */
-    <div className="min-h-[100dvh] bg-[var(--background)]">
-      <div className="pointer-events-none fixed inset-0">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          style={{
-            backgroundImage:
-              "radial-gradient(ellipse 70% 50% at 50% 0%, var(--elevate-1), transparent 70%)",
-          }}
-        />
-      </div>
+       o conteúdo passa a caixa de longe. */}
+      <div className="min-h-[100dvh] bg-[var(--background)]">
+        <div className="pointer-events-none fixed inset-0">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0"
+            style={{
+              backgroundImage:
+                "radial-gradient(ellipse 70% 50% at 50% 0%, var(--elevate-1), transparent 70%)",
+            }}
+          />
+        </div>
 
-      <div className="relative mx-auto max-w-[1400px] px-4 pb-16 pt-20 sm:pt-28 md:px-6">
-        {/* Na lista a página volta a ser um documento, e um documento tem um
+        <div className="relative mx-auto max-w-[1400px] px-4 pb-16 pt-20 sm:pt-28 md:px-6">
+          {/* Na lista a página volta a ser um documento, e um documento tem um
             título visível. É a única diferença de cromado entre as duas
             vistas, e é a que o conteúdo pede: no mapa não há por onde rolar,
             aqui há. */}
-        <h1 className="titulo-pagina mb-4">
-          {titulo.antes}
-          {titulo.meio && <span className="text-[var(--foreground-strong)]">{titulo.meio}</span>}
-          {titulo.depois}
-        </h1>
+          <h1 className="titulo-pagina mb-4">
+            {titulo.antes}
+            {titulo.meio && <span className="text-[var(--foreground-strong)]">{titulo.meio}</span>}
+            {titulo.depois}
+          </h1>
 
-        {!falhou && (
-          <>
-            <div className="mb-3 flex flex-nowrap items-center gap-2 sm:gap-3">{comandos}</div>
-            {/* ── A lista também filtra por região ──────────────────────────
+          {!falhou && (
+            <>
+              <div className="mb-3 flex flex-nowrap items-center gap-2 sm:gap-3">{comandos}</div>
+              {/* ── A lista também filtra por região ──────────────────────────
                 O painel das regiões só existia na vista do mapa: quem
                 escolhesse a lista — e é o que escolhe quem não vê um canvas —
                 perdia a única maneira de percorrer as vinte e nove sem saber o
@@ -1453,76 +1618,77 @@ export default function MapaClient({
                 num sítio, porque o que está fora sai do ecrã; numa lista que
                 se rola vê-se tudo, e escolher é marcar um filtro. `.chip` /
                 `.chip-activo`, que é o idioma que o resto do site já usa. */}
-            <div
-              id="mapa-regioes"
-              tabIndex={-1}
-              role="group"
-              aria-label={t.mapa.filter_region}
-              className="mb-3 flex flex-wrap items-center gap-1.5"
-            >
-              <button
-                type="button"
-                onClick={() => setRegiao(null)}
-                aria-pressed={regiao === null}
-                className={`chip ${regiao === null ? "chip-activo" : ""}`}
+              <div
+                id="mapa-regioes"
+                tabIndex={-1}
+                role="group"
+                aria-label={t.mapa.filter_region}
+                className="mb-3 flex flex-wrap items-center gap-1.5"
               >
-                {t.mapa.region_all}
-                <span className="font-mono tabular-nums">{porTexto.length}</span>
-              </button>
-              {regioes.map(({ regiao: nome, total }) => (
-                /* Uma região que a pesquisa esvaziou fica visível mas inerte —
+                <button
+                  type="button"
+                  onClick={() => setRegiao(null)}
+                  aria-pressed={regiao === null}
+                  className={`chip ${regiao === null ? "chip-activo" : ""}`}
+                >
+                  {t.mapa.region_all}
+                  <span className="font-mono tabular-nums">{porTexto.length}</span>
+                </button>
+                {regioes.map(({ regiao: nome, total }) => (
+                  /* Uma região que a pesquisa esvaziou fica visível mas inerte —
                    a mesma regra do painel do mapa: escondê-la esconderia que
                    existe, deixá-la clicável prometeria o que não há. */
-                <button
-                  key={nome}
-                  type="button"
-                  disabled={total === 0}
-                  onClick={() => setRegiao(nome)}
-                  aria-pressed={regiao === nome}
-                  className={`chip ${regiao === nome ? "chip-activo" : ""} disabled:pointer-events-none disabled:opacity-40`}
-                >
-                  {nome}
-                  <span className="font-mono tabular-nums">{total}</span>
-                </button>
-              ))}
-            </div>
-            <div className="mb-4">{barraEstado}</div>
-          </>
-        )}
+                  <button
+                    key={nome}
+                    type="button"
+                    disabled={total === 0}
+                    onClick={() => setRegiao(nome)}
+                    aria-pressed={regiao === nome}
+                    className={`chip ${regiao === nome ? "chip-activo" : ""} disabled:pointer-events-none disabled:opacity-40`}
+                  >
+                    {nome}
+                    <span className="font-mono tabular-nums">{total}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="mb-4">{barraEstado}</div>
+            </>
+          )}
 
-        {/* A `key` é o que faz a animação voltar a correr: sem ela o React
+          {/* A `key` é o que faz a animação voltar a correr: sem ela o React
             reaproveita o nó e a animação, que já correu, não se repete. */}
-        <div key="lista" className="vista-troca">
-          {visiveis.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 lg:gap-4">
-              {/* Não é `<Revelar>`: esse dispara ao entrar no ecrã e, ao trocar
+          <div key="lista" className="vista-troca">
+            {visiveis.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 lg:gap-4">
+                {/* Não é `<Revelar>`: esse dispara ao entrar no ecrã e, ao trocar
                   de vista, os cartões já lá estão — nunca disparava. A cascata
                   é do CSS e corre com a vista. */}
-              {visiveis.map((c, i) => (
-                <div
-                  key={c.id}
-                  className="cartao-cascata"
-                  style={{ "--i": i } as React.CSSProperties}
-                >
-                  <CartaoGrelha
-                    coudelaria={c}
-                    capa={capaDoCartao(c.foto_capa, c.slug, capas)}
-                    featuredLabel={t.mapa.featured}
-                    horsesLabel={t.mapa.horses}
-                    mostrarDestaque={destaqueVale}
-                  />
-                </div>
-              ))}
-            </div>
-          ) : (
-            /* O `.cartao` que embrulhava isto era uma segunda moldura à volta
+                {visiveis.map((c, i) => (
+                  <div
+                    key={c.id}
+                    className="cartao-cascata"
+                    style={{ "--i": i } as React.CSSProperties}
+                  >
+                    <CartaoGrelha
+                      coudelaria={c}
+                      capa={capaDoCartao(c.foto_capa, c.slug, capas)}
+                      featuredLabel={t.mapa.featured}
+                      horsesLabel={t.mapa.horses}
+                      mostrarDestaque={destaqueVale}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              /* O `.cartao` que embrulhava isto era uma segunda moldura à volta
                de uma superfície que já é um cartão: o `vazio` traz o cartão
                assinatura, o mesmo que o mapa mostra. Uma só, e a mesma nas
                duas vistas. */
-            <div className="py-8">{vazio}</div>
-          )}
+              <div className="py-8">{vazio}</div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

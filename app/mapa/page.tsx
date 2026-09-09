@@ -185,20 +185,52 @@ export default async function MapaPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  for (const src of TEXTURAS_DO_GLOBO) {
-    preload(src, {
-      as: "image",
-      type: "image/webp",
+  /* ── E o anúncio também não se faz a quem pediu a lista ────────────────
+     O bloco acima conta como o anúncio fugiu do `layout` para a `page` porque
+     o `/directorio` descarregava 569,3 KiB de um globo que não tem. A mesma
+     falha ficou uma porta mais para dentro: **`/mapa?vista=lista` é uma
+     grelha de cartões e puxava as seis texturas na mesma.** Não é um endereço
+     de canto — é o que o interruptor de vistas escreve na barra, o que quem o
+     usou tem no histórico, e o que se partilha depois de encontrar uma
+     coudelaria pela lista. Medido no browser, nas duas vistas: **6 pedidos e
+     569,3 KiB de um globo que aquela página não monta**, com prioridade alta,
+     à frente dos vinte e quatro `.jpg` das capas que ela **vai** mostrar.
+
+     Quem decide é a mesma leitura da consulta que decide a vista, e por isso
+     não há aqui uma segunda regra a manter sincronizada com a primeira: se o
+     `lerEstadoDoMapa` disser `lista`, não se anuncia nada.
+
+     A ordem muda e o que ela protegia mantém-se. O comentário de cima pede as
+     chamadas **antes do `await` da base**, para a sugestão sair no princípio
+     da resposta; continuam. O que passa para a frente delas é o `await
+     searchParams`, que não é uma ida à rede — é um objecto já resolvido pelo
+     Next quando o `render` começa, e não há por onde custar milissegundos.
+     Medido na mesma, e medido em condições que o pudessem mostrar: 25 pares
+     intercalados de pedidos ao `/mapa`, dois servidores do mesmo build a
+     correr lado a lado. Mediana **43ms antes e 39ms depois**, com os quartis
+     iguais nos dois (34 e 51 contra 34 e 53) e caudas até 140 e 109 — ou
+     seja, a dispersão dentro de cada braço é dez vezes maior do que a
+     diferença entre eles. Não se pagou nada, e com esta amostra também não se
+     poderia afirmar que se ganhou. */
+  const params = await searchParams;
+  const vistaPedida = lerEstadoDoMapa(comSinonimos(params), []).vista;
+
+  if (vistaPedida === "globo") {
+    for (const src of TEXTURAS_DO_GLOBO) {
+      preload(src, {
+        as: "image",
+        type: "image/webp",
+        crossOrigin: "anonymous",
+        fetchPriority: "high",
+      });
+    }
+    preload(CONTORNOS_DO_GLOBO, {
+      as: "fetch",
+      type: "application/json",
       crossOrigin: "anonymous",
       fetchPriority: "high",
     });
   }
-  preload(CONTORNOS_DO_GLOBO, {
-    as: "fetch",
-    type: "application/json",
-    crossOrigin: "anonymous",
-    fetchPriority: "high",
-  });
 
   const supabase = await createSupabaseServerClient();
 
@@ -249,7 +281,6 @@ export default async function MapaPage({
     num_cavalos: c.num_cavalos ?? undefined,
   }));
 
-  const params = await searchParams;
   const inicial = lerEstadoDoMapa(
     /* `?search=` é o nome que o `/directorio` usa para a mesma pergunta, e
        entre as duas páginas há links nos dois sentidos — ver `sinonimos`. */
