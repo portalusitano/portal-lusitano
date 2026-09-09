@@ -5,6 +5,10 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { jwtVerify } from "jose";
 
+/** A marca que a passagem reescrita lê para saber que a língua já foi decidida
+ *  pelo endereço. Vive no pedido interno e nunca chega ao browser. */
+const CABECALHO_LINGUA_DO_CAMINHO = "x-lingua-do-caminho";
+
 // --- Rate Limiting (Upstash Redis — serverless-safe sliding window) ---
 // Instances are inline here (not imported from lib/) because middleware runs in Edge Runtime
 // with separate module scope. lib/rate-limit.ts provides complementary in-memory LRU limiting
@@ -138,7 +142,12 @@ export async function middleware(request: NextRequest) {
   // Expose pathname to Server Components (for hreflang, lang attribute)
   response.headers.set("x-pathname", pathname);
 
-  applySecurityHeaders(response);
+  /* A língua que o endereço pediu, quando este pedido é a segunda passagem de
+     um `rewrite` de `/en/…` ou `/es/…`. Sem isto o `content-language` saía
+     sempre `pt` nessas rotas: a primeira passagem escrevia-o certo e a segunda
+     escrevia `pt` por cima, com a omissão. Medido com `curl`:
+     `/es/directorio` respondia `content-language: pt`. */
+  applySecurityHeaders(response, request.headers.get(CABECALHO_LINGUA_DO_CAMINHO) ?? "pt");
 
   // API routes: CSRF + Rate Limiting + CORS + Admin guard
   if (pathname.startsWith("/api/")) {
@@ -309,7 +318,31 @@ export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = strippedPath;
 
-    const rewriteResponse = NextResponse.rewrite(url);
+    /* ── O caminho manda, e tem de o dizer à passagem seguinte ──────────
+       Este `rewrite` faz o middleware correr **outra vez**, agora sobre o
+       caminho já sem prefixo — e nessa segunda passagem o bloco da negociação
+       lá em baixo não vê cookie nenhuma (a que acabámos de escrever vai na
+       resposta, não no pedido) e escreve a língua do browser por cima.
+
+       Medido, uma resposta só, com `curl`:
+
+         Accept-Language: en-US  →  /es/directorio
+           set-cookie: locale=es      ← o que o endereço diz
+           set-cookie: locale=en      ← o que o browser prefere, e **ganha**
+
+       Duas cookies com o mesmo nome na mesma resposta: fica a última. Ou
+       seja, quem recebesse um endereço `/es/…` num browser inglês era servido
+       em inglês, e o `content-language` da resposta saía `pt` pela mesma razão
+       — a segunda passagem reescrevia-o também.
+
+       A marca vai no **pedido** reescrito, que é a única coisa que a passagem
+       seguinte consegue ler. Não é um cabeçalho que chegue ao browser. */
+    const cabecalhosDoPedido = new Headers(request.headers);
+    cabecalhosDoPedido.set(CABECALHO_LINGUA_DO_CAMINHO, locale);
+
+    const rewriteResponse = NextResponse.rewrite(url, {
+      request: { headers: cabecalhosDoPedido },
+    });
     rewriteResponse.headers.set("x-pathname", pathname);
     rewriteResponse.cookies.set("locale", locale, { path: "/", sameSite: "lax" });
     applySecurityHeaders(rewriteResponse, locale);
@@ -323,6 +356,10 @@ export async function middleware(request: NextRequest) {
      numa rota portuguesa. Agora lêem-se os pesos, como o protocolo manda. */
   if (
     !request.cookies.get("locale")?.value &&
+    /* Um endereço com prefixo de língua já respondeu a esta pergunta. Sem
+       isto, a segunda passagem do `rewrite` escreve a preferência do browser
+       por cima da língua que o endereço pediu — ver a nota lá em cima. */
+    !request.headers.get(CABECALHO_LINGUA_DO_CAMINHO) &&
     !pathname.startsWith("/api/") &&
     !pathname.startsWith("/admin")
   ) {
