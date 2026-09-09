@@ -96,7 +96,27 @@ function lerEsquema(): Record<string, Set<string>> {
       const cols = [...stmt.matchAll(/ADD\s+COLUMN\s+(?:IF\s+NOT\s+EXISTS\s+)?"?([a-z0-9_]+)"?/gi)];
       if (!cols.length) continue;
       const t = cab[1].toLowerCase();
-      tabelas[t] ??= new Set();
+      /* Um `ALTER TABLE` **acrescenta** colunas a uma tabela que os tipos já
+         conhecem; não faz autoridade sobre uma que eles não conhecem.
+
+         A diferença não é teórica. A `user_profiles` não está nos tipos
+         gerados — nasce da `004_user_auth_tools.sql`, que é um
+         `CREATE TABLE IF NOT EXISTS`, e este ficheiro já diz por escrito que
+         isso não conta como autoridade. Sem esta linha, bastava uma migração
+         posterior acrescentar-lhe uma coluna para a tabela passar a «conhecida»
+         com **duas** colunas, e o `avatar_url` que lá está desde sempre passava
+         a ser acusado de não existir. Ou seja: a autoridade parcial é pior do
+         que autoridade nenhuma, porque acusa o que está certo.
+
+         Medido antes de mudar: a `user_profiles` é a **única** tabela em todo o
+         repositório nesta situação, e as únicas consultas afectadas eram as
+         três de `app/api/perfil/fotografia/route.ts`. Isto não desliga
+         verificação nenhuma que estivesse a funcionar — o guião da medição está
+         em `scratchpad/perfil-ensaio/ver-autoridade.mjs`.
+
+         Quem quiser esta tabela verificada regenera os tipos, que é o que o
+         resto deste ficheiro já diz ser a fonte da verdade. */
+      if (!tabelas[t]) continue;
       for (const c of cols) tabelas[t].add(c[1].toLowerCase());
     }
   }
@@ -167,6 +187,12 @@ describe("colunas pedidas ao Supabase", () => {
     expect(tabelas.cavalos_venda.has("aviso_expiracao_dias")).toBe(true);
     // um CREATE TABLE IF NOT EXISTS não conta como autoridade
     expect(tabelas.coudelarias.has("morada")).toBe(false);
+    /* E um ALTER TABLE também não, quando é a única coisa que se sabe da
+       tabela: a `user_profiles` nasce de um CREATE TABLE IF NOT EXISTS e a
+       migração `20260910000001` acrescenta-lhe duas colunas. Conhecê-la por
+       essas duas seria acusar o `avatar_url` — que lá está desde a `004` — de
+       não existir. */
+    expect(tabelas.user_profiles).toBeUndefined();
   });
 
   it("conhece as colunas que dão destino aos campos do formulário", () => {
