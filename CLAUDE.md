@@ -870,6 +870,112 @@ banco desses que entrou aqui uma coluna única para «fichas sem provas», apoia
 em «12 das 29 não têm galeria nem história nem prémios»; um segundo banco deu
 história em 29/29, o ramo era código morto, e foi revertida.
 
+### O directório das coudelarias
+
+**As duas metades da página falavam vocabulários diferentes.** A gaveta escreve
+sete pastilhas de actividade — a taxonomia do `lib/especialidades`, que junta
+«Toureio» com «Tauromaquia» e «Equitação de Trabalho» com «Working Equitation»
+— e a caixa de procura, ao lado, varria só o texto em bruto da base, que está
+todo em português. Escrever na caixa o que estava escrito na pastilha dava,
+medido sobre as vinte e nove e nas três línguas — vinte e uma pastilhas —,
+**zero resultados em treze**: seis das sete em inglês, seis das sete em
+espanhol. A única que escapava era «Dressage», e só porque se escreve igual nas
+três. É a mesma falha que já estava escrita para «coudelaria alentejo» — zero
+resultados com a resposta na base, que é a pior coisa que uma caixa de procura
+pode fazer, porque não há nada no ecrã a que culpar — mas desta vez **a palavra
+que não achava nada estava impressa ao lado dela**. O texto pesquisável passa a
+incluir os rótulos das actividades nas três línguas, porque o site tem selector
+de língua e quem chega de fora escreve na sua: treze zeros → zero, e onde a
+conta ainda difere da pastilha a procura devolve **mais**, nunca menos — é o
+filtro que arruma, não é a procura que apaga. Os rótulos estão escritos à mão
+porque os três dicionários somam 366 KiB e este módulo entra no pacote do
+cliente; quem impede a deriva é um teste contra as chaves `activity_*`.
+
+**A mono é para os números, e «Desde» não é um número.** A linha do ano e do
+efectivo estava toda em Geist Mono e por isso mais larga do que precisava:
+medido a 390×844, «Desde 1836 · 150 cavalos» pede 166px e a coluna dá 147, e
+**quinze dos vinte e três** cartões com este dado partiam «150 / cavalos» ao
+meio — em espanhol, que escreve «caballos», pior. Com os algarismos em mono e
+as palavras na Geist pede 132px: zero linhas partidas nas três línguas. E os
+dois números passaram a ter **casa fixa**, porque oito das vinte e nove não
+declaram ano e nesses o efectivo escorregava para o sítio onde o vizinho tem o
+ano. É a razão pela qual o `.preco` tem `tabular-nums`: números que se comparam
+têm de aterrar no mesmo sítio.
+
+**A coluna `especialidades` tem linhagens lá dentro**, em quatro das vinte e
+nove, e o cartão escrevia-as como se fossem actividades — o da Herdade do
+Azinhal dizia «Linhagem Andrade, …» e, duas linhas abaixo, «LINHAGENS ·
+Andrade»: o mesmo dado duas vezes no mesmo cartão, com a primeira a gastar o
+lugar de uma especialidade que ficava cortada. Não se apaga, muda-se de sítio.
+Zero linhagens perdidas, uma ganha — «Xaquiro», que não estava em mais lado
+nenhum.
+
+**Vinte e nove numa página.** O `POR_PAGINA` eram 24, herdados do marketplace,
+e partiam o directório em 24 + 5 — e não em qualquer vista: só na de partida,
+porque qualquer filtro já cabe numa página. O único ecrã com paginação era
+aquele em que ninguém pediu para estreitar nada. Passa a 36; a paginação fica,
+porque um directório que só funcione enquanto for pequeno é um directório com
+prazo. Os 14% e 23% de altura que a passagem anterior custou foram devolvidos e
+mais um pouco: **−10,5% e −7,2% por coudelaria**, com 21% mais coudelarias na
+página.
+
+**E uma coisa que se mediu e não se mudou: a ordenação.** A `destaque` é a
+primeira chave de «Recomendadas» e está a `true` em 20 das 29 — 69%, o mesmo
+número que fez o distintivo deixar de se escrever —, e medida contra o que o
+cartão mostra não distingue nada (5,55 campos preenchidos contra 5,44). Mas **o
+banco de ensaio não pode decidir esta pergunta**: o `ordem_destaque` das vinte
+e nove é 0…28 por ordem alfabética e o `views_count` é 120 a descer de três em
+três pela mesma ordem — valores fabricados. Uma ordenação medida contra dados
+fabricados é uma ordenação inventada. **Antes de decidir contra o banco de
+ensaio, olha para os valores e pergunta se alguém os inventou.**
+
+### O cromado do `/mapa`
+
+**O cromado do mapa não se escreve por baixo de quem chegou depois.** A regra
+que o motor do globo já cumpre — não perguntar ao código de fora quanto espaço
+ocupa, mas perguntar ao browser quem está no caminho — passa a valer também
+para as peças flutuantes do próprio mapa. Na primeira visita o aviso de cookies
+tapava o gatilho «Explorar Regiões» a **cem por cento** nas duas vistas e
+comia-lhe o clique (`elementFromPoint` devolvia o aviso; um `click()` esgotava
+o tempo com `aria-expanded` em `false`), e como o aviso é vidro a 68% o que se
+via era «Explorar Regiões» a atravessar «Escolher». Apaga-se em vez de se
+subir, e a conta é do próprio motor: um estorvo acima de 40% da lona é
+descartado como cortina, e a 390×700 o aviso sozinho já ocupa 36% — com o
+rodapé por cima passaria a 49,4% e os nomes voltavam a ser escritos por baixo
+dos dois.
+
+**A dica do globo era a única peça flutuante com texto sem chão**, e lia-se a
+2,88:1 contra os 15,47:1 da fila de estado, que é a mesma coisa no mesmo papel
+— a diferença era só o vidro. Ganhou o `.vidro`, e o véu certo com a tinta
+errada continuou a não dar: o `.meta` escreve em `#666`, que sobre preto puro
+dá 3,66:1 e nunca poderia chegar aos 4,5. Com a tinta secundária para que os
+68% foram medidos: **5,98:1**, e custa 8px que não custam um nome.
+
+**O anúncio das texturas vive na `page` e não no `layout`**, e é por isso que a
+frase «só nesta página» voltou a ser verdade. O que está no layout entra na
+carga de pré-busca de quem tem um link para o `/mapa`, e o `/directorio`
+descarregava **569,3 KiB em 6 pedidos** de um globo que não tem — um `<Link>`
+pré-busca só até à fronteira de `loading`, e a `page` é dinâmica. Medido dos
+dois lados ao mesmo tempo, que é a única maneira de saber o que se trocou: o
+directório passa a 0 pedidos e 0 KiB, e a última textura do `/mapa` fica onde
+estava (219ms contra 465, dentro do ruído, e os dois braços no regime «com
+preload»). Não se pagou nada.
+
+**E o que se escreve não tem de andar ao mesmo passo do que se filtra.** Cada
+tecla na caixa de pesquisa refazia os alfinetes do globo: p95 de quadro
+**1077ms**, 34 de 110 quadros acima de 32ms. Com `useDeferredValue` a caixa
+fica com o valor imediato e o resultado inteiro — globo, lista, painel e
+contagem — com o adiado: **306 quadros entregues onde se entregavam 110**, p95
+de 1077 para 133ms, e a letra de 36 para 29ms de mediana.
+
+**O nome canónico da pesquisa é `q`**, porque é o que o `/mapa` já escreve e é
+o que está nas ligações já partilhadas. Cada página aceita o nome da outra como
+sinónimo de entrada e continua a escrever o seu, senão a mesma pesquisa passa a
+ter dois endereços. Antes disto, `/mapa?search=alter` devolvia as vinte e nove
+**e apagava o parâmetro do endereço**, e `/directorio?q=alter` devolvia as
+vinte e nove em silêncio — um link partilhado entre as duas páginas mentia sem
+o dizer.
+
 ### A ordem por que se pergunta (`/vender-cavalo`)
 
 São noventa e seis respostas e todas são obrigatórias — é uma decisão do dono,
@@ -930,7 +1036,14 @@ os dígitos alinharem entre cartões, que é o que permite comparar de relance).
 - Verificar com `npx tsc --noEmit`, `npx eslint`, `npx vitest run` e
   `npx next build` antes de commitar.
 - O `next build` local precisa de segredos de exemplo (Supabase, Resend,
-  Stripe, `CRON_SECRET`); sem eles falha a recolher dados das páginas.
+  Stripe, `CRON_SECRET`); sem eles falha a recolher dados das páginas. **E
+  precisa de uma base que responda mesmo** — não chega a URL de exemplo: o
+  `generateStaticParams` das fichas de coudelaria rebenta a construção quando
+  não consegue perguntar, de propósito (ver `app/directorio/[slug]/page.tsx`),
+  porque com `dynamicParams = false` uma lista vazia publica as vinte e nove
+  fichas a 404 sem um aviso. Localmente aponta-se o
+  `NEXT_PUBLIC_SUPABASE_URL` ao PostgREST de mentira antes de construir. Uma
+  construção que falha aqui está a fazer o que lhe foi pedido.
 - Para ver o site a sério: `next build` + `next start` e Playwright com
   `executablePath: "/opt/pw-browsers/chromium"` (o binário que o projecto pede
   não está instalado neste ambiente).
