@@ -1553,7 +1553,8 @@
     "globo_restoring_hint": "El navegador liberó la memoria gráfica. La vista vuelve enseguida.",
     "globo_unavailable_title": "Vista 3D no disponible",
     "globo_unavailable_hint": "Este navegador no pudo abrir la escena 3D. Las {n} yeguadas están todas en la lista.",
-    "globo_lost_hint": "El navegador no devolvió la memoria gráfica. Las {n} yeguadas están todas en la lista."
+    "globo_lost_hint": "El navegador no devolvió la memoria gráfica. Las {n} yeguadas están todas en la lista.",
+    "globo_sr_help": "Globo con {n} yeguadas en Portugal. Las que están demasiado juntas para señalarse por separado aparecen en un solo punto, con la cuenta; al acercarse se separan. El tabulador recorre los nombres visibles en cada momento, y un nombre abre la ficha de la yeguada. Con el foco en cualquier punto del globo, las flechas arriba y abajo recorren las {n} yeguadas de norte a sur, llevando cada una al centro; Inicio y Fin saltan a la primera y a la última. Más y menos acercan y alejan, cero restablece la vista. La lista completa está en la vista de lista."
   },
   "cavalos_favoritos": {
     "title": "Caballos Favoritos",

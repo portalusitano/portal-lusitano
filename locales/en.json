@@ -1553,7 +1553,8 @@
     "globo_restoring_hint": "The browser released the graphics memory. The view will be back in a moment.",
     "globo_unavailable_title": "3D view unavailable",
     "globo_unavailable_hint": "This browser could not open the 3D scene. All {n} studs are in the list.",
-    "globo_lost_hint": "The browser did not give the graphics memory back. All {n} studs are in the list."
+    "globo_lost_hint": "The browser did not give the graphics memory back. All {n} studs are in the list.",
+    "globo_sr_help": "Globe with {n} studs in Portugal. Those too close together to be pointed at separately appear as a single dot with a count; zooming in separates them. Tab moves through the names visible at the time, and a name opens that stud's page. With focus anywhere on the globe, the up and down arrows walk the {n} studs from north to south, bringing each one to the centre; Home and End jump to the first and the last. Plus and minus zoom in and out, zero resets the view. The full list is in the list view."
   },
   "cavalos_favoritos": {
     "title": "Favorite Horses",

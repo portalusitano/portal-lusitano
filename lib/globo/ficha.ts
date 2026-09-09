@@ -7,6 +7,7 @@
  * `lib/nomes-globo`; aqui só se decide o que fazer com o resultado dele.
  */
 
+import { preencher } from "./frases";
 import { nomeCurto, sitioCurto } from "@/lib/nomes-globo";
 
 /**
@@ -139,7 +140,20 @@ export function resumoDaFicha(descricao: string | null | undefined, tecto = 180)
  * comum nenhum: dizer «Ribatejo» a um ponto que junta cinco das doze do
  * Ribatejo seria dizer uma coisa falsa em letra grande.
  */
-export function linhasDoGrupo(membros: readonly { nome: string; localizacao: string }[]): {
+export function linhasDoGrupo(
+  membros: readonly { nome: string; localizacao: string }[],
+  /**
+   * «{n} coudelarias», na língua de quem está a ler.
+   *
+   * Entra por argumento e não sai de dentro daqui porque este módulo é puro e
+   * não conhece dicionários — e porque a palavra que aqui estava escrita à mão
+   * era portuguesa **também em inglês e em espanhol**. Medido nas três rotas:
+   * num `/en/mapa` com a pílula já traduzida, quinze das vinte e nove
+   * coudelarias só eram anunciadas por «coudelarias» a quem usa leitor de
+   * ecrã. Quem tem o dicionário é o componente; a regra é deste ficheiro.
+   */
+  moldeDaConta: string
+): {
   nomes: string[];
   conta: string;
   sitio: string;
@@ -158,7 +172,7 @@ export function linhasDoGrupo(membros: readonly { nome: string; localizacao: str
       sitio: dita ? "" : sitio,
     };
   }
-  return { nomes: [], conta: `${membros.length} coudelarias`, sitio };
+  return { nomes: [], conta: preencher(moldeDaConta, { n: membros.length }), sitio };
 }
 
 /** O nome que a etiqueta escreve. Um só sítio, para não haver dois. */

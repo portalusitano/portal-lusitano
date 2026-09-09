@@ -130,6 +130,11 @@ describe("resumoDaFicha — corta onde uma frase acaba", () => {
   });
 });
 
+/* O molde da conta entra por argumento, e o teste passa-o à mão de propósito:
+   a língua é uma decisão de quem chama, e um valor por omissão escondido aqui
+   dentro voltaria a pôr português no meio de um `/en/mapa`. */
+const CONTA_PT = "{n} coudelarias";
+
 describe("linhasDoGrupo — um ponto que junta várias diz quem lá está", () => {
   /* Os quatro ajuntamentos que o mapa faz com os dados verdadeiros. Estão
      aqui pelos nomes que têm, e não por nomes inventados: era com estes que
@@ -159,7 +164,7 @@ describe("linhasDoGrupo — um ponto que junta várias diz quem lá está", () =
   ];
 
   it("duas: uma por linha, e sem algarismo nenhum", () => {
-    expect(linhasDoGrupo(ALTER)).toEqual({
+    expect(linhasDoGrupo(ALTER, CONTA_PT)).toEqual({
       nomes: ["Torres Vaz Freire", "Alter Real"],
       conta: "",
       sitio: "Alter do Chão",
@@ -170,7 +175,7 @@ describe("linhasDoGrupo — um ponto que junta várias diz quem lá está", () =
     /* Era «Vila Viçosa» em cima e «Vila Viçosa · Jupiter Classical Dress…»
        por baixo — a mesma palavra em dois papéis, com a resposta cortada.
        E a terra também não volta em baixo: um dos dois nomes já a diz. */
-    expect(linhasDoGrupo(VILA_VICOSA)).toEqual({
+    expect(linhasDoGrupo(VILA_VICOSA, CONTA_PT)).toEqual({
       nomes: ["Vila Viçosa", "Jupiter Classical Dressage"],
       conta: "",
       sitio: "",
@@ -179,15 +184,18 @@ describe("linhasDoGrupo — um ponto que junta várias diz quem lá está", () =
 
   it("a terra fica quando nenhum dos dois nomes a diz", () => {
     expect(
-      linhasDoGrupo([
-        { nome: "Coudelaria João Lynce", localizacao: "Santarém" },
-        { nome: "Casa Cadaval", localizacao: "Muge, Salvaterra de Magos" },
-      ]).sitio
+      linhasDoGrupo(
+        [
+          { nome: "Coudelaria João Lynce", localizacao: "Santarém" },
+          { nome: "Casa Cadaval", localizacao: "Muge, Salvaterra de Magos" },
+        ],
+        CONTA_PT
+      ).sitio
     ).toBe("Santarém · Salvaterra de Magos");
   });
 
   it("três ou mais: a conta é o título e a terra desce", () => {
-    expect(linhasDoGrupo(AZINHAGA)).toEqual({
+    expect(linhasDoGrupo(AZINHAGA, CONTA_PT)).toEqual({
       nomes: [],
       conta: "4 coudelarias",
       sitio: "Azinhaga · Alpiarça",
@@ -195,18 +203,21 @@ describe("linhasDoGrupo — um ponto que junta várias diz quem lá está", () =
   });
 
   it("não inventa um sítio comum quando há três terras", () => {
-    const r = linhasDoGrupo([
-      { nome: "A", localizacao: "Évora" },
-      { nome: "B", localizacao: "Beja" },
-      { nome: "C", localizacao: "Elvas" },
-    ]);
+    const r = linhasDoGrupo(
+      [
+        { nome: "A", localizacao: "Évora" },
+        { nome: "B", localizacao: "Beja" },
+        { nome: "C", localizacao: "Elvas" },
+      ],
+      CONTA_PT
+    );
     expect(r.sitio).toBe("");
     expect(r.conta).toBe("3 coudelarias");
   });
 
   it("nenhum membro se perde: ou vai num nome, ou vai na conta", () => {
     for (const membros of [ALTER, VILA_VICOSA, AZINHAGA]) {
-      const r = linhasDoGrupo(membros);
+      const r = linhasDoGrupo(membros, CONTA_PT);
       const ditos = r.nomes.length || Number(r.conta.split(" ")[0]);
       expect(ditos).toBe(membros.length);
     }

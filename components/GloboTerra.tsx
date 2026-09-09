@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/context/LanguageContext";
+import { preencher } from "@/lib/globo/frases";
 import { nomeCurto, sitioCurto } from "@/lib/nomes-globo";
 import { factosDaFicha, linhasDoGrupo, resumoDaFicha, segundaLinha } from "@/lib/globo/ficha";
 import { capaDoCartao } from "@/lib/directorio-capas";
@@ -834,6 +836,15 @@ export default function GloboTerra({
 }) {
   const caixa = useRef<HTMLDivElement>(null);
   const encaminhador = useRouter();
+  /* ── O cromado do globo fala a língua da página ─────────────────────────
+     Estava tudo escrito à mão em português — o `aria-label` da camada, os
+     quatro comandos, as etiquetas de ajuntamento, a ficha rápida e os avisos
+     —, e num `/en/mapa` com a pílula já traduzida quinze das vinte e nove
+     coudelarias só eram anunciadas por uma palavra portuguesa a quem usa
+     leitor de ecrã. O componente vive debaixo do mesmo `LanguageProvider` que
+     o resto da página, por isso não precisa de receber dicionário nenhum por
+     propriedade: pergunta. */
+  const { t } = useLanguage();
   const [estado, setEstado] = useState<Estado>("a-carregar");
 
   const pontos = useMemo(
@@ -843,6 +854,35 @@ export default function GloboTerra({
         .filter((x): x is Ponto => x.coords !== null),
     [coudelarias]
   );
+
+  /** As cadeias que a cena escreve, num sítio só. Memorizado pelo dicionário
+      e não por cada chave: `t` só muda quando a língua muda. */
+  const textos = useMemo(
+    () => ({
+      camada: t.mapa.globo_layer_label,
+      conta: t.mapa.globo_studs_count,
+      contaUma: t.mapa.globo_stud_count_one,
+      sitioConta: t.mapa.globo_place_studs,
+      verCoudelaria: t.mapa.globo_open_stud,
+      verFichaDe: t.mapa.globo_open_stud_of,
+      comandos: t.mapa.globo_controls_label,
+      aproximar: t.mapa.globo_zoom_in,
+      afastar: t.mapa.globo_zoom_out,
+      repor: t.mapa.globo_reset_view,
+    }),
+    [t]
+  );
+
+  /** Só o que as etiquetas e as manchas escrevem. Os comandos ficam de fora
+      de propósito: esses reescrevem-se pelo `cromadoRef` e não precisam de
+      refazer nó nenhum. */
+  const textosDasEtiquetas = [
+    textos.conta,
+    textos.contaUma,
+    textos.sitioConta,
+    textos.verCoudelaria,
+    textos.verFichaDe,
+  ].join("|");
 
   /* ── Filtrar não remonta a cena ──────────────────────────────────────────
      Quem nos chama passa `searchQuery ? filtradas : todas`: um array novo a
@@ -893,24 +933,40 @@ export default function GloboTerra({
      dados e o percurso das setas se refazem. */
   const assinatura = useMemo(
     () =>
+      /* ── O que as etiquetas escrevem entra na assinatura ────────────────
+         Porque o caminho que as reescreve sem desmontar a cena já existe e já
+         está medido — é o mesmo que o filtro usa —, e sem isto trocar de
+         língua com o mapa aberto deixava as vinte e nove na língua anterior.
+
+         E é **o texto** que entra, não o código da língua. Foi a primeira
+         tentativa e não chegou: o dicionário de cada língua carrega-se por
+         `import()`, portanto o `language` muda um render antes de o `t`
+         chegar. As etiquetas refaziam-se nesse primeiro render — com o
+         dicionário velho — e depois já nada mudava. Medido: a pílula e os
+         comandos passavam a inglês e o «4 coudelarias» ficava. As cadeias
+         mudam quando o dicionário chega, que é exactamente quando é preciso
+         reescrever. */
+      `${textosDasEtiquetas}\n` +
       pontos
         .map(
           ({ c, coords }) => `${c.id}|${c.nome}|${c.localizacao}|${c.destaque ? 1 : 0}|${coords}`
         )
         .join(";"),
-    [pontos]
+    [pontos, textosDasEtiquetas]
   );
 
   /* Os dois valores que a cena lê no momento em que monta, guardados fora do
      render. Os efeitos correm pela ordem em que estão escritos, por isso
      estes chegam sempre antes do efeito que monta a cena. */
   const pontosRef = useRef(pontos);
+  const textosRef = useRef(textos);
   const assinaturaRef = useRef(assinatura);
   const aoEscolherRef = useRef(aoEscolher);
   const hrefDeRef = useRef(hrefDe);
   const encaminhadorRef = useRef(encaminhador);
   useEffect(() => {
     pontosRef.current = pontos;
+    textosRef.current = textos;
     assinaturaRef.current = assinatura;
     aoEscolherRef.current = aoEscolher;
     hrefDeRef.current = hrefDe;
@@ -921,6 +977,13 @@ export default function GloboTerra({
       pontos. Vale `null` enquanto não houver cena — antes de montar, depois
       de desmontar, e no plano B de quem não tem WebGL. */
   const trocarRef = useRef<((assinatura: string) => void) | null>(null);
+
+  /** A outra porta: as cadeias do cromado. As etiquetas refazem-se pela
+      assinatura, mas os três comandos e o rótulo da camada nascem à montagem
+      e nunca mais se escrevem — trocar de língua com o mapa aberto deixava-os
+      na língua anterior, e são justamente os que só existem para quem usa
+      leitor de ecrã. */
+  const cromadoRef = useRef<(() => void) | null>(null);
 
   /* ── Recuperar de uma perda de contexto ──────────────────────────────────
    *
@@ -1704,7 +1767,10 @@ export default function GloboTerra({
     const camadaEtiquetas = document.createElement("div");
     camadaEtiquetas.className = "globo-etiquetas";
     camadaEtiquetas.setAttribute("role", "group");
-    camadaEtiquetas.setAttribute("aria-label", "Coudelarias assinaladas no globo");
+    /* Escrito aqui e reescrito pelo `cromadoRef` quando a língua muda: um
+       sítio só, para não haver dois a discordar. Os botões entram na lista
+       assim que existirem — ver o `aplicarCromado` completo lá em baixo. */
+    camadaEtiquetas.setAttribute("aria-label", textosRef.current.camada);
     /* As setas percorrem as vinte e nove, não só as que estão escritas. Está
        dito aqui e por extenso no parágrafo de leitura de ecrã. */
     camadaEtiquetas.setAttribute("aria-keyshortcuts", "ArrowDown ArrowUp Home End");
@@ -1875,8 +1941,8 @@ export default function GloboTerra({
         if (ir instanceof HTMLButtonElement) ir.type = "button";
         if (ir instanceof HTMLAnchorElement && destino) ir.href = destino;
         ir.className = "globo-ficha__ir";
-        ir.textContent = "Ver coudelaria";
-        ir.setAttribute("aria-label", `Ver a ficha de ${c.nome}`);
+        ir.textContent = textosRef.current.verCoudelaria;
+        ir.setAttribute("aria-label", preencher(textosRef.current.verFichaDe, { name: c.nome }));
         ir.addEventListener("click", (ev) => {
           ev.stopPropagation();
           if (arrastou) {
@@ -2071,7 +2137,7 @@ export default function GloboTerra({
            verdadeiras: duas etiquetas por carregamento acabavam em «…», e as
            duas eram destas — a linha cortada era justamente a única que
            trazia informação. */
-        const linhas = linhasDoGrupo(membros);
+        const linhas = linhasDoGrupo(membros, textosRef.current.conta);
         /* Os nomes vão os dois dentro do `__nome`, separados por uma quebra,
            e não um em cada elemento. A razão é o `data-curto`: quando a
            etiqueta não cabe inteira, o que se deita fora é o `__local` — e
@@ -2092,8 +2158,11 @@ export default function GloboTerra({
         cabeca.setAttribute(
           "aria-label",
           linhas.sitio
-            ? `${linhas.sitio}: ${membros.length} coudelarias`
-            : `${membros.length} coudelarias aqui`
+            ? preencher(textosRef.current.sitioConta, {
+                place: linhas.sitio,
+                n: membros.length,
+              })
+            : preencher(textosRef.current.conta, { n: membros.length })
         );
 
         lista = document.createElement("ul");
@@ -2495,7 +2564,10 @@ export default function GloboTerra({
          vezes, a segunda a tapar a primeira. */
       const regioes = new Set(membros.map((c) => c.regiao).filter(Boolean));
       const uma = regioes.size === 1 ? [...regioes][0] : "";
-      const quantas = membros.length === 1 ? "1 coudelaria" : `${membros.length} coudelarias`;
+      const quantas =
+        membros.length === 1
+          ? textosRef.current.contaUma
+          : preencher(textosRef.current.conta, { n: membros.length });
       m.titulo.textContent = uma ? `${quantas} · ${uma}` : quantas;
 
       m.lista.replaceChildren();
@@ -4303,7 +4375,7 @@ export default function GloboTerra({
     const comandos = document.createElement("div");
     comandos.className = "globo-comandos";
     comandos.setAttribute("role", "group");
-    comandos.setAttribute("aria-label", "Vista do globo");
+    comandos.setAttribute("aria-label", textosRef.current.comandos);
 
     const SVG_NS = "http://www.w3.org/2000/svg";
     const desenho = (...ds: string[]) => {
@@ -4338,12 +4410,14 @@ export default function GloboTerra({
       return b;
     };
 
-    const btAproximar = fazerComando("Aproximar", desenho("M8 3.2v9.6", "M3.2 8h9.6"), () =>
+    const btAproximar = fazerComando(textosRef.current.aproximar, desenho("M8 3.2v9.6", "M3.2 8h9.6"), () =>
       mudarAltura(1 / PASSO_ZOOM)
     );
-    const btAfastar = fazerComando("Afastar", desenho("M3.2 8h9.6"), () => mudarAltura(PASSO_ZOOM));
+    const btAfastar = fazerComando(textosRef.current.afastar, desenho("M3.2 8h9.6"), () =>
+      mudarAltura(PASSO_ZOOM)
+    );
     const btRepor = fazerComando(
-      "Repor a vista",
+      textosRef.current.repor,
       desenho(
         "M8 2.2v3",
         "M8 10.8v3",
@@ -4355,6 +4429,26 @@ export default function GloboTerra({
     );
 
     el.insertBefore(comandos, camadaEtiquetas);
+
+    /** Reescreve o que o cromado diz, na língua que o dicionário tem agora.
+        Corre à montagem por já ter corrido nas linhas acima, e outra vez
+        sempre que a língua muda — quem lhe bate é o efeito lá em baixo. As
+        etiquetas não entram aqui: essas refazem-se pela assinatura, que é o
+        caminho que já existe e já está medido. */
+    const aplicarCromado = () => {
+      const x = textosRef.current;
+      camadaEtiquetas.setAttribute("aria-label", x.camada);
+      comandos.setAttribute("aria-label", x.comandos);
+      for (const [b, rotulo] of [
+        [btAproximar, x.aproximar],
+        [btAfastar, x.afastar],
+        [btRepor, x.repor],
+      ] as const) {
+        b.setAttribute("aria-label", rotulo);
+        b.title = rotulo;
+      }
+    };
+    cromadoRef.current = aplicarCromado;
 
     /* Escrito uma vez por mudança e não uma vez por quadro: pôr o mesmo
        `disabled` sessenta vezes por segundo é trabalho de layout a troco de
@@ -4949,7 +5043,26 @@ export default function GloboTerra({
       const a = el.clientHeight;
       if (l < 1 || a < 1) return;
       const assinaturaDaCaixa = `${l}x${a}`;
-      if (assinaturaDaCaixa === medidaDaCaixa) return;
+      if (assinaturaDaCaixa === medidaDaCaixa) {
+        /* ── A mesma caixa ainda pode ter perdido o desenho ──────────────
+         *
+         * A guarda de cima é sobre **enquadrar**, e sair à cabeça estava
+         * certo para isso. Mas saía à cabeça também do `pedirQuadro`, e essas
+         * são duas perguntas diferentes: «mudou o tamanho?» e «ainda está lá
+         * o que se desenhou?».
+         *
+         * Não estão sempre. O `setSize` limpa o buffer de desenho, e um
+         * telemóvel — o iOS mais do que o resto — deita fora o conteúdo de
+         * uma lona que sai do ecrã sem disparar `webglcontextlost`: apaga e
+         * cala-se. Nos dois casos o que fica é uma lona limpa, ou seja preta,
+         * com os nomes por cima **porque esses são DOM e não se apagam** —
+         * que é exactamente a captura que o dono do produto mandou: preto sem
+         * planeta, com os nomes e os fios no sítio e sem aviso nenhum.
+         *
+         * Um quadro custa o que custa um quadro. Não pedir um custa a página. */
+        pedirQuadro();
+        return;
+      }
       medidaDaCaixa = assinaturaDaCaixa;
       esquecerCaixa();
       larguraCaixa = l;
@@ -5047,6 +5160,7 @@ export default function GloboTerra({
       /* Fecha-se a porta antes de tudo o resto: uma troca que chegasse
          depois daqui iria mexer numa cena já descartada. */
       trocarRef.current = null;
+      cromadoRef.current = null;
       guardarVista();
       window.removeEventListener("pagehide", guardarVista);
       cancelarContornos.abort();
@@ -5124,6 +5238,12 @@ export default function GloboTerra({
     trocarRef.current?.(assinatura);
   }, [assinatura]);
 
+  /* A língua mudou com o mapa aberto: as etiquetas já se refizeram pela
+     assinatura, e o cromado reescreve-se aqui. */
+  useEffect(() => {
+    cromadoRef.current?.();
+  }, [textos]);
+
   const semImagem = estado === "sem-3d";
   /* ── A cena vai-se toda, e não só a lona ────────────────────────────────
      A camada dos nomes e os comandos são filhos desta caixa, e é de propósito
@@ -5146,13 +5266,13 @@ export default function GloboTerra({
   const aviso =
     estado === "a-refazer"
       ? {
-          titulo: "A repor a vista 3D",
-          texto: "O navegador libertou a memória gráfica. A vista volta num instante.",
+          titulo: t.mapa.globo_restoring_title,
+          texto: t.mapa.globo_restoring_hint,
         }
       : semImagem
         ? {
-            titulo: "Vista 3D indisponível",
-            texto: `Este navegador não conseguiu abrir a cena 3D. As ${pontos.length} coudelarias estão todas na lista.`,
+            titulo: t.mapa.globo_unavailable_title,
+            texto: preencher(t.mapa.globo_unavailable_hint, { n: pontos.length }),
           }
         : estado === "perdido"
           ? {
@@ -5160,8 +5280,8 @@ export default function GloboTerra({
                  assim que ele a devolver» era prometer uma coisa que já não se
                  vai tentar; o que sobra de verdadeiro é o caminho que
                  funciona, e esse é a lista. */
-              titulo: "Vista 3D indisponível",
-              texto: `O navegador não devolveu a memória gráfica. As ${pontos.length} coudelarias estão todas na lista.`,
+              titulo: t.mapa.globo_unavailable_title,
+              texto: preencher(t.mapa.globo_lost_hint, { n: pontos.length }),
             }
           : null;
 
@@ -5218,15 +5338,7 @@ export default function GloboTerra({
           percorrem as {pontos.length} por ordem de latitude e trazem cada uma
           à vista antes de lhe dar o foco. Tem de estar escrito: um atalho que
           ninguém sabe que existe é um atalho que não existe. */}
-      <p className="sr-only">
-        Globo com {pontos.length} coudelarias em Portugal. As que estão demasiado perto umas das
-        outras para se apontarem em separado aparecem num ponto só, com a conta; aproximar
-        separa-as. A tabulação passa pelos nomes visíveis de cada vez, e um nome leva à ficha da
-        coudelaria. Com o foco em qualquer ponto do globo, as setas para cima e para baixo percorrem
-        as {pontos.length} coudelarias de norte para sul, trazendo cada uma ao centro; Início e Fim
-        saltam para a primeira e para a última. Mais e menos aproximam e afastam, zero repõe a
-        vista. A lista completa está na vista de lista.
-      </p>
+      <p className="sr-only">{preencher(t.mapa.globo_sr_help, { n: pontos.length })}</p>
     </div>
   );
 }
