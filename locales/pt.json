@@ -1553,7 +1553,8 @@
     "globo_restoring_hint": "O navegador libertou a memória gráfica. A vista volta num instante.",
     "globo_unavailable_title": "Vista 3D indisponível",
     "globo_unavailable_hint": "Este navegador não conseguiu abrir a cena 3D. As {n} coudelarias estão todas na lista.",
-    "globo_lost_hint": "O navegador não devolveu a memória gráfica. As {n} coudelarias estão todas na lista."
+    "globo_lost_hint": "O navegador não devolveu a memória gráfica. As {n} coudelarias estão todas na lista.",
+    "globo_sr_help": "Globo com {n} coudelarias em Portugal. As que estão demasiado perto umas das outras para se apontarem em separado aparecem num ponto só, com a conta; aproximar separa-as. A tabulação passa pelos nomes visíveis de cada vez, e um nome leva à ficha da coudelaria. Com o foco em qualquer ponto do globo, as setas para cima e para baixo percorrem as {n} coudelarias de norte para sul, trazendo cada uma ao centro; Início e Fim saltam para a primeira e para a última. Mais e menos aproximam e afastam, zero repõe a vista. A lista completa está na vista de lista."
   },
   "cavalos_favoritos": {
     "title": "Cavalos Favoritos",
