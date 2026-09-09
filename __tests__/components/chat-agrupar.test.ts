@@ -19,7 +19,7 @@ import type { MensagemNoEcra } from "@/components/chat/tipos";
  */
 
 function m(id: string, iso: string, minha: boolean, corpo = "x"): MensagemNoEcra {
-  return { id, corpo, createdAt: iso, minha, lida: false };
+  return { id, corpo, createdAt: iso, minha, lida: false, estado: "enviada" };
 }
 
 describe("os separadores de dia", () => {

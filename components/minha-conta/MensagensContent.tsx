@@ -205,6 +205,11 @@ export default function MensagensContent() {
         createdAt: new Date().toISOString(),
         minha: true,
         lida: false,
+        /* O piso honesto enquanto o servidor não responde. Quem manda no que
+           se vê é o `aEnviar`, que tem precedência no `estadoDaMensagem`;
+           este campo só passa a valer quando o eco do servidor o substituir
+           pelo verdadeiro. */
+        estado: "enviada" as const,
         aEnviar: true,
       },
     ]);

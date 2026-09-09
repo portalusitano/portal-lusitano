@@ -2462,6 +2462,7 @@
     "enviar": "Enviar mensaje",
     "repetir": "Intentar de nuevo",
     "estado_a_enviar": "Enviando",
+    "estado_enviada": "Enviada",
     "estado_entregue": "Entregado",
     "estado_lida": "Leído",
     "estado_falhou": "No se envió",

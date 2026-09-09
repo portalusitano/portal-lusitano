@@ -10,7 +10,7 @@ import type { ChatMensagem } from "@/lib/marketplace-chat";
  */
 
 function servidor(id: string, iso: string, minha: boolean, corpo = "olá"): ChatMensagem {
-  return { id, corpo, createdAt: iso, minha, lida: false };
+  return { id, corpo, createdAt: iso, minha, lida: false, estado: "entregue" };
 }
 
 function local(iso: string, corpo = "olá"): MensagemNoEcra {
@@ -20,6 +20,7 @@ function local(iso: string, corpo = "olá"): MensagemNoEcra {
     createdAt: iso,
     minha: true,
     lida: false,
+    estado: "enviada",
     aEnviar: true,
   };
 }
@@ -106,9 +107,27 @@ describe("o estado de entrega", () => {
     expect(estadoDaMensagem(servidor("a", T, false))).toBeNull();
   });
 
-  it("distingue entregue de lida", () => {
-    expect(estadoDaMensagem({ ...servidor("a", T, true), lida: false })).toBe("entregue");
-    expect(estadoDaMensagem({ ...servidor("a", T, true), lida: true })).toBe("lida");
+  it("distingue enviada, entregue e lida — e é o servidor que o diz", () => {
+    for (const estado of ["enviada", "entregue", "lida"] as const) {
+      expect(estadoDaMensagem({ ...servidor("a", T, true), estado })).toBe(estado);
+    }
+  });
+
+  /**
+   * A afirmação que este teste protege é a que faltava.
+   *
+   * Antes, o estado era **inferido** de `lida`: tudo o que não estivesse lido
+   * escrevia-se «Entregue». Ou seja, afirmava-se entrega a partir da ausência
+   * de leitura — que não é a mesma coisa e que a base nunca soube. Uma
+   * mensagem para alguém que fechou o portátil aparecia como entregue.
+   *
+   * `lida` continua no objecto e não pode voltar a mandar: quem responde é o
+   * `estado`, que tem uma coluna por trás.
+   */
+  it("não infere entrega da ausência de leitura", () => {
+    expect(estadoDaMensagem({ ...servidor("a", T, true), estado: "enviada", lida: false })).toBe(
+      "enviada"
+    );
   });
 
   it("a caminho ganha a lida — uma que ainda não saiu não pode ter sido lida", () => {

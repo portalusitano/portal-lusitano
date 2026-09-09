@@ -40,8 +40,13 @@ const PERTO_DO_FIM = 120;
 
 function IconeDoEstado({ estado }: { estado: EstadoEntrega }) {
   if (estado === "a-enviar") return <Clock size={11} aria-hidden="true" />;
+  /* Um visto para «saiu daqui», dois para «chegou lá». O que distingue
+     entregue de lida é a palavra ao lado, e não o desenho: são o mesmo
+     acontecimento visto por duas pessoas, e inventar um terceiro glifo era
+     pedir a quem lê que decorasse uma legenda. */
   if (estado === "lida") return <CheckCheck size={12} aria-hidden="true" />;
-  if (estado === "entregue") return <Check size={12} aria-hidden="true" />;
+  if (estado === "entregue") return <CheckCheck size={12} aria-hidden="true" />;
+  if (estado === "enviada") return <Check size={12} aria-hidden="true" />;
   return null;
 }
 
@@ -262,6 +267,7 @@ export default function Fio({
                   rotuloRepetir={t.chat.repetir}
                   rotulos={{
                     "a-enviar": t.chat.estado_a_enviar,
+                    enviada: t.chat.estado_enviada,
                     entregue: t.chat.estado_entregue,
                     lida: t.chat.estado_lida,
                     falhou: t.chat.estado_falhou,
