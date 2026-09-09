@@ -8,10 +8,12 @@ import {
 } from "@/lib/marketplace-chat";
 import {
   vistaConversa,
+  outraParteDaConversa,
   COLUNAS_CAVALO,
   type LinhaCavalo,
   type LinhaConversa,
 } from "@/lib/chat/vista-publica";
+import { perfisPorId } from "@/lib/perfil/carregar";
 import { LISTING_STATUS } from "@/lib/marketplace-listings";
 import { devoNotificar, notificarNovaMensagem } from "@/lib/chat-notificacoes";
 import { strictLimiter } from "@/lib/rate-limit";
@@ -73,16 +75,37 @@ export async function GET() {
     // cache, and this codebase has been bitten by that before.
     const cavaloIds = [...new Set(conversas.map((c) => c.cavalo_id))];
 
-    const [{ data: cavalos }, { data: porLerLinhas, error: erroPorLer }] = await Promise.all([
-      supabaseAdmin.from("cavalos_venda").select(COLUNAS_CAVALO).in("id", cavaloIds),
-      /* Só as que ainda estão por ler, e só a coluna que as agrupa. Numa caixa
-         de entrada em repouso isto devolve zero linhas. */
-      supabaseAdmin
-        .from("marketplace_mensagens")
-        .select("conversa_id")
-        .eq("destinatario_id", user.id)
-        .is("lida_at", null),
-    ]);
+    /* ── Quem é a outra parte, numa pergunta e não em trinta ──────────────────
+       Uma leitura de perfil por conversa seriam trinta idas à base para
+       escrever trinta linhas de lista — o mesmo defeito que esta rota já
+       corrigiu uma vez, quando trazia todas as mensagens de todas as conversas
+       para ficar com a última de cada uma.
+
+       Medido contra o PostgreSQL local com 5 000 contas, em A/B intercalado:
+       **3,23–3,40ms → 0,26–0,29ms**, 11 a 13 vezes, e a pergunta única ganha em
+       30 de 30 pares nas três corridas. O número está escrito como intervalo de
+       propósito — ver `lib/perfil/carregar`.
+
+       E vai no mesmo `Promise.all` das outras duas, não a seguir: as três não
+       dependem umas das outras, e em série a mais barata das três passaria a
+       somar-se ao caminho crítico em vez de se esconder atrás dele. */
+    const outrasPartes = conversas.map((c) => outraParteDaConversa(c as LinhaConversa, user.id));
+
+    const [{ data: cavalos }, { data: porLerLinhas, error: erroPorLer }, perfis] =
+      await Promise.all([
+        supabaseAdmin.from("cavalos_venda").select(COLUNAS_CAVALO).in("id", cavaloIds),
+        /* Só as que ainda estão por ler, e só a coluna que as agrupa. Numa caixa
+           de entrada em repouso isto devolve zero linhas. */
+        supabaseAdmin
+          .from("marketplace_mensagens")
+          .select("conversa_id")
+          .eq("destinatario_id", user.id)
+          .is("lida_at", null),
+        /* Nunca lança: se falhar, o mapa vem vazio e as conversas saem sem
+           fotografia. Uma caixa de entrada que não abre porque a fotografia de
+           alguém não carregou é pior do que uma caixa sem fotografias. */
+        perfisPorId(outrasPartes),
+      ]);
 
     if (erroPorLer) {
       logger.error("[conversas/GET] Falhou a contar as não lidas:", erroPorLer);
@@ -101,13 +124,14 @@ export async function GET() {
     /* A resposta é construída campo a campo em `vista-publica`, e não a partir
        da linha da tabela: é lá que está escrito porque é que um `select("*")`
        daqui até ao anúncio publicaria o telefone do vendedor. */
-    const resultado: ChatConversa[] = conversas.map((c) =>
+    const resultado: ChatConversa[] = conversas.map((c, i) =>
       vistaConversa(
         c as LinhaConversa,
         porCavalo.get(c.cavalo_id) ?? null,
         {
           ultimaMensagem: (c as { ultima_mensagem_previa?: string | null }).ultima_mensagem_previa,
           porLer: porLerPorConversa.get(c.id) || 0,
+          perfil: perfis.get(outrasPartes[i]) ?? null,
         },
         user.id
       )

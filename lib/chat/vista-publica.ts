@@ -30,6 +30,44 @@
  * minha» com um booleano por mensagem (`minha`) e com o papel (`papel`); o
  * `uuid` da outra parte não serve nenhum ecrã e é o que permite ligar uma
  * pessoa a tudo o resto que ela faça no site.
+ *
+ * ── A chave que se acrescentou, e porque é que isso foi deliberado ──────────
+ *
+ * `outraParteFoto` é a primeira chave nova desde que estas listas foram
+ * fixadas, e o teste que as fixa foi actualizado à mão para a deixar entrar.
+ * Isso é o mecanismo a funcionar, não a ser contornado: o teste existe para que
+ * **ninguém acrescente um campo sem reparar**, e a maneira de acrescentar um é
+ * ir lá escrever porquê.
+ *
+ * O porquê: um chat em que a outra parte é um nome sem cara é um formulário com
+ * histórico. O que **não** entra com ela:
+ *
+ * - **O endereço não se deriva da identidade de ninguém.** Vive debaixo de um
+ *   `avatar_prefixo` opaco de 128 bits, sem relação com o `id` da pessoa (ver a
+ *   migração `20260910000001`). Se o caminho fosse `<user_id>/foto.webp`, esta
+ *   chave publicaria o UUID escrito por outras letras — ou seja, desfazia em
+ *   silêncio a regra do parágrafo de cima.
+ * - **Continua a não sair email nem telefone.** A fotografia é um ficheiro de
+ *   pixels que passou por um cano que lhe tira todos os metadados, EXIF e GPS
+ *   incluídos (`lib/perfil/fotografia`); não é um contacto e não carrega um.
+ * - **Sem fotografia é `null`**, e não um avatar inventado no servidor nem um
+ *   Gravatar — esse mandaria o email de toda a gente para um terceiro. Quem a
+ *   desenha com iniciais é o ecrã.
+ *
+ * ── E porque é que ela **não** vai em cada mensagem ─────────────────────────
+ *
+ * O pedido era «a `ChatConversa` e as mensagens precisam do nome e da
+ * fotografia da outra pessoa». A conversa e o cabeçalho do fio ganharam-nas; a
+ * mensagem não, e é uma decisão e não um esquecimento.
+ *
+ * Um fio tem duas pessoas e só duas. A fotografia da outra parte é uma
+ * propriedade **do fio**, e escrevê-la em cada mensagem é repetir o mesmo
+ * endereço trinta vezes por página — cerca de 3,5 KB de JSON idêntico, num
+ * valor que por construção não pode diferir entre duas mensagens do mesmo fio.
+ * Quem desenha um balão sabe de quem ele é pelo `minha`, que já lá está, e vai
+ * buscar a cara ao cabeçalho. Se um dia houver conversas de grupo, aí a
+ * fotografia passa a variar dentro do fio e a chave muda de sítio com uma razão
+ * nova — que é o que este parágrafo existe para obrigar.
  */
 
 import {
@@ -39,6 +77,7 @@ import {
   type ChatConversa,
   type ChatMensagem,
 } from "@/lib/marketplace-chat";
+import type { PerfilOutraParte } from "@/lib/perfil/contrato";
 
 /**
  * As chaves que cada objecto tem, escritas uma vez para o teste as poder
@@ -50,6 +89,7 @@ export const CHAVES_CONVERSA = [
   "cavaloId",
   "papel",
   "outraParte",
+  "outraParteFoto",
   "cavaloNome",
   "cavaloFoto",
   "cavaloPreco",
@@ -66,6 +106,7 @@ export const CHAVES_CABECALHO = [
   "cavaloId",
   "papel",
   "outraParte",
+  "outraParteFoto",
   "cavaloNome",
   "cavaloFoto",
   "cavaloPreco",
@@ -117,6 +158,39 @@ export function outraParteDaConversa(
   return conversa.comprador_id === utilizadorId ? conversa.vendedor_id : conversa.comprador_id;
 }
 
+/**
+ * O nome a mostrar à outra parte, agora que há um sítio onde ela o escreve.
+ *
+ * A cadeia antiga — `comprador_nome` na conversa, `vendedor_nome` no anúncio, e
+ * um rótulo neutro no fim — continua inteira e continua a ser o que responde na
+ * esmagadora maioria dos casos. O que muda é a **ordem**: o nome do perfil, se
+ * existir, vem à frente.
+ *
+ * Porquê. O `comprador_nome` é uma cópia congelada no instante em que a conversa
+ * foi aberta, e para quem não tinha `full_name` no registo é a parte local do
+ * email («maria.silva»). Com uma página de perfil onde se escreve o nome, deixar
+ * a cópia ganhar era desenhar um campo que não faz nada: a pessoa escreve
+ * «Maria Silva» e continua a aparecer «maria.silva» a toda a gente com quem já
+ * falou.
+ *
+ * O que isto **não** afrouxa: o `nomeOutraParte` continua a ser quem trata da
+ * ausência, e um nome de perfil vazio ou só com espaços cai na cadeia antiga em
+ * vez de escrever um vazio. E o nome do perfil é texto que a própria pessoa
+ * escolheu sobre si — a mesma natureza do `comprador_nome` que já ia daqui para
+ * fora —, limpo de controlo e cortado no `limparNome`.
+ */
+function nomeDaOutraParte(
+  papel: "comprador" | "vendedor",
+  conversa: LinhaConversa,
+  cavalo: LinhaCavalo | null,
+  perfil: PerfilOutraParte | null | undefined
+): string {
+  const doPerfil = perfil?.nome?.trim();
+  if (doPerfil) return doPerfil;
+
+  return nomeOutraParte(papel, conversa.comprador_nome, cavalo?.vendedor_nome ?? null);
+}
+
 export function vistaMensagem(linha: LinhaMensagem, utilizadorId: string): ChatMensagem {
   const minha = linha.remetente_id === utilizadorId;
 
@@ -136,7 +210,12 @@ export function vistaMensagem(linha: LinhaMensagem, utilizadorId: string): ChatM
 export function vistaConversa(
   conversa: LinhaConversa,
   cavalo: LinhaCavalo | null,
-  extra: { ultimaMensagem: string | null | undefined; porLer: number },
+  extra: {
+    ultimaMensagem: string | null | undefined;
+    porLer: number;
+    /** O perfil da outra parte, quando quem chama o soube carregar. */
+    perfil?: PerfilOutraParte | null;
+  },
   utilizadorId: string
 ): ChatConversa {
   const papel = papelNaConversa(conversa, utilizadorId);
@@ -145,7 +224,8 @@ export function vistaConversa(
     id: conversa.id,
     cavaloId: conversa.cavalo_id,
     papel,
-    outraParte: nomeOutraParte(papel, conversa.comprador_nome, cavalo?.vendedor_nome ?? null),
+    outraParte: nomeDaOutraParte(papel, conversa, cavalo, extra.perfil),
+    outraParteFoto: extra.perfil?.fotografia ?? null,
     cavaloNome: cavalo?.nome || "Anúncio removido",
     cavaloFoto: cavalo?.foto_principal || null,
     cavaloPreco: typeof cavalo?.preco === "number" ? cavalo.preco : null,
@@ -163,6 +243,7 @@ export interface CabecalhoFio {
   cavaloId: string;
   papel: "comprador" | "vendedor";
   outraParte: string;
+  outraParteFoto: string | null;
   cavaloNome: string;
   cavaloFoto: string | null;
   cavaloPreco: number | null;
@@ -172,7 +253,8 @@ export interface CabecalhoFio {
 export function vistaCabecalho(
   conversa: LinhaConversa,
   cavalo: LinhaCavalo | null,
-  utilizadorId: string
+  utilizadorId: string,
+  perfil?: PerfilOutraParte | null
 ): CabecalhoFio {
   const papel = papelNaConversa(conversa, utilizadorId);
 
@@ -180,7 +262,8 @@ export function vistaCabecalho(
     id: conversa.id,
     cavaloId: conversa.cavalo_id,
     papel,
-    outraParte: nomeOutraParte(papel, conversa.comprador_nome, cavalo?.vendedor_nome ?? null),
+    outraParte: nomeDaOutraParte(papel, conversa, cavalo, perfil),
+    outraParteFoto: perfil?.fotografia ?? null,
     cavaloNome: cavalo?.nome || "Anúncio removido",
     cavaloFoto: cavalo?.foto_principal || null,
     cavaloPreco: typeof cavalo?.preco === "number" ? cavalo.preco : null,

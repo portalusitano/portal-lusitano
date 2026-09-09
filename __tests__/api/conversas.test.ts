@@ -1,7 +1,16 @@
+// @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
 /**
+ * Ambiente `node` e não `jsdom`, e é uma correcção e não uma preferência: isto
+ * exercita **rotas de servidor**. Os módulos que elas importam defendem-se de
+ * serem carregados no browser com uma guarda `typeof window !== "undefined"`
+ * que atira — é o caso do `lib/supabase-admin` (a chave de serviço) e do
+ * `lib/perfil/carregar` (que a usa). O duplo do `supabase-admin` escondia isso
+ * por acaso, porque substituía o módulo inteiro antes de a guarda correr; o
+ * primeiro módulo guardado que **não** fosse duplicado deixava de carregar.
+ *
  * O que estes testes medem, e não só afirmam:
  *
  * 1. **Quantas conversas uma conta abre de seguida.** O número antes era 29 em

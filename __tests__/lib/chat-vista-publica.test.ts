@@ -21,6 +21,30 @@ import {
  * JSON já saiu de casa — ninguém precisa de o ver desenhado numa página para o
  * apanhar. Estes testes são o que impede a frase de se tornar falsa sem
  * ninguém dar por isso.
+ *
+ * ── A chave que se acrescentou ──────────────────────────────────────────────
+ *
+ * O `outraParteFoto` entrou nas listas `CHAVES_CONVERSA` e `CHAVES_CABECALHO`,
+ * e este ficheiro foi actualizado à mão para o deixar entrar. **Isso é o
+ * mecanismo a funcionar, não a ser contornado**: a lista existe para que
+ * ninguém acrescente um campo sem reparar, e a maneira de acrescentar um é vir
+ * aqui escrever porquê e o que se verificou antes de o deixar sair.
+ *
+ * O que se verificou, e está fixado nos testes abaixo:
+ *
+ * 1. **O endereço não contém o identificador de ninguém.** Vive debaixo de um
+ *    `avatar_prefixo` opaco, sem relação com o `id` da pessoa. Se o caminho
+ *    fosse `<user_id>/foto.webp`, esta chave desfazia em silêncio a regra do
+ *    «nem os identificadores das pessoas» que já cá estava — e o teste dessa
+ *    regra passou a correr também com a fotografia lá dentro.
+ * 2. **Continua a não sair contacto nenhum.** O teste dos três contactos
+ *    exercita agora as duas vistas com um perfil preenchido.
+ * 3. **Sem fotografia é `null`.** Não há avatar por omissão do lado do
+ *    servidor, e a ausência é uma resposta e não uma falha.
+ * 4. **A mensagem não ganhou a chave**, e o teste que fixa `CHAVES_MENSAGEM`
+ *    continua igual. A razão está no `lib/chat/vista-publica`: num fio de duas
+ *    pessoas a fotografia é do fio, e repeti-la por mensagem seria o mesmo
+ *    endereço trinta vezes por página.
  */
 
 const EU = "11111111-1111-1111-1111-111111111111";
@@ -57,6 +81,21 @@ const CAVALO_COM_CONTACTOS = {
 
 const CONTACTOS = ["+351 912 345 678", "vendedor@exemplo.pt", "+351912345678", "912345678"];
 
+/**
+ * O perfil da outra parte, tal como o `lib/perfil/carregar` o devolve.
+ *
+ * Repare-se no endereço: o primeiro segmento é o `avatar_prefixo`, opaco, e não
+ * tem nada do `EU` nem do `OUTRO`. É essa propriedade que os testes abaixo
+ * verificam, e é ela que permite que esta chave saia numa resposta de API sem
+ * publicar o identificador de ninguém.
+ */
+const PERFIL = {
+  nome: "Ana Sequeira",
+  fotografia:
+    "https://exemplo.supabase.co/storage/v1/object/public/avatares/" +
+    "9f2c41ab77d34e0e8c5b1a6d3e720f48/6b1e0d9a4c7f42e3b8a05d1c9e63f7aa.webp",
+};
+
 /** Junta todos os valores de um objecto, por mais fundo que estejam. */
 function tudoOQueSaiu(valor: unknown): string {
   return JSON.stringify(valor);
@@ -70,6 +109,7 @@ describe("o conjunto de chaves é exactamente este", () => {
       {
         ultimaMensagem: "Ainda está disponível?",
         porLer: 2,
+        perfil: PERFIL,
       },
       EU
     );
@@ -78,7 +118,7 @@ describe("o conjunto de chaves é exactamente este", () => {
   });
 
   it("o cabeçalho do fio", () => {
-    const vista = vistaCabecalho(CONVERSA, CAVALO_COM_CONTACTOS, EU);
+    const vista = vistaCabecalho(CONVERSA, CAVALO_COM_CONTACTOS, EU, PERFIL);
     expect(Object.keys(vista).sort()).toEqual([...CHAVES_CABECALHO].sort());
   });
 
@@ -102,9 +142,14 @@ describe("o conjunto de chaves é exactamente este", () => {
 describe("nenhum contacto sai daqui", () => {
   it("mesmo quando a linha do anúncio traz os três", () => {
     const saiu = tudoOQueSaiu([
-      vistaConversa(CONVERSA, CAVALO_COM_CONTACTOS, { ultimaMensagem: "olá", porLer: 0 }, EU),
-      vistaCabecalho(CONVERSA, CAVALO_COM_CONTACTOS, EU),
-      vistaCabecalho(CONVERSA, CAVALO_COM_CONTACTOS, OUTRO),
+      vistaConversa(
+        CONVERSA,
+        CAVALO_COM_CONTACTOS,
+        { ultimaMensagem: "olá", porLer: 0, perfil: PERFIL },
+        EU
+      ),
+      vistaCabecalho(CONVERSA, CAVALO_COM_CONTACTOS, EU, PERFIL),
+      vistaCabecalho(CONVERSA, CAVALO_COM_CONTACTOS, OUTRO, PERFIL),
     ]);
 
     for (const contacto of CONTACTOS) {
@@ -142,8 +187,13 @@ describe("nenhum contacto sai daqui", () => {
    */
   it("nem os identificadores das pessoas", () => {
     const saiu = tudoOQueSaiu([
-      vistaConversa(CONVERSA, CAVALO_COM_CONTACTOS, { ultimaMensagem: "olá", porLer: 0 }, EU),
-      vistaCabecalho(CONVERSA, CAVALO_COM_CONTACTOS, EU),
+      vistaConversa(
+        CONVERSA,
+        CAVALO_COM_CONTACTOS,
+        { ultimaMensagem: "olá", porLer: 0, perfil: PERFIL },
+        EU
+      ),
+      vistaCabecalho(CONVERSA, CAVALO_COM_CONTACTOS, EU, PERFIL),
       vistaMensagem(
         {
           id: "cccccccc-0000-0000-0000-000000000001",
@@ -168,6 +218,106 @@ describe("nenhum contacto sai daqui", () => {
     for (const proibida of ["telefone", "email", "whatsapp"]) {
       expect(COLUNAS_CAVALO).not.toContain(proibida);
       expect(COLUNAS_MENSAGEM).not.toContain(proibida);
+    }
+  });
+});
+
+describe("a fotografia da outra parte", () => {
+  it("o endereço não traz o identificador de nenhuma das duas pessoas", () => {
+    /* A prova que autoriza esta chave a existir. Se o caminho no balde fosse
+       `<user_id>/foto.webp`, o `outraParteFoto` publicava o UUID escrito por
+       outras letras — e desfazia em silêncio a regra que o teste «nem os
+       identificadores das pessoas» fixa desde o princípio. */
+    const vista = vistaConversa(
+      CONVERSA,
+      CAVALO_COM_CONTACTOS,
+      { ultimaMensagem: null, porLer: 0, perfil: PERFIL },
+      EU
+    );
+
+    expect(vista.outraParteFoto).toBe(PERFIL.fotografia);
+    for (const id of [EU, OUTRO, EU.replace(/-/g, ""), OUTRO.replace(/-/g, "")]) {
+      expect(vista.outraParteFoto).not.toContain(id);
+    }
+  });
+
+  it("sem fotografia é nulo, e não um avatar inventado", () => {
+    /* «Quem não tem fotografia não tem fotografia.» O servidor não devolve um
+       rectângulo cinzento nem um Gravatar — esse mandaria o email de toda a
+       gente para um terceiro. Quem desenha a ausência com iniciais é o ecrã. */
+    const semPerfil = vistaConversa(
+      CONVERSA,
+      CAVALO_COM_CONTACTOS,
+      { ultimaMensagem: null, porLer: 0 },
+      EU
+    );
+    const perfilSemFoto = vistaConversa(
+      CONVERSA,
+      CAVALO_COM_CONTACTOS,
+      { ultimaMensagem: null, porLer: 0, perfil: { nome: "Ana", fotografia: null } },
+      EU
+    );
+
+    expect(semPerfil.outraParteFoto).toBeNull();
+    expect(perfilSemFoto.outraParteFoto).toBeNull();
+    expect(vistaCabecalho(CONVERSA, CAVALO_COM_CONTACTOS, EU).outraParteFoto).toBeNull();
+    expect(vistaCabecalho(CONVERSA, CAVALO_COM_CONTACTOS, EU, null).outraParteFoto).toBeNull();
+  });
+
+  it("a mensagem não ganhou a chave", () => {
+    /* Um fio tem duas pessoas e só duas: a fotografia é do fio, e repeti-la em
+       cada mensagem seria o mesmo endereço trinta vezes por página. Se um dia
+       houver conversas de grupo, a chave muda de sítio com uma razão nova — e
+       este teste é quem obriga a escrevê-la. */
+    const mensagem = vistaMensagem(
+      {
+        id: "cccccccc-0000-0000-0000-000000000001",
+        corpo: "Bom dia",
+        created_at: "2026-09-09T10:00:00Z",
+        remetente_id: OUTRO,
+      },
+      EU
+    );
+
+    expect(Object.keys(mensagem).sort()).toEqual([...CHAVES_MENSAGEM].sort());
+    expect(Object.keys(mensagem)).not.toContain("outraParteFoto");
+  });
+});
+
+describe("o nome vem do perfil quando a pessoa o escreveu", () => {
+  it("o perfil ganha à cópia congelada na conversa", () => {
+    /* O `comprador_nome` é uma cópia do instante em que a conversa foi aberta,
+       e para quem não tinha nome no registo é a parte local do email. Sem esta
+       ordem, a página de perfil era um campo que não faz nada: a pessoa escreve
+       «Maria Silva» e continua a aparecer «maria.silva» a quem já lhe falou. */
+    const comEmailComoNome: LinhaConversa = { ...CONVERSA, comprador_nome: "maria.silva" };
+
+    const semPerfil = vistaConversa(
+      comEmailComoNome,
+      CAVALO_COM_CONTACTOS,
+      { ultimaMensagem: null, porLer: 0 },
+      OUTRO
+    );
+    const comPerfil = vistaConversa(
+      comEmailComoNome,
+      CAVALO_COM_CONTACTOS,
+      { ultimaMensagem: null, porLer: 0, perfil: PERFIL },
+      OUTRO
+    );
+
+    expect(semPerfil.outraParte).toBe("maria.silva");
+    expect(comPerfil.outraParte).toBe("Ana Sequeira");
+  });
+
+  it("um nome de perfil vazio cai na cadeia antiga em vez de escrever nada", () => {
+    for (const vazio of [null, "", "   "]) {
+      const vista = vistaConversa(
+        CONVERSA,
+        CAVALO_COM_CONTACTOS,
+        { ultimaMensagem: null, porLer: 0, perfil: { nome: vazio, fotografia: null } },
+        EU
+      );
+      expect(vista.outraParte).toBe("Coudelaria da Ribeira");
     }
   });
 });

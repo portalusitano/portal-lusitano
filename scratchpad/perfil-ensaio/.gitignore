@@ -1,0 +1,7 @@
+# As fotografias de ensaio são geradas pelo `gerar.mjs` e pesam 7,8 MB.
+# Um ficheiro que um guião do repositório reconstrói em dois segundos não vale
+# um blob no histórico.
+*.jpg
+*.webp
+*.log
+custo.sql

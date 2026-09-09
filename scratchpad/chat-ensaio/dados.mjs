@@ -47,6 +47,60 @@ export const EU = {
   nome: "Maria Sequeira",
 };
 
+/**
+ * Os perfis, e a gama que cobrem.
+ *
+ * O `avatar_prefixo` é opaco de propósito, e **não contém o `id`**: é essa
+ * propriedade que autoriza a fotografia a sair numa resposta de API sem
+ * publicar o identificador de ninguém (ver a migração `20260910000001`).
+ *
+ *   com nome e com fotografia   ·   com nome e sem fotografia
+ *   sem nome nenhum (exercita a cadeia antiga do `nomeOutraParte`)
+ *   e uma pessoa sem linha de perfil de todo — quem tem conta anterior ao
+ *   gatilho de registo, e que a rota tem de tratar sem rebentar
+ */
+export const PERFIS = [
+  {
+    id: "11111111-1111-4111-8111-111111111111",
+    full_name: "Maria Sequeira",
+    avatar_prefixo: "3c9d1f4a5b6e47c8901d2e3f4a5b6c7d",
+    avatar_url: null,
+    stripe_customer_id: "cus_ensaio_eu",
+    tools_subscription_status: "free",
+  },
+  {
+    id: "22222222-2222-4222-8222-222222222222",
+    full_name: "Ana",
+    avatar_prefixo: "8e2b7d1c6a5f49380b1c2d3e4f5a6b7c",
+    avatar_url:
+      "http://127.0.0.1:54992/storage/v1/object/public/avatares/" +
+      "8e2b7d1c6a5f49380b1c2d3e4f5a6b7c/d41f2a3b4c5d6e7f8091a2b3c4d5e6f7.webp",
+    stripe_customer_id: "cus_ensaio_ana",
+    tools_subscription_status: "active",
+  },
+  {
+    id: "33333333-3333-4333-8333-333333333333",
+    full_name: "João Maria de Bragança e Sousa Mendes de Vasconcelos Almeida",
+    avatar_prefixo: "5a1c8e7b2d3f40691a2b3c4d5e6f7081",
+    avatar_url: null,
+  },
+  {
+    id: "44444444-4444-4444-8444-444444444444",
+    full_name: null,
+    avatar_prefixo: "7f3e2d1c0b9a48576655443322110099",
+    avatar_url: null,
+  },
+  {
+    id: "55555555-5555-4555-8555-555555555555",
+    full_name: "Tomás Rebelo",
+    avatar_prefixo: "2b8c4d6e0f1a42539876543210fedcba",
+    avatar_url:
+      "http://127.0.0.1:54992/storage/v1/object/public/avatares/" +
+      "2b8c4d6e0f1a42539876543210fedcba/aabbccdd11223344556677889900aabb.webp",
+  },
+  // A Beatriz (6666…) não tem linha nenhuma, de propósito.
+];
+
 const OUTROS = [
   { id: "22222222-2222-4222-8222-222222222222", nome: "Ana" },
   {
