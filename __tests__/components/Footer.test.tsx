@@ -43,18 +43,42 @@ vi.mock("lucide-react", () => ({
   ),
   Plus: (props: Record<string, unknown>) => <svg data-testid="icon-plus" {...props} />,
   ArrowRight: (props: Record<string, unknown>) => <svg data-testid="icon-arrowright" {...props} />,
+  Globe: (props: Record<string, unknown>) => <svg data-testid="icon-globe" {...props} />,
 }));
 
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 describe("Footer", () => {
-  // O rodapé deixou de repetir a marca. O letreiro grande que aqui estava
-  // dizia o mesmo que a barra de navegação diz em todas as páginas, e trazia
-  // ornamentos de um desenho que o site já não usa.
+  // O letreiro grande que aqui esteve dizia o mesmo que a barra de navegação
+  // diz em todas as páginas, com ornamentos de um desenho que o site já não
+  // usa. O que voltou não é ele: é uma marca do tamanho de uma assinatura ao
+  // lado da frase que diz o que o site **é** — e isso a barra nunca diz.
   it("não repete o letreiro da marca", () => {
     render(<Footer />);
     expect(screen.queryByText("PORTAL")).not.toBeInTheDocument();
+    expect(screen.queryByText("PORTAL LUSITANO")).not.toBeInTheDocument();
+  });
+
+  it("diz o que o site é, e não só como se chama", () => {
+    render(<Footer />);
+    expect(screen.getByText(/Classificados de cavalos Lusitanos/i)).toBeInTheDocument();
+  });
+
+  // As onze ligações do índice escreviam-se com `.meta`, que é
+  // `--foreground-muted` — 3,66:1 sobre o preto puro do fundo, abaixo dos 4,5
+  // exigidos, num rodapé que aparece em todas as páginas. Uma ligação não é
+  // uma legenda. Este teste existe para a tinta não voltar por distracção.
+  it("não escreve as ligações com a tinta das legendas", () => {
+    render(<Footer />);
+    const indice = screen
+      .getAllByRole("link")
+      .filter((l) => (l.getAttribute("href") ?? "").startsWith("/"));
+    expect(indice.length).toBeGreaterThan(5);
+    for (const l of indice) {
+      expect(l.className).not.toMatch(/\bmeta\b/);
+      expect(l.className).not.toMatch(/foreground-muted/);
+    }
   });
 
   it("mostra as redes onde o portal está", () => {

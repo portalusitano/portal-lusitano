@@ -115,10 +115,21 @@ const CHAVES_DO_CROMADO = [
   "nav.skip_to_content",
   "nav.skip_to_navigation",
   // Rodapé
-  "footer.navigation",
-  "footer.lusitano",
-  "footer.tools",
+  //
+  // Os cabeçalhos das colunas chamavam-se `navigation`, `lusitano` e `tools`
+  // e estavam por cima de listas de comprar, de vender e de descobrir — três
+  // cabeçalhos que não descreviam a coluna. Saíram do dicionário com o
+  // rodapé que os escrevia; estes três dizem o que está debaixo deles.
+  "footer.group_buying",
+  "footer.group_selling",
+  "footer.group_discover",
   "footer.portal",
+  // A frase que diz o que o site é, e os dois sítios por onde se começa.
+  "footer.tagline",
+  "footer.start_here",
+  "footer.map_title",
+  "footer.map_subtitle",
+  "footer.stud_owner",
   "footer.buy_horse",
   "footer.sell_horse",
   "footer.studs",
@@ -173,7 +184,7 @@ describe("dicionário — o cromado partilhado tem tudo o que lê", () => {
   }
 
   /**
-   * «Marketing», «Portal», «Lusitano» e «Mapa» são iguais em duas línguas
+   * «Marketing», «Portal» e «Mapa» são iguais em duas línguas
    * porque a palavra é a mesma, não porque a tradução ficou por fazer. Tudo
    * o resto que apareça igual em pt e en é uma linha copiada e esquecida.
    */
@@ -181,7 +192,6 @@ describe("dicionário — o cromado partilhado tem tudo o que lê", () => {
     "nav.menu",
     "nav.map",
     "nav.database",
-    "footer.lusitano",
     "footer.portal",
     "footer.map",
     "cookies.marketing",

@@ -1657,9 +1657,6 @@
     "rights": "All rights reserved",
     "privacy": "Privacy",
     "terms": "Terms",
-    "navigation": "Navigation",
-    "lusitano": "Lusitano",
-    "tools": "Tools",
     "buy_horse": "Find a horse",
     "studs": "Stud Farms",
     "events": "Events",
@@ -1687,7 +1684,15 @@
     "my_messages": "My messages",
     "map": "Map",
     "sell_horse_subtitle": "List your Lusitano and reach buyers across the country",
-    "cookie_settings": "Cookie settings"
+    "cookie_settings": "Cookie settings",
+    "tagline": "Lusitano horse classifieds. Listings from private owners and stud farms, with pedigree, papers and location in plain sight before any conversation starts.",
+    "start_here": "Where to start",
+    "map_title": "Stud farms on the map",
+    "map_subtitle": "Every stud farm in the country, one by one, each with its own page.",
+    "stud_owner": "Run a stud farm? Write to",
+    "group_buying": "Buying",
+    "group_selling": "Selling",
+    "group_discover": "Discover"
   },
   "cookies": {
     "aria_label": "Cookie consent",

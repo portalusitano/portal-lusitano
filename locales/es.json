@@ -1657,9 +1657,6 @@
     "rights": "Todos los derechos reservados",
     "privacy": "Privacidad",
     "terms": "Términos",
-    "navigation": "Navegación",
-    "lusitano": "Lusitano",
-    "tools": "Herramientas",
     "buy_horse": "Encontrar caballo",
     "studs": "Yeguadas",
     "events": "Eventos",
@@ -1687,7 +1684,15 @@
     "my_messages": "Mis mensajes",
     "map": "Mapa",
     "sell_horse_subtitle": "Publique su Lusitano y llegue a compradores de todo el país",
-    "cookie_settings": "Ajustes de cookies"
+    "cookie_settings": "Ajustes de cookies",
+    "tagline": "Clasificados de caballos Lusitanos. Anuncios de particulares y de yeguadas, con pedigrí, documentos y ubicación a la vista antes de que haya conversación.",
+    "start_here": "Por dónde empezar",
+    "map_title": "Yeguadas en el mapa",
+    "map_subtitle": "Las yeguadas del país, una a una, cada una con su ficha.",
+    "stud_owner": "¿Tiene una yeguada? Escriba a",
+    "group_buying": "Comprar",
+    "group_selling": "Vender",
+    "group_discover": "Descubrir"
   },
   "cookies": {
     "aria_label": "Consentimiento de cookies",

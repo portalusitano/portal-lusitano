@@ -1657,9 +1657,6 @@
     "rights": "Todos os direitos reservados",
     "privacy": "Privacidade",
     "terms": "Termos",
-    "navigation": "Navegação",
-    "lusitano": "Lusitano",
-    "tools": "Ferramentas",
     "buy_horse": "Encontrar cavalo",
     "studs": "Coudelarias",
     "events": "Eventos",
@@ -1687,7 +1684,15 @@
     "my_messages": "As minhas mensagens",
     "map": "Mapa",
     "sell_horse_subtitle": "Publique o seu Lusitano e chegue a compradores em todo o país",
-    "cookie_settings": "Definições de cookies"
+    "cookie_settings": "Definições de cookies",
+    "tagline": "Classificados de cavalos Lusitanos. Anúncios de particulares e de coudelarias, com pedigree, documentos e localização à vista antes de haver conversa.",
+    "start_here": "Onde começar",
+    "map_title": "Coudelarias no mapa",
+    "map_subtitle": "As coudelarias do país, uma a uma, com a ficha de cada uma.",
+    "stud_owner": "Tem uma coudelaria? Escreva para",
+    "group_buying": "Comprar",
+    "group_selling": "Vender",
+    "group_discover": "Descobrir"
   },
   "cookies": {
     "aria_label": "Consentimento de cookies",
