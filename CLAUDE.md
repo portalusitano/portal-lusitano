@@ -108,8 +108,23 @@ um evento em destaque. Num distintivo que aparece em quase todos os cartões de
 uma grelha usa-se `.selo-forte`, branco.
 
 Onde o dourado fica, e mais em lado nenhum: a ferradura da marca, o sublinhado
-do item de navegação activo, o CTA de publicar anúncio, o `.selo-destaque`, e
-os graus «Ouro» e «Prata» do pedigree — nesse caso o dourado é o próprio dado.
+do item de navegação activo, o CTA de publicar anúncio, o `.selo-destaque`, os
+graus «Ouro» e «Prata» do pedigree — nesse caso o dourado é o próprio dado — e
+**o preço**.
+
+O preço esteve fora desta lista durante todo o tempo em que a lista se
+descreveu como fechada, e a omissão não era inocente: a `.preco` tem
+`color: var(--gold)` desde sempre e é escrita em **sete** sítios, um deles o
+`HorseCard`, que é o cartão de todas as grelhas do marketplace. Ou seja, o
+elemento dourado **mais frequente do site inteiro** não estava na lista dos
+sítios onde o dourado pode estar. Quem lesse a regra e fosse contar acharia que
+ela estava a ser violada em cada ecrã.
+
+Fica na lista pela razão que já justifica os graus do pedigree: **num
+classificados o preço é o dado**, e o dourado ali não decora coisa nenhuma —
+diz qual dos números da caixa é aquele por que se compara. E fica escrito o
+método, porque foi assim que se apanhou: uma lista que se diz fechada verifica-se
+contra o código, e não contra a memória de quem a escreveu.
 
 Vivem em `@layer components` **de propósito**: as utilidades do Tailwind estão
 numa camada posterior, por isso um `pl-11` ou um `h-12` numa página ganham
@@ -1270,6 +1285,186 @@ As notas dos cabeçalhos de secção deste formulário usam `.vc-nota` e não
 superfícies contra os 7,89–8,37:1 do `--foreground-secondary`, que é o token
 com que os `<label>` já estão escritos.
 
+### O rodapé
+
+**Três faixas, e cada uma responde a uma pergunta.** Era uma grelha de quatro
+listas e mais nada: quem chegasse ao fim da página encontrava dezanove ligações
+sem uma linha a dizer onde tinha chegado. As faixas respondem, por ordem, ao
+que se pergunta nesse sítio — **o que é isto**, **por onde começo**, **onde
+está o resto**.
+
+A frase da esquerda não repete a barra de navegação, e é essa a razão de a
+marca ter voltado depois de o letreiro grande ter saído: a barra diz o **nome**
+do site em todas as páginas e nunca diz o que ele **é**. Não é o mesmo elemento
+a voltar; é a legenda que faltava, com o nome do tamanho de uma assinatura. A
+faixa do meio absorveu o convite a publicar anúncio que ocupava uma linha
+inteira — o mesmo destino, agora ao lado do outro sítio por onde se começa.
+
+**Os cabeçalhos das colunas mentiam.** As quatro listas estão comentadas no
+código, uma a uma, como «Comprar», «Vender», «Descobrir» e «Portal» — e
+escreviam-se no ecrã como «Navegação», «Lusitano», «Ferramentas» e «Portal». Só
+a última coincidia. «Lusitano» por cima de _Vender cavalo · Os meus anúncios ·
+As minhas mensagens_ não é um cabeçalho vago: é um cabeçalho **falso**, e num
+índice o cabeçalho é a única coisa que evita ler a coluna toda. As três chaves
+antigas não eram lidas por mais ninguém e saíram do dicionário.
+
+**E a tinta.** As dez ligações do índice, as cinco da linha legal, as três das
+redes, o aviso de direitos e os cinco cabeçalhos — **vinte e quatro elementos**
+— escreviam-se com `--foreground-muted` (`#666`), que sobre o preto puro do
+fundo dá **3,66:1**, num rodapé que aparece em todas as páginas do site. Uma
+ligação não é uma legenda: é o próprio destino. Passam para
+`--foreground-secondary`, **8,37:1**, que é a decisão que este ficheiro já
+tinha tomado para a `.fc-nota` e para a `.vc-nota`.
+
+**E um número meu que era de cor, escrito aqui para não voltar.** A mensagem de
+commit desta alteração diz «33 textos a passar dos 4,5:1» e esse número não sai
+de medição nenhuma — contei-o de memória e nem sequer bate certo com o
+ficheiro, que tem **dez** ligações de índice e não onze. O que se mediu no
+browser foi tirado já **a meio** da correcção, com as ligações do índice
+mudadas e os cabeçalhos ainda por mudar: 9 de 37 abaixo do mínimo por vista,
+dos quais 4 eram os separadores `·`. Ou seja: os cabeçalhos custavam 5 por
+vista, e no fim ficam **0 reais** nas duas. Não há um «antes» completo medido
+no browser, e não se inventa um — o que se afirma é o que se contou no
+ficheiro (24 elementos) e o que se mediu no fim (0).
+
+Os cabeçalhos ficam com a **caixa** da `.rotulo` — 11px, versaletes, o mesmo
+`tracking` — e trocam a **tinta**, porque um cabeçalho é texto como outro
+qualquer por muito que o papel dele seja de legenda. A classe `.rotulo` não se
+mexe: é de todo o site, e trocá-la na origem merece a sua própria medição,
+noutro sítio que não um rodapé.
+
+Medido na página inicial, cookies aceites, 457px de altura no computador e
+1074px no telemóvel, zero elementos a passar da borda. Os quatro textos que a
+sonda ainda conta são os separadores `·`, que são `aria-hidden` e decorativos;
+e o único alvo de toque abaixo dos 44px é o email dentro da frase de contacto,
+que é uma âncora em linha no meio de um parágrafo — a excepção que a própria
+regra dos alvos prevê.
+
+**E o rodapé não entra em todas as páginas.** As páginas de entrada já corriam
+sem ele; agora o `/mapa` também. Quem decide é `lib/rotas-sem-rodape`, com
+testes, e a razão está na secção do mapa.
+
+### O `/mapa` é só o mapa
+
+O palco do globo é `100dvh` — a página **é** o mapa. O que estava por baixo era
+o rodapé e mais nada: 380px por rolar a 1400×950 e 720px a 390×700, tudo ele.
+A única coisa que aquela página oferecia a quem rolasse era o índice do site,
+debaixo de um mapa que ocupa o ecrã inteiro.
+
+E o ganho a mais não estava à vista. O `GloboTerra` cede a roda à página
+enquanto a lona cobrir o ecrã **e ainda houver documento para descer** —
+`prende = cobreOEcra && scrollHeight - innerHeight > 24`. Essa cedência existe
+para quem chega e rola para ler o que está por baixo, e está certa. Sem nada
+por baixo, a condição é **falsa por construção**: a roda passa a ser do globo
+ao primeiro dente, o `touch-action` volta ao `touch-none` por omissão e o dedo
+arrasta o planeta. Não se mexeu numa linha do motor — quem já decidia isto era
+ele, a partir da altura do documento.
+
+Medido, `next build` + `next start`, nas duas vistas e nos dois estados da
+barra de cookies: documento igual à janela (950/950 e 700/700), **0px por
+rolar**, e três dentes de roda **sem ninguém pegar no globo** a mudarem o
+alcance dos alfinetes de 776 para 1110 a aproximar e para 524 a afastar no
+computador. O `CLAUDE.md` regista que antes disto seis dentes num computador
+não mexiam nada.
+
+**E uma lição de método sobre a métrica.** A primeira medição do telemóvel usou
+o espalhamento dos **nomes** e deu 87 → 45 a aproximar, o que se lia como o
+sinal trocado. Não era: um nome que sai pela borda deixa de contar, e a métrica
+encolhe com a caixa em vez de com o mundo. Medido no alcance dos **alfinetes**,
+que não desaparecem, o sinal está certo nas duas vistas. Uma métrica que a
+própria mudança pode apagar não mede a mudança.
+
+Fica em aberto, e é do dono: o aviso de cookies diz «pode mudar de ideias a
+qualquer momento a partir do rodapé», e nesta página deixou de haver rodapé. A
+porta existe em todas as outras, mas a frase é copy com peso legal e não se
+reescreve sem quem manda.
+
+### O chat, e as fotografias de perfil
+
+A página inicial promete: «Fale com o vendedor sem publicar o seu número. O
+contacto só é partilhado se quiser.» O chat existia e cumpria a segunda metade;
+o que não cumpria era a primeira — **parecia um formulário com histórico**. Uma
+mensagem enviada por uma pessoa só aparecia do outro lado se essa pessoa
+recarregasse a página.
+
+**Ter conta é obrigatório, e não é a interface a exigi-lo**: o
+`comprador_id UUID NOT NULL REFERENCES auth.users(id)` da própria tabela. O que
+estava mal era **como** se encontrava essa parede — quem não tinha sessão abria
+a caixa no anúncio, escrevia a mensagem toda, carregava em enviar e só então
+era atirado para o login, perdendo o que tinha escrito. Diz-se antes, e o
+rascunho sobrevive à ida e volta (`sessionStorage`, pelas razões que o
+`components/chat/rascunhos.ts` já escreve). Havia um segundo defeito no mesmo
+caminho: a ligação escrevia `?redirect=` e a página de login lê `returnUrl` —
+quem chegasse a entrar aterrava na página inicial.
+
+**O tempo real não se escolheu por gosto, escolheu-se por uma constante que já
+cá estava.** O `middleware.ts` permite 60 pedidos/minuto por IP em `/api/*`.
+Uma sondagem de período `T` dá uma espera mediana de `T/2`, logo dois segundos
+de mediana exigem `T = 4s` — **15 pedidos/minuto por separador aberto**, só
+para o distintivo. Dois separadores e um fio aberto gastam metade do orçamento,
+e uma casa atrás de um IP apanha 429 a navegar. O `T = 60s` que lá estava
+significava **trinta segundos de mediana**, que é a queixa do dono dita por
+outras palavras. Medido do nosso lado: dez minutos de página parada passam de
+dez pedidos a **zero**, o separador escondido larga a ligação, e uma rajada de
+cinco mensagens é **uma** reconciliação.
+
+**Três estados de entrega, e só os três que a base sabe provar** — `enviada`
+(a linha existe), `entregue` (o servidor **disse ao destinatário** que ela
+existe), `lida`. Não há um quarto: «a escrever…» não vive numa tabela.
+
+**E o encontro das duas metades trouxe o defeito mais instrutivo.** A interface
+declarava quatro estados e derivava-os de `m.lida`, escrevendo «Entregue» a
+**tudo o que não estivesse lido** — ou seja, afirmava entrega a partir da
+ausência de leitura, que não é a mesma coisa e que a base nunca soube. Uma
+mensagem para alguém que fechou o portátil aparecia como entregue.
+
+**A fotografia de perfil, e a coluna que existia sem nunca ter sido escrita.**
+O `user_profiles.avatar_url` está lá desde a migração `004` e nada no site lhe
+tocava. Ponta a ponta: **1 765 894 → 17 948 bytes** (98×) e **322 bytes de EXIF
+→ 0**. O EXIF não é detalhe: uma fotografia de telemóvel traz GPS, e num
+retrato que **sai de uma pessoa e chega a outra** isso é publicar a morada de
+casa. O caminho do ficheiro **não é o UUID de ninguém** — esse endereço viaja
+numa resposta de API até à outra pessoa, e a vista pública deixou de devolver o
+`id` precisamente para isso. E o cliente não pode escrever o `avatar_url` à
+mão: só o nome. Caso contrário apontava-se o avatar para qualquer endereço da
+internet, servido a partir da caixa de entrada de outra pessoa como se fosse
+dela.
+
+**Quem não tem fotografia não ganha um rectângulo cinzento**, pela regra que a
+ficha de coudelaria já escreve. São iniciais, e sem cores geradas por hash —
+este site tem **um** acento e não uma paleta. Um rótulo não é um nome: «Comprador
+interessado» não dá «CI», porque duas maiúsculas num disco leem-se como o
+logótipo de uma empresa e porque as quatro conversas com esse rótulo levariam
+todas **o mesmo carimbo**, que é a única coisa que um retrato nunca pode fazer.
+Esses levam um ícone de pessoa.
+
+**E um retrato que não carrega volta a ser iniciais.** Sem isso, um `src` que
+falha deixava a caixa **vazia** — um disco do tamanho de uma cara, sem nada lá
+dentro — porque o ramo das iniciais só corre quando não há `src`. As causas em
+produção não são raras: um ficheiro apagado, o balde fora do ar, um endereço
+fora do `remotePatterns` (esse devolve **400**, não uma imagem), ou estar sem
+rede a meio do carregamento. Guarda-se **qual** o endereço que falhou e não um
+sim/não: assim quem troca a fotografia tem a nova tentada de graça, porque a
+comparação deixa de bater — e não é preciso um efeito a repor estado, que seria
+uma renderização em cascata a pagar por uma coisa que a comparação já diz.
+
+**Um conselho que não pode resolver o problema gasta a única acção que a pessoa
+tinha.** O cliente juntava o 401 e o 403 e os dois escreviam «A sessão expirou.
+Volte a entrar.» Para o 401 é o conselho certo; para o 403 é um beco, porque o
+403 é a resposta a quem **está autenticado** e mesmo assim foi recusado — sair e
+voltar a entrar dá a mesma recusa, e quem seguir o conselho perde a sessão que
+tinha para voltar ao mesmo sítio.
+
+**O número que se promete tem de ser o que se guarda.** O navegador recorta e
+envia 512; o servidor guarda 256. As duas escolhas têm razão escrita e nenhuma
+está errada por si — mas o ecrã dizia a quem envia «guarda-se um quadrado de
+512 pixéis», nas três línguas, e isso é uma promessa sobre a fotografia de
+outra pessoa que ninguém pode verificar sem ir ao balde. Fica **por decidir**,
+e é do dono: o navegador manda quatro vezes os pixéis que ficam, e 256 no maior
+sítio onde o retrato aparece (os 112px do editor) fica curto num telemóvel a
+3×. São dois números medidos por metades diferentes, e juntá-los merece a sua
+própria medição.
+
 ### Densidade
 
 É um classificados: o que conta é caberem anúncios no ecrã. Grelhas de 2 a 5
@@ -1312,5 +1507,79 @@ os dígitos alinharem entre cartões, que é o que permite comparar de relance).
   secção do `<GloboTerra>`: o defeito era o mesmo desde sempre e o que mudou
   foi a probabilidade de o encontrar. Quando uma alteração muda tempos, vale a
   pena perguntar que corridas passam a ganhar-se e a perder-se por causa dela.
+- **Um banco que responde `200 []` é pior do que um que rebenta.** O stub que
+  serve o globo só sabe responder a `/rest/v1/coudelarias`; às três tabelas do
+  chat respondia `200 []`, e não tinha autenticação nenhuma, por isso a página
+  do chat fazia `redirect("/login")`. Contra ele, qualquer número sobre a caixa
+  de entrada saía de uma caixa vazia — e **parecia** que funcionava: as
+  etiquetas apareciam, o carregamento acabava. O banco do chat está em
+  `scratchpad/chat-ensaio/` e fala PostgREST **e** GoTrue; o do perfil, em
+  `scratchpad/perfil-ensaio/`. Os dois dizem de si próprios o que é verificado
+  e o que é substituto, e o que garantem **não é fidelidade aos dados** — é
+  cobertura da gama, com os extremos e o meio em cada eixo.
+- **E a guarda de um banco tem de cobrir a gramática, não só o vocabulário.**
+  O `chat-ensaio` já atirava quando lhe chegava um operador PostgREST
+  desconhecido, em vez de devolver `[]`. Mas repartia o `or=(…)` com um `split`
+  por vírgulas, e a paginação por cursor usa dois níveis —
+  `or=(created_at.lt."X",and(created_at.eq."X",id.lt.Y))`. O `split` partia
+  aquilo em três, sendo o terceiro `id.lt.Y)`; numa disjunção, um pedaço a mais
+  que calhe ser verdadeiro deixa passar a linha da fronteira. Percorrer um fio
+  de 400 mensagens devolvia **413 linhas para 400 distintas**, sem um erro em
+  lado nenhum. A guarda estava no sítio errado: o operador desconhecido dava
+  erro, a gramática mal repartida dava uma **resposta plausível**.
+- **Duas metades bem feitas podem não se encontrar, e o compilador não o diz.**
+  O chat e o perfil foram construídos em paralelo, e em cada caso as duas
+  metades escolheram nomes diferentes para a mesma coisa: `estado` obrigatório
+  de um lado e ausente do outro; `fotografia` contra `avatar` em **quatro**
+  sítios — o campo do perfil, o caminho da rota, a chave do `FormData` e a
+  chave na conversa. No segundo caso o `tsc` ficou verde e os testes todos
+  passaram, porque cada uma daquelas leituras é defensiva **de propósito**: a
+  chave é opcional, um 404 é silêncio, e o ecrã sabe desenhar a ausência. O
+  produto teria desenhado iniciais para sempre, em toda a gente, sem um erro.
+  Um tipo partilhado não teria chegado: o que não coincide é o **nome escrito
+  na ligação**, e um caminho de rota e uma chave de `FormData` são texto, que
+  nenhum compilador verifica. Por isso o `__tests__/lib/perfil-costura.test.ts`
+  **lê os ficheiros** — e verificou-se ao contrário, repondo o desencontro, que
+  fica vermelho.
+- **A RLS decide que linhas, não que colunas.** A `user_profiles` tinha RLS
+  ligada com `auth.uid() = id` nas três políticas — que parece responder à
+  pergunta certa — e o `GRANT` era sobre a tabela inteira. Nessa linha vivem o
+  `tools_subscription_status` e o `stripe_customer_id`. Reproduzido contra
+  PostgreSQL local, com a chave anónima e a própria sessão: `UPDATE 1`, e a
+  conta ficava em `active` com um `stripe_customer_id` forjado. É uma
+  subscrição paga oferecida a si mesmo. Quem corrige é o `GRANT`, que sabe
+  falar de colunas. **A forma do erro é o que importa reter: as três políticas
+  estavam certas e bem escritas, e é isso que faz este defeito sobreviver a uma
+  revisão — ninguém olha duas vezes para uma tabela que tem RLS.**
+- **Uma prova verifica-se ao contrário.** Antes de aceitar «a RLS está
+  provada», estragou-se a política de propósito: com `USING (true)`, três das
+  seis provas ficam vermelhas; reposta, verdes. Uma migração que se aplica
+  **duas vezes** no mesmo teste é a idempotência a ser testada em vez de
+  alegada.
+- **Um servidor de ensaio que sobrevive a uma construção nova serve o que já
+  não existe.** `next start` continua de pé enquanto o `.next` é substituído
+  por baixo dele, e o sintoma é um `ChunkLoadError` com MIME `text/plain` —
+  ou seja, **o JavaScript do cliente não corre**, e tudo o que dependa dele
+  parece partido. Duas medições desta sessão foram gastas a perseguir defeitos
+  que eram isto. Matar a porta e voltar a arrancar **antes** de acreditar em
+  qualquer leitura.
+- **Uma métrica que a própria mudança pode apagar não mede a mudança.** O
+  espalhamento dos nomes do globo encolhe quando um nome sai pela borda, o que
+  fez uma aproximação parecer um afastamento. Mediu-se no alcance dos
+  alfinetes, que não desaparecem.
+- **Duas medições que concordam perfeitamente não estão por isso certas.** Um
+  A/B de bytes deu «+197 KB em todas as páginas», estável entre voltas — e era
+  o mesmo build medido duas vezes, com assinatura exacta: rotas com diferença
+  zero **ao byte**. Zero de variância prova que o aparelho é determinista, não
+  que está a medir duas coisas diferentes. O que apanhou o erro foi um número
+  sem sentido físico: uma mudança de 770 KB numa página que ninguém tinha
+  tocado.
+- **Uma sonda tem de saltar o que está inerte e o que está escondido.** Duas
+  leituras desta sessão foram falsos positivos: «6 textos abaixo de 4,5:1» eram
+  as pastilhas de não lidas, que são **preto sobre pastilha branca — 21:1**, o
+  máximo possível, e a sonda assumia fundo preto para tudo; «2 elementos a
+  passar da janela» eram o nível parqueado da `.pilha`, `inert` e `aria-hidden`,
+  deslocado uma largura inteira de propósito, numa página que não rola na
+  horizontal. Verificar cada linha antes de a escrever como taxa.
 - Migrações em `supabase/migrations/` têm de ser idempotentes e validadas
   contra um PostgreSQL local antes de irem para o repositório.
