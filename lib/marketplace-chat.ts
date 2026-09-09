@@ -64,6 +64,16 @@ export interface ChatConversa {
   papel: "comprador" | "vendedor";
   /** Display name of the other person. */
   outraParte: string;
+  /**
+   * A fotografia de perfil da outra pessoa, ou `null`.
+   *
+   * `null` é uma resposta e não uma falha: quem não pôs fotografia não tem
+   * fotografia, e quem a desenha com iniciais é o ecrã. O servidor não inventa
+   * um avatar por omissão nem vai buscar um a um terceiro — ver
+   * `lib/perfil/contrato`. O endereço não se deriva da identidade de ninguém:
+   * a razão está em `lib/chat/vista-publica`.
+   */
+  outraParteFoto: string | null;
   cavaloNome: string;
   cavaloFoto: string | null;
   cavaloPreco: number | null;

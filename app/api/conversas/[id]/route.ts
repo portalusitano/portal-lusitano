@@ -21,6 +21,7 @@ import {
   type LinhaConversa,
   type LinhaMensagem,
 } from "@/lib/chat/vista-publica";
+import { perfilDe } from "@/lib/perfil/carregar";
 import { devoNotificar, notificarNovaMensagem } from "@/lib/chat-notificacoes";
 import { strictLimiter } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
@@ -164,14 +165,26 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       }
     }
 
-    const { data: cavalo } = await supabaseAdmin
-      .from("cavalos_venda")
-      .select(COLUNAS_CAVALO)
-      .eq("id", conversa.cavalo_id)
-      .maybeSingle();
+    /* O anúncio e o perfil da outra parte não dependem um do outro: em série,
+       o mais barato dos dois somava-se ao caminho crítico em vez de se esconder
+       atrás dele.
+
+       Quem tem direito a ver o perfil de alguém não é «qualquer pessoa com
+       sessão», é a outra parte de uma conversa — e essa condição está
+       verificada acima, no `conversaDoUtilizador`, que é por onde toda a
+       leitura deste ficheiro passa. O `perfilDe` é chamado depois disso e
+       nunca antes. */
+    const [{ data: cavalo }, perfil] = await Promise.all([
+      supabaseAdmin
+        .from("cavalos_venda")
+        .select(COLUNAS_CAVALO)
+        .eq("id", conversa.cavalo_id)
+        .maybeSingle(),
+      perfilDe(outraParteDaConversa(conversa, user.id)),
+    ]);
 
     return NextResponse.json({
-      conversa: vistaCabecalho(conversa, (cavalo as LinhaCavalo | null) ?? null, user.id),
+      conversa: vistaCabecalho(conversa, (cavalo as LinhaCavalo | null) ?? null, user.id, perfil),
       mensagens,
       pagina: {
         temMais,

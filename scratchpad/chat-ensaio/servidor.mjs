@@ -38,7 +38,7 @@
  *   NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54992 npx next build && npx next start
  */
 import http from "node:http";
-import { construir, EU, CAVALOS } from "./dados.mjs";
+import { construir, EU, CAVALOS, PERFIS } from "./dados.mjs";
 
 const PORTA = Number(process.env.PORTA || 54992);
 const VAZIO = process.env.VAZIO === "1";
@@ -46,12 +46,23 @@ const LOG = process.env.LOG === "1";
 
 const { conversas, mensagens } = construir({ vazio: VAZIO });
 
+/** Os bytes que foram parar ao balde, por chave `<balde>/<caminho>`. */
+const OBJECTOS = new Map();
+
 /** As tabelas que este banco serve. O resto responde `[]`, como o PostgREST. */
 const TABELAS = {
   marketplace_conversas: conversas.map(({ _porLer, ...c }) => c),
   marketplace_mensagens: mensagens,
   cavalos_venda: CAVALOS,
   coudelarias: [],
+  /* Os perfis das pessoas do ensaio.
+     A gama, e é de propósito: com nome e com fotografia · com nome e sem
+     fotografia · **sem nome nenhum** (que é quem exercita a cadeia antiga do
+     `nomeOutraParte`) · e uma pessoa sem linha de perfil nenhuma, que é o
+     estado de quem tem conta anterior ao gatilho.
+     O `avatar_prefixo` é opaco e não tem nada do `id` — é essa propriedade que
+     autoriza a fotografia a sair numa resposta de API. */
+  user_profiles: PERFIS,
 };
 
 /* ── O subconjunto do PostgREST ─────────────────────────────────────────── */
@@ -315,6 +326,56 @@ http
       return responder(200, {});
     }
 
+    /* ── Armazenamento de mentira ──────────────────────────────────────────
+       O suficiente para as rotas do perfil: escrever um objecto, apagá-lo, e
+       servi-lo de volta pelo endereço público. Guarda os bytes em memória para
+       se poder **verificar o que lá ficou** — que é o ponto: o ensaio serve
+       para provar que o que chega ao balde é WebP de 256px sem EXIF, e não só
+       que a rota devolveu 201.
+
+       Não é armazenamento a sério: não há políticas, não há limites de balde e
+       não há CDN. As políticas verificam-se contra um PostgreSQL, em
+       `__tests__/lib/perfil-rls.sql.test.ts`. */
+    if (u.pathname.startsWith("/storage/v1/")) {
+      const resto = u.pathname.slice("/storage/v1/".length);
+
+      if (resto.startsWith("object/public/")) {
+        const chave = resto.slice("object/public/".length);
+        const bytes = OBJECTOS.get(chave);
+        if (!bytes) return responder(404, { message: "não encontrado" });
+        res.writeHead(200, { "content-type": "image/webp", "content-length": bytes.length });
+        return res.end(bytes);
+      }
+
+      if (resto.startsWith("object/")) {
+        const chave = resto.slice("object/".length);
+        if (req.method === "POST" || req.method === "PUT") {
+          const trocos = [];
+          for await (const t of req) trocos.push(t);
+          OBJECTOS.set(chave, Buffer.concat(trocos));
+          return responder(200, {
+            Id: chave,
+            Key: chave,
+            path: chave.split("/").slice(1).join("/"),
+          });
+        }
+        if (req.method === "DELETE") {
+          OBJECTOS.delete(chave);
+          return responder(200, {});
+        }
+      }
+
+      // O `.remove([...])` do supabase-js é um DELETE em `object/<balde>` com
+      // os caminhos no corpo.
+      if (req.method === "DELETE" && resto.split("/").length === 1) {
+        const { prefixes = [] } = (await corpo(req)) || {};
+        for (const p of prefixes) OBJECTOS.delete(`${resto}/${p}`);
+        return responder(200, {});
+      }
+
+      return responder(400, { message: `storage: não sei servir ${req.method} ${resto}` });
+    }
+
     /* PostgREST */
     if (u.pathname.startsWith("/rest/v1/")) {
       const tabela = u.pathname.slice("/rest/v1/".length).split("/")[0];
@@ -334,6 +395,32 @@ http
         if (req.method === "POST") {
           const novo = await corpo(req);
           const linhas = Array.isArray(novo) ? novo : [novo];
+
+          /* O `.upsert()` do supabase-js é um POST com
+             `Prefer: resolution=merge-duplicates`. Sem isto o banco empilhava
+             uma segunda linha com o mesmo `id` e a leitura seguinte devolvia a
+             velha — que é pior do que rebentar, porque parece que funciona. */
+          if (String(req.headers.prefer || "").includes("merge-duplicates")) {
+            const tocadas = [];
+            for (const l of linhas) {
+              const existente = (TABELAS[tabela] ??= []).find((x) => x.id === l.id);
+              if (existente) {
+                Object.assign(existente, l);
+                tocadas.push(existente);
+              } else {
+                const criada = { created_at: new Date().toISOString(), ...l };
+                TABELAS[tabela].push(criada);
+                tocadas.push(criada);
+              }
+            }
+            if (!devolve) {
+              res.writeHead(201, cab);
+              return res.end();
+            }
+            res.writeHead(201, cab);
+            return res.end(JSON.stringify(um ? (tocadas[0] ?? null) : tocadas));
+          }
+
           const criadas = linhas.map((l) => ({
             id: `ffffff${Math.random().toString(16).slice(2, 10)}-0000-4000-8000-000000000000`,
             created_at: new Date().toISOString(),
