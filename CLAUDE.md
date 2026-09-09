@@ -844,6 +844,36 @@ de todo o site e a troca lá merece a sua própria medição. **A lição vale p
 além do `sticky`: uma propriedade escrita não é uma propriedade a funcionar** —
 o `getComputedStyle` dizia `position: sticky` e `top: 112px` nos dois casos.
 
+**A troca na regra global foi medida e não entra.** O parágrafo acima dizia que
+a regra é de todo o site e que a troca lá merecia a sua própria medição. Fez-se.
+Primeiro confirmou-se o mecanismo de forma independente, com um A/B sobre o
+`sticky` **verdadeiro** da ficha, ligando e desligando a regra na mesma página e
+na mesma sessão: com `hidden` o elemento **acompanha o rolo pixel a pixel** (de
+577 para −1176 num rolo de 1753), com `clip` deixa de o acompanhar. A causa
+estava certa.
+
+Depois foi-se ver quem mais no site tem um `sticky` a ganhar com isso, e a
+resposta é **ninguém que se alcance**. Há catorze menções a `sticky` no código:
+duas são do motor do globo e do cromado do mapa, uma é a coluna desta ficha, uma
+é um comentário no `/comprar/[id]` que descreve um `lg:fixed` e não um `sticky`,
+e as **duas** restantes são painéis de páginas de administração, atrás de
+autenticação. Medido em dez rotas e três vistas: **zero páginas com deslocamento
+horizontal** antes da troca, e os únicos dois `sticky` alcançáveis são os desta
+ficha, que a regra por página já cobre. Trocar `hidden` por `clip` na origem não
+compraria um pixel a ninguém — e não é de graça: só na página inicial há **31
+elementos a passar da janela, o pior por 2837px**, que é precisamente o que a
+regra existe para conter. Arriscar isso por um ganho medido de zero é o
+contrário do que esta casa faz.
+
+**E ficou a saber-se onde está o resto do problema.** Com o `clip` a coluna
+prende — mas prende pouco: a caixa que a contém mede 1210px e ela mede 1048,
+logo tem **162px de curso**, ao lado de um artigo de 2095px. Medido: com
+`hidden` a coluna acaba a −1176, com `clip` a −1032. A diferença são os tais
+162px, e depois disso ela sai do ecrã à mesma, porque um `sticky` nunca passa do
+bloco que o contém. Quem quiser a barra lateral a acompanhar a leitura inteira
+tem de dar altura ao bloco que a contém, e isso não é um `overflow` — é a
+composição da grelha.
+
 **O que aparece em todas as fichas não convida: é papel de parede.** Saíram
 três coisas que estavam em 29 de 29 — a caixa a tracejado «Ainda não há
 avaliações» (140px de secção para escrever uma ausência, agora 58px, e quem
