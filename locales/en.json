@@ -1711,7 +1711,7 @@
     "marketing": "Marketing",
     "marketing_desc": "Google AdSense and Meta Pixel — relevant ads.",
     "always_on": "Always on",
-    "reopen_hint": "You can change your mind at any time from the footer."
+    "reopen_hint": "You can change your mind at any time in the site's cookie settings."
   },
   "success_pages": {
     "payment_confirmed": "Payment Confirmed!",

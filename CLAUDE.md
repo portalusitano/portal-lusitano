@@ -1374,10 +1374,16 @@ encolhe com a caixa em vez de com o mundo. Medido no alcance dos **alfinetes**,
 que não desaparecem, o sinal está certo nas duas vistas. Uma métrica que a
 própria mudança pode apagar não mede a mudança.
 
-Fica em aberto, e é do dono: o aviso de cookies diz «pode mudar de ideias a
-qualquer momento a partir do rodapé», e nesta página deixou de haver rodapé. A
-porta existe em todas as outras, mas a frase é copy com peso legal e não se
-reescreve sem quem manda.
+**E a frase dos cookies deixou de apontar para o rodapé.** Dizia «pode mudar de
+ideias a qualquer momento **no rodapé**», o que era verdade em todas as páginas
+até esta perder o dele — e é justamente aqui que muita gente vê o aviso pela
+primeira vez, porque o `/mapa` é uma página de entrada. Mandar alguém a um
+sítio que não existe naquele ecrã é pior do que não dizer onde é: quem procura
+o rodapé e não o encontra fica a achar que a definição não existe. A frase
+passa a nomear **o que** se procura — as definições de cookies — em vez de
+**onde**, o que é verdade em todas as páginas e continua a dizer que a porta
+existe. A porta não se perdeu: está no rodapé de todas as páginas que o têm. Um
+teste liga as duas pontas, para não se separarem outra vez.
 
 ### O chat, e as fotografias de perfil
 
@@ -1459,11 +1465,35 @@ tinha para voltar ao mesmo sítio.
 envia 512; o servidor guarda 256. As duas escolhas têm razão escrita e nenhuma
 está errada por si — mas o ecrã dizia a quem envia «guarda-se um quadrado de
 512 pixéis», nas três línguas, e isso é uma promessa sobre a fotografia de
-outra pessoa que ninguém pode verificar sem ir ao balde. Fica **por decidir**,
-e é do dono: o navegador manda quatro vezes os pixéis que ficam, e 256 no maior
-sítio onde o retrato aparece (os 112px do editor) fica curto num telemóvel a
-3×. São dois números medidos por metades diferentes, e juntá-los merece a sua
-própria medição.
+outra pessoa que ninguém pode verificar sem ir ao balde.
+
+**E os 256 mediram-se, e ficam.** A pergunta era se 256 fica curto, e a
+resposta é um degrau limpo: o erro por subpixel contra o melhor que aquele ecrã
+podia mostrar é **~3/255 quando o lado guardado chega aos pontos do
+dispositivo** e **~8/255 quando fica abaixo**. Medido sobre a mesma fotografia,
+com o recorte feito **uma vez** — 112px a 3× pede 336 pontos:
+
+|            | 256²   | 320²   | 384²   | 512²   |
+| ---------- | ------ | ------ | ------ | ------ |
+| 112px a 2× | 3,94   | 3,35   | 2,96   | 2,77   |
+| 112px a 3× | 8,11   | 8,11   | 3,39   | 2,85   |
+| bytes      | 17 394 | 24 512 | 35 952 | 56 006 |
+
+O que decide não é a tabela, é **onde o retrato aparece**: o `xl` de 112px
+existe num sítio só — a pré-visualização da própria fotografia dentro do
+editor. Tudo o que o resto do site desenha é 28, 44 e 64, que a 3× pedem 84,
+132 e 192 pontos — todos dentro dos 256 com folga. Dobrar os bytes de **todos**
+os retratos do site para afiar a pré-visualização da minha própria fotografia,
+num ecrã, é a troca errada. Fica escrito o degrau para quem um dia puser um
+avatar de 112px numa página pública: aí a conta muda, e 384 é o primeiro
+tamanho que a serve.
+
+**E a primeira medição desta tabela saiu não monótona** — 384² pior do que 256²
+a 2× —, o que é impossível para perda de reamostragem. A causa era o
+`position: "attention"` do `sharp`: o recorte depende do tamanho de saída, e
+portanto cada coluna comparava uma **fotografia diferente**, não uma resolução
+diferente. Recorta-se uma vez e só depois se varia a resolução. Um resultado
+não monótono onde a física exige monotonia é o aparelho a falar, não o mundo.
 
 ### Densidade
 
