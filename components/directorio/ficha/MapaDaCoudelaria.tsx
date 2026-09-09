@@ -84,7 +84,11 @@ export default function MapaDaCoudelaria({
         <h2 id="t-mapa" className="titulo-seccao mb-1">
           {f.onde_fica}
         </h2>
-        {sitio && <p className="meta mb-3">{sitio}</p>}
+        {/* `.fc-nota` e não `.meta`: esta linha **é** a resposta ao título do
+            cartão, e media-se 3,45:1 nos pixéis contra os 7,89:1 da mesma
+            tinta que o resto do cartão usa. A `.meta` é a cor de quem legenda
+            outra coisa; aqui não há outra coisa. */}
+        {sitio && <p className="fc-nota mb-3">{sitio}</p>}
       </div>
 
       {montado ? (

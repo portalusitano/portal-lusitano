@@ -7356,6 +7356,27 @@ body:has(.fc-ficha) {
     line-height: 1.4;
     color: var(--foreground-secondary);
   }
+
+  /* `.fc-nota` — tamanho de legenda, papel de texto.
+   *
+   * É a mesma distinção que o `/vender-cavalo` já escreveu com a `.vc-nota`: a
+   * `.meta` é para o que se lê **se** se olhar — uma data, um contador, um
+   * rótulo ao lado de um valor —, e mede-se 3,45:1 sobre preto e 3,66:1 sobre
+   * o cartão. Onde a linha é a informação, esse valor não chega: o mínimo de
+   * texto corrido é 4,5:1 e a tinta secundária dá **7,89:1 sobre o cartão e
+   * 8,37:1 sobre o preto**, lidos nos pixéis renderizados.
+   *
+   * As duas linhas das «Coudelarias mais próximas» são desse tipo. A ressalva
+   * «Distâncias em linha recta» é o que impede o título de mentir — medidas as
+   * 87 distâncias que as 29 fichas escrevem, dezassete passam dos 50 km e duas
+   * dizem 121 e 129 km — e a terra de cada cartão é a única coisa lá dentro
+   * que responde à pergunta da secção. A geometria é a da `.meta`, para nada
+   * se mexer de sítio; o que muda é a tinta. */
+  .fc-nota {
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--foreground-secondary);
+  }
 }
 
 /* ===========================================================================
