@@ -5,6 +5,7 @@ import {
   resumirMensagem,
   validarMensagem,
 } from "@/lib/marketplace-chat";
+import { MAX_NOME } from "@/lib/perfil/contrato";
 
 describe("validarMensagem", () => {
   it("aceita e apara uma mensagem normal", () => {
@@ -94,5 +95,36 @@ describe("nomeOutraParte", () => {
 
   it("trata um nome só com espaços como ausente", () => {
     expect(nomeOutraParte("vendedor", "   ", null)).toBe("Comprador interessado");
+  });
+
+  /**
+   * ── O nome da outra parte não parte a linha nem a inverte ────────────────
+   *
+   * O `comprador_nome` é uma cópia do `user_metadata.full_name`, que é texto em
+   * cru do formulário de registo, e o `vendedor_nome` vem do anúncio. Os dois
+   * chegam à caixa de entrada de outra pessoa e ao corpo do email de aviso.
+   *
+   * O `limparNome` do `lib/perfil/contrato` já existia com esta razão escrita —
+   * estava aplicado ao nome do perfil e a mais nada. O `escapeHtml` do email
+   * não cobre isto: o U+202E não é HTML, é uma letra que manda no sentido da
+   * linha.
+   */
+  it("tira o que parte uma linha ou inverte a leitura", () => {
+    expect(nomeOutraParte("vendedor", "Ana\nSilva", null)).toBe("Ana Silva");
+    expect(nomeOutraParte("comprador", null, "Coudelaria\r\nVeiga")).toBe("Coudelaria Veiga");
+
+    // U+202E: a partir dali a linha lê-se ao contrário.
+    expect(nomeOutraParte("vendedor", "Ana‮Silva", null)).toBe("Ana Silva");
+    expect(nomeOutraParte("comprador", null, "‮Veiga")).toBe("Veiga");
+
+    // E um nome que só tem caracteres de controlo é um nome ausente.
+    expect(nomeOutraParte("vendedor", "‮‎\n\t", null)).toBe("Comprador interessado");
+  });
+
+  it("corta pelo mesmo tecto do nome do perfil", () => {
+    /* Um segundo número aqui deixaria um nome passar num sítio e ser cortado no
+       outro — é a razão escrita no `MAX_NOME`. */
+    const longo = "Maria ".repeat(60);
+    expect(nomeOutraParte("vendedor", longo, null).length).toBeLessThanOrEqual(MAX_NOME);
   });
 });
