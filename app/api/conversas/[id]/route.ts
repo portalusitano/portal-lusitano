@@ -22,6 +22,7 @@ import {
   type LinhaMensagem,
 } from "@/lib/chat/vista-publica";
 import { perfilDe } from "@/lib/perfil/carregar";
+import { limparNome } from "@/lib/perfil/contrato";
 import { devoNotificar, notificarNovaMensagem } from "@/lib/chat-notificacoes";
 import { strictLimiter } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
@@ -285,9 +286,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         destinatarioId,
         // The counterpart already knows the other side by the name shown in the
         // thread; reuse it rather than exposing an account email.
+        /* Pelo `limparNome`, e não pelo valor em cru da coluna: os dois nomes
+           são texto que a pessoa escolheu — o `comprador_nome` vem do
+           `full_name` do registo — e daqui vão para o corpo de um email. O
+           `escapeHtml` do `lib/chat-notificacoes` trata do HTML e não trata
+           disto: um U+202E sobrevive a qualquer escape de HTML porque não é
+           HTML, e inverte a leitura do resto da linha. A razão longa está no
+           `nomeOutraParte`, que é por onde o ecrã já passa. */
         remetenteNome: souComprador
-          ? conversa.comprador_nome || "Comprador interessado"
-          : cavalo?.vendedor_nome || "Vendedor",
+          ? limparNome(conversa.comprador_nome) || "Comprador interessado"
+          : limparNome(cavalo?.vendedor_nome) || "Vendedor",
         cavaloNome: cavalo?.nome || "o anúncio",
         corpo: validada.corpo,
       });

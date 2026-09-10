@@ -9,6 +9,7 @@ import {
   FORMATOS_AVATAR,
   EXTENSAO_AVATAR_GUARDADA,
   MIME_AVATAR_GUARDADO,
+  pedidoGrandeDemais,
 } from "@/lib/perfil/contrato";
 
 /**
@@ -138,6 +139,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    /* ── O único sítio onde se pode recusar sem ler ────────────────────────
+       O `await req.formData()` lê e decompõe o corpo **inteiro** antes de
+       devolver um campo, e uma rota do App Router não tem tecto de corpo por
+       omissão: sem esta linha, um corpo de duzentos megabytes era posto todo em
+       memória e só depois recusado pelo `size` da parte, que é onde o
+       comentário deste ficheiro dizia — a dizer mal — que a recusa acontecia
+       «antes».
+
+       O `Content-Length` não decide a favor de ninguém; ver
+       `pedidoGrandeDemais` no `lib/perfil/contrato`. Quem mentir para baixo ou
+       não o mandar cai nas duas verificações de sempre, que ficam onde
+       estavam. */
+    if (pedidoGrandeDemais(req.headers.get("content-length"))) {
+      const mb = Math.floor(MAX_BYTES_AVATAR / (1024 * 1024));
+      return NextResponse.json(
+        { error: `A fotografia é demasiado grande. Máximo ${mb} MB.` },
+        { status: 413 }
+      );
+    }
+
     let formData: FormData;
     try {
       formData = await req.formData();
@@ -157,10 +178,15 @@ export async function POST(req: NextRequest) {
        declarado pode fazer com honestidade. */
     if (ficheiro.size > MAX_BYTES_AVATAR) {
       const mb = Math.floor(MAX_BYTES_AVATAR / (1024 * 1024));
+      /* 413 e não 400, pela mesma razão da recusa pelo `Content-Length` acima:
+         é a mesma recusa, e o cliente já sabe traduzir o 413 numa frase sobre o
+         tamanho (`erroDaResposta` em `components/perfil/api`). Com 400, o ramo
+         `grande-demais` que lá está escrito nunca corria e quem mandasse uma
+         fotografia grande via a frase genérica de erro de servidor. */
       return NextResponse.json(
         { error: `A fotografia é demasiado grande. Máximo ${mb} MB.` },
         {
-          status: 400,
+          status: 413,
         }
       );
     }

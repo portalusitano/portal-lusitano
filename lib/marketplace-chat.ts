@@ -7,6 +7,12 @@
  * phone and email the seller published.
  */
 
+/* O `limparNome` vive no `lib/perfil/contrato`, que é o módulo de `lib/perfil`
+   que um componente pode importar sem arrastar o `sharp` nem a chave de
+   serviço. Não se escreve aqui um segundo: um nome limpo de duas maneiras
+   diferentes é um nome que passa num sítio e é cortado no outro. */
+import { limparNome } from "@/lib/perfil/contrato";
+
 /** Maximum characters in a single message. Mirrors the CHECK on the table. */
 export const MAX_MENSAGEM = 4000;
 
@@ -130,6 +136,29 @@ export function resumirMensagem(corpo: string | null | undefined): string | null
  * Falls back through the denormalised buyer name, the listing's seller name, and
  * finally a neutral label — never an email address, which would leak a contact
  * the person did not choose to publish.
+ *
+ * ── Porque é que isto passa pelo `limparNome` ───────────────────────────────
+ *
+ * O `limparNome` do `lib/perfil/contrato` existe com a razão escrita ao lado:
+ * «um `\n` num nome parte a linha de uma caixa de entrada, e o `‮` — o que
+ * inverte a direcção do texto — faz o resto da linha ler-se ao contrário a
+ * partir dali». Estava aplicado ao nome do **perfil** e a mais nada, e estes
+ * dois nomes são os que a caixa de entrada escreve em todos os outros casos:
+ *
+ * - O `comprador_nome` é uma cópia de `user_metadata.full_name`, que é **texto
+ *   em cru do formulário de registo** (`app/(auth)/registar`, um
+ *   `signUp({ data: { full_name: name } })`); quem o copia para a conversa é o
+ *   `nomeDoUtilizador` de `app/api/conversas`, que só lhe corta o comprimento.
+ * - O `vendedor_nome` vem do anúncio.
+ *
+ * Os dois chegam ao ecrã da outra pessoa **e ao corpo do email de aviso**. O
+ * `escapeHtml` do email trata do HTML e não tem nada a ver com isto: um
+ * U+202E sobrevive a qualquer escape de HTML porque não é HTML — é uma letra
+ * que manda no sentido da linha, e a linha que ela inverte é a da mensagem de
+ * outra pessoa.
+ *
+ * Limpar na leitura e não só na escrita é deliberado: as linhas que já estão na
+ * base foram escritas sem esta passagem.
  */
 export function nomeOutraParte(
   papel: "comprador" | "vendedor",
@@ -138,9 +167,9 @@ export function nomeOutraParte(
 ): string {
   if (papel === "comprador") {
     // The user is buying, so the counterpart is the seller.
-    return vendedorNome?.trim() || "Vendedor";
+    return limparNome(vendedorNome) || "Vendedor";
   }
-  return compradorNome?.trim() || "Comprador interessado";
+  return limparNome(compradorNome) || "Comprador interessado";
 }
 
 // ===========================================================================

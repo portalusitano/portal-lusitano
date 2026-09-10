@@ -14,19 +14,37 @@ import {
   type LinhaConversa,
 } from "@/lib/chat/vista-publica";
 import { perfisPorId } from "@/lib/perfil/carregar";
+import { limparNome } from "@/lib/perfil/contrato";
 import { LISTING_STATUS } from "@/lib/marketplace-listings";
 import { devoNotificar, notificarNovaMensagem } from "@/lib/chat-notificacoes";
 import { strictLimiter } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 
-/** Display name for the authenticated user, used when opening a conversation. */
+/**
+ * Display name for the authenticated user, used when opening a conversation.
+ *
+ * ── O `limparNome` e não um `slice` ─────────────────────────────────────────
+ *
+ * O `user_metadata.full_name` é texto em cru do formulário de registo —
+ * `app/(auth)/registar` faz `signUp({ data: { full_name: name } })` e mais
+ * ninguém o olha pelo caminho. Este valor fica gravado no `comprador_nome` da
+ * conversa e é o que o vendedor lê na caixa de entrada **e no email de aviso**.
+ *
+ * Um `slice(0, 120)` corta o comprimento e deixa passar tudo o resto. O
+ * `limparNome` é a decisão que esta casa já tinha tomado para o nome do perfil,
+ * e com a razão escrita: um `\n` parte a linha de uma lista e o U+202E faz o
+ * resto da linha ler-se ao contrário. O mesmo tecto de 120 vive lá dentro, pela
+ * razão escrita no `MAX_NOME` — dois números divergem à primeira distracção.
+ *
+ * A parte local do email só entra se não sobrar nome nenhum, e nunca o endereço:
+ * a outra parte não recebe um contacto que ninguém escolheu partilhar.
+ */
 function nomeDoUtilizador(user: { email?: string; user_metadata?: Record<string, unknown> }) {
   const meta = user.user_metadata || {};
-  const completo = typeof meta.full_name === "string" ? meta.full_name.trim() : "";
-  if (completo) return completo.slice(0, 120);
-  // Local part of the email, never the address itself — the counterpart should
-  // not receive a contact the person did not choose to share.
-  return (user.email?.split("@")[0] || "Utilizador").slice(0, 120);
+  const completo = limparNome(meta.full_name);
+  if (completo) return completo;
+
+  return limparNome(user.email?.split("@")[0]) || "Utilizador";
 }
 
 /**

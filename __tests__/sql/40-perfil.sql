@@ -128,6 +128,52 @@ BEGIN
   INSERT INTO r3 VALUES ('ana consegue inserir um perfil com assinatura', 'false', passou::text);
 END $$;
 
+-- ── E as duas colunas da fotografia, que o GRANT de coluna também fecha ────
+--
+-- Isto estava afirmado em prosa em três sítios — na migração, na rota e no
+-- `lib/perfil/contrato` — e não tinha prova nenhuma. A afirmação é a que mais
+-- importa do lado do produto: se o cliente pudesse escrever o `avatar_url`,
+-- apontava o seu avatar para qualquer endereço da internet, **servido a partir
+-- da caixa de entrada de outra pessoa como se fosse dela** — e nenhum byte
+-- passava pelo cano que tira o EXIF.
+--
+-- E o `avatar_prefixo` pela razão simétrica: a política de escrita do balde
+-- assenta nele, logo um prefixo escolhido pelo cliente é uma política de
+-- escrita escolhida pelo cliente.
+DO $$
+DECLARE passou boolean := false;
+BEGIN
+  SET LOCAL ROLE authenticated;
+  PERFORM set_config('request.jwt.claims', '{"sub":"aaaa1111-1111-1111-1111-111111111111","role":"authenticated"}', true);
+  BEGIN
+    UPDATE public.user_profiles SET avatar_url = 'https://exemplo.invalid/qualquer.svg'
+      WHERE id = 'aaaa1111-1111-1111-1111-111111111111';
+    passou := true;
+  EXCEPTION WHEN insufficient_privilege THEN passou := false;
+  END;
+  RESET ROLE;
+  INSERT INTO r3 VALUES ('ana consegue escrever o avatar_url', 'false', passou::text);
+END $$;
+
+DO $$
+DECLARE passou boolean := false;
+BEGIN
+  SET LOCAL ROLE authenticated;
+  PERFORM set_config('request.jwt.claims', '{"sub":"aaaa1111-1111-1111-1111-111111111111","role":"authenticated"}', true);
+  BEGIN
+    UPDATE public.user_profiles SET avatar_prefixo = 'prefixoescolhidoporela'
+      WHERE id = 'aaaa1111-1111-1111-1111-111111111111';
+    passou := true;
+  EXCEPTION WHEN insufficient_privilege THEN passou := false;
+  END;
+  RESET ROLE;
+  INSERT INTO r3 VALUES ('ana consegue escolher o avatar_prefixo', 'false', passou::text);
+END $$;
+
+INSERT INTO r3 SELECT 'o avatar_url da ana continua vazio', '(nulo)',
+  coalesce(avatar_url, '(nulo)') FROM public.user_profiles
+  WHERE id = 'aaaa1111-1111-1111-1111-111111111111';
+
 -- E não pode apagar o perfil para fugir a seja o que for.
 DO $$
 DECLARE passou boolean := false;

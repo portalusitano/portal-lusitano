@@ -71,6 +71,51 @@ export const QUALIDADE_AVATAR = 82;
 export const MAX_BYTES_AVATAR = 8 * 1024 * 1024;
 
 /**
+ * A folga que o envelope `multipart/form-data` acrescenta ao ficheiro.
+ *
+ * As fronteiras, os cabeçalhos de cada parte e os campos que o formulário
+ * mande ao lado. 64 KiB é muito mais do que um formulário com um campo gasta, e
+ * serve para a recusa pelo `Content-Length` nunca apanhar um envio legítimo de
+ * oito megabytes por causa do papel de embrulho.
+ */
+export const MARGEM_MULTIPART = 64 * 1024;
+
+/**
+ * Recusar **antes** de ler o corpo, quando o cliente diz quanto ele mede.
+ *
+ * ── Porque é que isto não estava a acontecer ────────────────────────────────
+ *
+ * A rota da fotografia tinha um `ficheiro.size > MAX_BYTES_AVATAR` com um
+ * comentário a dizer que servia «para recusar antes de ler oito megabytes para
+ * memória». Não servia, e a ordem do código mostra-o: o `size` só existe depois
+ * do `await req.formData()`, e esse **lê e decompõe o corpo inteiro** antes de
+ * devolver um único campo. Um corpo de duzentos megabytes era inteiramente
+ * posto em memória e só então recusado — e uma rota do App Router não tem tecto
+ * de corpo por omissão.
+ *
+ * O `Content-Length` é um número que o cliente escreve, e por isso não decide
+ * nada **a favor** de ninguém: as duas verificações que decidem — o `size` da
+ * parte e os bytes que o `prepararFotografia` volta a medir — continuam
+ * exactamente onde estavam. O que um número declarado pode fazer com
+ * honestidade é só isto: quando ele próprio confessa que o corpo é grande
+ * demais, acredita-se nessa confissão e não se lê nada. Quem mentir para baixo,
+ * ou não mandar cabeçalho nenhum (um corpo em `chunked` não o tem), cai nas
+ * verificações de sempre.
+ *
+ * Devolve `false` para tudo o que não seja um número inteiro legível: um
+ * cabeçalho que não se entende não é uma confissão.
+ */
+export function pedidoGrandeDemais(contentLength: string | null | undefined): boolean {
+  if (typeof contentLength !== "string" || contentLength.trim() === "") return false;
+  if (!/^\d+$/.test(contentLength.trim())) return false;
+
+  const bytes = Number(contentLength.trim());
+  if (!Number.isSafeInteger(bytes)) return true; // Tão grande que nem se conta.
+
+  return bytes > MAX_BYTES_AVATAR + MARGEM_MULTIPART;
+}
+
+/**
  * O tecto em pixels do que se descodifica.
  *
  * Um ficheiro pequeno pode declarar uma imagem enorme — é a bomba de
