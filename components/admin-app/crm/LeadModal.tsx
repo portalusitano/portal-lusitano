@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { Lead } from "@/types/lead";
+import Seleccao from "@/components/ui/Seleccao";
 
 interface LeadFormData {
   name: string;
@@ -39,7 +40,7 @@ export default function LeadModal({
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-[#0A0A0A] border border-white/10 rounded-lg max-w-2xl w-full p-6 my-8">
+      <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg max-w-2xl w-full p-6 my-8">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-semibold text-white">
             {editingLead ? "Editar Lead" : "Novo Lead"}
@@ -58,7 +59,7 @@ export default function LeadModal({
                 required
                 value={formData.name}
                 onChange={(e) => onFormChange({ name: e.target.value })}
-                className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
               />
             </div>
 
@@ -69,7 +70,7 @@ export default function LeadModal({
                 required
                 value={formData.email}
                 onChange={(e) => onFormChange({ email: e.target.value })}
-                className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
               />
             </div>
           </div>
@@ -81,7 +82,7 @@ export default function LeadModal({
                 type="text"
                 value={formData.telefone}
                 onChange={(e) => onFormChange({ telefone: e.target.value })}
-                className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
               />
             </div>
 
@@ -91,7 +92,7 @@ export default function LeadModal({
                 type="text"
                 value={formData.company}
                 onChange={(e) => onFormChange({ company: e.target.value })}
-                className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
               />
             </div>
           </div>
@@ -103,7 +104,7 @@ export default function LeadModal({
             <textarea
               value={formData.interests}
               onChange={(e) => onFormChange({ interests: e.target.value })}
-              className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059] resize-none"
+              className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)] resize-none"
               rows={2}
             />
           </div>
@@ -117,7 +118,7 @@ export default function LeadModal({
                 type="number"
                 value={formData.estimated_value}
                 onChange={(e) => onFormChange({ estimated_value: e.target.value })}
-                className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
               />
             </div>
 
@@ -131,23 +132,23 @@ export default function LeadModal({
                 max="100"
                 value={formData.probability}
                 onChange={(e) => onFormChange({ probability: e.target.value })}
-                className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Origem</label>
-              <select
+              <Seleccao
                 value={formData.source_type}
                 onChange={(e) => onFormChange({ source_type: e.target.value })}
-                className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
               >
                 <option value="">Selecione...</option>
                 <option value="vender_cavalo">Vender Cavalo</option>
                 <option value="publicidade">Publicidade</option>
                 <option value="instagram">Instagram</option>
                 <option value="direto">Direto</option>
-              </select>
+              </Seleccao>
             </div>
           </div>
 
@@ -159,7 +160,7 @@ export default function LeadModal({
               type="datetime-local"
               value={formData.next_follow_up}
               onChange={(e) => onFormChange({ next_follow_up: e.target.value })}
-              className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+              className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
             />
           </div>
 
@@ -168,7 +169,7 @@ export default function LeadModal({
             <textarea
               value={formData.notes}
               onChange={(e) => onFormChange({ notes: e.target.value })}
-              className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#C5A059] resize-none"
+              className="w-full px-4 py-2 bg-black/30 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[var(--gold)] resize-none"
               rows={3}
             />
           </div>
@@ -183,7 +184,7 @@ export default function LeadModal({
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-[#C5A059] hover:bg-[#d4b469] text-black font-semibold rounded-lg transition-colors"
+              className="flex-1 px-4 py-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black font-semibold rounded-lg transition-colors"
             >
               {editingLead ? "Guardar" : "Criar Lead"}
             </button>

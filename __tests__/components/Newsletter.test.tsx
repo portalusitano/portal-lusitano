@@ -5,6 +5,11 @@ import Newsletter from "@/components/Newsletter";
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
+// O componente lê o idioma do contexto; sem provider rebenta antes de renderizar.
+vi.mock("@/context/LanguageContext", () => ({
+  useLanguage: () => ({ language: "pt", t: {} }),
+}));
+
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 

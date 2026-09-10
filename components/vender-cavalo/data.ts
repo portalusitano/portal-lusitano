@@ -1,3 +1,5 @@
+import { paisesParaEscolha } from "@/lib/paises";
+
 import type { FormData } from "@/components/vender-cavalo/types";
 
 export const initialFormData: FormData = {
@@ -46,22 +48,22 @@ export const initialFormData: FormData = {
   temperamento: "",
   marcas_distintivas: "",
   cor_casco: "",
-  prova_aptidao_apsl: false,
+  prova_aptidao_apsl: "",
   // Comportamento
-  habituado_transporte: false,
-  habituado_ferrador: false,
-  habituado_veterinario: false,
-  trabalha_em_grupo: false,
-  trabalha_solto: false,
-  trabalha_a_mao: false,
-  habituado_campo: false,
-  apto_criancas: false,
+  habituado_transporte: "",
+  habituado_ferrador: "",
+  habituado_veterinario: "",
+  trabalha_em_grupo: "",
+  trabalha_solto: "",
+  trabalha_a_mao: "",
+  habituado_campo: "",
+  apto_criancas: "",
   // Maneio
   regime_estabulacao: "",
   tipo_alimentacao: "",
   horas_trabalho_semana: "",
-  teste_dna_realizado: false,
-  seguro_equino: false,
+  teste_dna_realizado: "",
+  seguro_equino: "",
   // Treino
   nivel_treino: "",
   anos_treino: "",
@@ -74,13 +76,13 @@ export const initialFormData: FormData = {
   premios: "",
   // Saúde
   estado_saude: "",
-  vacinacao_atualizada: false,
+  vacinacao_atualizada: "",
   data_ultima_vacinacao: "",
-  desparasitacao_atualizada: false,
+  desparasitacao_atualizada: "",
   data_ultima_desparasitacao: "",
-  exame_veterinario: false,
-  radiografias_disponivel: false,
-  piroplasmose_testado: false,
+  exame_veterinario: "",
+  radiografias_disponivel: "",
+  piroplasmose_testado: "",
   data_ultima_ferragem: "",
   tipo_ferragem: "",
   nome_veterinario: "",
@@ -88,28 +90,28 @@ export const initialFormData: FormData = {
   observacoes_saude: "",
   // Venda
   preco: "",
-  negociavel: false,
-  aceita_troca: false,
-  transporte_incluido: false,
-  trial_possivel: false,
+  negociavel: "",
+  aceita_troca: "",
+  transporte_incluido: "",
+  trial_possivel: "",
   duracao_trial: "",
-  financiamento_possivel: false,
-  exportacao_possivel: false,
-  acompanhamento_pos_venda: false,
-  disponivel_cobricao: false,
+  financiamento_possivel: "",
+  exportacao_possivel: "",
+  acompanhamento_pos_venda: "",
+  disponivel_cobricao: "",
   preco_cobricao: "",
   regiao: "",
   localizacao: "",
   disponibilidade_visita: "",
   motivo_venda: "",
-  aceita_visita_veterinario: false,
+  aceita_visita_veterinario: "",
   equipamento_incluido: "",
   // Apresentação
   descricao: "",
   videos_url: "",
   videos_url_2: "",
-  internato_possivel: false,
-  aulas_incluidas: false,
+  internato_possivel: "",
+  aulas_incluidas: "",
 };
 
 export const tiposProprietario = {
@@ -124,19 +126,29 @@ export const tiposProprietario = {
   es: ["Particular", "Criadero", "Club / Escuela de equitación", "Comerciante / Agente"],
 };
 
-export const paisesOpcoes = [
-  "Portugal",
-  "Espanha",
-  "Brasil",
-  "França",
-  "Alemanha",
-  "Reino Unido",
-  "Holanda",
-  "Bélgica",
-  "Itália",
-  "EUA",
-  "Outro",
-];
+/**
+ * Os países, para as duas caixas que os pedem: onde reside o vendedor e onde
+ * nasceu o cavalo.
+ *
+ * Eram onze escritos à mão, e o décimo segundo chamava-se «Outro» — que é o
+ * que uma lista curta produz: uma gaveta onde o dado se perde. Num site que
+ * vende Lusitanos para fora, «Outro» era a resposta certa para meio mundo.
+ *
+ * São 251, e vêm de `lib/paises`: os nomes não estão escritos em lado nenhum,
+ * é o `Intl.DisplayNames` que os traduz a partir do código ISO. Os dez onde o
+ * Lusitano está ficam em cima, pela ordem em que lá estavam; o resto vem por
+ * ordem alfabética das regras do português — que sabe que o Á ordena com o A,
+ * coisa que um `sort()` não sabe.
+ *
+ * Fica em português porque é a forma que estas duas caixas já consomem — uma
+ * lista de nomes. **A versão certa guarda o código e não o nome** («Alemanha»,
+ * «Germany» e «Alemania» são o mesmo país; `DE` é o mesmo em qualquer língua),
+ * e `paisesParaEscolha(lingua)` já a serve. Trocar exige mexer nos dois
+ * `Step*.tsx` que desenham as caixas, e esses estão neste momento com outro
+ * trabalho em cima.
+ */
+const { frequentes, restantes } = paisesParaEscolha("pt-PT");
+export const paisesOpcoes = [...frequentes, ...restantes].map((p) => p.nome);
 
 export const usosAtuais = {
   pt: [
@@ -244,12 +256,7 @@ export const motivosVenda = {
   ],
 };
 
-export const coresCrina = [
-  "Loura",
-  "Escura",
-  "Prateada",
-  "Mista (loura e escura)",
-];
+export const coresCrina = ["Loura", "Escura", "Prateada", "Mista (loura e escura)"];
 
 export const pelagens = {
   pt: ["Ruço", "Castanho", "Preto", "Alazão", "Baio", "Palomino", "Tordilho", "Isabelo", "Malhado"],
@@ -398,12 +405,7 @@ export const niveisCavaleiro = {
   es: ["Principiante", "Intermedio", "Avanzado", "Profesional"],
 };
 
-export const duracoesTrialOpcoes = [
-  "1 semana",
-  "2 semanas",
-  "1 mês",
-  "A combinar",
-];
+export const duracoesTrialOpcoes = ["1 semana", "2 semanas", "1 mês", "A combinar"];
 
 export const regioesPT = [
   "Aveiro",

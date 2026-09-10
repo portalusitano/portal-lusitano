@@ -4,6 +4,13 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Plus, Edit, Trash2, Eye, Star, MapPin, X, Search } from "lucide-react";
 import { CavaloAdmin } from "@/types/cavalo";
+import Seleccao from "@/components/ui/Seleccao";
+import { formatarPrecoCavalo } from "@/lib/format";
+import {
+  LISTING_STATUS,
+  LISTING_STATUS_LABEL,
+  LISTING_STATUS_VALUES,
+} from "@/lib/marketplace-listings";
 
 const sexoOptions = [
   { value: "macho", label: "Garanhão" },
@@ -18,11 +25,20 @@ const nivelOptions = [
   { value: "competicao", label: "Competição" },
 ];
 
+/**
+ * `pending` faltava aqui e no selector de estado. Um anúncio pago entra em
+ * `pending` (`checkout-cavalo.ts`) e o `<Seleccao>` ficava sem opção que
+ * casasse com o valor da linha — o `<select>` mostrava a primeira, «Ativo»,
+ * enquanto o valor a sério era outro. Quem olhasse para a tabela via um
+ * anúncio activo que `/comprar` não mostra.
+ */
 const statusColors: Record<string, string> = {
+  pending: "bg-amber-100 text-amber-900",
   active: "bg-green-100 text-green-800",
   vendido: "bg-gray-100 text-gray-800",
   reservado: "bg-amber-100 text-amber-800",
   inativo: "bg-red-100 text-red-800",
+  removido: "bg-red-100 text-red-900",
 };
 
 export default function CavalosContent() {
@@ -194,12 +210,6 @@ export default function CavalosContent() {
       .replace(/(^-|-$)+/g, "");
   }
 
-  function formatPrice(cavalo: CavaloAdmin) {
-    if (cavalo.preco_sob_consulta) return "Sob consulta";
-    if (!cavalo.preco) return "A definir";
-    return `€${cavalo.preco.toLocaleString("pt-PT")}`;
-  }
-
   const filteredCavalos = cavalos.filter(
     (c) =>
       c.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -207,20 +217,20 @@ export default function CavalosContent() {
   );
 
   return (
-    <div className="min-h-full bg-[#050505]">
+    <div className="min-h-full bg-[var(--background)]">
       {/* Header */}
-      <div className="bg-[#0A0A0A] border-b border-[#1A1A1A]">
+      <div className="bg-[var(--background-secondary)] border-b border-[var(--background-elevated)]">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-[#C5A059]">
+              <h1 className="text-2xl font-bold text-[var(--gold)]">
                 🐴 Marketplace - Cavalos à Venda
               </h1>
               <p className="text-gray-400 text-sm">Gerir anúncios de cavalos no marketplace</p>
             </div>
             <button
               onClick={() => setShowForm(true)}
-              className="bg-[#C5A059] text-black px-4 py-2 rounded-lg hover:bg-[#D4B068] transition flex items-center gap-2 font-medium"
+              className="bg-[var(--gold)] text-black px-4 py-2 rounded-lg hover:bg-[var(--gold-hover)] transition flex items-center gap-2 font-medium"
             >
               <Plus size={20} />
               Novo Anúncio
@@ -231,30 +241,43 @@ export default function CavalosContent() {
 
       <div className="px-6 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-5 gap-4 mb-8">
-          <div className="bg-[#0A0A0A] border border-[#1A1A1A] p-4 rounded-lg">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+          <div className="bg-[var(--background-secondary)] border border-[var(--background-elevated)] p-4 rounded-lg">
             <p className="text-3xl font-bold text-white">{cavalos.length}</p>
             <p className="text-gray-400">Total</p>
           </div>
-          <div className="bg-[#0A0A0A] border border-[#1A1A1A] p-4 rounded-lg">
+          {/*
+            «Em aprovação» é o cartão que faltava. Um anúncio pago entra em
+            `pending` e não aparecia em conta nenhuma: não era «Ativo», não era
+            «Vendido», e o total não distingue. Ficava invisível em `/comprar`
+            e invisível no painel — pago e sem ninguém a saber que estava à
+            espera de alguém.
+          */}
+          <div className="bg-[var(--background-secondary)] border border-[var(--background-elevated)] p-4 rounded-lg">
+            <p className="text-3xl font-bold text-amber-500">
+              {cavalos.filter((c) => c.status === LISTING_STATUS.PENDING).length}
+            </p>
+            <p className="text-gray-400">Em aprovação</p>
+          </div>
+          <div className="bg-[var(--background-secondary)] border border-[var(--background-elevated)] p-4 rounded-lg">
             <p className="text-3xl font-bold text-green-500">
-              {cavalos.filter((c) => c.status === "active").length}
+              {cavalos.filter((c) => c.status === LISTING_STATUS.ACTIVE).length}
             </p>
             <p className="text-gray-400">Ativos</p>
           </div>
-          <div className="bg-[#0A0A0A] border border-[#1A1A1A] p-4 rounded-lg">
-            <p className="text-3xl font-bold text-[#C5A059]">
+          <div className="bg-[var(--background-secondary)] border border-[var(--background-elevated)] p-4 rounded-lg">
+            <p className="text-3xl font-bold text-[var(--gold)]">
               {cavalos.filter((c) => c.destaque).length}
             </p>
             <p className="text-gray-400">Destaque</p>
           </div>
-          <div className="bg-[#0A0A0A] border border-[#1A1A1A] p-4 rounded-lg">
+          <div className="bg-[var(--background-secondary)] border border-[var(--background-elevated)] p-4 rounded-lg">
             <p className="text-3xl font-bold text-gray-400">
-              {cavalos.filter((c) => c.status === "vendido").length}
+              {cavalos.filter((c) => c.status === LISTING_STATUS.VENDIDO).length}
             </p>
             <p className="text-gray-400">Vendidos</p>
           </div>
-          <div className="bg-[#0A0A0A] border border-[#1A1A1A] p-4 rounded-lg">
+          <div className="bg-[var(--background-secondary)] border border-[var(--background-elevated)] p-4 rounded-lg">
             <p className="text-3xl font-bold text-blue-500">
               {cavalos.reduce((acc, c) => acc + (c.views_count || 0), 0)}
             </p>
@@ -263,7 +286,7 @@ export default function CavalosContent() {
         </div>
 
         {/* Search */}
-        <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-4 mb-6">
+        <div className="bg-[var(--background-secondary)] border border-[var(--background-elevated)] rounded-lg p-4 mb-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
             <input
@@ -271,7 +294,7 @@ export default function CavalosContent() {
               placeholder="Pesquisar por nome ou linhagem..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-[#050505] border border-[#1A1A1A] text-white rounded-lg focus:ring-[#C5A059] focus:border-[#C5A059]"
+              className="w-full pl-10 pr-4 py-2 bg-[var(--background)] border border-[var(--background-elevated)] text-white rounded-lg focus:ring-[var(--gold)] focus:border-[var(--gold)]"
             />
           </div>
         </div>
@@ -279,12 +302,12 @@ export default function CavalosContent() {
         {/* Cavalos List */}
         {loading ? (
           <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C5A059] mx-auto" />
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--gold)] mx-auto" />
           </div>
         ) : (
-          <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg overflow-hidden">
+          <div className="bg-[var(--background-secondary)] border border-[var(--background-elevated)] rounded-lg overflow-hidden">
             <table className="w-full">
-              <thead className="bg-[#0F0F0F]">
+              <thead className="bg-[var(--background-elevated)]">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                     Cavalo
@@ -306,18 +329,18 @@ export default function CavalosContent() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1A1A1A]">
+              <tbody className="divide-y divide-[var(--background-elevated)]">
                 {filteredCavalos.map((cavalo) => (
-                  <tr key={cavalo.id} className="hover:bg-[#0F0F0F]">
+                  <tr key={cavalo.id} className="hover:bg-[var(--background-elevated)]">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         {cavalo.destaque && (
-                          <Star size={16} className="text-[#C5A059] fill-[#C5A059]" />
+                          <Star size={16} className="text-[var(--gold)] fill-[var(--gold)]" />
                         )}
                         <div>
                           <p className="font-medium text-white">{cavalo.nome}</p>
                           {cavalo.linhagem && (
-                            <p className="text-sm text-[#C5A059]">Linhagem {cavalo.linhagem}</p>
+                            <p className="text-sm text-[var(--gold)]">Linhagem {cavalo.linhagem}</p>
                           )}
                         </div>
                       </div>
@@ -334,27 +357,28 @@ export default function CavalosContent() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="font-semibold text-white flex items-center gap-1">
-                        {formatPrice(cavalo)}
+                        {formatarPrecoCavalo(cavalo)}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <select
+                      <Seleccao
                         value={cavalo.status}
                         onChange={(e) => updateStatus(cavalo.id, e.target.value)}
                         className={`px-2 py-1 rounded text-xs font-medium ${statusColors[cavalo.status] || "bg-gray-100"}`}
                       >
-                        <option value="active">Ativo</option>
-                        <option value="reservado">Reservado</option>
-                        <option value="vendido">Vendido</option>
-                        <option value="inativo">Inativo</option>
-                      </select>
+                        {LISTING_STATUS_VALUES.map((s) => (
+                          <option key={s} value={s}>
+                            {LISTING_STATUS_LABEL[s]}
+                          </option>
+                        ))}
+                      </Seleccao>
                     </td>
                     <td className="px-6 py-4 text-gray-400">{cavalo.views_count || 0}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
                         <Link
-                          href={`/marketplace/${cavalo.slug}`}
-                          className="p-2 text-gray-400 hover:text-white hover:bg-[#1A1A1A] rounded"
+                          href={`/comprar/${cavalo.id}`}
+                          className="p-2 text-gray-400 hover:text-white hover:bg-[var(--background-elevated)] rounded"
                           target="_blank"
                         >
                           <Eye size={18} />
@@ -388,7 +412,7 @@ export default function CavalosContent() {
           onClick={resetForm}
         >
           <div
-            className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg max-w-3xl w-full p-8 my-8 max-h-[90vh] overflow-y-auto"
+            className="bg-[var(--background-secondary)] border border-[var(--background-elevated)] rounded-lg max-w-3xl w-full p-8 my-8 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
@@ -417,23 +441,23 @@ export default function CavalosContent() {
                       });
                     }}
                     required
-                    className="w-full bg-[#050505] border border-[#1A1A1A] text-white rounded-lg px-4 py-2 focus:ring-[#C5A059] focus:border-[#C5A059]"
+                    className="w-full bg-[var(--background)] border border-[var(--background-elevated)] text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">Sexo *</label>
-                  <select
+                  <Seleccao
                     value={formData.sexo}
                     onChange={(e) => setFormData({ ...formData, sexo: e.target.value })}
-                    className="w-full bg-[#050505] border border-[#1A1A1A] text-white rounded-lg px-4 py-2 focus:ring-[#C5A059] focus:border-[#C5A059]"
+                    className="w-full bg-[var(--background)] border border-[var(--background-elevated)] text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                   >
                     {sexoOptions.map((opt) => (
                       <option key={opt.value} value={opt.value}>
                         {opt.label}
                       </option>
                     ))}
-                  </select>
+                  </Seleccao>
                 </div>
 
                 <div>
@@ -444,7 +468,7 @@ export default function CavalosContent() {
                     type="number"
                     value={formData.idade}
                     onChange={(e) => setFormData({ ...formData, idade: e.target.value })}
-                    className="w-full bg-[#050505] border border-[#1A1A1A] text-white rounded-lg px-4 py-2 focus:ring-[#C5A059] focus:border-[#C5A059]"
+                    className="w-full bg-[var(--background)] border border-[var(--background-elevated)] text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                   />
                 </div>
 
@@ -455,7 +479,7 @@ export default function CavalosContent() {
                     value={formData.cor}
                     onChange={(e) => setFormData({ ...formData, cor: e.target.value })}
                     placeholder="Ex: Ruço, Castanho, Preto"
-                    className="w-full bg-[#050505] border border-[#1A1A1A] text-white rounded-lg px-4 py-2 focus:ring-[#C5A059] focus:border-[#C5A059]"
+                    className="w-full bg-[var(--background)] border border-[var(--background-elevated)] text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                   />
                 </div>
 
@@ -469,7 +493,7 @@ export default function CavalosContent() {
                     value={formData.altura}
                     onChange={(e) => setFormData({ ...formData, altura: e.target.value })}
                     placeholder="Ex: 1.65"
-                    className="w-full bg-[#050505] border border-[#1A1A1A] text-white rounded-lg px-4 py-2 focus:ring-[#C5A059] focus:border-[#C5A059]"
+                    className="w-full bg-[var(--background)] border border-[var(--background-elevated)] text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                   />
                 </div>
 
@@ -480,7 +504,7 @@ export default function CavalosContent() {
                     value={formData.linhagem}
                     onChange={(e) => setFormData({ ...formData, linhagem: e.target.value })}
                     placeholder="Ex: Veiga, Andrade, Alter Real"
-                    className="w-full bg-[#050505] border border-[#1A1A1A] text-white rounded-lg px-4 py-2 focus:ring-[#C5A059] focus:border-[#C5A059]"
+                    className="w-full bg-[var(--background)] border border-[var(--background-elevated)] text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                   />
                 </div>
 
@@ -488,17 +512,17 @@ export default function CavalosContent() {
                   <label className="block text-sm font-medium text-gray-300 mb-1">
                     Nível de Treino
                   </label>
-                  <select
+                  <Seleccao
                     value={formData.nivel_treino}
                     onChange={(e) => setFormData({ ...formData, nivel_treino: e.target.value })}
-                    className="w-full bg-[#050505] border border-[#1A1A1A] text-white rounded-lg px-4 py-2 focus:ring-[#C5A059] focus:border-[#C5A059]"
+                    className="w-full bg-[var(--background)] border border-[var(--background-elevated)] text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                   >
                     {nivelOptions.map((opt) => (
                       <option key={opt.value} value={opt.value}>
                         {opt.label}
                       </option>
                     ))}
-                  </select>
+                  </Seleccao>
                 </div>
 
                 <div>
@@ -508,7 +532,7 @@ export default function CavalosContent() {
                     value={formData.preco}
                     onChange={(e) => setFormData({ ...formData, preco: e.target.value })}
                     disabled={formData.preco_sob_consulta}
-                    className="w-full bg-[#050505] border border-[#1A1A1A] text-white rounded-lg px-4 py-2 focus:ring-[#C5A059] focus:border-[#C5A059] disabled:bg-[#1A1A1A] disabled:text-gray-500"
+                    className="w-full bg-[var(--background)] border border-[var(--background-elevated)] text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)] disabled:bg-[var(--background-elevated)] disabled:text-gray-500"
                   />
                 </div>
 
@@ -520,7 +544,7 @@ export default function CavalosContent() {
                       onChange={(e) =>
                         setFormData({ ...formData, preco_sob_consulta: e.target.checked })
                       }
-                      className="w-4 h-4 text-[#C5A059] focus:ring-[#C5A059]"
+                      className="w-4 h-4 text-[var(--gold)] focus:ring-[var(--gold)]"
                     />
                     <span className="text-gray-300">Preço sob consulta</span>
                   </label>
@@ -534,7 +558,7 @@ export default function CavalosContent() {
                     type="text"
                     value={formData.localizacao}
                     onChange={(e) => setFormData({ ...formData, localizacao: e.target.value })}
-                    className="w-full bg-[#050505] border border-[#1A1A1A] text-white rounded-lg px-4 py-2 focus:ring-[#C5A059] focus:border-[#C5A059]"
+                    className="w-full bg-[var(--background)] border border-[var(--background-elevated)] text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                   />
                 </div>
 
@@ -545,7 +569,7 @@ export default function CavalosContent() {
                     value={formData.regiao}
                     onChange={(e) => setFormData({ ...formData, regiao: e.target.value })}
                     placeholder="Ex: Ribatejo, Alentejo"
-                    className="w-full bg-[#050505] border border-[#1A1A1A] text-white rounded-lg px-4 py-2 focus:ring-[#C5A059] focus:border-[#C5A059]"
+                    className="w-full bg-[var(--background)] border border-[var(--background-elevated)] text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                   />
                 </div>
 
@@ -558,7 +582,7 @@ export default function CavalosContent() {
                     onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
                     required
                     rows={4}
-                    className="w-full bg-[#050505] border border-[#1A1A1A] text-white rounded-lg px-4 py-2 focus:ring-[#C5A059] focus:border-[#C5A059]"
+                    className="w-full bg-[var(--background)] border border-[var(--background-elevated)] text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                   />
                 </div>
 
@@ -568,7 +592,7 @@ export default function CavalosContent() {
                       type="checkbox"
                       checked={formData.destaque}
                       onChange={(e) => setFormData({ ...formData, destaque: e.target.checked })}
-                      className="w-4 h-4 text-[#C5A059] focus:ring-[#C5A059]"
+                      className="w-4 h-4 text-[var(--gold)] focus:ring-[var(--gold)]"
                     />
                     <span className="text-gray-300">Anúncio em destaque</span>
                   </label>
@@ -579,24 +603,24 @@ export default function CavalosContent() {
                       onChange={(e) =>
                         setFormData({ ...formData, preco_negociavel: e.target.checked })
                       }
-                      className="w-4 h-4 text-[#C5A059] focus:ring-[#C5A059]"
+                      className="w-4 h-4 text-[var(--gold)] focus:ring-[var(--gold)]"
                     />
                     <span className="text-gray-300">Preço negociável</span>
                   </label>
                 </div>
               </div>
 
-              <div className="flex gap-4 pt-4 border-t border-[#1A1A1A]">
+              <div className="flex gap-4 pt-4 border-t border-[var(--background-elevated)]">
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="flex-1 border border-[#1A1A1A] text-gray-300 py-3 rounded-lg hover:bg-[#1A1A1A] transition"
+                  className="flex-1 border border-[var(--background-elevated)] text-gray-300 py-3 rounded-lg hover:bg-[var(--background-elevated)] transition"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-[#C5A059] text-black py-3 rounded-lg hover:bg-[#D4B068] transition font-medium"
+                  className="flex-1 bg-[var(--gold)] text-black py-3 rounded-lg hover:bg-[var(--gold-hover)] transition font-medium"
                 >
                   {editingCavalo ? "Guardar Alterações" : "Criar Anúncio"}
                 </button>

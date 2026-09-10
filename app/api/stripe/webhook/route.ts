@@ -7,16 +7,6 @@ import { logger } from "@/lib/logger";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { queueWebhookRetry } from "@/lib/webhook-retry";
 import { handleCavaloAnuncio } from "./handlers/checkout-cavalo";
-import { handleInstagramAd } from "./handlers/checkout-instagram";
-import { handlePublicidade } from "./handlers/checkout-publicidade";
-import { handleProfissional } from "./handlers/checkout-profissional";
-import { handleToolsSubscription } from "./handlers/checkout-tools";
-import {
-  handlePaymentSucceeded,
-  handleSubscriptionCancelled,
-  handlePaymentFailed,
-  handleSubscriptionUpdated,
-} from "./handlers/subscription";
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -78,38 +68,6 @@ export async function POST(req: Request) {
         await handleCheckoutCompleted(session);
         break;
       }
-      case "invoice.payment_succeeded": {
-        const invoice = event.data.object as Stripe.Invoice;
-        const piRaw = (invoice as unknown as Record<string, unknown>).payment_intent;
-        if (piRaw) {
-          const paymentIntentId = typeof piRaw === "string" ? piRaw : (piRaw as { id: string }).id;
-
-          const { data: existingPayment } = await supabaseAdmin
-            .from("payments")
-            .select("id")
-            .eq("stripe_payment_intent_id", paymentIntentId)
-            .maybeSingle();
-
-          if (existingPayment) {
-            logger.warn(
-              `Duplicate webhook received for payment intent ${paymentIntentId}, skipping`
-            );
-            return Response.json({ received: true, duplicate: true });
-          }
-        }
-
-        await handlePaymentSucceeded(invoice);
-        break;
-      }
-      case "customer.subscription.deleted":
-        await handleSubscriptionCancelled(event.data.object as Stripe.Subscription);
-        break;
-      case "invoice.payment_failed":
-        await handlePaymentFailed(event.data.object as Stripe.Invoice);
-        break;
-      case "customer.subscription.updated":
-        await handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
-        break;
       default:
         break;
     }
@@ -130,7 +88,10 @@ export async function POST(req: Request) {
     }
 
     // Still return 500 so Stripe knows to retry, but we've also queued it locally
-    return Response.json({ error: "Webhook handler failed, event queued for retry" }, { status: 500 });
+    return Response.json(
+      { error: "Webhook handler failed, event queued for retry" },
+      { status: 500 }
+    );
   }
 }
 
@@ -144,18 +105,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   switch (metadata.type) {
     case "cavalo_anuncio":
       await handleCavaloAnuncio(session, metadata);
-      break;
-    case "instagram_ad":
-      await handleInstagramAd(session, metadata);
-      break;
-    case "publicidade":
-      await handlePublicidade(session, metadata);
-      break;
-    case "profissional":
-      await handleProfissional(session, metadata);
-      break;
-    case "tools_subscription":
-      await handleToolsSubscription(session, metadata);
       break;
     default:
       break;

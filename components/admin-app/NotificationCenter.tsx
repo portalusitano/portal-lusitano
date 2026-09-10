@@ -107,7 +107,7 @@ export default function NotificationCenter() {
       {/* Bell Button */}
       <button
         onClick={() => setShowDropdown(!showDropdown)}
-        className="relative p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10 hover:border-[#C5A059]/30 group"
+        className="relative p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10 hover:border-[var(--gold)]/30 group"
         title="Notificações"
       >
         <Bell className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
@@ -124,12 +124,12 @@ export default function NotificationCenter() {
 
       {/* Dropdown */}
       {showDropdown && (
-        <div className="absolute right-0 top-full mt-2 w-96 bg-[#0A0A0A] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
+        <div className="absolute right-0 top-full mt-2 w-96 bg-[var(--background-secondary)] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
           {/* Header */}
-          <div className="px-4 py-3 border-b border-white/5 bg-gradient-to-r from-[#C5A059]/10 to-transparent">
+          <div className="px-4 py-3 border-b border-white/5 bg-gradient-to-r from-[var(--gold)]/10 to-transparent">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-white flex items-center gap-2">
-                <Bell className="w-5 h-5 text-[#C5A059]" />
+                <Bell className="w-5 h-5 text-[var(--gold)]" />
                 Notificações
                 {unreadCount > 0 && (
                   <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">

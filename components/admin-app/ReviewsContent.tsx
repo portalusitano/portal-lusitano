@@ -55,7 +55,7 @@ export default function ReviewsContent() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <MessageSquare className="text-[#C5A059]" />
+            <MessageSquare className="text-[var(--gold)]" />
             Gestão de Reviews
           </h1>
           <p className="text-gray-400 text-sm mt-1">
@@ -70,11 +70,11 @@ export default function ReviewsContent() {
           onClick={() => setStatusFilter("pending")}
           className={`p-4 rounded-lg border-2 transition ${
             statusFilter === "pending"
-              ? "bg-[#C5A059]/20 border-[#C5A059]"
-              : "bg-[#0A0A0A] border-white/10 hover:border-[#C5A059]/50"
+              ? "bg-[var(--gold)]/20 border-[var(--gold)]"
+              : "bg-[var(--background-secondary)] border-white/10 hover:border-[var(--gold)]/50"
           }`}
         >
-          <p className="text-3xl font-bold text-[#C5A059]">{pendingCount}</p>
+          <p className="text-3xl font-bold text-[var(--gold)]">{pendingCount}</p>
           <p className="text-gray-400">Pendentes</p>
         </button>
         <button
@@ -82,7 +82,7 @@ export default function ReviewsContent() {
           className={`p-4 rounded-lg border-2 transition ${
             statusFilter === "approved"
               ? "bg-green-500/20 border-green-500"
-              : "bg-[#0A0A0A] border-white/10 hover:border-green-500/50"
+              : "bg-[var(--background-secondary)] border-white/10 hover:border-green-500/50"
           }`}
         >
           <p className="text-3xl font-bold text-green-500">{approvedCount}</p>
@@ -93,7 +93,7 @@ export default function ReviewsContent() {
           className={`p-4 rounded-lg border-2 transition ${
             statusFilter === "rejected"
               ? "bg-red-500/20 border-red-500"
-              : "bg-[#0A0A0A] border-white/10 hover:border-red-500/50"
+              : "bg-[var(--background-secondary)] border-white/10 hover:border-red-500/50"
           }`}
         >
           <p className="text-3xl font-bold text-red-500">{rejectedCount}</p>
@@ -104,10 +104,10 @@ export default function ReviewsContent() {
       {/* Reviews List */}
       {loading ? (
         <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C5A059] mx-auto" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--gold)] mx-auto" />
         </div>
       ) : reviews.length === 0 ? (
-        <div className="text-center py-12 bg-[#0A0A0A] border border-white/10 rounded-lg">
+        <div className="text-center py-12 bg-[var(--background-secondary)] border border-white/10 rounded-lg">
           <MessageSquare className="mx-auto text-gray-500 mb-4" size={48} />
           <p className="text-gray-400">Nenhuma review {statusFilter}</p>
         </div>
@@ -118,7 +118,7 @@ export default function ReviewsContent() {
             .map((review) => (
               <div
                 key={review.id}
-                className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6 hover:border-white/20 transition"
+                className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6 hover:border-white/20 transition"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -134,7 +134,7 @@ export default function ReviewsContent() {
                             size={16}
                             className={
                               star <= review.avaliacao
-                                ? "text-[#C5A059] fill-[#C5A059]"
+                                ? "text-[var(--gold)] fill-[var(--gold)]"
                                 : "text-gray-600"
                             }
                           />
@@ -204,7 +204,7 @@ export default function ReviewsContent() {
           onClick={() => setSelectedReview(null)}
         >
           <div
-            className="bg-[#0A0A0A] border border-white/10 rounded-lg max-w-2xl w-full p-8"
+            className="bg-[var(--background-secondary)] border border-white/10 rounded-lg max-w-2xl w-full p-8"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-start mb-6">
@@ -248,7 +248,7 @@ export default function ReviewsContent() {
                         size={20}
                         className={
                           star <= selectedReview.avaliacao
-                            ? "text-[#C5A059] fill-[#C5A059]"
+                            ? "text-[var(--gold)] fill-[var(--gold)]"
                             : "text-gray-600"
                         }
                       />
@@ -259,7 +259,7 @@ export default function ReviewsContent() {
 
               <div>
                 <label className="text-sm text-gray-500">Comentário</label>
-                <p className="bg-[#050505] border border-white/10 p-4 rounded-lg mt-1 text-gray-300">
+                <p className="bg-[var(--background)] border border-white/10 p-4 rounded-lg mt-1 text-gray-300">
                   {selectedReview.comentario}
                 </p>
               </div>

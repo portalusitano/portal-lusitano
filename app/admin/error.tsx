@@ -14,7 +14,7 @@ export default function AdminError({
   }, [error]);
 
   return (
-    <main className="min-h-screen bg-zinc-950 flex items-center justify-center px-6">
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-6">
       <div className="max-w-md w-full bg-zinc-900/50 border border-zinc-800 p-8 text-center rounded-lg">
         <div className="text-red-500 text-5xl mb-4">!</div>
 
@@ -27,7 +27,7 @@ export default function AdminError({
         <div className="flex gap-3 justify-center">
           <button
             onClick={reset}
-            className="bg-[#C5A059] text-black font-medium text-sm py-2 px-6 hover:bg-[#D4B068] transition-all rounded"
+            className="bg-[var(--foreground-strong)] text-black font-medium text-sm py-2 px-6 hover:bg-[var(--foreground)] transition-all rounded"
           >
             Tentar novamente
           </button>
@@ -40,6 +40,6 @@ export default function AdminError({
           </a>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

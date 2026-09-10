@@ -50,6 +50,10 @@ export const metadata: Metadata = {
   },
 };
 
+/* O anúncio das texturas do globo **não** vive aqui, e a razão está escrita na
+   `page.tsx`: o que está no layout entra na carga de pré-busca de quem tem um
+   link para o `/mapa`, e o `/directorio` descarregava 569,3 KiB de texturas de
+   um globo que não tem. Se voltar para aqui, volta a fuga. */
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>

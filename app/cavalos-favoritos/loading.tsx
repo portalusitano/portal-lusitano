@@ -1,6 +1,9 @@
 export default function Loading() {
   return (
-    <main className="min-h-screen bg-[var(--background)] pt-24 sm:pt-32 pb-24 sm:pb-20 px-4 sm:px-6">
+    <div
+      data-carregando
+      className="min-h-screen bg-[var(--background)] pt-24 sm:pt-32 pb-24 sm:pb-20 px-4 sm:px-6"
+    >
       <div className="max-w-6xl mx-auto animate-pulse">
         {/* Header */}
         <div className="text-center mb-8 sm:mb-16">
@@ -56,6 +59,6 @@ export default function Loading() {
           ))}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

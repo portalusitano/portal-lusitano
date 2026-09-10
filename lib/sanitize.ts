@@ -4,7 +4,21 @@
  * Strips all special characters that could be used in injection attacks.
  */
 export function sanitizeSearchInput(input: string): string {
-  return input.replace(/[^a-zA-ZÀ-ÿ0-9\s\-]/g, "").trim().substring(0, 100);
+  return input
+    .replace(/[^a-zA-ZÀ-ÿ0-9\s\-]/g, "")
+    .trim()
+    .substring(0, 100);
+}
+
+/**
+ * Escape the LIKE wildcards `%` and `_` so a value is matched literally by
+ * PostgREST's `like`/`ilike` filters.
+ *
+ * Without this, a value such as `a_b@example.com` would also match
+ * `axb@example.com`, letting one user's identifier select another user's rows.
+ */
+export function escapeLikePattern(value: string): string {
+  return value.replace(/[\\%_]/g, (char) => `\\${char}`);
 }
 
 /**

@@ -1,6 +1,6 @@
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-[var(--background)] pt-24 pb-16 px-4">
+    <div data-carregando className="min-h-screen bg-[var(--background)] pt-24 pb-16 px-4">
       <div className="max-w-6xl mx-auto animate-pulse">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar */}

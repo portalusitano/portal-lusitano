@@ -46,13 +46,15 @@ function UnsubscribeContent() {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--background)] flex items-center justify-center px-6">
-      <div className="max-w-md w-full bg-[var(--background-secondary)]/40 backdrop-blur-md border border-[var(--border)] p-10 text-center">
-        <h1 className="text-2xl font-serif text-[var(--foreground)] mb-4">
-          {t.unsubscribe_page.title}
-        </h1>
+    <div className="min-h-screen bg-[var(--background)] flex items-center justify-center px-6">
+      <div
+        data-revelar=""
+        suppressHydrationWarning
+        className="cartao max-w-md w-full p-10 text-center"
+      >
+        <h1 className="text-2xl text-[var(--foreground)] mb-4">{t.unsubscribe_page.title}</h1>
 
-        <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-[#C5A059] to-transparent mx-auto mb-8"></div>
+        <div className="w-12 h-[1px] bg-gradient-to-r from-transparent via-[var(--border)] to-transparent mx-auto mb-8"></div>
 
         {status === "idle" && (
           <>
@@ -67,13 +69,13 @@ function UnsubscribeContent() {
             )}
             <button
               onClick={handleUnsubscribe}
-              className="w-full bg-red-600 text-[var(--foreground)] font-bold uppercase text-xs tracking-[0.2em] py-4 hover:bg-red-700 transition-all"
+              className="w-full bg-red-600 text-[var(--foreground)] font-bold uppercase text-xs tracking-wide py-4 hover:bg-red-700 transition-all"
             >
               {t.unsubscribe_page.yes_cancel}
             </button>
             <LocalizedLink
               href="/"
-              className="block mt-4 text-[var(--foreground-muted)] text-sm hover:text-[var(--gold)] transition-colors"
+              className="block mt-4 text-[var(--foreground-muted)] text-sm hover:text-[var(--foreground-strong)] transition-colors"
             >
               {t.unsubscribe_page.no_continue}
             </LocalizedLink>
@@ -82,7 +84,7 @@ function UnsubscribeContent() {
 
         {status === "loading" && (
           <div className="py-8">
-            <div className="w-8 h-8 border-2 border-[var(--gold)] border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <div className="w-8 h-8 border-2 border-[var(--foreground-strong)] border-t-transparent rounded-full animate-spin mx-auto"></div>
             <p className="text-[var(--foreground-secondary)] mt-4">
               {t.unsubscribe_page.processing}
             </p>
@@ -96,10 +98,7 @@ function UnsubscribeContent() {
             <p className="text-[var(--foreground-muted)] text-sm mb-6">
               {t.unsubscribe_page.goodbye}
             </p>
-            <LocalizedLink
-              href="/"
-              className="inline-block bg-[var(--gold)] text-black font-bold uppercase text-xs tracking-[0.2em] py-4 px-8 hover:bg-white transition-all"
-            >
+            <LocalizedLink href="/" className="btn btn-primario gap-2 rounded-full">
               {t.unsubscribe_page.back_to_portal}
             </LocalizedLink>
           </>
@@ -111,7 +110,7 @@ function UnsubscribeContent() {
             <p className="text-red-400 mb-6">{message}</p>
             <button
               onClick={() => setStatus("idle")}
-              className="inline-block bg-[var(--background-card)] text-[var(--foreground)] font-bold uppercase text-xs tracking-[0.2em] py-4 px-8 hover:bg-[var(--surface-hover)] transition-all"
+              className="inline-block bg-[var(--background-card)] text-[var(--foreground)] font-bold uppercase text-xs tracking-wide py-4 px-8 hover:bg-[var(--surface-hover)] transition-all"
             >
               {t.unsubscribe_page.try_again}
             </button>
@@ -122,7 +121,7 @@ function UnsubscribeContent() {
           Portal Lusitano &copy; {new Date().getFullYear()}
         </p>
       </div>
-    </main>
+    </div>
   );
 }
 

@@ -6,7 +6,7 @@ import { sanitizeSearchInput } from "@/lib/sanitize";
 
 interface SearchResult {
   id: string;
-  type: "horse" | "product" | "article" | "event" | "stud" | "page";
+  type: "horse" | "product" | "article" | "stud" | "page";
   title: string;
   description?: string;
   url: string;
@@ -17,62 +17,49 @@ interface SearchResult {
 const STATIC_PAGES: Array<{ title_pt: string; title_en: string; url: string; keywords: string[] }> =
   [
     {
-      title_pt: "Loja",
-      title_en: "Shop",
-      url: "/loja",
-      keywords: ["loja", "shop", "produtos", "products", "equipamento"],
+      title_pt: "Comprar cavalo",
+      title_en: "Buy a horse",
+      url: "/comprar",
+      keywords: ["comprar", "buy", "cavalo", "horse", "marketplace", "venda", "anuncios"],
     },
     {
-      title_pt: "Marketplace",
-      title_en: "Marketplace",
-      url: "/marketplace",
-      keywords: ["marketplace", "comprar", "buy", "cavalo"],
+      title_pt: "Vender cavalo",
+      title_en: "Sell a horse",
+      url: "/vender-cavalo",
+      keywords: ["vender", "sell", "anunciar", "anuncio", "publicar"],
     },
     {
       title_pt: "Coudelarias",
       title_en: "Stud Farms",
       url: "/directorio",
-      keywords: ["coudelarias", "studs", "criadores"],
+      keywords: ["coudelarias", "studs", "criadores", "directorio", "directory"],
     },
     {
-      title_pt: "Eventos",
-      title_en: "Events",
-      url: "/eventos",
-      keywords: ["eventos", "events", "concursos", "feiras"],
+      title_pt: "Mapa",
+      title_en: "Map",
+      url: "/mapa",
+      keywords: ["mapa", "map", "localização"],
     },
-    {
-      title_pt: "Jornal",
-      title_en: "Journal",
-      url: "/jornal",
-      keywords: ["jornal", "journal", "artigos", "articles"],
-    },
-    {
-      title_pt: "Cavalos Famosos",
-      title_en: "Famous Horses",
-      url: "/cavalos-famosos",
-      keywords: ["cavalos", "famosos", "famous", "horses"],
-    },
-    {
-      title_pt: "Ferramentas",
-      title_en: "Tools",
-      url: "/ferramentas",
-      keywords: ["ferramentas", "tools", "calculadora", "comparador"],
-    },
-    {
-      title_pt: "Directorio",
-      title_en: "Directory",
-      url: "/directorio",
-      keywords: ["directorio", "directory", "profissionais"],
-    },
-    {
-      title_pt: "Linhagens",
-      title_en: "Lineages",
-      url: "/linhagens",
-      keywords: ["linhagens", "lineages", "genealogia", "bloodlines"],
-    },
-    { title_pt: "Mapa", title_en: "Map", url: "/mapa", keywords: ["mapa", "map", "localização"] },
-    { title_pt: "Sobre", title_en: "About", url: "/sobre", keywords: ["sobre", "about"] },
   ];
+
+/**
+ * Escreve no log a razão por que uma das consultas não trouxe nada.
+ * O `Promise.allSettled` cumpre-se mesmo quando o PostgREST devolve erro — nesse
+ * caso `data` vem a `null` e a categoria inteira sai dos resultados sem deixar
+ * rasto. Um ecrã de pesquisa vazio que devia ser um erro é uma mentira.
+ */
+function registarFalha(
+  tabela: string,
+  resultado: PromiseSettledResult<{ data?: unknown; error?: unknown }>
+) {
+  if (resultado.status === "rejected") {
+    logger.error(`[search] consulta a ${tabela} rejeitada:`, resultado.reason);
+    return;
+  }
+  if (resultado.value?.error) {
+    logger.error(`[search] consulta a ${tabela} falhou:`, resultado.value.error);
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -98,25 +85,16 @@ export async function GET(request: NextRequest) {
     // Pesquisar em paralelo: Supabase tables + páginas estáticas
     // Só pesquisa nas tabelas relevantes se não houver filtro de tipo, ou se o filtro corresponder
     const searchHorses = !typeFilter || typeFilter === "horse";
-    const searchEvents = !typeFilter || typeFilter === "event";
     const searchStuds = !typeFilter || typeFilter === "stud";
     const perTypeLimit = typeFilter ? limit : 5;
 
-    const [cavalosRes, eventosRes, coudelariasRes] = await Promise.allSettled([
+    const [cavalosRes, coudelariasRes] = await Promise.allSettled([
       searchHorses
         ? supabase
             .from("cavalos_venda")
-            .select("id, nome, descricao, imagens, slug")
+            .select("id, nome, descricao, foto_principal, fotos, slug")
             .eq("status", "active")
             .or(`nome.ilike.%${safeQ}%,descricao.ilike.%${safeQ}%`)
-            .limit(perTypeLimit)
-        : Promise.resolve({ data: null }),
-      searchEvents
-        ? supabase
-            .from("eventos")
-            .select("id, titulo, descricao, slug, imagem")
-            .eq("status", "active")
-            .or(`titulo.ilike.%${safeQ}%,descricao.ilike.%${safeQ}%`)
             .limit(perTypeLimit)
         : Promise.resolve({ data: null }),
       searchStuds
@@ -129,6 +107,12 @@ export async function GET(request: NextRequest) {
         : Promise.resolve({ data: null }),
     ]);
 
+    // Uma consulta falhada não é uma consulta sem resultados. Sem isto, um erro
+    // de coluna ou de rede lê-se como «não há nada» — e foi assim que os
+    // cavalos desapareceram da pesquisa em silêncio.
+    registarFalha("cavalos_venda", cavalosRes);
+    registarFalha("coudelarias", coudelariasRes);
+
     // Cavalos
     if (cavalosRes.status === "fulfilled" && cavalosRes.value.data) {
       for (const c of cavalosRes.value.data) {
@@ -137,25 +121,18 @@ export async function GET(request: NextRequest) {
           type: "horse",
           title: c.nome,
           description: c.descricao?.substring(0, 100),
-          url: `/comprar/${c.slug || c.id}`,
-          image: Array.isArray(c.imagens) ? c.imagens[0] : undefined,
+          // `/comprar/[id]` procura mesmo por `id` (`.eq("id", …)` numa coluna
+          // uuid). Passar-lhe o slug dava 404 em todos os cavalos da pesquisa —
+          // e o slug existe sempre, porque o webhook do Stripe gera um. Todos
+          // os outros sítios do site (grelha, favoritos, sitemap, alertas,
+          // `generateStaticParams`) ligam por `id`.
+          url: `/comprar/${c.id}`,
+          image: c.foto_principal || (Array.isArray(c.fotos) ? c.fotos[0] : undefined),
         });
       }
     }
 
     // Eventos
-    if (eventosRes.status === "fulfilled" && eventosRes.value.data) {
-      for (const e of eventosRes.value.data) {
-        results.push({
-          id: `event-${e.id}`,
-          type: "event",
-          title: e.titulo,
-          description: e.descricao?.substring(0, 100),
-          url: `/eventos/${e.slug || e.id}`,
-          image: e.imagem,
-        });
-      }
-    }
 
     // Coudelarias
     if (coudelariasRes.status === "fulfilled" && coudelariasRes.value.data) {

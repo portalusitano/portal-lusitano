@@ -134,7 +134,7 @@ export default function WhatsAppButton({
       {/* Modal de prévia da mensagem */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-lg max-w-lg w-full p-6">
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg max-w-lg w-full p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-500/20 rounded-lg">

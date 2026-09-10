@@ -1,0 +1,108 @@
+══════════════════════════════════════════════════════════════════════════════
+  PROVA DO GLOBO — Portal Lusitano
+══════════════════════════════════════════════════════════════════════════════
+  corrida ....... depois-percursos
+  url ........... http://127.0.0.1:3294/mapa
+  quando ........ 2026-09-02T01:02:38.503Z
+  navegador ..... /opt/pw-browsers/chromium (WebGL por software)
+  passo de varrimento ... 3px
+  duração ....... 70s
+
+  Os milissegundos por quadro só se comparam entre corridas na mesma
+  máquina: o WebGL aqui é swiftshader. As contagens — pares de alfinetes
+  demasiado juntos, pixéis que abrem a coudelaria errada, desenhos em
+  repouso — valem por si.
+
+──────────────────────────────────────────────────────────────────────────────
+  DESKTOP — 1400×950
+──────────────────────────────────────────────────────────────────────────────
+
+  REPOUSO
+    lona ...................... 891.3×678.0px
+    repousou em ............... 1020ms
+    coudelarias ............... 29 em 14 pontos
+    nomes legíveis ............ 12
+    manchas ................... 1 (7)
+    contadas no ecrã .......... 29 de 29
+    na ordem de tabulação ..... 12
+    nomes sobrepostos ......... 0
+    nomes sob um algarismo .... 0
+    fora da lona .............. 0
+    nomes cortados ............ 0
+    nomes numa linha só ....... 3
+
+  ALFINETES (recuperados do ecrã, por varrimento do teste de acerto)
+    encontrados ............... 14
+    raio de toque medido ...... 14.1px
+    posição afinada ........... 0  (aglomerados, sem fronteira livre)
+    posição imprecisa ......... 0
+    o modelo explica .......... 99.98% do mapa medido
+    conferência pelo DOM ...... 12 nomes, desvio mediano 0.50px, máx 0.84px
+    varrimento ................ 657ms
+
+  PONTARIA — onde é que um clique junto a cada alfinete vai parar
+    área de acerto (px²) ...... mín 522  mediana 612  máx 630
+    alfinetes sem área ........ 0
+    com área roubada .......... 4
+    pior fracção errada ....... 13%
+
+  AGLOMERAÇÃO EM REPOUSO (distâncias entre alfinetes, em pixéis)
+    pares a menos de 3px ...... 0
+    pares a menos de 6px ...... 0
+    pares a menos de 12px ..... 0
+    pares a menos de 24px ..... 1
+    vizinho mais próximo ...... mín 20.13  mediana 45.72  máx 123.51
+    piores distâncias ......... 20.13, 24.46, 24.62, 30.07, 39.06, 45.72, 46.52, 47.47
+
+    alfinete  acerta  vizinho errado  nada 
+    #4        522px²  81px²           0px² 
+    #2        567px²  54px²           0px² 
+    #0        585px²  27px²           9px² 
+    #5        594px²  0px²            27px²
+    #6        594px²  0px²            0px² 
+
+  ONDE É QUE UM CLIQUE LEVA
+    caminho                            o que aconteceu          levou   ficou em                    esperado                                 
+    nome solto, clique                 navegou                  1401ms  /directorio/alter-real      abre a ficha da coudelaria               
+    nome solto, Enter                  navegou                  1674ms  /directorio/alter-real      o mesmo que o clique                     
+    alfinete, clique no centro         abriu a pilha            162ms   /mapa                       abre a ficha da coudelaria               
+    pilha, clique na cabeça            abriu a pilha            172ms   /mapa                       abre a lista de nomes, sem sair da página
+    pilha, clique num nome de dentro   navegou, fechou a lista  1234ms  /directorio/quinta-da-broa  abre a ficha desse nome                  
+    mancha, clique no algarismo        abriu a mancha           192ms   /mapa                       abre a lista, sem sair da página         
+    mancha, clique num nome de dentro  navegou, fechou a lista  1586ms  /directorio/andrade         abre a ficha desse nome                  
+    lona vazia, clique                 NADA                     6462ms  /mapa                       não acontece nada                        
+    comando Aproximar                  NADA                     6484ms  /mapa                       aproxima e não abre nada                 
+
+  A ESCOLHA (clicar num nome, com a navegação cortada de propósito)
+    movimento preferido pelo sistema . normal
+    nome escolhido ................... Coudelaria de Alter Real
+    houve transição .................. sim
+    durou ............................ 636ms
+    animações juntas, no pior quadro . 0  (um movimento, não três)
+    o resto recuou até .............. 0 de opacidade somada, 0 nomes
+    limpou quando a página não veio .. sim
+    nomes visíveis no fim ............ 13
+    desenhos gastos .................. 30
+
+  ACHADOS — 0 graves, 5 avisos
+    [aviso] 4 alfinetes têm área de clique roubada por um vizinho; no pior, 13% do disco de toque abre a coudelaria errada
+    [aviso] [.WebGL-0x363402e94000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)
+    [aviso] %o
+
+%s TypeError: Cannot read properties of undefined (reading 'split')
+    at iniciaisDe (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_148cbe1f._.js:230:27)
+    at FichaCoudelaria (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_44e6ac15._.js:3562:243)
+    at Object.react_stack_bottom_frame (http://127.0.0.1:3294/_next/sta
+    [aviso] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+    [aviso] [Error Boundary] TypeError: Cannot read properties of undefined (reading 'split')
+    at iniciaisDe (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_148cbe1f._.js:230:27)
+    at FichaCoudelaria (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_44e6ac15._.js:3562:243)
+    at Object.react_stack_bottom_frame (http://127.0.0.1:3294
+
+──────────────────────────────────────────────────────────────────────────────
+  VARIAÇÃO ENTRE CORRIDAS
+──────────────────────────────────────────────────────────────────────────────
+  O mesmo núcleo (repouso + varrimento) medido várias vezes, cada uma
+  numa página nova. Uma medida que varia sozinha não serve para julgar
+  uma alteração: é preciso saber de quanto.
+

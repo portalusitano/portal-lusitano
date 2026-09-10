@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 
-require('dotenv').config({ path: '.env.local' });
-const { Resend } = require('resend');
+require("dotenv").config({ path: ".env.local" });
+const { Resend } = require("resend");
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function sendTestEmail() {
-  console.log('\n📧 Enviando email de teste para franciscomariagaspar6@gmail.com...\n');
+  console.log("\n📧 Enviando email de teste para franciscomariagaspar6@gmail.com...\n");
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Portal Lusitano <onboarding@resend.dev>',
-      to: ['franciscomariagaspar6@gmail.com'],
-      subject: '🐴 Teste de Email - Portal Lusitano PRO',
+      from: "Portal Lusitano <onboarding@resend.dev>",
+      to: ["franciscomariagaspar6@gmail.com"],
+      subject: "🐴 Teste de Email - Portal Lusitano PRO",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #FFFBEB;">
           <div style="background: linear-gradient(135deg, #D97706 0%, #92400E 100%); padding: 30px; border-radius: 10px; text-align: center;">
@@ -58,17 +58,16 @@ async function sendTestEmail() {
     });
 
     if (error) {
-      console.log('❌ ERRO:', error);
+      console.log("❌ ERRO:", error);
       process.exit(1);
     }
 
-    console.log('✅ Email enviado com sucesso!');
-    console.log('📧 ID:', data.id);
-    console.log('\n🎯 Verifica a tua inbox: franciscomariagaspar6@gmail.com');
-    console.log('   (Pode demorar 1-2 minutos)\n');
-    
+    console.log("✅ Email enviado com sucesso!");
+    console.log("📧 ID:", data.id);
+    console.log("\n🎯 Verifica a tua inbox: franciscomariagaspar6@gmail.com");
+    console.log("   (Pode demorar 1-2 minutos)\n");
   } catch (err) {
-    console.error('❌ Erro:', err);
+    console.error("❌ Erro:", err);
     process.exit(1);
   }
 }

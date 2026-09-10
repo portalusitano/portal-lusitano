@@ -1,0 +1,1214 @@
+{
+  "nome": "depois-percursos",
+  "url": "http://127.0.0.1:3294/mapa",
+  "quando": "2026-09-02T01:02:38.503Z",
+  "navegador": "/opt/pw-browsers/chromium",
+  "passo": 3,
+  "parado": false,
+  "repeticoes": 1,
+  "ms": 69830,
+  "ecras": [
+    {
+      "nome": "desktop",
+      "largura": 1400,
+      "altura": 950,
+      "repouso": {
+        "repouso": {
+          "repousou": true,
+          "ms": 1020
+        },
+        "caixa": {
+          "l": 891.328125,
+          "a": 678
+        },
+        "total": 29,
+        "pontos": 14,
+        "nomesLidos": 12,
+        "nomesAccionaveis": 4,
+        "naOrdemDeTabulacao": 12,
+        "inertesVisiveis": 0,
+        "visiveisInertes": 0,
+        "manchas": [7],
+        "contadas": 29,
+        "entreNomes": [],
+        "nomesContraManchas": [],
+        "foraDaLona": [],
+        "cortados": [],
+        "curtos": ["6 coudelarias", "Montemor", "Ferraz da Costa"],
+        "fixosPorCima": [],
+        "conferencia": {
+          "n": 12,
+          "min": 0.03726642066417113,
+          "p50": 0.5002309232220244,
+          "p95": 0.7071067811865476,
+          "max": 0.8427255762336692,
+          "media": 0.4798391159380617
+        },
+        "alfinetes": {
+          "passo": 3,
+          "lona": {
+            "largura": 891.328125,
+            "altura": 678
+          },
+          "msVarrimento": 657,
+          "raioDeToque": 14.059385045204527,
+          "centros": [
+            {
+              "indice": 0,
+              "x": 396.2918563920266,
+              "y": 330.0151629209868,
+              "raio": 14.059385045204527,
+              "erroAjuste": 0.42398738620005083,
+              "celulas": 65,
+              "area": 585,
+              "fronteiraLivre": 29,
+              "preciso": true
+            },
+            {
+              "indice": 1,
+              "x": 378,
+              "y": 346.5,
+              "raio": 14.059385045204527,
+              "erroAjuste": 0.740219107717242,
+              "celulas": 68,
+              "area": 612,
+              "fronteiraLivre": 24,
+              "preciso": true
+            },
+            {
+              "indice": 2,
+              "x": 347.9662844847708,
+              "y": 347.9990329925985,
+              "raio": 14.059385045204527,
+              "erroAjuste": 0.34331602109384435,
+              "celulas": 63,
+              "area": 567,
+              "fronteiraLivre": 27,
+              "preciso": true
+            },
+            {
+              "indice": 3,
+              "x": 484.5,
+              "y": 350.32162960203266,
+              "raio": 14.059385045204527,
+              "erroAjuste": 0.6351164602252367,
+              "celulas": 70,
+              "area": 630,
+              "fronteiraLivre": 38,
+              "preciso": true
+            },
+            {
+              "indice": 4,
+              "x": 360.58964505577825,
+              "y": 363.67727456587807,
+              "raio": 14.059385045204527,
+              "erroAjuste": 0.6363614613117283,
+              "celulas": 60,
+              "area": 540,
+              "fronteiraLivre": 20,
+              "preciso": true
+            },
+            {
+              "indice": 5,
+              "x": 290.7948342265549,
+              "y": 377.4955616889167,
+              "raio": 14.059385045204527,
+              "erroAjuste": 0.5186258513072577,
+              "celulas": 66,
+              "area": 594,
+              "fronteiraLivre": 36,
+              "preciso": true
+            },
+            {
+              "indice": 6,
+              "x": 516.3462684685111,
+              "y": 383.1244257916867,
+              "raio": 14.059385045204527,
+              "erroAjuste": 0.5921116362808303,
+              "celulas": 68,
+              "area": 612,
+              "fronteiraLivre": 38,
+              "preciso": true
+            },
+            {
+              "indice": 7,
+              "x": 418.32150435713186,
+              "y": 393.73308163992687,
+              "raio": 14.059385045204527,
+              "erroAjuste": 0.6259311118051785,
+              "celulas": 69,
+              "area": 621,
+              "fronteiraLivre": 38,
+              "preciso": true
+            },
+            {
+              "indice": 8,
+              "x": 456.7885756795366,
+              "y": 400.5,
+              "raio": 14.059385045204527,
+              "erroAjuste": 0.6334871172402271,
+              "celulas": 68,
+              "area": 612,
+              "fronteiraLivre": 38,
+              "preciso": true
+            },
+            {
+              "indice": 9,
+              "x": 378.1493222476893,
+              "y": 419.0205734231105,
+              "raio": 14.059385045204527,
+              "erroAjuste": 0.6502733466267798,
+              "celulas": 67,
+              "area": 603,
+              "fronteiraLivre": 38,
+              "preciso": true
+            },
+            {
+              "indice": 10,
+              "x": 417,
+              "y": 450,
+              "raio": 14.059385045204527,
+              "erroAjuste": 0.3434039003339253,
+              "celulas": 69,
+              "area": 621,
+              "fronteiraLivre": 36,
+              "preciso": true
+            },
+            {
+              "indice": 11,
+              "x": 545.0032670825711,
+              "y": 462.537122934698,
+              "raio": 14.059385045204527,
+              "erroAjuste": 0.6017675325696846,
+              "celulas": 69,
+              "area": 621,
+              "fronteiraLivre": 38,
+              "preciso": true
+            },
+            {
+              "indice": 12,
+              "x": 460.5,
+              "y": 466.5,
+              "raio": 14.059385045204527,
+              "erroAjuste": 0.5621062370231622,
+              "celulas": 68,
+              "area": 612,
+              "fronteiraLivre": 40,
+              "preciso": true
+            },
+            {
+              "indice": 13,
+              "x": 402.69059889753976,
+              "y": 575.6489828627473,
+              "raio": 14.059385045204527,
+              "erroAjuste": 0.5806289387896043,
+              "celulas": 67,
+              "area": 603,
+              "fronteiraLivre": 36,
+              "preciso": true
+            }
+          ],
+          "concordancia": {
+            "iguais": 67630,
+            "total": 67646,
+            "fraccao": 0.9997634745587323
+          },
+          "imprecisos": 0,
+          "afinados": 0,
+          "aglomeracao": {
+            "n": 14,
+            "contagem": {
+              "3": 0,
+              "6": 0,
+              "12": 0,
+              "24": 1
+            },
+            "vizinho": [
+              24.624009904727785, 24.457702688424117, 20.12849947054617, 45.718795404389915,
+              20.12849947054617, 64.33210652357333, 45.718795404389915, 39.05773624027473,
+              39.05773624027473, 47.46853121931195, 46.52418725781247, 84.4251149664238,
+              46.52418725781247, 123.51286295684929
+            ],
+            "piores": [
+              {
+                "a": 2,
+                "b": 4,
+                "d": 20.12849947054617
+              },
+              {
+                "a": 1,
+                "b": 4,
+                "d": 24.457702688424117
+              },
+              {
+                "a": 0,
+                "b": 1,
+                "d": 24.624009904727785
+              },
+              {
+                "a": 1,
+                "b": 2,
+                "d": 30.071101868116113
+              },
+              {
+                "a": 7,
+                "b": 8,
+                "d": 39.05773624027473
+              },
+              {
+                "a": 3,
+                "b": 6,
+                "d": 45.718795404389915
+              },
+              {
+                "a": 10,
+                "b": 12,
+                "d": 46.52418725781247
+              },
+              {
+                "a": 7,
+                "b": 9,
+                "d": 47.46853121931195
+              },
+              {
+                "a": 0,
+                "b": 4,
+                "d": 49.06919252128838
+              },
+              {
+                "a": 9,
+                "b": 10,
+                "d": 49.69003957380972
+              },
+              {
+                "a": 0,
+                "b": 2,
+                "d": 51.56336376649567
+              },
+              {
+                "a": 7,
+                "b": 10,
+                "d": 56.282434875412534
+              }
+            ],
+            "estatistica": {
+              "n": 14,
+              "min": 20.12849947054617,
+              "p50": 45.718795404389915,
+              "p95": 84.4251149664238,
+              "max": 123.51286295684929,
+              "media": 47.977054643239775
+            }
+          },
+          "pontaria": {
+            "porAlfinete": [
+              {
+                "indice": 0,
+                "certo": 65,
+                "errado": 3,
+                "vazio": 1,
+                "areaCerta": 585,
+                "areaErrada": 27,
+                "fraccaoCerta": 0.9420289855072463,
+                "fraccaoErrada": 0.043478260869565216
+              },
+              {
+                "indice": 1,
+                "certo": 68,
+                "errado": 2,
+                "vazio": 0,
+                "areaCerta": 612,
+                "areaErrada": 18,
+                "fraccaoCerta": 0.9714285714285714,
+                "fraccaoErrada": 0.02857142857142857
+              },
+              {
+                "indice": 2,
+                "certo": 63,
+                "errado": 6,
+                "vazio": 0,
+                "areaCerta": 567,
+                "areaErrada": 54,
+                "fraccaoCerta": 0.9130434782608695,
+                "fraccaoErrada": 0.08695652173913043
+              },
+              {
+                "indice": 3,
+                "certo": 70,
+                "errado": 0,
+                "vazio": 0,
+                "areaCerta": 630,
+                "areaErrada": 0,
+                "fraccaoCerta": 1,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 4,
+                "certo": 58,
+                "errado": 9,
+                "vazio": 0,
+                "areaCerta": 522,
+                "areaErrada": 81,
+                "fraccaoCerta": 0.8656716417910447,
+                "fraccaoErrada": 0.13432835820895522
+              },
+              {
+                "indice": 5,
+                "certo": 66,
+                "errado": 0,
+                "vazio": 3,
+                "areaCerta": 594,
+                "areaErrada": 0,
+                "fraccaoCerta": 0.9565217391304348,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 6,
+                "certo": 66,
+                "errado": 0,
+                "vazio": 0,
+                "areaCerta": 594,
+                "areaErrada": 0,
+                "fraccaoCerta": 1,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 7,
+                "certo": 69,
+                "errado": 0,
+                "vazio": 0,
+                "areaCerta": 621,
+                "areaErrada": 0,
+                "fraccaoCerta": 1,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 8,
+                "certo": 68,
+                "errado": 0,
+                "vazio": 2,
+                "areaCerta": 612,
+                "areaErrada": 0,
+                "fraccaoCerta": 0.9714285714285714,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 9,
+                "certo": 66,
+                "errado": 0,
+                "vazio": 2,
+                "areaCerta": 594,
+                "areaErrada": 0,
+                "fraccaoCerta": 0.9705882352941176,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 10,
+                "certo": 69,
+                "errado": 0,
+                "vazio": 0,
+                "areaCerta": 621,
+                "areaErrada": 0,
+                "fraccaoCerta": 1,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 11,
+                "certo": 69,
+                "errado": 0,
+                "vazio": 0,
+                "areaCerta": 621,
+                "areaErrada": 0,
+                "fraccaoCerta": 1,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 12,
+                "certo": 68,
+                "errado": 0,
+                "vazio": 0,
+                "areaCerta": 612,
+                "areaErrada": 0,
+                "fraccaoCerta": 1,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 13,
+                "certo": 66,
+                "errado": 0,
+                "vazio": 2,
+                "areaCerta": 594,
+                "areaErrada": 0,
+                "fraccaoCerta": 0.9705882352941176,
+                "fraccaoErrada": 0
+              }
+            ],
+            "areaCerta": {
+              "n": 14,
+              "min": 522,
+              "p50": 612,
+              "p95": 621,
+              "max": 630,
+              "media": 598.5
+            },
+            "comErro": 4,
+            "semNada": 0,
+            "fraccaoErradaMax": 0.13432835820895522
+          }
+        },
+        "erros": {
+          "consola": [
+            {
+              "tipo": "warning",
+              "texto": "[.WebGL-0x363402e94000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+            }
+          ],
+          "pagina": [],
+          "rede": []
+        }
+      },
+      "nucleos": [
+        {
+          "repouso": {
+            "repousou": true,
+            "ms": 1020
+          },
+          "caixa": {
+            "l": 891.328125,
+            "a": 678
+          },
+          "total": 29,
+          "pontos": 14,
+          "nomesLidos": 12,
+          "nomesAccionaveis": 4,
+          "naOrdemDeTabulacao": 12,
+          "inertesVisiveis": 0,
+          "visiveisInertes": 0,
+          "manchas": [7],
+          "contadas": 29,
+          "entreNomes": [],
+          "nomesContraManchas": [],
+          "foraDaLona": [],
+          "cortados": [],
+          "curtos": ["6 coudelarias", "Montemor", "Ferraz da Costa"],
+          "fixosPorCima": [],
+          "conferencia": {
+            "n": 12,
+            "min": 0.03726642066417113,
+            "p50": 0.5002309232220244,
+            "p95": 0.7071067811865476,
+            "max": 0.8427255762336692,
+            "media": 0.4798391159380617
+          },
+          "alfinetes": {
+            "passo": 3,
+            "lona": {
+              "largura": 891.328125,
+              "altura": 678
+            },
+            "msVarrimento": 657,
+            "raioDeToque": 14.059385045204527,
+            "centros": [
+              {
+                "indice": 0,
+                "x": 396.2918563920266,
+                "y": 330.0151629209868,
+                "raio": 14.059385045204527,
+                "erroAjuste": 0.42398738620005083,
+                "celulas": 65,
+                "area": 585,
+                "fronteiraLivre": 29,
+                "preciso": true
+              },
+              {
+                "indice": 1,
+                "x": 378,
+                "y": 346.5,
+                "raio": 14.059385045204527,
+                "erroAjuste": 0.740219107717242,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 24,
+                "preciso": true
+              },
+              {
+                "indice": 2,
+                "x": 347.9662844847708,
+                "y": 347.9990329925985,
+                "raio": 14.059385045204527,
+                "erroAjuste": 0.34331602109384435,
+                "celulas": 63,
+                "area": 567,
+                "fronteiraLivre": 27,
+                "preciso": true
+              },
+              {
+                "indice": 3,
+                "x": 484.5,
+                "y": 350.32162960203266,
+                "raio": 14.059385045204527,
+                "erroAjuste": 0.6351164602252367,
+                "celulas": 70,
+                "area": 630,
+                "fronteiraLivre": 38,
+                "preciso": true
+              },
+              {
+                "indice": 4,
+                "x": 360.58964505577825,
+                "y": 363.67727456587807,
+                "raio": 14.059385045204527,
+                "erroAjuste": 0.6363614613117283,
+                "celulas": 60,
+                "area": 540,
+                "fronteiraLivre": 20,
+                "preciso": true
+              },
+              {
+                "indice": 5,
+                "x": 290.7948342265549,
+                "y": 377.4955616889167,
+                "raio": 14.059385045204527,
+                "erroAjuste": 0.5186258513072577,
+                "celulas": 66,
+                "area": 594,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 6,
+                "x": 516.3462684685111,
+                "y": 383.1244257916867,
+                "raio": 14.059385045204527,
+                "erroAjuste": 0.5921116362808303,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 38,
+                "preciso": true
+              },
+              {
+                "indice": 7,
+                "x": 418.32150435713186,
+                "y": 393.73308163992687,
+                "raio": 14.059385045204527,
+                "erroAjuste": 0.6259311118051785,
+                "celulas": 69,
+                "area": 621,
+                "fronteiraLivre": 38,
+                "preciso": true
+              },
+              {
+                "indice": 8,
+                "x": 456.7885756795366,
+                "y": 400.5,
+                "raio": 14.059385045204527,
+                "erroAjuste": 0.6334871172402271,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 38,
+                "preciso": true
+              },
+              {
+                "indice": 9,
+                "x": 378.1493222476893,
+                "y": 419.0205734231105,
+                "raio": 14.059385045204527,
+                "erroAjuste": 0.6502733466267798,
+                "celulas": 67,
+                "area": 603,
+                "fronteiraLivre": 38,
+                "preciso": true
+              },
+              {
+                "indice": 10,
+                "x": 417,
+                "y": 450,
+                "raio": 14.059385045204527,
+                "erroAjuste": 0.3434039003339253,
+                "celulas": 69,
+                "area": 621,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 11,
+                "x": 545.0032670825711,
+                "y": 462.537122934698,
+                "raio": 14.059385045204527,
+                "erroAjuste": 0.6017675325696846,
+                "celulas": 69,
+                "area": 621,
+                "fronteiraLivre": 38,
+                "preciso": true
+              },
+              {
+                "indice": 12,
+                "x": 460.5,
+                "y": 466.5,
+                "raio": 14.059385045204527,
+                "erroAjuste": 0.5621062370231622,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 40,
+                "preciso": true
+              },
+              {
+                "indice": 13,
+                "x": 402.69059889753976,
+                "y": 575.6489828627473,
+                "raio": 14.059385045204527,
+                "erroAjuste": 0.5806289387896043,
+                "celulas": 67,
+                "area": 603,
+                "fronteiraLivre": 36,
+                "preciso": true
+              }
+            ],
+            "concordancia": {
+              "iguais": 67630,
+              "total": 67646,
+              "fraccao": 0.9997634745587323
+            },
+            "imprecisos": 0,
+            "afinados": 0,
+            "aglomeracao": {
+              "n": 14,
+              "contagem": {
+                "3": 0,
+                "6": 0,
+                "12": 0,
+                "24": 1
+              },
+              "vizinho": [
+                24.624009904727785, 24.457702688424117, 20.12849947054617, 45.718795404389915,
+                20.12849947054617, 64.33210652357333, 45.718795404389915, 39.05773624027473,
+                39.05773624027473, 47.46853121931195, 46.52418725781247, 84.4251149664238,
+                46.52418725781247, 123.51286295684929
+              ],
+              "piores": [
+                {
+                  "a": 2,
+                  "b": 4,
+                  "d": 20.12849947054617
+                },
+                {
+                  "a": 1,
+                  "b": 4,
+                  "d": 24.457702688424117
+                },
+                {
+                  "a": 0,
+                  "b": 1,
+                  "d": 24.624009904727785
+                },
+                {
+                  "a": 1,
+                  "b": 2,
+                  "d": 30.071101868116113
+                },
+                {
+                  "a": 7,
+                  "b": 8,
+                  "d": 39.05773624027473
+                },
+                {
+                  "a": 3,
+                  "b": 6,
+                  "d": 45.718795404389915
+                },
+                {
+                  "a": 10,
+                  "b": 12,
+                  "d": 46.52418725781247
+                },
+                {
+                  "a": 7,
+                  "b": 9,
+                  "d": 47.46853121931195
+                },
+                {
+                  "a": 0,
+                  "b": 4,
+                  "d": 49.06919252128838
+                },
+                {
+                  "a": 9,
+                  "b": 10,
+                  "d": 49.69003957380972
+                },
+                {
+                  "a": 0,
+                  "b": 2,
+                  "d": 51.56336376649567
+                },
+                {
+                  "a": 7,
+                  "b": 10,
+                  "d": 56.282434875412534
+                }
+              ],
+              "estatistica": {
+                "n": 14,
+                "min": 20.12849947054617,
+                "p50": 45.718795404389915,
+                "p95": 84.4251149664238,
+                "max": 123.51286295684929,
+                "media": 47.977054643239775
+              }
+            },
+            "pontaria": {
+              "porAlfinete": [
+                {
+                  "indice": 0,
+                  "certo": 65,
+                  "errado": 3,
+                  "vazio": 1,
+                  "areaCerta": 585,
+                  "areaErrada": 27,
+                  "fraccaoCerta": 0.9420289855072463,
+                  "fraccaoErrada": 0.043478260869565216
+                },
+                {
+                  "indice": 1,
+                  "certo": 68,
+                  "errado": 2,
+                  "vazio": 0,
+                  "areaCerta": 612,
+                  "areaErrada": 18,
+                  "fraccaoCerta": 0.9714285714285714,
+                  "fraccaoErrada": 0.02857142857142857
+                },
+                {
+                  "indice": 2,
+                  "certo": 63,
+                  "errado": 6,
+                  "vazio": 0,
+                  "areaCerta": 567,
+                  "areaErrada": 54,
+                  "fraccaoCerta": 0.9130434782608695,
+                  "fraccaoErrada": 0.08695652173913043
+                },
+                {
+                  "indice": 3,
+                  "certo": 70,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 630,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 4,
+                  "certo": 58,
+                  "errado": 9,
+                  "vazio": 0,
+                  "areaCerta": 522,
+                  "areaErrada": 81,
+                  "fraccaoCerta": 0.8656716417910447,
+                  "fraccaoErrada": 0.13432835820895522
+                },
+                {
+                  "indice": 5,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 3,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9565217391304348,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 6,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 7,
+                  "certo": 69,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 621,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 8,
+                  "certo": 68,
+                  "errado": 0,
+                  "vazio": 2,
+                  "areaCerta": 612,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9714285714285714,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 9,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 2,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9705882352941176,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 10,
+                  "certo": 69,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 621,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 11,
+                  "certo": 69,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 621,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 12,
+                  "certo": 68,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 612,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 13,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 2,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9705882352941176,
+                  "fraccaoErrada": 0
+                }
+              ],
+              "areaCerta": {
+                "n": 14,
+                "min": 522,
+                "p50": 612,
+                "p95": 621,
+                "max": 630,
+                "media": 598.5
+              },
+              "comErro": 4,
+              "semNada": 0,
+              "fraccaoErradaMax": 0.13432835820895522
+            }
+          },
+          "erros": {
+            "consola": [
+              {
+                "tipo": "warning",
+                "texto": "[.WebGL-0x363402e94000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+              }
+            ],
+            "pagina": [],
+            "rede": []
+          }
+        }
+      ],
+      "escolha": {
+        "parado": false,
+        "alvo": "Coudelaria de Alter Real",
+        "amostras": 34,
+        "houveTransicao": true,
+        "duracaoMs": 636,
+        "maxAnimacoesJuntas": 0,
+        "animacoes": [],
+        "limpou": true,
+        "outrasNoFim": 13,
+        "somaOutrasNoFim": 13,
+        "somaOutrasMinima": 0,
+        "outrasMinimas": 0,
+        "desenhos": 30,
+        "erros": {
+          "consola": [],
+          "pagina": [],
+          "rede": []
+        }
+      },
+      "percursos": {
+        "percursos": [
+          {
+            "nome": "nome solto, clique",
+            "esperado": "abre a ficha da coudelaria",
+            "navegou": true,
+            "caminho": "/directorio/alter-real",
+            "abriuJanela": false,
+            "fechouJanela": false,
+            "janelaDe": null,
+            "abriuPilha": false,
+            "abriuMancha": false,
+            "fechouLista": false,
+            "foco": null,
+            "ms": 1401,
+            "falha": null,
+            "erros": {
+              "consola": [
+                {
+                  "tipo": "error",
+                  "texto": "%o\n\n%s TypeError: Cannot read properties of undefined (reading 'split')\n    at iniciaisDe (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_148cbe1f._.js:230:27)\n    at FichaCoudelaria (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_44e6ac15._.js:3562:243)\n    at Object.react_stack_bottom_frame (http://127.0.0.1:3294/_next/sta"
+                },
+                {
+                  "tipo": "warning",
+                  "texto": "Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior=\"smooth\"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior"
+                },
+                {
+                  "tipo": "error",
+                  "texto": "[Error Boundary] TypeError: Cannot read properties of undefined (reading 'split')\n    at iniciaisDe (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_148cbe1f._.js:230:27)\n    at FichaCoudelaria (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_44e6ac15._.js:3562:243)\n    at Object.react_stack_bottom_frame (http://127.0.0.1:3294"
+                },
+                {
+                  "tipo": "error",
+                  "texto": "[Error Boundary] TypeError: Cannot read properties of undefined (reading 'split')\n    at iniciaisDe (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_148cbe1f._.js:230:27)\n    at FichaCoudelaria (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_44e6ac15._.js:3562:243)\n    at Object.react_stack_bottom_frame (http://127.0.0.1:3294"
+                }
+              ],
+              "pagina": [],
+              "rede": []
+            }
+          },
+          {
+            "nome": "nome solto, Enter",
+            "esperado": "o mesmo que o clique",
+            "navegou": true,
+            "caminho": "/directorio/alter-real",
+            "abriuJanela": false,
+            "fechouJanela": false,
+            "janelaDe": null,
+            "abriuPilha": false,
+            "abriuMancha": false,
+            "fechouLista": false,
+            "foco": null,
+            "ms": 1674,
+            "falha": null,
+            "erros": {
+              "consola": [
+                {
+                  "tipo": "error",
+                  "texto": "%o\n\n%s TypeError: Cannot read properties of undefined (reading 'split')\n    at iniciaisDe (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_148cbe1f._.js:230:27)\n    at FichaCoudelaria (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_44e6ac15._.js:3562:243)\n    at Object.react_stack_bottom_frame (http://127.0.0.1:3294/_next/sta"
+                },
+                {
+                  "tipo": "warning",
+                  "texto": "Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior=\"smooth\"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior"
+                },
+                {
+                  "tipo": "error",
+                  "texto": "[Error Boundary] TypeError: Cannot read properties of undefined (reading 'split')\n    at iniciaisDe (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_148cbe1f._.js:230:27)\n    at FichaCoudelaria (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_44e6ac15._.js:3562:243)\n    at Object.react_stack_bottom_frame (http://127.0.0.1:3294"
+                },
+                {
+                  "tipo": "error",
+                  "texto": "[Error Boundary] TypeError: Cannot read properties of undefined (reading 'split')\n    at iniciaisDe (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_148cbe1f._.js:230:27)\n    at FichaCoudelaria (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_44e6ac15._.js:3562:243)\n    at Object.react_stack_bottom_frame (http://127.0.0.1:3294"
+                }
+              ],
+              "pagina": [],
+              "rede": []
+            }
+          },
+          {
+            "nome": "alfinete, clique no centro",
+            "esperado": "abre a ficha da coudelaria",
+            "navegou": false,
+            "caminho": "/mapa",
+            "abriuJanela": false,
+            "fechouJanela": false,
+            "janelaDe": null,
+            "abriuPilha": true,
+            "abriuMancha": false,
+            "fechouLista": false,
+            "foco": null,
+            "ms": 162,
+            "falha": null,
+            "erros": {
+              "consola": [],
+              "pagina": [],
+              "rede": []
+            }
+          },
+          {
+            "nome": "pilha, clique na cabeça",
+            "esperado": "abre a lista de nomes, sem sair da página",
+            "navegou": false,
+            "caminho": "/mapa",
+            "abriuJanela": false,
+            "fechouJanela": false,
+            "janelaDe": null,
+            "abriuPilha": true,
+            "abriuMancha": false,
+            "fechouLista": false,
+            "foco": {
+              "classe": "globo-etiqueta__cabeca",
+              "rotulo": "Tomar, Golegã: 2 coudelarias",
+              "tag": "BUTTON"
+            },
+            "ms": 172,
+            "falha": null,
+            "erros": {
+              "consola": [],
+              "pagina": [],
+              "rede": []
+            }
+          },
+          {
+            "nome": "pilha, clique num nome de dentro",
+            "esperado": "abre a ficha desse nome",
+            "navegou": true,
+            "caminho": "/directorio/quinta-da-broa",
+            "abriuJanela": false,
+            "fechouJanela": false,
+            "janelaDe": null,
+            "abriuPilha": false,
+            "abriuMancha": false,
+            "fechouLista": true,
+            "foco": null,
+            "ms": 1234,
+            "falha": null,
+            "erros": {
+              "consola": [
+                {
+                  "tipo": "error",
+                  "texto": "%o\n\n%s TypeError: Cannot read properties of undefined (reading 'split')\n    at iniciaisDe (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_148cbe1f._.js:230:27)\n    at FichaCoudelaria (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_44e6ac15._.js:3562:243)\n    at Object.react_stack_bottom_frame (http://127.0.0.1:3294/_next/sta"
+                },
+                {
+                  "tipo": "warning",
+                  "texto": "Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior=\"smooth\"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior"
+                },
+                {
+                  "tipo": "error",
+                  "texto": "[Error Boundary] TypeError: Cannot read properties of undefined (reading 'split')\n    at iniciaisDe (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_148cbe1f._.js:230:27)\n    at FichaCoudelaria (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_44e6ac15._.js:3562:243)\n    at Object.react_stack_bottom_frame (http://127.0.0.1:3294"
+                },
+                {
+                  "tipo": "error",
+                  "texto": "[Error Boundary] TypeError: Cannot read properties of undefined (reading 'split')\n    at iniciaisDe (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_148cbe1f._.js:230:27)\n    at FichaCoudelaria (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_44e6ac15._.js:3562:243)\n    at Object.react_stack_bottom_frame (http://127.0.0.1:3294"
+                }
+              ],
+              "pagina": [],
+              "rede": []
+            }
+          },
+          {
+            "nome": "mancha, clique no algarismo",
+            "esperado": "abre a lista, sem sair da página",
+            "navegou": false,
+            "caminho": "/mapa",
+            "abriuJanela": false,
+            "fechouJanela": false,
+            "janelaDe": null,
+            "abriuPilha": false,
+            "abriuMancha": true,
+            "fechouLista": false,
+            "foco": {
+              "classe": "globo-mancha__chip",
+              "rotulo": "5",
+              "tag": "BUTTON"
+            },
+            "ms": 192,
+            "falha": null,
+            "erros": {
+              "consola": [],
+              "pagina": [],
+              "rede": []
+            }
+          },
+          {
+            "nome": "mancha, clique num nome de dentro",
+            "esperado": "abre a ficha desse nome",
+            "navegou": true,
+            "caminho": "/directorio/andrade",
+            "abriuJanela": false,
+            "fechouJanela": false,
+            "janelaDe": null,
+            "abriuPilha": false,
+            "abriuMancha": false,
+            "fechouLista": true,
+            "foco": null,
+            "ms": 1586,
+            "falha": null,
+            "erros": {
+              "consola": [
+                {
+                  "tipo": "error",
+                  "texto": "%o\n\n%s TypeError: Cannot read properties of undefined (reading 'split')\n    at iniciaisDe (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_148cbe1f._.js:230:27)\n    at FichaCoudelaria (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_44e6ac15._.js:3562:243)\n    at Object.react_stack_bottom_frame (http://127.0.0.1:3294/_next/sta"
+                },
+                {
+                  "tipo": "warning",
+                  "texto": "Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior=\"smooth\"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior"
+                },
+                {
+                  "tipo": "error",
+                  "texto": "[Error Boundary] TypeError: Cannot read properties of undefined (reading 'split')\n    at iniciaisDe (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_148cbe1f._.js:230:27)\n    at FichaCoudelaria (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_44e6ac15._.js:3562:243)\n    at Object.react_stack_bottom_frame (http://127.0.0.1:3294"
+                },
+                {
+                  "tipo": "error",
+                  "texto": "[Error Boundary] TypeError: Cannot read properties of undefined (reading 'split')\n    at iniciaisDe (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_148cbe1f._.js:230:27)\n    at FichaCoudelaria (http://127.0.0.1:3294/_next/static/chunks/_claude_worktrees_agent-a9ed62963edf8bdc6_44e6ac15._.js:3562:243)\n    at Object.react_stack_bottom_frame (http://127.0.0.1:3294"
+                }
+              ],
+              "pagina": [],
+              "rede": []
+            }
+          },
+          {
+            "nome": "lona vazia, clique",
+            "esperado": "não acontece nada",
+            "navegou": false,
+            "caminho": "/mapa",
+            "abriuJanela": false,
+            "fechouJanela": false,
+            "janelaDe": null,
+            "abriuPilha": false,
+            "abriuMancha": false,
+            "fechouLista": false,
+            "foco": null,
+            "ms": 6462,
+            "falha": null,
+            "erros": {
+              "consola": [],
+              "pagina": [],
+              "rede": []
+            }
+          },
+          {
+            "nome": "comando Aproximar",
+            "esperado": "aproxima e não abre nada",
+            "navegou": false,
+            "caminho": "/mapa",
+            "abriuJanela": false,
+            "fechouJanela": false,
+            "janelaDe": null,
+            "abriuPilha": false,
+            "abriuMancha": false,
+            "fechouLista": false,
+            "foco": {
+              "classe": "globo-comando",
+              "rotulo": "Aproximar",
+              "tag": "BUTTON"
+            },
+            "ms": 6484,
+            "falha": null,
+            "erros": {
+              "consola": [],
+              "pagina": [],
+              "rede": []
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "variacao": {}
+}

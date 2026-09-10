@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Calendar, Plus, Edit, Trash2, Eye, Star, MapPin, X } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
+import Seleccao from "@/components/ui/Seleccao";
 
 interface Evento {
   id: string;
@@ -175,14 +176,14 @@ export default function EventosContent() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Calendar className="text-[#C5A059]" />
+            <Calendar className="text-[var(--gold)]" />
             Gestão de Eventos
           </h1>
           <p className="text-gray-400 text-sm mt-1">Criar, editar e gerir eventos equestres</p>
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="bg-[#C5A059] text-black px-4 py-2 rounded-lg hover:bg-[#d4b469] transition flex items-center gap-2"
+          className="bg-[var(--gold)] text-black px-4 py-2 rounded-lg hover:bg-[var(--gold-hover)] transition flex items-center gap-2"
         >
           <Plus size={20} />
           Novo Evento
@@ -191,23 +192,23 @@ export default function EventosContent() {
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4 mb-8">
-        <div className="bg-[#0A0A0A] border border-white/10 p-4 rounded-lg">
+        <div className="bg-[var(--background-secondary)] border border-white/10 p-4 rounded-lg">
           <p className="text-3xl font-bold text-white">{eventos.length}</p>
           <p className="text-gray-400">Total de Eventos</p>
         </div>
-        <div className="bg-[#0A0A0A] border border-white/10 p-4 rounded-lg">
-          <p className="text-3xl font-bold text-[#C5A059]">
+        <div className="bg-[var(--background-secondary)] border border-white/10 p-4 rounded-lg">
+          <p className="text-3xl font-bold text-[var(--gold)]">
             {eventos.filter((e) => e.destaque).length}
           </p>
           <p className="text-gray-400">Em Destaque</p>
         </div>
-        <div className="bg-[#0A0A0A] border border-white/10 p-4 rounded-lg">
+        <div className="bg-[var(--background-secondary)] border border-white/10 p-4 rounded-lg">
           <p className="text-3xl font-bold text-green-500">
             {eventos.filter((e) => new Date(e.data_inicio) > new Date()).length}
           </p>
           <p className="text-gray-400">Futuros</p>
         </div>
-        <div className="bg-[#0A0A0A] border border-white/10 p-4 rounded-lg">
+        <div className="bg-[var(--background-secondary)] border border-white/10 p-4 rounded-lg">
           <p className="text-3xl font-bold text-blue-500">
             {eventos.reduce((acc, e) => acc + (e.views_count || 0), 0)}
           </p>
@@ -218,12 +219,12 @@ export default function EventosContent() {
       {/* Events List */}
       {loading ? (
         <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C5A059] mx-auto" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--gold)] mx-auto" />
         </div>
       ) : (
-        <div className="bg-[#0A0A0A] border border-white/10 rounded-lg overflow-hidden">
+        <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg overflow-hidden">
           <table className="w-full">
-            <thead className="bg-[#050505]">
+            <thead className="bg-[var(--background)]">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Evento
@@ -251,7 +252,7 @@ export default function EventosContent() {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       {evento.destaque && (
-                        <Star size={16} className="text-[#C5A059] fill-[#C5A059]" />
+                        <Star size={16} className="text-[var(--gold)] fill-[var(--gold)]" />
                       )}
                       <span className="font-medium text-white">{evento.titulo}</span>
                     </div>
@@ -313,7 +314,7 @@ export default function EventosContent() {
           onClick={resetForm}
         >
           <div
-            className="bg-[#0A0A0A] border border-white/10 rounded-lg max-w-2xl w-full p-8 my-8"
+            className="bg-[var(--background-secondary)] border border-white/10 rounded-lg max-w-2xl w-full p-8 my-8"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6">
@@ -340,23 +341,23 @@ export default function EventosContent() {
                       });
                     }}
                     required
-                    className="w-full bg-[#050505] border border-white/10 text-white rounded-lg px-4 py-2 focus:ring-[#C5A059] focus:border-[#C5A059]"
+                    className="w-full bg-[var(--background)] border border-white/10 text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">Tipo *</label>
-                  <select
+                  <Seleccao
                     value={formData.tipo}
                     onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
-                    className="w-full bg-[#050505] border border-white/10 text-white rounded-lg px-4 py-2 focus:ring-[#C5A059] focus:border-[#C5A059]"
+                    className="w-full bg-[var(--background)] border border-white/10 text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                   >
                     {tiposEvento.map((tipo) => (
                       <option key={tipo.value} value={tipo.value}>
                         {tipo.label}
                       </option>
                     ))}
-                  </select>
+                  </Seleccao>
                 </div>
 
                 <div>
@@ -368,7 +369,7 @@ export default function EventosContent() {
                     value={formData.preco_entrada}
                     onChange={(e) => setFormData({ ...formData, preco_entrada: e.target.value })}
                     placeholder="Ex: 15€ ou Gratuito"
-                    className="w-full bg-[#050505] border border-white/10 text-white rounded-lg px-4 py-2 focus:ring-[#C5A059] focus:border-[#C5A059]"
+                    className="w-full bg-[var(--background)] border border-white/10 text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                   />
                 </div>
 
@@ -381,7 +382,7 @@ export default function EventosContent() {
                     value={formData.data_inicio}
                     onChange={(e) => setFormData({ ...formData, data_inicio: e.target.value })}
                     required
-                    className="w-full bg-[#050505] border border-white/10 text-white rounded-lg px-4 py-2 focus:ring-[#C5A059] focus:border-[#C5A059]"
+                    className="w-full bg-[var(--background)] border border-white/10 text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                   />
                 </div>
 
@@ -391,7 +392,7 @@ export default function EventosContent() {
                     type="date"
                     value={formData.data_fim}
                     onChange={(e) => setFormData({ ...formData, data_fim: e.target.value })}
-                    className="w-full bg-[#050505] border border-white/10 text-white rounded-lg px-4 py-2 focus:ring-[#C5A059] focus:border-[#C5A059]"
+                    className="w-full bg-[var(--background)] border border-white/10 text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                   />
                 </div>
 
@@ -404,7 +405,7 @@ export default function EventosContent() {
                     value={formData.localizacao}
                     onChange={(e) => setFormData({ ...formData, localizacao: e.target.value })}
                     required
-                    className="w-full bg-[#050505] border border-white/10 text-white rounded-lg px-4 py-2 focus:ring-[#C5A059] focus:border-[#C5A059]"
+                    className="w-full bg-[var(--background)] border border-white/10 text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                   />
                 </div>
 
@@ -415,7 +416,7 @@ export default function EventosContent() {
                     value={formData.regiao}
                     onChange={(e) => setFormData({ ...formData, regiao: e.target.value })}
                     placeholder="Ex: Ribatejo"
-                    className="w-full bg-[#050505] border border-white/10 text-white rounded-lg px-4 py-2 focus:ring-[#C5A059] focus:border-[#C5A059]"
+                    className="w-full bg-[var(--background)] border border-white/10 text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                   />
                 </div>
 
@@ -428,7 +429,7 @@ export default function EventosContent() {
                     onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
                     required
                     rows={3}
-                    className="w-full bg-[#050505] border border-white/10 text-white rounded-lg px-4 py-2 focus:ring-[#C5A059] focus:border-[#C5A059]"
+                    className="w-full bg-[var(--background)] border border-white/10 text-white rounded-lg px-4 py-2 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                   />
                 </div>
 
@@ -450,7 +451,7 @@ export default function EventosContent() {
                     id="destaque"
                     checked={formData.destaque}
                     onChange={(e) => setFormData({ ...formData, destaque: e.target.checked })}
-                    className="w-4 h-4 text-[#C5A059] focus:ring-[#C5A059] bg-[#050505] border-white/10"
+                    className="w-4 h-4 text-[var(--gold)] focus:ring-[var(--gold)] bg-[var(--background)] border-white/10"
                   />
                   <label htmlFor="destaque" className="text-gray-300">
                     Evento em destaque
@@ -468,7 +469,7 @@ export default function EventosContent() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 bg-[#C5A059] text-black py-3 rounded-lg hover:bg-[#d4b469] transition font-medium"
+                  className="flex-1 bg-[var(--gold)] text-black py-3 rounded-lg hover:bg-[var(--gold-hover)] transition font-medium"
                 >
                   {editingEvento ? "Guardar Alterações" : "Criar Evento"}
                 </button>

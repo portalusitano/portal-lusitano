@@ -156,7 +156,9 @@ export function HorseFavoritesProvider({ children }: { children: ReactNode }) {
         }
         // Sync to backend (fire-and-forget)
         if (user) {
-          fetch(`/api/favoritos?item_id=${id}&item_type=cavalo`, { method: "DELETE" }).catch(() => {});
+          fetch(`/api/favoritos?item_id=${id}&item_type=cavalo`, { method: "DELETE" }).catch(
+            () => {}
+          );
         }
         return prev.filter((h) => h.id !== id);
       });

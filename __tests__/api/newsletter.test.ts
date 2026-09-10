@@ -5,9 +5,17 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // ---------------------------------------------------------------------------
 const mockCreate = vi.fn();
 
-vi.mock("@/lib/client", () => ({
-  client: {
-    create: (...args: unknown[]) => mockCreate(...args),
+// A rota usa writeClient (o cliente com permissão de escrita), não client.
+vi.mock("@/lib/client", () => {
+  const duplo = { create: (...args: unknown[]) => mockCreate(...args) };
+  return { client: duplo, writeClient: duplo };
+});
+
+// O envio de boas-vindas é disparado e esquecido pela rota, mas importar o
+// módulo real exige as chaves do Resend e faz a rota falhar por inteiro.
+vi.mock("@/lib/resend", () => ({
+  EmailWorkflows: {
+    sendNewsletterWelcome: vi.fn().mockResolvedValue(undefined),
   },
 }));
 
@@ -45,11 +53,10 @@ describe("POST /api/newsletter", () => {
       },
     }));
 
-    vi.doMock("@/lib/client", () => ({
-      client: {
-        create: (...args: unknown[]) => mockCreate(...args),
-      },
-    }));
+    vi.doMock("@/lib/client", () => {
+      const duplo = { create: (...args: unknown[]) => mockCreate(...args) };
+      return { client: duplo, writeClient: duplo };
+    });
 
     const routeModule = await import("@/app/api/newsletter/route");
     POST = routeModule.POST;
@@ -101,11 +108,10 @@ describe("POST /api/newsletter", () => {
       },
     }));
 
-    vi.doMock("@/lib/client", () => ({
-      client: {
-        create: (...args: unknown[]) => mockCreate(...args),
-      },
-    }));
+    vi.doMock("@/lib/client", () => {
+      const duplo = { create: (...args: unknown[]) => mockCreate(...args) };
+      return { client: duplo, writeClient: duplo };
+    });
 
     const routeModule = await import("@/app/api/newsletter/route");
     const request = createPostRequest({ email: "teste@exemplo.pt" });

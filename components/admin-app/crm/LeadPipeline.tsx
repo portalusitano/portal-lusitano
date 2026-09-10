@@ -3,6 +3,7 @@
 import { Mail, Phone, Calendar, Pencil, Trash2 } from "lucide-react";
 import WhatsAppButton from "@/components/admin/WhatsAppButton";
 import { Lead } from "@/types/lead";
+import { formatarEurosInteiros } from "@/lib/format";
 
 const STAGES = [
   { key: "novo", label: "Novo", color: "blue" },
@@ -52,13 +53,6 @@ export default function LeadPipeline({
   onEdit,
   onDelete,
 }: LeadPipelineProps) {
-  const formatCurrency = (cents: number) => {
-    return `€${(cents / 100).toLocaleString("pt-PT", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    })}`;
-  };
-
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
   };
@@ -75,7 +69,7 @@ export default function LeadPipeline({
         return (
           <div
             key={stage.key}
-            className={`bg-[#0A0A0A] border border-${stage.color}-500/20 rounded-lg min-h-[600px]`}
+            className={`bg-[var(--background-secondary)] border border-${stage.color}-500/20 rounded-lg min-h-[600px]`}
             onDragOver={handleDragOver}
             onDrop={() => onDrop(stage.key)}
           >
@@ -90,7 +84,9 @@ export default function LeadPipeline({
                 </span>
               </div>
               {!["ganho", "perdido"].includes(stage.key) && (
-                <p className="text-xs text-gray-500">{formatCurrency(Math.round(stageValue))}</p>
+                <p className="text-xs text-gray-500">
+                  {formatarEurosInteiros(Math.round(stageValue))}
+                </p>
               )}
             </div>
 
@@ -162,8 +158,8 @@ export default function LeadPipeline({
                     )}
 
                     <div className="flex items-center justify-between pt-2 border-t border-white/10">
-                      <span className="text-sm font-semibold text-[#C5A059]">
-                        {formatCurrency(lead.estimated_value || 0)}
+                      <span className="text-sm font-semibold text-[var(--gold)]">
+                        {formatarEurosInteiros(lead.estimated_value || 0)}
                       </span>
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] text-gray-600">{score}pts</span>

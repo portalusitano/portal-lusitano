@@ -1,0 +1,360 @@
+══════════════════════════════════════════════════════════════════════════════
+  PROVA DO GLOBO — Portal Lusitano
+══════════════════════════════════════════════════════════════════════════════
+  corrida ....... depois
+  url ........... http://127.0.0.1:3283/mapa
+  quando ........ 2026-09-02T00:04:27.717Z
+  navegador ..... /opt/pw-browsers/chromium (WebGL por software)
+  passo de varrimento ... 3px
+  duração ....... 356s
+
+  Os milissegundos por quadro só se comparam entre corridas na mesma
+  máquina: o WebGL aqui é swiftshader. As contagens — pares de alfinetes
+  demasiado juntos, pixéis que abrem a coudelaria errada, desenhos em
+  repouso — valem por si.
+
+──────────────────────────────────────────────────────────────────────────────
+  DESKTOP — 1400×950
+──────────────────────────────────────────────────────────────────────────────
+
+  REPOUSO
+    lona ...................... 891.3×678.0px
+    repousou em ............... 1182ms
+    coudelarias ............... 29 em 14 pontos
+    nomes legíveis ............ 12
+    manchas ................... 1 (7)
+    contadas no ecrã .......... 29 de 29
+    na ordem de tabulação ..... 12
+    nomes sobrepostos ......... 0
+    nomes sob um algarismo .... 0
+    fora da lona .............. 0
+    nomes cortados ............ 0
+    nomes numa linha só ....... 3
+
+  ALFINETES (recuperados do ecrã, por varrimento do teste de acerto)
+    encontrados ............... 14
+    raio de toque medido ...... 14.1px
+    posição afinada ........... 0  (aglomerados, sem fronteira livre)
+    posição imprecisa ......... 0
+    o modelo explica .......... 99.98% do mapa medido
+    conferência pelo DOM ...... 12 nomes, desvio mediano 0.50px, máx 0.84px
+    varrimento ................ 645ms
+
+  PONTARIA — onde é que um clique junto a cada alfinete vai parar
+    área de acerto (px²) ...... mín 522  mediana 612  máx 630
+    alfinetes sem área ........ 0
+    com área roubada .......... 4
+    pior fracção errada ....... 13%
+
+  AGLOMERAÇÃO EM REPOUSO (distâncias entre alfinetes, em pixéis)
+    pares a menos de 3px ...... 0
+    pares a menos de 6px ...... 0
+    pares a menos de 12px ..... 0
+    pares a menos de 24px ..... 1
+    vizinho mais próximo ...... mín 20.13  mediana 45.72  máx 123.51
+    piores distâncias ......... 20.13, 24.46, 24.62, 30.07, 39.06, 45.72, 46.52, 47.47
+
+    alfinete  acerta  vizinho errado  nada 
+    #4        522px²  81px²           0px² 
+    #2        567px²  54px²           0px² 
+    #0        585px²  27px²           9px² 
+    #5        594px²  0px²            27px²
+    #6        594px²  0px²            0px² 
+
+  AGLOMERAÇÃO POR NÍVEL DE APROXIMAÇÃO (distâncias em pixéis de ecrã)
+    cliques     alfinetes  nomes  manchas  <3px  <6px  <12px  <24px  vizinho+próximo      
+    0           14         12     1        0     0     0      1      mín 20.13 / med 45.72
+    2           15         14     1        0     0     0      0      mín 38.77 / med 83.88
+    4 (limite)  10         9      2        0     0     0      0      mín 28.51 / med 74.11
+    4 (limite)  10         9      2        0     0     0      0      mín 28.51 / med 74.11
+
+  O ALVO FOGE AO PONTEIRO
+    alvos medidos ..................... 11
+    que já não estão sob o ponteiro ... 1 (1 nomes, 0 manchas)
+    deslocamento ...................... mediana 0.0px  máx 133.8px
+
+    alvo                                   deslocou  ainda sob o ponteiro  o que ficou por baixo
+    nome 6 coudelariasCasa Cadaval · Henr  133.8px   NÃO                   globo-etiqueta__nome 
+    nome Rio Maior · CartaxoRio Maior · C  6.0px     sim                   globo-etiqueta__nome 
+    nome Tomar · GolegãQuinta da Broa · M  0.0px     sim                   globo-etiqueta__nome 
+    nome Alter RealAlter do Chão           0.0px     sim                   globo-etiqueta__nome 
+    nome Quinta dos CedrosSintra           0.0px     sim                   globo-etiqueta__nome 
+    nome Vila Viçosa2Vila Viçosa · Jupite  0.0px     sim                   globo-etiqueta__nome 
+
+  ONDE É QUE UM CLIQUE LEVA
+    caminho                            o que aconteceu  ficou em  esperado                                 
+    nome solto, clique                 NADA             /mapa     abre a ficha da coudelaria               
+    nome solto, Enter                  NADA             /mapa     o mesmo que o clique                     
+    alfinete, clique no centro         abriu a pilha    /mapa     abre a ficha da coudelaria               
+    pilha, clique na cabeça            abriu a pilha    /mapa     abre a lista de nomes, sem sair da página
+    pilha, clique num nome de dentro   NADA             /mapa     abre a ficha desse nome                  
+    mancha, clique no algarismo        abriu a mancha   /mapa     abre a lista, sem sair da página         
+    mancha, clique num nome de dentro  NADA             /mapa     abre a ficha desse nome                  
+    lona vazia, clique                 NADA             /mapa     não acontece nada                        
+    comando Aproximar                  NADA             /mapa     aproxima e não abre nada                 
+
+  FLUIDEZ
+    desenhos em repouso (3s) ........ 0  (tem de ser 0)
+    desenhos fora do ecrã (2,5s) .... 0  (tem de ser 0)
+    desenhos com o separador escondido 0  (tem de ser 0)
+    arrasto ......................... 122 quadros em 19422ms, 6.3/s
+      intervalo entre quadros ....... med 150.0ms  p95 200.1ms  máx 233.3ms
+      chamadas por quadro ........... 5
+      leituras de geometria ......... 8 caixas + 0 deslocamentos (0.1+0.0 por quadro)
+      trabalho do motor ............. 6 layouts, 57 recálculos de estilo (0.0+0.5 por quadro)
+      lixo alocado no gesto ......... 93KB (0.8KB por quadro)
+    passeio do rato ................. 7 quadros em 1636ms
+      leituras de geometria ......... 0 caixas + 406 deslocamentos (0.0+58.0 por quadro)
+      trabalho do motor ............. 28 layouts, 33 recálculos de estilo
+    aproximação ..................... 10 quadros em 2278ms, 4.4/s
+      intervalo entre quadros ....... med 183.4ms  p95 233.3ms  máx 233.3ms
+      leituras de geometria ......... 0 caixas + 518 deslocamentos (0.0+51.8 por quadro)
+      trabalho do motor ............. 25 layouts, 51 recálculos de estilo
+
+  A ESCOLHA (clicar num nome, com a navegação cortada de propósito)
+    movimento preferido pelo sistema . normal
+    nome escolhido ................... Coudelaria de Alter Real
+    houve transição .................. sim
+    durou ............................ 684ms
+    animações juntas, no pior quadro . 0  (um movimento, não três)
+    o resto recuou até .............. 0 de opacidade somada, 0 nomes
+    limpou quando a página não veio .. sim
+    nomes visíveis no fim ............ 9
+    desenhos gastos .................. 40
+
+  TECLADO
+    paragens de tabulação no globo ... 17 (2 comandos, 9 nomes)
+    sem contorno de foco ............. 0
+    paragens fora da lona ............ 0
+    setas: coudelarias alcançadas .... 23 de 21
+    setas: foco perdido .............. 0
+    setas: foco em nome ilegível ..... 3
+
+  JANELA ÚTIL (com o aviso de cookies por responder)
+    elementos fixos por cima ......... 1
+      · #aviso-cookies fixed inset-0 z-[9997] flex items-end justify — 1400×950px
+    nomes legíveis ................... 12 (com o globo livre: 12)
+    manchas .......................... 1
+    nomes tapados por um fixo ........ 12
+    depois de responder .............. 12 nomes, 1 manchas, aviso saiu: sim
+      · Tomar · Golegã tapado por #aviso-cookies fixed inset-0 z-[9997] flex items-e (3827px²)
+      · Alter Real tapado por #aviso-cookies fixed inset-0 z-[9997] flex items-e (1743px²)
+      · 6 coudelarias tapado por #aviso-cookies fixed inset-0 z-[9997] flex items-e (1129px²)
+      · Quinta dos Cedros tapado por #aviso-cookies fixed inset-0 z-[9997] flex items-e (2907px²)
+      · Vila Viçosa2 tapado por #aviso-cookies fixed inset-0 z-[9997] flex items-e (4704px²)
+
+  ROBUSTEZ
+    caso                                         resultado                                                                 globo vivo
+    dois cliques depressa num nome               0                                                                         sim       
+    arrastar para fora da lona e largar lá fora  nada                                                                      sim       
+    roda para além do limite de aproximação      {"noLimite":true,"alfinetesAntes":12,"alfinetesDepois":12,"mexeu":false}  sim       
+    redimensionar com uma mancha aberta          {"aberta":false}                                                          sim       
+    teclas durante a entrada                     0                                                                         sim       
+    clique durante a entrada                     nada                                                                      sim       
+    trocar para lista e voltar ao globo          {"pontos":21,"nomes":0}                                                   sim       
+    abrir a ficha e carregar em «voltar»         FALHOU: nenhum nome legível                                               sim       
+
+  ACHADOS — 7 graves, 4 avisos
+    [GRAVE] «nome solto, clique» não faz nada — esperado: abre a ficha da coudelaria
+    [GRAVE] «nome solto, Enter» não faz nada — esperado: o mesmo que o clique
+    [GRAVE] «pilha, clique num nome de dentro» não faz nada — esperado: abre a ficha desse nome
+    [GRAVE] «mancha, clique num nome de dentro» não faz nada — esperado: abre a ficha desse nome
+    [GRAVE] 3 passos das setas dão foco a um nome que não se lê
+    [GRAVE] 1 de 11 alvos saem de debaixo do ponteiro no instante em que se aponta para eles (0 manchas, 1 nomes); o clique seguinte bate noutra coisa
+    [GRAVE] 12 nomes escritos por baixo de um elemento fixo
+    [aviso] 4 alfinetes têm área de clique roubada por um vizinho; no pior, 13% do disco de toque abre a coudelaria errada
+    [aviso] apontar move um alvo até 134px
+    [aviso] [.WebGL-0x167c00116600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (×2)
+    [aviso] «abrir a ficha e carregar em «voltar»» falhou: nenhum nome legível
+
+──────────────────────────────────────────────────────────────────────────────
+  MOVEL — 390×700
+──────────────────────────────────────────────────────────────────────────────
+
+  REPOUSO
+    lona ...................... 356.0×458.0px
+    repousou em ............... 618ms
+    coudelarias ............... 29 em 10 pontos
+    nomes legíveis ............ 7
+    manchas ................... 1 (6)
+    contadas no ecrã .......... 29 de 29
+    na ordem de tabulação ..... 7
+    nomes sobrepostos ......... 0
+    nomes sob um algarismo .... 0
+    fora da lona .............. 0
+    nomes cortados ............ 0
+    nomes numa linha só ....... 3
+
+  ALFINETES (recuperados do ecrã, por varrimento do teste de acerto)
+    encontrados ............... 10
+    raio de toque medido ...... 22.0px
+    posição afinada ........... 0  (aglomerados, sem fronteira livre)
+    posição imprecisa ......... 0
+    o modelo explica .......... 99.95% do mapa medido
+    conferência pelo DOM ...... 7 nomes, desvio mediano 0.53px, máx 0.80px
+    varrimento ................ 171ms
+
+  PONTARIA — onde é que um clique junto a cada alfinete vai parar
+    área de acerto (px²) ...... mín 1071  mediana 1413  máx 1512
+    alfinetes sem área ........ 0
+    com área roubada .......... 8
+    pior fracção errada ....... 29%
+
+  AGLOMERAÇÃO EM REPOUSO (distâncias entre alfinetes, em pixéis)
+    pares a menos de 3px ...... 0
+    pares a menos de 6px ...... 0
+    pares a menos de 12px ..... 0
+    pares a menos de 24px ..... 0
+    vizinho mais próximo ...... mín 24.98  mediana 38.08  máx 84.26
+    piores distâncias ......... 24.98, 25.23, 27.11, 33.33, 38.08, 40.03, 42.12, 58.96
+
+    alfinete  acerta   vizinho errado  nada
+    #0        1071px²  432px²          9px²
+    #3        1197px²  342px²          0px²
+    #1        1224px²  297px²          9px²
+    #5        1296px²  198px²          0px²
+    #2        1341px²  198px²          9px²
+
+  AGLOMERAÇÃO POR NÍVEL DE APROXIMAÇÃO (distâncias em pixéis de ecrã)
+    cliques     alfinetes  nomes  manchas  <3px  <6px  <12px  <24px  vizinho+próximo       
+    0           10         7      1        0     0     0      0      mín 24.98 / med 38.08 
+    2           10         8      2        0     0     0      0      mín 26.99 / med 73.92 
+    4 (limite)  5          5      0        0     0     0      0      mín 50.38 / med 199.27
+    4 (limite)  5          5      0        0     0     0      0      mín 50.38 / med 199.27
+
+  O ALVO FOGE AO PONTEIRO
+    alvos medidos ..................... 0
+    que já não estão sob o ponteiro ... 0 (0 nomes, 0 manchas)
+    deslocamento ...................... mediana —px  máx —px
+
+    alvo  deslocou  ainda sob o ponteiro  o que ficou por baixo
+
+  ONDE É QUE UM CLIQUE LEVA
+    caminho                            o que aconteceu                                              ficou em  esperado                                 
+    nome solto, clique                 não se pôde medir: nenhum nome solto legível                 /mapa     abre a ficha da coudelaria               
+    nome solto, Enter                  não se pôde medir: nenhum nome solto legível                 /mapa     o mesmo que o clique                     
+    alfinete, clique no centro         não se pôde medir: nenhum alfinete recuperado                /mapa     abre a ficha da coudelaria               
+    pilha, clique na cabeça            não se pôde medir: nenhuma pilha visível                     /mapa     abre a lista de nomes, sem sair da página
+    pilha, clique num nome de dentro   não se pôde medir: locator.click: Timeout 4000ms exceeded.   /mapa     abre a ficha desse nome                  
+    mancha, clique no algarismo        não se pôde medir: locator.click: Timeout 4000ms exceeded.   /mapa     abre a lista, sem sair da página         
+    mancha, clique num nome de dentro  não se pôde medir: locator.click: Timeout 4000ms exceeded.   /mapa     abre a ficha desse nome                  
+    lona vazia, clique                 NADA                                                         /mapa     não acontece nada                        
+    comando Aproximar                  não se pôde medir: locator.click: Timeout 30000ms exceeded.  /mapa     aproxima e não abre nada                 
+
+  FLUIDEZ
+    desenhos em repouso (3s) ........ 0  (tem de ser 0)
+    desenhos fora do ecrã (2,5s) .... 0  (tem de ser 0)
+    desenhos com o separador escondido 0  (tem de ser 0)
+    arrasto ......................... 125 quadros em 9589ms, 13.0/s
+      intervalo entre quadros ....... med 66.8ms  p95 100.0ms  máx 133.3ms
+      chamadas por quadro ........... 5
+      leituras de geometria ......... 13 caixas + 84 deslocamentos (0.1+0.7 por quadro)
+      trabalho do motor ............. 32 layouts, 84 recálculos de estilo (0.3+0.7 por quadro)
+      lixo alocado no gesto ......... 44KB (0.4KB por quadro)
+    passeio do rato ................. 0 quadros em 646ms
+      leituras de geometria ......... 1 caixas + 0 deslocamentos (—+— por quadro)
+      trabalho do motor ............. 0 layouts, 2 recálculos de estilo
+    aproximação ..................... 9 quadros em 1464ms, 6.1/s
+      intervalo entre quadros ....... med 116.7ms  p95 183.3ms  máx 183.3ms
+      leituras de geometria ......... 0 caixas + 298 deslocamentos (0.0+33.1 por quadro)
+      trabalho do motor ............. 19 layouts, 47 recálculos de estilo
+
+  TECLADO
+    paragens de tabulação no globo ... 2 (2 comandos, 0 nomes)
+    sem contorno de foco ............. 0
+    paragens fora da lona ............ 0
+    setas: coudelarias alcançadas .... 1 de 18
+    setas: foco perdido .............. 20
+    setas: foco em nome ilegível ..... 0
+
+  JANELA ÚTIL (com o aviso de cookies por responder)
+    elementos fixos por cima ......... 1
+      · #aviso-cookies fixed inset-0 z-[9997] flex items-end justify — 390×700px
+    nomes legíveis ................... 7 (com o globo livre: 7)
+    manchas .......................... 1
+    nomes tapados por um fixo ........ 7
+    depois de responder .............. 7 nomes, 1 manchas, aviso saiu: sim
+      · 7 coudelarias tapado por #aviso-cookies fixed inset-0 z-[9997] flex items-e (4704px²)
+      · 6 coudelarias tapado por #aviso-cookies fixed inset-0 z-[9997] flex items-e (1129px²)
+      · Quinta dos Cedros tapado por #aviso-cookies fixed inset-0 z-[9997] flex items-e (2907px²)
+      · Vila Viçosa · Évora tapado por #aviso-cookies fixed inset-0 z-[9997] flex items-e (1524px²)
+      · Ferreira do Alentejo · Beja tapado por #aviso-cookies fixed inset-0 z-[9997] flex items-e (2146px²)
+
+  ROBUSTEZ
+    caso                                         resultado                                                               globo vivo
+    dois cliques depressa num nome               FALHOU: nenhum nome legível                                             sim       
+    arrastar para fora da lona e largar lá fora  nada                                                                    sim       
+    roda para além do limite de aproximação      {"noLimite":true,"alfinetesAntes":0,"alfinetesDepois":0,"mexeu":false}  sim       
+    redimensionar com uma mancha aberta          FALHOU: locator.click: Timeout 4000ms exceeded.
+    Call log:
+                  sim       
+    teclas durante a entrada                     0                                                                       sim       
+    clique durante a entrada                     nada                                                                    sim       
+    trocar para lista e voltar ao globo          {"pontos":18,"nomes":0}                                                 sim       
+    abrir a ficha e carregar em «voltar»         FALHOU: nenhum nome legível                                             sim       
+
+  ACHADOS — 11 graves, 3 avisos
+    [GRAVE] «nome solto, clique» nem chegou a correr: nenhum nome solto legível
+    [GRAVE] «nome solto, Enter» nem chegou a correr: nenhum nome solto legível
+    [GRAVE] «alfinete, clique no centro» nem chegou a correr: nenhum alfinete recuperado
+    [GRAVE] «pilha, clique num nome de dentro» nem chegou a correr: locator.click: Timeout 4000ms exceeded.
+Call log:
+[2m  - waiting for locator('.globo-etiqueta[data-aberto] .globo-etiqueta__membro').first()[22m
+
+    [GRAVE] «mancha, clique no algarismo» nem chegou a correr: locator.click: Timeout 4000ms exceeded.
+Call log:
+[2m  - waiting for locator('.globo-mancha:not([data-oculta]) .globo-mancha__chip').first()[22m
+
+    [GRAVE] «mancha, clique num nome de dentro» nem chegou a correr: locator.click: Timeout 4000ms exceeded.
+Call log:
+[2m  - waiting for locator('.globo-mancha[data-aberta] .globo-mancha__membro').first()[22m
+
+    [GRAVE] «comando Aproximar» nem chegou a correr: locator.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('.globo-comando[aria-label="Aproximar"]')[22m
+[2m    - locator resolved to <button disabled type="button" title="Aproxi
+    [GRAVE] as setas só alcançam 1 das 18 coudelarias
+    [GRAVE] o foco sai do globo em 20 dos 20 passos das setas
+    [GRAVE] 8 alfinetes têm área de clique roubada por um vizinho; no pior, 29% do disco de toque abre a coudelaria errada
+    [GRAVE] 7 nomes escritos por baixo de um elemento fixo
+    [aviso] «dois cliques depressa num nome» falhou: nenhum nome legível
+    [aviso] «redimensionar com uma mancha aberta» falhou: locator.click: Timeout 4000ms exceeded.
+Call log:
+[2m  - waiting for locator('.globo-mancha:not([data-oculta]) .globo-mancha__chip').first()[22m
+
+    [aviso] «abrir a ficha e carregar em «voltar»» falhou: nenhum nome legível
+    [nota] «pilha, clique na cabeça» não se pôde medir: nenhuma pilha visível
+
+──────────────────────────────────────────────────────────────────────────────
+  VARIAÇÃO ENTRE CORRIDAS
+──────────────────────────────────────────────────────────────────────────────
+  O mesmo núcleo (repouso + varrimento) medido várias vezes, cada uma
+  numa página nova. Uma medida que varia sozinha não serve para julgar
+  uma alteração: é preciso saber de quanto.
+
+  desktop
+    grandeza                    #1    #2    varia?
+    nomes legíveis              12    12    não   
+    coudelarias contadas        29    29    não   
+    nomes sobrepostos           0     0     não   
+    nomes fora da lona          0     0     não   
+    nomes cortados              0     0     não   
+    alfinetes no ecrã           14    14    não   
+    raio de toque               14.1  14.1  não   
+    alfinetes sem área          0     0     não   
+    alfinetes com área roubada  4     4     não   
+    área de acerto mínima       522   522   não   
+
+  movel
+    grandeza                    #1    #2    varia?
+    nomes legíveis              7     7     não   
+    coudelarias contadas        29    29    não   
+    nomes sobrepostos           0     0     não   
+    nomes fora da lona          0     0     não   
+    nomes cortados              0     0     não   
+    alfinetes no ecrã           10    10    não   
+    raio de toque               22    22    não   
+    alfinetes sem área          0     0     não   
+    alfinetes com área roubada  8     8     não   
+    área de acerto mínima       1071  1071  não   
+

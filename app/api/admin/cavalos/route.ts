@@ -32,73 +32,79 @@ const CavaloSchema = z.object({
 });
 
 // GET - Listar todos os cavalos (admin)
-export const GET = createApiRoute(async (req) => {
-  const { data, error } = await supabase
-    .from("cavalos_venda")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(200);
+export const GET = createApiRoute(
+  async (req) => {
+    const { data, error } = await supabase
+      .from("cavalos_venda")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(200);
 
-  if (error) {
-    return apiError("Erro ao buscar cavalos", 500);
-  }
+    if (error) {
+      return apiError("Erro ao buscar cavalos", 500);
+    }
 
-  return apiSuccess({ cavalos: data });
-}, { auth: "admin" });
+    return apiSuccess({ cavalos: data });
+  },
+  { auth: "admin" }
+);
 
 // POST - Criar novo anúncio de cavalo
-export const POST = createApiRoute(async (request: NextRequest) => {
-  const raw = await request.json();
-  const parsed = CavaloSchema.safeParse(raw);
-  if (!parsed.success) {
-    return apiError("Dados inválidos", 400);
-  }
-  const body = parsed.data;
-
-  // Ensure slug uniqueness
-  if (body.slug) {
-    const { data: existingSlug } = await supabase
-      .from("cavalos_venda")
-      .select("id")
-      .eq("slug", body.slug)
-      .single();
-    if (existingSlug) {
-      return apiError("Já existe um cavalo com este slug", 409);
+export const POST = createApiRoute(
+  async (request: NextRequest) => {
+    const raw = await request.json();
+    const parsed = CavaloSchema.safeParse(raw);
+    if (!parsed.success) {
+      return apiError("Dados inválidos", 400);
     }
-  }
+    const body = parsed.data;
 
-  const { data, error } = await supabase
-    .from("cavalos_venda")
-    .insert({
-      nome: body.nome,
-      descricao: body.descricao,
-      preco: body.preco,
-      linhagem: body.linhagem,
-      idade: body.idade,
-      sexo: body.sexo,
-      pelagem: body.pelagem,
-      altura: body.altura,
-      peso: body.peso,
-      disciplinas: body.disciplinas,
-      nivel: body.nivel,
-      localizacao: body.localizacao,
-      coudelaria: body.coudelaria,
-      imagens: body.imagens,
-      foto_principal: body.image_url,
-      slug: body.slug,
-      destaque: body.destaque,
-      contacto_nome: body.contacto_nome,
-      contacto_email: body.contacto_email,
-      contacto_telefone: body.contacto_telefone,
-      status: "active",
-      views_count: 0,
-    })
-    .select()
-    .single();
+    // Ensure slug uniqueness
+    if (body.slug) {
+      const { data: existingSlug } = await supabase
+        .from("cavalos_venda")
+        .select("id")
+        .eq("slug", body.slug)
+        .single();
+      if (existingSlug) {
+        return apiError("Já existe um cavalo com este slug", 409);
+      }
+    }
 
-  if (error) {
-    return apiError("Erro ao criar anúncio", 500);
-  }
+    const { data, error } = await supabase
+      .from("cavalos_venda")
+      .insert({
+        nome: body.nome,
+        descricao: body.descricao,
+        preco: body.preco,
+        linhagem: body.linhagem,
+        idade: body.idade,
+        sexo: body.sexo,
+        pelagem: body.pelagem,
+        altura: body.altura,
+        peso: body.peso,
+        disciplinas: body.disciplinas,
+        nivel: body.nivel,
+        localizacao: body.localizacao,
+        coudelaria: body.coudelaria,
+        imagens: body.imagens,
+        foto_principal: body.image_url,
+        slug: body.slug,
+        destaque: body.destaque,
+        contacto_nome: body.contacto_nome,
+        contacto_email: body.contacto_email,
+        contacto_telefone: body.contacto_telefone,
+        status: "active",
+        views_count: 0,
+      })
+      .select()
+      .single();
 
-  return apiSuccess({ cavalo: data });
-}, { auth: "admin" });
+    if (error) {
+      return apiError("Erro ao criar anúncio", 500);
+    }
+
+    return apiSuccess({ cavalo: data });
+  },
+  { auth: "admin" }
+);

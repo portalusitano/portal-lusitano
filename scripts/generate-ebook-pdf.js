@@ -8,41 +8,44 @@
  * node scripts/generate-ebook-pdf.js
  */
 
-const fs = require('fs');
-const path = require('path');
-const { mdToPdf } = require('md-to-pdf');
+const fs = require("fs");
+const path = require("path");
+const { mdToPdf } = require("md-to-pdf");
 
 async function generateEbookPDF() {
   try {
-    console.log('🚀 Iniciando conversão do ebook para PDF...\n');
+    console.log("🚀 Iniciando conversão do ebook para PDF...\n");
 
     // Paths
-    const markdownPath = path.join(__dirname, '../public/ebooks/04-INTRODUCAO-LUSITANO/EBOOK-COMPLETO.md');
-    const outputDir = path.join(__dirname, '../public/downloads');
-    const outputPath = path.join(outputDir, 'introducao-lusitano.pdf');
+    const markdownPath = path.join(
+      __dirname,
+      "../public/ebooks/04-INTRODUCAO-LUSITANO/EBOOK-COMPLETO.md"
+    );
+    const outputDir = path.join(__dirname, "../public/downloads");
+    const outputPath = path.join(outputDir, "introducao-lusitano.pdf");
 
     // Ensure output directory exists
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
-      console.log('✅ Criada pasta: public/downloads/\n');
+      console.log("✅ Criada pasta: public/downloads/\n");
     }
 
     // Read markdown content
-    const markdownContent = fs.readFileSync(markdownPath, 'utf-8');
+    const markdownContent = fs.readFileSync(markdownPath, "utf-8");
 
-    console.log('📖 Markdown carregado:', markdownPath);
-    console.log('📄 Páginas estimadas: ~30\n');
+    console.log("📖 Markdown carregado:", markdownPath);
+    console.log("📄 Páginas estimadas: ~30\n");
 
     // PDF configuration
     const pdfConfig = {
       dest: outputPath,
       pdf_options: {
-        format: 'A4',
+        format: "A4",
         margin: {
-          top: '25mm',
-          right: '20mm',
-          bottom: '25mm',
-          left: '20mm',
+          top: "25mm",
+          right: "20mm",
+          bottom: "25mm",
+          left: "20mm",
         },
         printBackground: true,
         displayHeaderFooter: true,
@@ -206,44 +209,40 @@ async function generateEbookPDF() {
       ],
       launch_options: {
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
       },
     };
 
-    console.log('⚙️  Configurando PDF com estilo profissional...');
-    console.log('   - Formato: A4');
-    console.log('   - Margens: 25mm (top/bottom), 20mm (left/right)');
-    console.log('   - Fonte: Georgia (serif)');
-    console.log('   - Cores: Gold #C5A059\n');
+    console.log("⚙️  Configurando PDF com estilo profissional...");
+    console.log("   - Formato: A4");
+    console.log("   - Margens: 25mm (top/bottom), 20mm (left/right)");
+    console.log("   - Fonte: Georgia (serif)");
+    console.log("   - Cores: Gold #C5A059\n");
 
     // Generate PDF
-    console.log('🔄 A converter... (isto pode demorar 30-60 segundos)\n');
+    console.log("🔄 A converter... (isto pode demorar 30-60 segundos)\n");
 
-    const pdf = await mdToPdf(
-      { content: markdownContent },
-      pdfConfig
-    );
+    const pdf = await mdToPdf({ content: markdownContent }, pdfConfig);
 
-    console.log('✅ PDF criado com sucesso!\n');
-    console.log('📍 Localização:', outputPath);
+    console.log("✅ PDF criado com sucesso!\n");
+    console.log("📍 Localização:", outputPath);
 
     // Get file size
     const stats = fs.statSync(outputPath);
     const fileSizeInMB = (stats.size / (1024 * 1024)).toFixed(2);
-    console.log('📊 Tamanho:', fileSizeInMB, 'MB');
+    console.log("📊 Tamanho:", fileSizeInMB, "MB");
 
-    console.log('\n🎉 Conversão concluída!\n');
-    console.log('Próximos passos:');
-    console.log('1. Abrir e verificar: public/downloads/introducao-lusitano.pdf');
-    console.log('2. Testar download em: http://localhost:3000/ebook-gratis');
-    console.log('3. Se necessário, ajustar CSS acima e re-executar script\n');
-
+    console.log("\n🎉 Conversão concluída!\n");
+    console.log("Próximos passos:");
+    console.log("1. Abrir e verificar: public/downloads/introducao-lusitano.pdf");
+    console.log("2. Testar download em: http://localhost:3000/ebook-gratis");
+    console.log("3. Se necessário, ajustar CSS acima e re-executar script\n");
   } catch (error) {
-    console.error('❌ Erro ao gerar PDF:', error);
-    console.error('\nSugestões:');
-    console.error('1. Verificar se o ficheiro markdown existe');
-    console.error('2. Executar: npm install --save-dev md-to-pdf');
-    console.error('3. Verificar permissões de escrita na pasta public/downloads/\n');
+    console.error("❌ Erro ao gerar PDF:", error);
+    console.error("\nSugestões:");
+    console.error("1. Verificar se o ficheiro markdown existe");
+    console.error("2. Executar: npm install --save-dev md-to-pdf");
+    console.error("3. Verificar permissões de escrita na pasta public/downloads/\n");
     process.exit(1);
   }
 }

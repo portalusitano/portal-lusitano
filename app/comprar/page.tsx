@@ -3,14 +3,19 @@ import { supabase } from "@/lib/supabase-admin";
 import { logger } from "@/lib/logger";
 import ComprarContent from "@/components/ComprarContent";
 import { generatePageMetadata } from "@/lib/seo";
+import { filtroNaoExpirado } from "@/lib/marketplace-listings";
 
 // ISR: Revalidate marketplace every hour (cavalos can be added/updated)
 export const revalidate = 3600;
 
 export const metadata: Metadata = generatePageMetadata({
   title: "Comprar Cavalos Lusitanos — Marketplace Equestre",
+  // Prometia «criadores certificados» e «pedigree verificado». Ninguém
+  // certifica os criadores deste directório e ninguém confronta a genealogia
+  // com o stud-book — a descrição descreve agora o que a página tem mesmo: os
+  // filtros.
   description:
-    "Compre cavalos Lusitanos de criadores certificados em Portugal. Marketplace com filtros de raça, idade, disciplina e preço. Exemplares selecionados com pedigree verificado.",
+    "Cavalos Lusitanos à venda em Portugal, com filtros de idade, sexo, disciplina e preço. Cada anúncio traz fotografias, genealogia declarada pelo vendedor e contacto directo.",
   path: "/comprar",
   keywords: [
     "comprar cavalo lusitano",
@@ -30,6 +35,8 @@ export default async function ComprarPage() {
     .from("cavalos_venda")
     .select("*")
     .eq("status", "active")
+    // Anúncio pago que chegou ao fim do prazo sai da montra.
+    .or(filtroNaoExpirado())
     .order("created_at", { ascending: false });
 
   if (error) {

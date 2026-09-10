@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import LocalizedLink from "@/components/LocalizedLink";
 import { useLanguage } from "@/context/LanguageContext";
+import Seleccao from "@/components/ui/Seleccao";
 
 const especialidadesKeys = [
   "specialty_dressage",
@@ -96,14 +97,12 @@ export default function RegistarCoudelariaPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[var(--background)] pt-32 pb-20">
+    <div className="min-h-screen bg-[var(--background)] pt-32 pb-20">
       <div className="max-w-4xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-12 opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
-          <span className="text-xs uppercase tracking-[0.3em] text-[var(--gold)] block mb-4">
-            {t.registar_coudelaria.directory_label}
-          </span>
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-serif text-[var(--foreground)] mb-4">
+          <span className="rotulo block mb-4">{t.registar_coudelaria.directory_label}</span>
+          <h1 className="text-2xl sm:text-4xl md:text-5xl text-[var(--foreground)] mb-4">
             {t.registar_coudelaria.title}
           </h1>
           <p className="text-[var(--foreground-secondary)] max-w-xl mx-auto">
@@ -118,7 +117,7 @@ export default function RegistarCoudelariaPage() {
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
                   step >= s
-                    ? "bg-[var(--gold)] text-black"
+                    ? "bg-[var(--foreground-strong)] text-black"
                     : "bg-[var(--background-card)] text-[var(--foreground-muted)]"
                 }`}
               >
@@ -127,7 +126,7 @@ export default function RegistarCoudelariaPage() {
               {s < 2 && (
                 <div
                   className={`w-16 h-0.5 transition-colors ${
-                    step > s ? "bg-[var(--gold)]" : "bg-[var(--background-card)]"
+                    step > s ? "bg-[var(--ok)]" : "bg-[var(--background-card)]"
                   }`}
                 />
               )}
@@ -138,7 +137,7 @@ export default function RegistarCoudelariaPage() {
         {/* Step 1: Informações */}
         {step === 1 && (
           <div className="opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
-            <h2 className="text-2xl font-serif text-[var(--foreground)] mb-6 text-center">
+            <h2 className="text-2xl text-[var(--foreground)] mb-6 text-center">
               {t.registar_coudelaria.step_info_title}
             </h2>
 
@@ -154,7 +153,7 @@ export default function RegistarCoudelariaPage() {
                   value={formData.nome}
                   onChange={handleInputChange}
                   placeholder={t.registar_coudelaria.field_name_placeholder}
-                  className="w-full bg-[var(--background-secondary)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none"
+                  className="w-full bg-[var(--background-secondary)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none"
                   required
                 />
               </div>
@@ -170,7 +169,7 @@ export default function RegistarCoudelariaPage() {
                   onChange={handleInputChange}
                   placeholder={t.registar_coudelaria.field_description_placeholder}
                   rows={4}
-                  className="w-full bg-[var(--background-secondary)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none resize-none"
+                  className="w-full bg-[var(--background-secondary)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none resize-none"
                   required
                 />
               </div>
@@ -192,7 +191,7 @@ export default function RegistarCoudelariaPage() {
                       value={formData.localizacao}
                       onChange={handleInputChange}
                       placeholder={t.registar_coudelaria.field_location_placeholder}
-                      className="w-full bg-[var(--background-secondary)] border border-[var(--border)] pl-10 pr-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none"
+                      className="w-full bg-[var(--background-secondary)] border border-[var(--border)] pl-10 pr-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none"
                       required
                     />
                   </div>
@@ -201,11 +200,11 @@ export default function RegistarCoudelariaPage() {
                   <label className="block text-sm text-[var(--foreground-secondary)] mb-2">
                     {t.registar_coudelaria.field_region}
                   </label>
-                  <select
+                  <Seleccao
                     name="regiao"
                     value={formData.regiao}
                     onChange={handleInputChange}
-                    className="w-full bg-[var(--background-secondary)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--gold)] focus:outline-none"
+                    className="w-full bg-[var(--background-secondary)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] focus:border-[var(--border-hover)] focus:outline-none"
                     required
                   >
                     <option value="">{t.registar_coudelaria.field_region_select}</option>
@@ -214,15 +213,13 @@ export default function RegistarCoudelariaPage() {
                         {t.registar_coudelaria[key]}
                       </option>
                     ))}
-                  </select>
+                  </Seleccao>
                 </div>
               </div>
 
               {/* Contactos */}
               <div className="pt-4 border-t border-[var(--border)]">
-                <span className="text-[var(--gold)] text-sm font-medium mb-4 block">
-                  {t.registar_coudelaria.contacts}
-                </span>
+                <span className="rotulo mb-4 block">{t.registar_coudelaria.contacts}</span>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -240,7 +237,7 @@ export default function RegistarCoudelariaPage() {
                         value={formData.telefone}
                         onChange={handleInputChange}
                         placeholder="+351 912 345 678"
-                        className="w-full bg-[var(--background-secondary)] border border-[var(--border)] pl-10 pr-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none"
+                        className="w-full bg-[var(--background-secondary)] border border-[var(--border)] pl-10 pr-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none"
                       />
                     </div>
                   </div>
@@ -259,7 +256,7 @@ export default function RegistarCoudelariaPage() {
                         value={formData.email}
                         onChange={handleInputChange}
                         placeholder="email@coudelaria.pt"
-                        className="w-full bg-[var(--background-secondary)] border border-[var(--border)] pl-10 pr-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none"
+                        className="w-full bg-[var(--background-secondary)] border border-[var(--border)] pl-10 pr-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none"
                       />
                     </div>
                   </div>
@@ -278,7 +275,7 @@ export default function RegistarCoudelariaPage() {
                         value={formData.website}
                         onChange={handleInputChange}
                         placeholder="https://www.coudelaria.pt"
-                        className="w-full bg-[var(--background-secondary)] border border-[var(--border)] pl-10 pr-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none"
+                        className="w-full bg-[var(--background-secondary)] border border-[var(--border)] pl-10 pr-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none"
                       />
                     </div>
                   </div>
@@ -297,7 +294,7 @@ export default function RegistarCoudelariaPage() {
                         value={formData.instagram}
                         onChange={handleInputChange}
                         placeholder="@coudelaria"
-                        className="w-full bg-[var(--background-secondary)] border border-[var(--border)] pl-10 pr-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none"
+                        className="w-full bg-[var(--background-secondary)] border border-[var(--border)] pl-10 pr-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none"
                       />
                     </div>
                   </div>
@@ -315,7 +312,7 @@ export default function RegistarCoudelariaPage() {
                   value={formData.num_cavalos}
                   onChange={handleInputChange}
                   placeholder={t.registar_coudelaria.field_num_horses_placeholder}
-                  className="w-full bg-[var(--background-secondary)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--gold)] focus:outline-none"
+                  className="w-full bg-[var(--background-secondary)] border border-[var(--border)] px-4 py-3 text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:border-[var(--border-hover)] focus:outline-none"
                 />
               </div>
 
@@ -332,7 +329,7 @@ export default function RegistarCoudelariaPage() {
                       onClick={() => handleEspecialidadeToggle(key)}
                       className={`px-3 py-2 text-sm transition-colors ${
                         formData.especialidades.includes(key)
-                          ? "bg-[var(--gold)] text-black"
+                          ? "bg-[var(--foreground-strong)] text-black"
                           : "bg-[var(--background-card)] text-[var(--foreground-secondary)] hover:bg-[var(--surface-hover)]"
                       }`}
                     >
@@ -352,7 +349,7 @@ export default function RegistarCoudelariaPage() {
                     !formData.localizacao ||
                     !formData.regiao
                   }
-                  className="inline-flex items-center gap-2 bg-[var(--gold)] text-black px-8 py-3 text-sm font-bold uppercase tracking-wider hover:bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn btn-acento px-8"
                 >
                   {t.registar_coudelaria.btn_continue}
                   <ArrowRight size={18} />
@@ -365,7 +362,7 @@ export default function RegistarCoudelariaPage() {
         {/* Step 2: Confirmar */}
         {step === 2 && (
           <div className="opacity-0 animate-[fadeSlideIn_0.5s_ease-out_forwards]">
-            <h2 className="text-2xl font-serif text-[var(--foreground)] mb-6 text-center">
+            <h2 className="text-2xl text-[var(--foreground)] mb-6 text-center">
               {t.registar_coudelaria.confirm_title}
             </h2>
 
@@ -427,7 +424,7 @@ export default function RegistarCoudelariaPage() {
                 <button
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 bg-[var(--gold)] text-black px-8 py-3 text-sm font-bold uppercase tracking-wider hover:bg-white transition-colors disabled:opacity-50"
+                  className="btn btn-acento px-8"
                 >
                   {isSubmitting ? (
                     <>
@@ -452,22 +449,19 @@ export default function RegistarCoudelariaPage() {
             <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <Check className="text-green-500" size={40} />
             </div>
-            <h2 className="text-3xl font-serif text-[var(--foreground)] mb-4">
+            <h2 className="text-3xl text-[var(--foreground)] mb-4">
               {t.registar_coudelaria.success_title}
             </h2>
             <p className="text-[var(--foreground-secondary)] mb-8 max-w-md mx-auto">
               {t.registar_coudelaria.success_message}
             </p>
-            <LocalizedLink
-              href="/directorio"
-              className="inline-flex items-center gap-2 bg-[var(--gold)] text-black px-8 py-3 text-sm font-bold uppercase tracking-wider hover:bg-white transition-colors"
-            >
+            <LocalizedLink href="/directorio" className="btn btn-primario gap-2 rounded-full">
               {t.registar_coudelaria.btn_view_directory}
               <ArrowRight size={18} />
             </LocalizedLink>
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }

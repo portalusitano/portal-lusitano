@@ -6,10 +6,6 @@ export const metadata: Metadata = {
   robots: "noindex, nofollow",
 };
 
-export default function FinanceiroLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function FinanceiroLayout({ children }: { children: React.ReactNode }) {
   return children;
 }

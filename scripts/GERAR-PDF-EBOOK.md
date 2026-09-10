@@ -7,16 +7,19 @@ Existem 3 métodos para converter o markdown em PDF profissional. Escolhe o que 
 ## 📌 MÉTODO 1: Node.js Script (Recomendado - Mais Fácil)
 
 ### Passo 1: Instalar dependência
+
 ```bash
 npm install --save-dev md-to-pdf
 ```
 
 ### Passo 2: Executar script
+
 ```bash
 node scripts/generate-ebook-pdf.js
 ```
 
 ### Resultado
+
 - ✅ PDF criado em: `public/downloads/introducao-lusitano.pdf`
 - ✅ Estilo profissional automático (cores, fontes, margens)
 - ✅ Tamanho: ~2-3 MB
@@ -26,16 +29,19 @@ node scripts/generate-ebook-pdf.js
 ## 📌 MÉTODO 2: Pandoc + LaTeX (Mais Profissional)
 
 ### Passo 1: Instalar Pandoc
+
 - **Windows**: Descarregar de https://pandoc.org/installing.html
 - **Mac**: `brew install pandoc`
 - **Linux**: `sudo apt-get install pandoc`
 
 ### Passo 2: Instalar LaTeX (para PDF de alta qualidade)
+
 - **Windows**: MiKTeX - https://miktex.org/download
 - **Mac**: MacTeX - https://www.tug.org/mactex/
 - **Linux**: `sudo apt-get install texlive-full`
 
 ### Passo 3: Executar comando
+
 ```bash
 pandoc public/ebooks/04-INTRODUCAO-LUSITANO/EBOOK-COMPLETO.md \
   -o public/downloads/introducao-lusitano.pdf \
@@ -52,6 +58,7 @@ pandoc public/ebooks/04-INTRODUCAO-LUSITANO/EBOOK-COMPLETO.md \
 ```
 
 ### Vantagens
+
 - ✅ Qualidade tipográfica superior
 - ✅ Índice automático clicável
 - ✅ Hifenização automática
@@ -62,11 +69,13 @@ pandoc public/ebooks/04-INTRODUCAO-LUSITANO/EBOOK-COMPLETO.md \
 ## 📌 MÉTODO 3: Serviço Online (Mais Rápido, Menos Controlo)
 
 ### Opções
+
 1. **Markdown to PDF** - https://www.markdowntopdf.com/
 2. **Dillinger** - https://dillinger.io/ (exportar como PDF)
 3. **Pandoc Online** - https://pandoc.org/try/
 
 ### Passos
+
 1. Copiar conteúdo de `public/ebooks/04-INTRODUCAO-LUSITANO/EBOOK-COMPLETO.md`
 2. Colar no serviço online
 3. Configurar opções (A4, margens, fonte)
@@ -74,6 +83,7 @@ pandoc public/ebooks/04-INTRODUCAO-LUSITANO/EBOOK-COMPLETO.md \
 5. Mover para `public/downloads/introducao-lusitano.pdf`
 
 ### Vantagens
+
 - ✅ Zero instalação
 - ✅ Rápido (5 minutos)
 - ❌ Menos controlo sobre estilo
@@ -85,6 +95,7 @@ pandoc public/ebooks/04-INTRODUCAO-LUSITANO/EBOOK-COMPLETO.md \
 Se quiseres um PDF com design REALMENTE profissional (capa, ilustrações, layout revista):
 
 ### Opção A: Canva (Fácil, Templates Prontos)
+
 1. Ir a https://www.canva.com/
 2. Criar "Book" ou "Magazine"
 3. Escolher template elegante
@@ -96,6 +107,7 @@ Se quiseres um PDF com design REALMENTE profissional (capa, ilustrações, layou
 **Resultado**: PDF tipo revista profissional
 
 ### Opção B: Figma + Plugin (Mais Controlo)
+
 1. Usar Figma (gratuito)
 2. Instalar plugin "Automator" ou similar
 3. Criar template de páginas
@@ -106,6 +118,7 @@ Se quiseres um PDF com design REALMENTE profissional (capa, ilustrações, layou
 **Resultado**: Controlo total do design
 
 ### Opção C: Contratar Designer (Mais Profissional)
+
 - **Freelancer**: Fiverr, Upwork (€50-200)
 - **Resultado**: PDF de qualidade editorial
 - **Tempo**: 3-7 dias
@@ -117,6 +130,7 @@ Se quiseres um PDF com design REALMENTE profissional (capa, ilustrações, layou
 Independentemente do método escolhido, o PDF final deve ter:
 
 ### Capa (Página 1)
+
 - Título grande: "Introdução ao Cavalo Lusitano"
 - Subtítulo: "O Guia Essencial Para Iniciantes"
 - Imagem: Cavalo Lusitano em pose elegante
@@ -124,6 +138,7 @@ Independentemente do método escolhido, o PDF final deve ter:
 - Cor dominante: Gold (#C5A059)
 
 ### Interior
+
 - **Fonte Headings**: Playfair Display, Cormorant, ou Georgia (serif)
 - **Fonte Corpo**: Open Sans, Lato, ou Arial (sans-serif)
 - **Tamanho fonte**: 11-12pt (corpo), 18-24pt (headings)
@@ -134,6 +149,7 @@ Independentemente do método escolhido, o PDF final deve ter:
   - Corpo: #1a1a1a (quase preto)
 
 ### Elementos Visuais
+
 - [ ] Box de destaque (background #f9f9f9)
 - [ ] Ícones para listas
 - [ ] Ilustrações de cavalos (3-5 imagens)
@@ -141,6 +157,7 @@ Independentemente do método escolhido, o PDF final deve ter:
 - [ ] Pull quotes (citações destacadas)
 
 ### Páginas Especiais
+
 - **Página 2**: Créditos e copyright
 - **Página 3**: Índice clicável
 - **Página final**: Call-to-action (upgrade para PRO)
@@ -153,6 +170,7 @@ Independentemente do método escolhido, o PDF final deve ter:
 Se quiseres apenas **testar o fluxo** sem criar PDF profissional agora:
 
 ### Solução Temporária
+
 ```bash
 # Criar pasta de downloads
 mkdir -p public/downloads
@@ -183,13 +201,13 @@ Antes de lançar o ebook:
 
 ## 📊 Comparação de Métodos
 
-| Método | Tempo | Qualidade | Custo | Dificuldade |
-|--------|-------|-----------|-------|-------------|
-| Node.js Script | 5 min | ⭐⭐⭐ | Grátis | Fácil |
-| Pandoc + LaTeX | 30 min | ⭐⭐⭐⭐ | Grátis | Média |
-| Serviço Online | 10 min | ⭐⭐⭐ | Grátis | Muito Fácil |
-| Canva | 2-4h | ⭐⭐⭐⭐⭐ | €0-12/mês | Fácil |
-| Designer Pro | 3-7d | ⭐⭐⭐⭐⭐ | €50-200 | N/A |
+| Método         | Tempo  | Qualidade  | Custo     | Dificuldade |
+| -------------- | ------ | ---------- | --------- | ----------- |
+| Node.js Script | 5 min  | ⭐⭐⭐     | Grátis    | Fácil       |
+| Pandoc + LaTeX | 30 min | ⭐⭐⭐⭐   | Grátis    | Média       |
+| Serviço Online | 10 min | ⭐⭐⭐     | Grátis    | Muito Fácil |
+| Canva          | 2-4h   | ⭐⭐⭐⭐⭐ | €0-12/mês | Fácil       |
+| Designer Pro   | 3-7d   | ⭐⭐⭐⭐⭐ | €50-200   | N/A         |
 
 ---
 
@@ -206,19 +224,23 @@ Antes de lançar o ebook:
 ## 🆘 Problemas Comuns
 
 ### "md-to-pdf não encontrado"
+
 ```bash
 npm install --save-dev md-to-pdf
 ```
 
 ### "Pandoc command not found"
+
 Instalar Pandoc: https://pandoc.org/installing.html
 
 ### "PDF muito grande (> 10 MB)"
+
 - Reduzir qualidade de imagens
 - Remover imagens desnecessárias
 - Comprimir PDF online: https://www.ilovepdf.com/compress_pdf
 
 ### "Formatação estranha no PDF"
+
 - Verificar markdown (syntax correcta)
 - Ajustar CSS no script Node.js
 - Usar Pandoc com templates custom

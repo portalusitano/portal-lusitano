@@ -16,7 +16,8 @@ const url = env.NEXT_PUBLIC_SUPABASE_URL;
 const key = env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 const data = {
-  descricao: "Cavalos Lusitanos puro sangue Andrade, originários da histórica Coudelaria d'Andrade fundada em 1894 pelo Arq. Alfredo d'Andrade. Herdade em Portalegre, continuação directa de uma das linhagens mais importantes da raça Lusitana, preservada há mais de 130 anos.",
+  descricao:
+    "Cavalos Lusitanos puro sangue Andrade, originários da histórica Coudelaria d'Andrade fundada em 1894 pelo Arq. Alfredo d'Andrade. Herdade em Portalegre, continuação directa de uma das linhagens mais importantes da raça Lusitana, preservada há mais de 130 anos.",
 
   historia: `Os cavalos Lusitanos da Coudelaria de Fernando d'Andrade, com sede na Herdade do Azinhal em Portalegre, são puro sangue Andrade, originários da Coudelaria d'Andrade.
 
@@ -38,21 +39,31 @@ Actualmente, a Coudelaria Herdade do Azinhal procura manter intactas as caracter
     "Equitação de Trabalho",
     "Toureio",
     "Conservação Genética",
-    "Selecção Funcional"
+    "Selecção Funcional",
   ],
 
   premios: [
     "Inúmeros prémios importantes ao longo de mais de um século",
     "Linhagem histórica preservada desde 1894",
-    "Fernando Sommer d'Andrade — Presidente da APSL e Fundador do Stud Book"
+    "Fernando Sommer d'Andrade — Presidente da APSL e Fundador do Stud Book",
   ],
 
   tags: [
-    "andrade", "linhagem andrade", "portalegre", "historica", "1894",
-    "ruy d'andrade", "fernando sommer d'andrade", "alfredo d'andrade",
-    "alter real", "stud book", "apsl", "conservacao genetica",
-    "puro sangue andrade", "seleccao funcional"
-  ]
+    "andrade",
+    "linhagem andrade",
+    "portalegre",
+    "historica",
+    "1894",
+    "ruy d'andrade",
+    "fernando sommer d'andrade",
+    "alfredo d'andrade",
+    "alter real",
+    "stud book",
+    "apsl",
+    "conservacao genetica",
+    "puro sangue andrade",
+    "seleccao funcional",
+  ],
 };
 
 const res = await fetch(`${url}/rest/v1/coudelarias?slug=eq.herdade-do-azinhal`, {

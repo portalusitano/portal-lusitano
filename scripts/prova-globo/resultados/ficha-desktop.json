@@ -1,0 +1,42 @@
+{
+  "fechada": {
+    "nomes": 17,
+    "chips": 1,
+    "sobrepostas": 0,
+    "fichasAbertas": 0
+  },
+  "imagensAoAbrirOMapa": 5,
+  "aberta": {
+    "nomes": 17,
+    "chips": 1,
+    "sobrepostas": 0,
+    "fichasAbertas": 1,
+    "ficha": {
+      "que": "ficha",
+      "x": 721,
+      "y": 293,
+      "l": 216,
+      "a": 83,
+      "absoluta": true,
+      "dentroDaCamada": true,
+      "capa": false,
+      "factos": [
+        "18 cavalos",
+        "Beira Alta"
+      ],
+      "texto": "Criação de Puro Sangue Lusitano em Viseu, no Beira Alta. Lin",
+      "saida": "/directorio/quinta-de-madre-de-agua"
+    }
+  },
+  "colocacaoIgual": true,
+  "nomesQueSeMexeram": [],
+  "fichaDentroDaLona": true,
+  "imagensDepoisDeAbrir": 6,
+  "teclado": {
+    "focoNumNome": true,
+    "fichaAberta": true,
+    "descreveOFoco": true,
+    "saidaAlcancavel": true
+  },
+  "sobrepostasComTeclado": 0
+}

@@ -27,11 +27,12 @@ const historia = [
   "",
   "Servi\u00e7os adicionais incluem aulas privadas (110\u20ac/45min), passeio na Floresta de Sobreiros (90\u20ac), passeio nas colinas do Morgado (60\u20ac), visita \u00e0 Escola Portuguesa de Arte Equestre (90\u20ac), aula de r\u00e9deas longas (80\u20ac), aula de Equita\u00e7\u00e3o de Trabalho (80-110\u20ac), Master Class (110\u20ac), sess\u00f5es de fotografia (desde 95\u20ac), e massagem (80\u20ac/h).",
   "",
-  "Para eventos, a Quinta disponibiliza espa\u00e7os em exclusivo \u2014 desde almo\u00e7os de Natal corporativos a reuni\u00f5es de fam\u00edlia \u2014 com variedade de aperitivos, pratos tradicionais e sobremesas. Festas de anivers\u00e1rio para crian\u00e7as incluem 90 minutos de baptismo equestre em picadeiro coberto (at\u00e9 20 crian\u00e7as: 400\u20ac)."
+  "Para eventos, a Quinta disponibiliza espa\u00e7os em exclusivo \u2014 desde almo\u00e7os de Natal corporativos a reuni\u00f5es de fam\u00edlia \u2014 com variedade de aperitivos, pratos tradicionais e sobremesas. Festas de anivers\u00e1rio para crian\u00e7as incluem 90 minutos de baptismo equestre em picadeiro coberto (at\u00e9 20 crian\u00e7as: 400\u20ac).",
 ].join("\n");
 
 const data = {
-  descricao: "F\u00e9rias equestres de excel\u00eancia a 15 minutos do Aeroporto de Lisboa. A Quinta da Portela, do s\u00e9c. XVIII, oferece alojamento, dressage cl\u00e1ssico com cavalos Lusitanos treinados ao mais alto n\u00edvel, eventos corporativos e festas de anivers\u00e1rio \u2014 tudo com vista privilegiada sobre o Rio Tejo.",
+  descricao:
+    "F\u00e9rias equestres de excel\u00eancia a 15 minutos do Aeroporto de Lisboa. A Quinta da Portela, do s\u00e9c. XVIII, oferece alojamento, dressage cl\u00e1ssico com cavalos Lusitanos treinados ao mais alto n\u00edvel, eventos corporativos e festas de anivers\u00e1rio \u2014 tudo com vista privilegiada sobre o Rio Tejo.",
   historia,
   localizacao: "Alverca do Ribatejo",
   regiao: "Lisboa",
@@ -43,7 +44,7 @@ const data = {
     "F\u00e9rias Equestres",
     "Turismo Equestre",
     "Enoturismo",
-    "Eventos Corporativos"
+    "Eventos Corporativos",
   ],
   servicos: [
     "F\u00e9rias equestres com alojamento",
@@ -59,16 +60,29 @@ const data = {
     "Sess\u00f5es de fotografia",
     "Massagem e bem-estar",
     "Prova de vinhos",
-    "Transfer aeroporto"
+    "Transfer aeroporto",
   ],
   tags: [
-    "lisboa", "alverca", "bucelas", "enoturismo", "eventos", "dressage",
-    "ferias equestres", "alojamento", "rio tejo", "seculo xviii",
-    "aulas equitacao", "aniversarios", "natal", "corporativo", "epae"
+    "lisboa",
+    "alverca",
+    "bucelas",
+    "enoturismo",
+    "eventos",
+    "dressage",
+    "ferias equestres",
+    "alojamento",
+    "rio tejo",
+    "seculo xviii",
+    "aulas equitacao",
+    "aniversarios",
+    "natal",
+    "corporativo",
+    "epae",
   ],
-  horario: "Pacotes de 4 ou 7 noites. Aulas: 2 por dia. Festas: 09:00-12:30 ou 14:30-18:00. Transfer aeroporto dispon\u00edvel (~15 min, 40\u20ac/percurso).",
+  horario:
+    "Pacotes de 4 ou 7 noites. Aulas: 2 por dia. Festas: 09:00-12:30 ou 14:30-18:00. Transfer aeroporto dispon\u00edvel (~15 min, 40\u20ac/percurso).",
   latitude: 38.8863,
-  longitude: -9.0417
+  longitude: -9.0417,
 };
 
 const res = await fetch(`${url}/rest/v1/coudelarias?slug=eq.morgado-lusitano`, {

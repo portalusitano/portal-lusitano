@@ -175,7 +175,7 @@ export default function DefinicoesContent() {
             type="number"
             value={currentValue.value || 0}
             onChange={(e) => handleValueChange(setting.key, { value: parseFloat(e.target.value) })}
-            className="w-full bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+            className="w-full bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
           />
         );
 
@@ -185,7 +185,7 @@ export default function DefinicoesContent() {
             value={currentValue.value || ""}
             onChange={(e) => handleValueChange(setting.key, { value: e.target.value })}
             rows={4}
-            className="w-full bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[#C5A059] resize-none"
+            className="w-full bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[var(--gold)] resize-none"
           />
         );
 
@@ -205,7 +205,7 @@ export default function DefinicoesContent() {
                 })
               }
               rows={8}
-              className="w-full bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[#C5A059] font-mono text-sm resize-none"
+              className="w-full bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[var(--gold)] font-mono text-sm resize-none"
             />
             {setting.key.includes("email") && (
               <input
@@ -218,7 +218,7 @@ export default function DefinicoesContent() {
                   })
                 }
                 placeholder="Assunto do email"
-                className="w-full bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+                className="w-full bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
               />
             )}
           </div>
@@ -239,7 +239,7 @@ export default function DefinicoesContent() {
                     [setting.key]: !prev[setting.key],
                   }))
                 }
-                className="text-sm text-[#C5A059] hover:text-[#d4b469] flex items-center gap-1"
+                className="text-sm text-[var(--gold)] hover:text-[var(--gold-hover)] flex items-center gap-1"
               >
                 {showJsonPreview[setting.key] ? (
                   <>
@@ -265,7 +265,7 @@ export default function DefinicoesContent() {
                 }
               }}
               rows={6}
-              className="w-full bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[#C5A059] font-mono text-sm resize-none"
+              className="w-full bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[var(--gold)] font-mono text-sm resize-none"
             />
             {showJsonPreview[setting.key] && (
               <div className="bg-white/5 border border-white/10 rounded-lg p-4">
@@ -283,7 +283,7 @@ export default function DefinicoesContent() {
             type="email"
             value={currentValue.value || ""}
             onChange={(e) => handleValueChange(setting.key, { value: e.target.value })}
-            className="w-full bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+            className="w-full bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
             placeholder="exemplo@email.com"
           />
         );
@@ -294,7 +294,7 @@ export default function DefinicoesContent() {
             type="url"
             value={currentValue.value || ""}
             onChange={(e) => handleValueChange(setting.key, { value: e.target.value })}
-            className="w-full bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+            className="w-full bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
             placeholder="https://exemplo.com"
           />
         );
@@ -305,7 +305,7 @@ export default function DefinicoesContent() {
             type="text"
             value={currentValue.value || ""}
             onChange={(e) => handleValueChange(setting.key, { value: e.target.value })}
-            className="w-full bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[#C5A059]"
+            className="w-full bg-black/30 border border-white/10 px-4 py-2 rounded-lg text-white focus:outline-none focus:border-[var(--gold)]"
           />
         );
     }
@@ -314,7 +314,7 @@ export default function DefinicoesContent() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C5A059]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--gold)]"></div>
       </div>
     );
   }
@@ -322,9 +322,9 @@ export default function DefinicoesContent() {
   return (
     <div className="h-full flex">
       {/* Sidebar de Categorias */}
-      <div className="w-72 border-r border-white/5 bg-gradient-to-b from-[#0A0A0A] to-[#050505] p-6">
+      <div className="w-72 border-r border-white/5 bg-gradient-to-b from-[var(--background-secondary)] to-[var(--background)] p-6">
         <div className="flex items-center gap-3 mb-6">
-          <Settings className="w-6 h-6 text-[#C5A059]" />
+          <Settings className="w-6 h-6 text-[var(--gold)]" />
           <h2 className="text-xl font-bold text-white">Definições</h2>
         </div>
 
@@ -342,7 +342,7 @@ export default function DefinicoesContent() {
                   transition-all duration-200 text-left
                   ${
                     activeCategory === category
-                      ? "bg-[#C5A059] text-black font-semibold"
+                      ? "bg-[var(--gold)] text-black font-semibold"
                       : "text-gray-400 hover:bg-white/5 hover:text-white"
                   }
                 `}
@@ -367,7 +367,7 @@ export default function DefinicoesContent() {
             transition-all duration-200 text-left
             ${
               activeCategory === "backup"
-                ? "bg-[#C5A059] text-black font-semibold"
+                ? "bg-[var(--gold)] text-black font-semibold"
                 : "text-gray-400 hover:bg-white/5 hover:text-white"
             }
           `}
@@ -424,7 +424,7 @@ export default function DefinicoesContent() {
                     <button
                       onClick={() => handleSave(setting)}
                       disabled={isSaving}
-                      className="flex items-center gap-2 px-4 py-2 bg-[#C5A059] hover:bg-[#d4b469] text-black font-semibold rounded-lg transition-all disabled:opacity-50"
+                      className="flex items-center gap-2 px-4 py-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black font-semibold rounded-lg transition-all disabled:opacity-50"
                     >
                       {isSaving ? (
                         <>

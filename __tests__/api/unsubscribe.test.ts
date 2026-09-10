@@ -1,16 +1,28 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
+import crypto from "crypto";
+
+// A rota passou a exigir um token HMAC, para terceiros não conseguirem cancelar
+// subscrições alheias. O segredo tem de existir antes de a rota ser importada.
+process.env.UNSUBSCRIBE_SECRET = "segredo-de-teste";
+
+/** Gera o mesmo token que o link do email levaria. */
+function tokenPara(email: string) {
+  return crypto
+    .createHmac("sha256", process.env.UNSUBSCRIBE_SECRET as string)
+    .update(email.toLowerCase().trim())
+    .digest("hex");
+}
 
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
 const mockFrom = vi.fn();
 
-vi.mock("@/lib/supabase-admin", () => ({
-  supabase: {
-    from: (...args: unknown[]) => mockFrom(...args),
-  },
-}));
+vi.mock("@/lib/supabase-admin", () => {
+  const duplo = { from: (...args: unknown[]) => mockFrom(...args) };
+  return { supabase: duplo, supabaseAdmin: duplo, supabasePublic: duplo };
+});
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -43,11 +55,10 @@ describe("POST /api/unsubscribe", () => {
   beforeEach(async () => {
     vi.resetModules();
 
-    vi.doMock("@/lib/supabase-admin", () => ({
-      supabase: {
-        from: (...args: unknown[]) => mockFrom(...args),
-      },
-    }));
+    vi.doMock("@/lib/supabase-admin", () => {
+      const duplo = { from: (...args: unknown[]) => mockFrom(...args) };
+      return { supabase: duplo, supabaseAdmin: duplo, supabasePublic: duplo };
+    });
 
     const routeModule = await import("@/app/api/unsubscribe/route");
     POST = routeModule.POST;
@@ -60,7 +71,10 @@ describe("POST /api/unsubscribe", () => {
   it("deve cancelar subscricao com email valido", async () => {
     mockFrom.mockReturnValue(createUpdateChain({ error: null }));
 
-    const request = createPostRequest({ email: "user@teste.pt" });
+    const request = createPostRequest({
+      email: "user@teste.pt",
+      token: tokenPara("user@teste.pt"),
+    });
     const response = await POST(request);
     const data = await response.json();
 
@@ -72,7 +86,10 @@ describe("POST /api/unsubscribe", () => {
   it("deve normalizar email para minusculas", async () => {
     mockFrom.mockReturnValue(createUpdateChain({ error: null }));
 
-    const request = createPostRequest({ email: "USER@TESTE.PT" });
+    const request = createPostRequest({
+      email: "USER@TESTE.PT",
+      token: tokenPara("USER@TESTE.PT"),
+    });
     const response = await POST(request);
     const data = await response.json();
 
@@ -93,7 +110,7 @@ describe("POST /api/unsubscribe", () => {
   });
 
   it("deve retornar 400 quando email invalido", async () => {
-    const request = createPostRequest({ email: "nao-e-email" });
+    const request = createPostRequest({ email: "nao-e-email", token: "irrelevante" });
     const response = await POST(request);
     const data = await response.json();
 
@@ -113,7 +130,10 @@ describe("POST /api/unsubscribe", () => {
   it("deve retornar 500 quando update no Supabase falha", async () => {
     mockFrom.mockReturnValue(createUpdateChain({ error: { message: "Update failed" } }));
 
-    const request = createPostRequest({ email: "user@teste.pt" });
+    const request = createPostRequest({
+      email: "user@teste.pt",
+      token: tokenPara("user@teste.pt"),
+    });
     const response = await POST(request);
     const data = await response.json();
 
@@ -145,7 +165,7 @@ describe("POST /api/unsubscribe", () => {
     ];
 
     for (const email of invalidEmails) {
-      const request = createPostRequest({ email });
+      const request = createPostRequest({ email, token: "irrelevante" });
       const response = await POST(request);
 
       expect(response.status).toBe(400);

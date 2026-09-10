@@ -323,6 +323,31 @@ describe("middleware", () => {
       }
     });
 
+    /**
+     * As duas directivas que a CSP pode ter sem nonces. Com `'unsafe-inline'`
+     * no `script-src` — que é obrigatório enquanto as páginas forem servidas
+     * de cache estática, ver CSP_NONCE_IMPLEMENTATION.md — o que resta à CSP é
+     * limitar o estrago do que for injectado.
+     */
+    it("deve travar o enquadramento e a submissão de formulários para fora", async () => {
+      const request = createMockRequest("/", {
+        headers: { "x-forwarded-for": "unique-csp-ip-2" },
+      });
+
+      const result = await middleware(request as unknown as MiddlewareRequest);
+
+      if (result?.headers) {
+        const headers = result.headers as unknown as MockHeaders;
+        const csp = headers.get("Content-Security-Policy");
+        // `frame-ancestors` não é o `X-Frame-Options`: aquele não cobre
+        // `<embed>` nem `<object>`.
+        expect(csp).toContain("frame-ancestors 'none'");
+        // Sem `form-action`, HTML injectado submete um formulário para fora e
+        // apanha credenciais sem correr um único script.
+        expect(csp).toContain("form-action 'self'");
+      }
+    });
+
     it("deve definir headers de seguranca adicionais", async () => {
       const request = createMockRequest("/", {
         headers: { "x-forwarded-for": "unique-sec-ip-1" },

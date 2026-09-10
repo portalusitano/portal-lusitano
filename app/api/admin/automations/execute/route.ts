@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin as supabase } from "@/lib/supabase-admin";
 import { verifySession } from "@/lib/auth";
-import { Resend } from "resend";
+// O cliente partilhado de `lib/resend` é preguiçoso: só se constrói na
+// primeira utilização. Instanciado à cabeça, como estava aqui, rebentava
+// o build em qualquer máquina sem `RESEND_API_KEY`.
+import { resend } from "@/lib/resend";
 import { logger } from "@/lib/logger";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 // POST - Executar uma automação manualmente ou via trigger
 export async function POST(req: NextRequest) {

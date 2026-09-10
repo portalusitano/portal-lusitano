@@ -1,0 +1,108 @@
+══════════════════════════════════════════════════════════════════════════════
+  PROVA DO GLOBO — Portal Lusitano
+══════════════════════════════════════════════════════════════════════════════
+  corrida ....... 2026-09-01T14-02-46
+  url ........... http://127.0.0.1:3448/mapa
+  quando ........ 2026-09-01T14:03:28.363Z
+  navegador ..... /opt/pw-browsers/chromium (WebGL por software)
+  passo de varrimento ... 3px
+  duração ....... 42s
+
+  Os milissegundos por quadro só se comparam entre corridas na mesma
+  máquina: o WebGL aqui é swiftshader. As contagens — pares de alfinetes
+  demasiado juntos, pixéis que abrem a coudelaria errada, desenhos em
+  repouso — valem por si.
+
+──────────────────────────────────────────────────────────────────────────────
+  DESKTOP — 1400×950
+──────────────────────────────────────────────────────────────────────────────
+
+  REPOUSO
+    lona ...................... 891.3×678.0px
+    repousou em ............... 625ms
+    coudelarias ............... 16 em 14 pontos
+    nomes legíveis ............ 11
+    manchas ................... 1 (5)
+    contadas no ecrã .......... 17 de 16
+    na ordem de tabulação ..... 11
+    nomes sobrepostos ......... 0
+    nomes sob um algarismo .... 0
+    fora da lona .............. 0
+    nomes cortados ............ 0
+    nomes numa linha só ....... 3
+
+  ALFINETES (recuperados do ecrã, por varrimento do teste de acerto)
+    encontrados ............... 14
+    raio de toque medido ...... 14.0px
+    posição afinada ........... 0  (aglomerados, sem fronteira livre)
+    posição imprecisa ......... 0
+    o modelo explica .......... 99.97% do mapa medido
+    conferência pelo DOM ...... 11 nomes, desvio mediano 0.36px, máx 0.71px
+    varrimento ................ 1232ms
+
+  PONTARIA — onde é que um clique junto a cada alfinete vai parar
+    área de acerto (px²) ...... mín 594  mediana 594  máx 621
+    alfinetes sem área ........ 0
+    com área roubada .......... 0
+    pior fracção errada ....... 0%
+
+  AGLOMERAÇÃO EM REPOUSO (distâncias entre alfinetes, em pixéis)
+    pares a menos de 3px ...... 0
+    pares a menos de 6px ...... 0
+    pares a menos de 12px ..... 0
+    pares a menos de 24px ..... 0
+    vizinho mais próximo ...... mín 25.99  mediana 38.34  máx 80.01
+    piores distâncias ......... 25.99, 30.38, 34.21, 37.69, 38.34, 45.69, 45.72, 45.95
+
+    alfinete  acerta  vizinho errado  nada 
+    #1        594px²  0px²            9px² 
+    #2        594px²  0px²            0px² 
+    #4        594px²  0px²            9px² 
+    #5        594px²  0px²            0px² 
+    #6        594px²  0px²            27px²
+
+  AGLOMERAÇÃO POR NÍVEL DE APROXIMAÇÃO (distâncias em pixéis de ecrã)
+    cliques     alfinetes  nomes  manchas  <3px  <6px  <12px  <24px  vizinho+próximo      
+    0           14         11     1        0     0     0      0      mín 25.99 / med 38.34
+    2           20         17     1        0     0     0      1      mín 21.66 / med 70.12
+    4 (limite)  15         12     2        0     0     0      1      mín 12.71 / med 74.75
+    4 (limite)  15         12     2        0     0     0      1      mín 12.71 / med 74.75
+
+  O ALVO FOGE AO PONTEIRO
+    alvos medidos ..................... 12
+    que já não estão sob o ponteiro ... 0 (0 nomes, 0 manchas)
+    deslocamento ...................... mediana 0.0px  máx 7.0px
+
+    alvo                                   deslocou  ainda sob o ponteiro  o que ficou por baixo
+    nome Ferraz da CostaVila Verde de Fic  7.0px     sim                   globo-etiqueta__local
+    nome 7 coudelariasCasa Cadaval · Luís  6.0px     sim                   globo-etiqueta__nome 
+    nome Alverca do Ribatejo · SintraMorg  6.0px     sim                   globo-etiqueta__nome 
+    nome Quinta da HermidaVendas Novas     6.0px     sim                   globo-etiqueta__nome 
+    nome Quinta LusitâniaCouto do Mosteir  0.0px     sim                   globo-etiqueta__nome 
+    nome Flor do LisLeiria                 0.0px     sim                   globo-etiqueta__nome 
+
+  ACHADOS — 1 graves, 2 avisos
+    [GRAVE] 17 de 16 coudelarias estão contadas no ecrã; -1 não aparecem nem em nome nem em algarismo
+    [aviso] apontar move um alvo até 7px
+    [aviso] Failed to load resource: the server responded with a status of 403 (Forbidden)
+
+──────────────────────────────────────────────────────────────────────────────
+  VARIAÇÃO ENTRE CORRIDAS
+──────────────────────────────────────────────────────────────────────────────
+  O mesmo núcleo (repouso + varrimento) medido várias vezes, cada uma
+  numa página nova. Uma medida que varia sozinha não serve para julgar
+  uma alteração: é preciso saber de quanto.
+
+  desktop
+    grandeza                    #1   #2   varia?
+    nomes legíveis              11   11   não   
+    coudelarias contadas        17   17   não   
+    nomes sobrepostos           0    0    não   
+    nomes fora da lona          0    0    não   
+    nomes cortados              0    0    não   
+    alfinetes no ecrã           14   14   não   
+    raio de toque               14   14   não   
+    alfinetes sem área          0    0    não   
+    alfinetes com área roubada  0    0    não   
+    área de acerto mínima       594  594  não   
+

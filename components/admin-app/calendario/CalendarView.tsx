@@ -56,7 +56,7 @@ export default function CalendarView({
   const monthName = currentDate.toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
 
   return (
-    <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+    <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold text-white capitalize">{monthName}</h2>
         <div className="flex gap-2">
@@ -99,13 +99,15 @@ export default function CalendarView({
               onClick={() => onDateSelect(date)}
               className={`aspect-square p-2 rounded-lg border transition-all relative ${
                 isToday
-                  ? "border-[#C5A059] bg-[#C5A059]/10"
+                  ? "border-[var(--gold)] bg-[var(--gold)]/10"
                   : isSelected
                     ? "border-white/30 bg-white/5"
                     : "border-white/10 hover:border-white/20 hover:bg-white/5"
               }`}
             >
-              <span className={`text-sm font-medium ${isToday ? "text-[#C5A059]" : "text-white"}`}>
+              <span
+                className={`text-sm font-medium ${isToday ? "text-[var(--gold)]" : "text-white"}`}
+              >
                 {day}
               </span>
 

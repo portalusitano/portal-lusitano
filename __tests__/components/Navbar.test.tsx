@@ -54,16 +54,16 @@ vi.mock("@/context/CartContext", () => ({
   }),
 }));
 
-vi.mock("@/context/LanguageContext", () => ({
-  useLanguage: () => ({
-    language: "pt",
-    toggleLanguage: vi.fn(),
-    t: {
-      nav: { home: "Inicio", shop: "Loja", about: "Sobre", journal: "Jornal" },
-      cart: "Saco",
-    },
-  }),
-}));
+// O dicionário a sério, e não um punhado de chaves escritas à mão: com o
+// subconjunto, uma chave nova no componente devolvia `undefined` aqui e o
+// teste só reprovava se por acaso a afirmasse. É a mesma classe de defeito
+// que punha metade do rodapé em inglês e metade em português.
+vi.mock("@/context/LanguageContext", async () => {
+  const pt = (await import("@/locales/pt.json")).default;
+  return {
+    useLanguage: () => ({ language: "pt", toggleLanguage: vi.fn(), t: pt }),
+  };
+});
 
 vi.mock("@/context/WishlistContext", () => ({
   useWishlist: () => ({ wishlist: [] }),
@@ -101,7 +101,7 @@ describe("Navbar", () => {
     expect(nav).toBeInTheDocument();
   });
 
-  it("renders the PORTAL LUSITANO logo/link", () => {
+  it("mostra a marca como texto e liga-a à página inicial", () => {
     render(<Navbar />);
     expect(screen.getByText("PORTAL LUSITANO")).toBeInTheDocument();
 
@@ -131,12 +131,13 @@ describe("Navbar", () => {
     render(<Navbar />);
     const logoImg = screen.getByAltText("Portal Lusitano");
     expect(logoImg).toBeInTheDocument();
-    expect(logoImg).toHaveAttribute("src", "/logo.png");
+    expect(logoImg).toHaveAttribute("src", "/logo.webp");
   });
 
-  it("renders the EST. 2023 tagline", () => {
+  it("não mostra a data de fundação", () => {
+    // Roubava atenção ao nome e envelhece sozinha.
     render(<Navbar />);
-    expect(screen.getByText("EST. 2023")).toBeInTheDocument();
+    expect(screen.queryByText(/EST\. ?2023/i)).not.toBeInTheDocument();
   });
 
   it("renders MobileMenu component", () => {

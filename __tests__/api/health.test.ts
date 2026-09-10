@@ -1,150 +1,173 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-// ---------------------------------------------------------------------------
-// Mocks
-// ---------------------------------------------------------------------------
-vi.mock("@/lib/supabase-admin", () => ({
-  supabase: {
-    from: vi.fn(),
-  },
-}));
+/**
+ * A rota verifica quatro serviços em paralelo — base de dados, Redis, Stripe e
+ * Resend — e o estado global depende de todos. Cada caso monta os quatro
+ * explicitamente, porque mockar só um deixava os outros a falhar e o resultado
+ * nunca seria "healthy".
+ */
+function montarDependencias({
+  db = { count: 10, error: null },
+  redisOk = true,
+  stripeOk = true,
+  resendOk = true,
+}: {
+  db?: { count: number | null; error: unknown } | "lanca";
+  redisOk?: boolean;
+  stripeOk?: boolean;
+  resendOk?: boolean;
+} = {}) {
+  vi.doMock("@/lib/supabase-admin", () => {
+    const duplo = {
+      from: vi.fn().mockReturnValue({
+        select:
+          db === "lanca"
+            ? vi.fn().mockRejectedValue(new Error("ligação perdida"))
+            : vi.fn().mockResolvedValue(db),
+      }),
+    };
+    return { supabase: duplo, supabaseAdmin: duplo, supabasePublic: duplo };
+  });
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
+  vi.doMock("@upstash/redis", () => ({
+    Redis: {
+      fromEnv: () => ({
+        ping: redisOk
+          ? vi.fn().mockResolvedValue("PONG")
+          : vi.fn().mockRejectedValue(new Error("redis em baixo")),
+      }),
+    },
+  }));
+
+  vi.doMock("@/lib/stripe", () => ({
+    stripe: {
+      balance: {
+        retrieve: stripeOk
+          ? vi.fn().mockResolvedValue({})
+          : vi.fn().mockRejectedValue(new Error("stripe em baixo")),
+      },
+    },
+  }));
+
+  vi.doMock("@/lib/resend", () => ({
+    resend: {
+      contacts: {
+        list: resendOk
+          ? vi.fn().mockResolvedValue({})
+          : vi.fn().mockRejectedValue(new Error("resend em baixo")),
+      },
+    },
+  }));
+}
+
+async function chamar() {
+  const { GET } = await import("@/app/api/health/route");
+  const response = await GET();
+  return { response, data: await response.json() };
+}
+
 describe("GET /api/health", () => {
-  let GET: typeof import("@/app/api/health/route").GET;
-
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.resetModules();
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+    vi.doUnmock("@/lib/supabase-admin");
+    vi.doUnmock("@upstash/redis");
+    vi.doUnmock("@/lib/stripe");
+    vi.doUnmock("@/lib/resend");
   });
 
-  it("deve retornar status healthy quando base de dados conectada", async () => {
-    vi.doMock("@/lib/supabase-admin", () => ({
-      supabase: {
-        from: vi.fn().mockReturnValue({
-          select: vi.fn().mockResolvedValue({ count: 10, error: null }),
-        }),
-      },
-    }));
-
-    const routeModule = await import("@/app/api/health/route");
-    GET = routeModule.GET;
-
-    const response = await GET();
-    const data = await response.json();
+  it("responde healthy com 200 quando os quatro serviços respondem", async () => {
+    montarDependencias();
+    const { response, data } = await chamar();
 
     expect(response.status).toBe(200);
     expect(data.status).toBe("healthy");
-    expect(data.services.database).toBe("connected");
-    expect(data.timestamp).toBeDefined();
-    expect(data.uptime).toBeDefined();
-    expect(data.environment).toBeDefined();
   });
 
-  it("deve retornar status degraded quando base de dados com erro", async () => {
-    vi.doMock("@/lib/supabase-admin", () => ({
-      supabase: {
-        from: vi.fn().mockReturnValue({
-          select: vi.fn().mockResolvedValue({
-            count: null,
-            error: { message: "Connection refused" },
-          }),
-        }),
-      },
-    }));
+  it("marca cada serviço individualmente como up", async () => {
+    montarDependencias();
+    const { data } = await chamar();
 
-    const routeModule = await import("@/app/api/health/route");
-    GET = routeModule.GET;
+    expect(data.services.database.status).toBe("up");
+    expect(data.services.redis.status).toBe("up");
+    expect(data.services.stripe.status).toBe("up");
+    expect(data.services.resend.status).toBe("up");
+  });
 
-    const response = await GET();
-    const data = await response.json();
+  it("reporta a latência de cada serviço que responde", async () => {
+    montarDependencias();
+    const { data } = await chamar();
+
+    expect(typeof data.services.database.latency_ms).toBe("number");
+    expect(data.services.database.latency_ms).toBeGreaterThanOrEqual(0);
+  });
+
+  it("responde unhealthy com 503 quando a base de dados devolve erro", async () => {
+    // Sem base de dados não há marketplace: é falha total, não degradação.
+    montarDependencias({ db: { count: null, error: { message: "boom" } } });
+    const { response, data } = await chamar();
+
+    expect(response.status).toBe(503);
+    expect(data.status).toBe("unhealthy");
+    expect(data.services.database.status).toBe("down");
+  });
+
+  it("responde unhealthy quando a base de dados lança excepção", async () => {
+    montarDependencias({ db: "lanca" });
+    const { response, data } = await chamar();
+
+    expect(response.status).toBe(503);
+    expect(data.status).toBe("unhealthy");
+  });
+
+  it("trata count nulo sem erro como base de dados em baixo", async () => {
+    montarDependencias({ db: { count: null, error: null } });
+    const { data } = await chamar();
+
+    expect(data.services.database.status).toBe("down");
+  });
+
+  it("responde degraded com 200 quando só o Redis está em baixo", async () => {
+    // O site continua a servir anúncios sem cache: degradado, não fora de serviço.
+    montarDependencias({ redisOk: false });
+    const { response, data } = await chamar();
 
     expect(response.status).toBe(200);
     expect(data.status).toBe("degraded");
-    expect(data.services.database).toBe("error");
+    expect(data.services.redis.status).toBe("down");
   });
 
-  it("deve retornar status degraded quando base de dados lanca excepcao", async () => {
-    vi.doMock("@/lib/supabase-admin", () => ({
-      supabase: {
-        from: vi.fn().mockReturnValue({
-          select: vi.fn().mockRejectedValue(new Error("Network failure")),
-        }),
-      },
-    }));
+  it("responde degraded quando o Stripe está em baixo", async () => {
+    montarDependencias({ stripeOk: false });
+    const { data } = await chamar();
 
-    const routeModule = await import("@/app/api/health/route");
-    GET = routeModule.GET;
-
-    const response = await GET();
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
     expect(data.status).toBe("degraded");
-    expect(data.services.database).toBe("error");
+    expect(data.services.stripe.status).toBe("down");
   });
 
-  it("deve retornar status degraded quando count e null sem erro", async () => {
-    vi.doMock("@/lib/supabase-admin", () => ({
-      supabase: {
-        from: vi.fn().mockReturnValue({
-          select: vi.fn().mockResolvedValue({ count: null, error: null }),
-        }),
-      },
-    }));
+  it("responde degraded quando o Resend está em baixo", async () => {
+    montarDependencias({ resendOk: false });
+    const { data } = await chamar();
 
-    const routeModule = await import("@/app/api/health/route");
-    GET = routeModule.GET;
-
-    const response = await GET();
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
     expect(data.status).toBe("degraded");
-    expect(data.services.database).toBe("error");
   });
 
-  it("deve incluir timestamp em formato ISO", async () => {
-    vi.doMock("@/lib/supabase-admin", () => ({
-      supabase: {
-        from: vi.fn().mockReturnValue({
-          select: vi.fn().mockResolvedValue({ count: 5, error: null }),
-        }),
-      },
-    }));
+  it("inclui um timestamp em formato ISO", async () => {
+    montarDependencias();
+    const { data } = await chamar();
 
-    const routeModule = await import("@/app/api/health/route");
-    GET = routeModule.GET;
-
-    const response = await GET();
-    const data = await response.json();
-
-    // Validate ISO timestamp format
-    const parsed = new Date(data.timestamp);
-    expect(parsed.toISOString()).toBe(data.timestamp);
+    expect(data.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+    expect(new Date(data.timestamp).toString()).not.toBe("Invalid Date");
   });
 
-  it("deve retornar uptime como numero positivo", async () => {
-    vi.doMock("@/lib/supabase-admin", () => ({
-      supabase: {
-        from: vi.fn().mockReturnValue({
-          select: vi.fn().mockResolvedValue({ count: 5, error: null }),
-        }),
-      },
-    }));
+  it("inclui a versão da aplicação", async () => {
+    montarDependencias();
+    const { data } = await chamar();
 
-    const routeModule = await import("@/app/api/health/route");
-    GET = routeModule.GET;
-
-    const response = await GET();
-    const data = await response.json();
-
-    expect(typeof data.uptime).toBe("number");
-    expect(data.uptime).toBeGreaterThanOrEqual(0);
+    expect(typeof data.version).toBe("string");
+    expect(data.version.length).toBeGreaterThan(0);
   });
 });

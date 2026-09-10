@@ -2,15 +2,21 @@ import type { Metadata } from "next";
 import { BreadcrumbSchema, CollectionPageSchema, FAQSchema } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/constants";
 
+/* A descrição desta página prometia «linhagem certificada APSL, veterinário
+   verificado e entrega segura», e ia repetida quatro vezes — metadados,
+   OpenGraph, Twitter e o `CollectionPageSchema`. Nenhuma das três se sustenta:
+   ninguém confronta a linhagem com o stud-book, não há veterinário nenhum a
+   ver os anúncios, e o portal não entrega cavalos — nem sequer recebe o
+   dinheiro deles. Uma descrição de resultado de pesquisa é a primeira coisa
+   que alguém lê sobre o site, e é a mais barata de escrever a mentir. */
 export const metadata: Metadata = {
   title: "Comprar Cavalo Lusitano",
   description:
-    "Cavalos Lusitanos à venda em Portugal. Exemplares seleccionados com linhagem certificada APSL, veterinário verificado e entrega segura.",
+    "Cavalos Lusitanos à venda em Portugal, anunciados directamente pelos criadores e proprietários. Contacto directo, sem intermediários.",
   keywords: [
     "comprar cavalo lusitano",
     "cavalos à venda portugal",
     "PSL venda",
-    "lusitanos certificados",
     "cavalos dressage venda",
     "compra cavalos",
   ],
@@ -26,7 +32,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Comprar Cavalo Lusitano | Portal Lusitano",
     description:
-      "Cavalos Lusitanos à venda em Portugal. Exemplares seleccionados com linhagem certificada APSL, veterinário verificado e entrega segura.",
+      "Cavalos Lusitanos à venda em Portugal, anunciados directamente pelos criadores e proprietários. Contacto directo, sem intermediários.",
     url: `${SITE_URL}/comprar`,
     siteName: "Portal Lusitano",
     locale: "pt_PT",
@@ -44,7 +50,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Comprar Cavalo Lusitano | Portal Lusitano",
     description:
-      "Cavalos Lusitanos à venda em Portugal. Exemplares seleccionados com linhagem certificada APSL, veterinário verificado e entrega segura.",
+      "Cavalos Lusitanos à venda em Portugal, anunciados directamente pelos criadores e proprietários. Contacto directo, sem intermediários.",
     images: ["/opengraph-image"],
   },
 };
@@ -60,7 +66,7 @@ export default function ComprarLayout({ children }: { children: React.ReactNode 
       />
       <CollectionPageSchema
         name="Comprar Cavalo Lusitano"
-        description="Cavalos Lusitanos à venda em Portugal. Exemplares seleccionados com linhagem certificada APSL, veterinário verificado e entrega segura."
+        description="Cavalos Lusitanos à venda em Portugal, anunciados directamente pelos criadores e proprietários. Contacto directo, sem intermediários."
         url={`${SITE_URL}/comprar`}
       />
       <FAQSchema
@@ -72,8 +78,13 @@ export default function ComprarLayout({ children }: { children: React.ReactNode 
           },
           {
             question: "Os cavalos são verificados?",
+            // A resposta anterior escapava-se pela tangente — «incluem
+            // informação de linhagem APSL quando disponível» — e deixava a
+            // pergunta sem resposta. Quem a faz quer saber uma coisa só, e a
+            // resposta honesta é «não»; dizê-la antes de tudo o resto é o que
+            // torna útil o conselho que vem a seguir.
             answer:
-              "Os anúncios incluem informação de linhagem APSL quando disponível. Recomendamos sempre uma inspecção veterinária presencial antes da compra.",
+              "Não. Tudo o que está num anúncio — linhagem, medidas, historial e documentação — é declarado pelo vendedor, e o Portal Lusitano não o confirma junto da APSL nem de nenhum stud-book. Peça sempre para ver o Livro Azul e o passaporte do cavalo, e faça uma inspecção veterinária presencial antes de comprar.",
           },
           {
             question: "Quanto custa um cavalo Lusitano?",

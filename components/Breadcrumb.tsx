@@ -5,6 +5,7 @@
 // Removing "use client" means the nav skeleton renders in the SSR payload
 // instead of being deferred to client hydration.
 import LocalizedLink from "@/components/LocalizedLink";
+import { serializarJsonLd } from "@/lib/json-ld";
 
 export interface BreadcrumbItem {
   label: string;
@@ -36,9 +37,9 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
     <nav aria-label="Breadcrumb" className="mb-6">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializarJsonLd(jsonLd) }}
       />
-      <ol className="flex flex-wrap items-center gap-1.5 text-xs uppercase tracking-widest">
+      <ol className="flex flex-wrap items-center gap-1.5 text-xs uppercase tracking-wider">
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
 
@@ -53,7 +54,7 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
               {item.href && !isLast ? (
                 <LocalizedLink
                   href={item.href}
-                  className="text-[var(--foreground-muted)] hover:text-[var(--gold)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--gold)]"
+                  className="text-[var(--foreground-muted)] hover:text-[var(--foreground-strong)] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--gold)]"
                 >
                   {item.label}
                 </LocalizedLink>
