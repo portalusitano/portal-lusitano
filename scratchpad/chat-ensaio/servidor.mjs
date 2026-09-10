@@ -38,7 +38,16 @@
  *   NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54992 npx next build && npx next start
  */
 import http from "node:http";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { construir, EU, CAVALOS, PERFIS } from "./dados.mjs";
+
+/** As vinte coudelarias do banco de ensaio. Ver o README: os nomes, as terras
+    e os contactos saem dos seeds do repositório; o resto está a nulo de
+    propósito, porque um campo em falta não é o mesmo que um campo inventado. */
+const COUDELARIAS = JSON.parse(
+  readFileSync(path.join(import.meta.dirname, "..", "coudelarias-ensaio.json"), "utf8")
+);
 
 const PORTA = Number(process.env.PORTA || 54992);
 const VAZIO = process.env.VAZIO === "1";
@@ -54,7 +63,11 @@ const TABELAS = {
   marketplace_conversas: conversas.map(({ _porLer, ...c }) => c),
   marketplace_mensagens: mensagens,
   cavalos_venda: CAVALOS,
-  coudelarias: [],
+  /* As coudelarias vêm do `scratchpad/coudelarias-ensaio.json`, que é o
+     ficheiro que o `CLAUDE.md` nomeia. Sem elas o `next build` gera zero
+     fichas — e como a ficha tem `dynamicParams = false`, uma lista vazia
+     publica-as todas a 404 sem um aviso. */
+  coudelarias: COUDELARIAS,
   /* Os perfis das pessoas do ensaio.
      A gama, e é de propósito: com nome e com fotografia · com nome e sem
      fotografia · **sem nome nenhum** (que é quem exercita a cadeia antiga do
