@@ -122,7 +122,7 @@ describe.skipIf(!disponivel)("a migração do perfil contra um PostgreSQL local"
        transforma isso numa excepção aqui. O que se afirma abaixo é o **número**
        de provas, para que ninguém possa apagar metade do ficheiro e continuar
        verde. */
-    expect(provas).toContain("perfil: 20 provas, 0 falhas");
+    expect(provas).toContain("perfil: 23 provas, 0 falhas");
 
     psql(["-d", "postgres", "-c", `DROP DATABASE IF EXISTS ${BASE_ANTES}`]);
     psql(["-d", "postgres", "-c", `DROP DATABASE IF EXISTS ${BASE_DEPOIS}`]);
