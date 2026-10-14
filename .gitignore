@@ -60,3 +60,7 @@ next-env.d.ts
 # claude worktrees
 .claude/worktrees/
 .claude/plans/
+
+# Capturas de ensaio escritas por um guiao com a variavel do caminho por
+# preencher. Nao sao do produto.
+undefined/
