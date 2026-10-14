@@ -26,8 +26,16 @@ a dar erro **e as falhas abertas**.
 
 ### Passo 1 — as 17 migrações, por esta ordem
 
-No editor de SQL do Supabase, uma a uma, por ordem de nome. Todas são
-idempotentes: correr outra vez é seguro.
+**O caminho mais simples:** cole o ficheiro
+`supabase/APLICAR-EM-PRODUCAO.sql` inteiro no editor de SQL do Supabase e corra
+uma vez. Traz as dezassete pela ordem certa, **dentro de uma só transacção** —
+se alguma falhar, nada fica aplicado e a base fica exactamente como estava. No
+fim imprime três números de confirmação, que têm de dar **3, 2 e 0**.
+
+Ensaiado: aplicado três voltas seguidas contra um PostgreSQL a sério, zero
+erros nas três, confirmação `3 2 0` nas três.
+
+Se preferir uma a uma, é esta a ordem (todas idempotentes, repetir é seguro):
 
 ```
 20260829000001_cavalos_venda_user_id.sql
