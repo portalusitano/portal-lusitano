@@ -1,3 +1,17 @@
+-- ─────────────────────────────────────────────────────────────────────────
+-- Tornada idempotente em 2026-10-14.
+--
+-- As nove políticas eram `CREATE POLICY` sem o `DROP POLICY IF EXISTS` à
+-- frente, e as tabelas e índices já eram `IF NOT EXISTS`. Resultado: esta
+-- migração corria bem à primeira e rebentava com nove erros à segunda, o que
+-- contraria a regra desta casa — migrações têm de ser idempotentes.
+--
+-- Apanhado ao aplicar em produção: a base de produção nunca tinha corrido esta
+-- migração (a `user_profiles` não existia), e a migração do perfil com
+-- fotografia parou a transacção inteira a dizê-lo. Para a poder pôr à frente
+-- das outras no mesmo ficheiro, tinha de poder correr duas vezes.
+-- ─────────────────────────────────────────────────────────────────────────
+
 -- ============================================
 -- Portal Lusitano: User Auth & Tools Tables
 -- ============================================
@@ -49,26 +63,35 @@ ALTER TABLE public.tool_usage ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.saved_results ENABLE ROW LEVEL SECURITY;
 
 -- Users can read/update their own profile
+DROP POLICY IF EXISTS "Users can view own profile" ON public.user_profiles;
 CREATE POLICY "Users can view own profile" ON public.user_profiles
   FOR SELECT USING (auth.uid() = id);
+DROP POLICY IF EXISTS "Users can update own profile" ON public.user_profiles;
 CREATE POLICY "Users can update own profile" ON public.user_profiles
   FOR UPDATE USING (auth.uid() = id);
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.user_profiles;
 CREATE POLICY "Users can insert own profile" ON public.user_profiles
   FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- Users can read/insert their own tool usage
+DROP POLICY IF EXISTS "Users can view own usage" ON public.tool_usage;
 CREATE POLICY "Users can view own usage" ON public.tool_usage
   FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert own usage" ON public.tool_usage;
 CREATE POLICY "Users can insert own usage" ON public.tool_usage
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Users can manage their own saved results
+DROP POLICY IF EXISTS "Users can view own results" ON public.saved_results;
 CREATE POLICY "Users can view own results" ON public.saved_results
   FOR SELECT USING (auth.uid() = user_id OR is_public = TRUE);
+DROP POLICY IF EXISTS "Users can insert own results" ON public.saved_results;
 CREATE POLICY "Users can insert own results" ON public.saved_results
   FOR INSERT WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can update own results" ON public.saved_results;
 CREATE POLICY "Users can update own results" ON public.saved_results
   FOR UPDATE USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can delete own results" ON public.saved_results;
 CREATE POLICY "Users can delete own results" ON public.saved_results
   FOR DELETE USING (auth.uid() = user_id);
 
