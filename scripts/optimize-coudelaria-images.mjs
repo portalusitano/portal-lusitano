@@ -96,9 +96,7 @@ async function main() {
   let totalSaved = 0;
 
   for (const subdir of subdirs) {
-    const result = await processDirectory(
-      path.join(COUDELARIAS_DIR, subdir.name)
-    );
+    const result = await processDirectory(path.join(COUDELARIAS_DIR, subdir.name));
     totalConverted += result.converted;
     totalSaved += result.savedBytes;
   }
@@ -106,9 +104,7 @@ async function main() {
   console.log("\n" + "=".repeat(50));
   console.log(`✅ Concluído!`);
   console.log(`   Imagens convertidas: ${totalConverted}`);
-  console.log(
-    `   Espaço poupado: ${(totalSaved / 1024 / 1024).toFixed(1)}MB`
-  );
+  console.log(`   Espaço poupado: ${(totalSaved / 1024 / 1024).toFixed(1)}MB`);
   console.log("=".repeat(50));
 }
 

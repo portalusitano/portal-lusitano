@@ -43,7 +43,7 @@ export default function TasksList({
   const dateTasks = selectedDate ? getTasksForDate(selectedDate) : [];
 
   return (
-    <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+    <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-white">
           {selectedDate
@@ -55,7 +55,7 @@ export default function TasksList({
         </h3>
         <button
           onClick={onAddTask}
-          className="p-2 bg-[#C5A059] hover:bg-[#d4b469] rounded-lg transition-colors"
+          className="p-2 bg-[var(--gold)] hover:bg-[var(--gold-hover)] rounded-lg transition-colors"
         >
           <Plus className="text-black" size={16} />
         </button>

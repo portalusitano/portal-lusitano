@@ -3,28 +3,31 @@
  * Compatível com md-to-pdf v5.x
  */
 
-const fs = require('fs');
-const path = require('path');
-const { mdToPdf } = require('md-to-pdf');
+const fs = require("fs");
+const path = require("path");
+const { mdToPdf } = require("md-to-pdf");
 
 async function generateEbookPDF() {
   try {
-    console.log('📚 Gerando PDF do Ebook...\n');
+    console.log("📚 Gerando PDF do Ebook...\n");
 
     // Paths
-    const markdownPath = path.join(__dirname, '../public/ebooks/04-INTRODUCAO-LUSITANO/EBOOK-COMPLETO.md');
-    const outputDir = path.join(__dirname, '../public/downloads');
-    const outputPath = path.join(outputDir, 'introducao-lusitano.pdf');
-    const cssPath = path.join(__dirname, 'ebook-style.css');
+    const markdownPath = path.join(
+      __dirname,
+      "../public/ebooks/04-INTRODUCAO-LUSITANO/EBOOK-COMPLETO.md"
+    );
+    const outputDir = path.join(__dirname, "../public/downloads");
+    const outputPath = path.join(outputDir, "introducao-lusitano.pdf");
+    const cssPath = path.join(__dirname, "ebook-style.css");
 
     // Ensure output directory exists
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
-      console.log('✅ Pasta criada: public/downloads/\n');
+      console.log("✅ Pasta criada: public/downloads/\n");
     }
 
     // Read markdown
-    let markdownContent = fs.readFileSync(markdownPath, 'utf-8');
+    let markdownContent = fs.readFileSync(markdownPath, "utf-8");
 
     // Add cover page at the beginning
     const coverPage = `
@@ -41,7 +44,7 @@ async function generateEbookPDF() {
 
     markdownContent = coverPage + markdownContent;
 
-    console.log('📄 Processando markdown...');
+    console.log("📄 Processando markdown...");
 
     // Generate PDF with inline configuration
     const pdf = await mdToPdf(
@@ -49,12 +52,12 @@ async function generateEbookPDF() {
       {
         dest: outputPath,
         pdf_options: {
-          format: 'A4',
+          format: "A4",
           margin: {
-            top: '25mm',
-            right: '20mm',
-            bottom: '25mm',
-            left: '20mm',
+            top: "25mm",
+            right: "20mm",
+            bottom: "25mm",
+            left: "20mm",
           },
           printBackground: true,
         },
@@ -166,26 +169,25 @@ async function generateEbookPDF() {
           }
         `,
         launch_options: {
-          headless: 'new',
-          args: ['--no-sandbox', '--disable-setuid-sandbox'],
+          headless: "new",
+          args: ["--no-sandbox", "--disable-setuid-sandbox"],
         },
       }
     );
 
-    console.log('\n✅ PDF gerado com sucesso!');
-    console.log('📍 Localização:', outputPath);
+    console.log("\n✅ PDF gerado com sucesso!");
+    console.log("📍 Localização:", outputPath);
 
     const stats = fs.statSync(outputPath);
     const fileSizeInMB = (stats.size / (1024 * 1024)).toFixed(2);
-    console.log('📊 Tamanho:', fileSizeInMB, 'MB');
+    console.log("📊 Tamanho:", fileSizeInMB, "MB");
 
-    console.log('\n🎉 Pronto! O ebook pode ser descarregado em:');
-    console.log('   http://localhost:3000/downloads/introducao-lusitano.pdf');
-
+    console.log("\n🎉 Pronto! O ebook pode ser descarregado em:");
+    console.log("   http://localhost:3000/downloads/introducao-lusitano.pdf");
   } catch (error) {
-    console.error('\n❌ Erro ao gerar PDF:', error.message);
-    console.error('\nDica: Certifica-te que tens md-to-pdf instalado:');
-    console.error('npm install --save-dev md-to-pdf');
+    console.error("\n❌ Erro ao gerar PDF:", error.message);
+    console.error("\nDica: Certifica-te que tens md-to-pdf instalado:");
+    console.error("npm install --save-dev md-to-pdf");
     process.exit(1);
   }
 }

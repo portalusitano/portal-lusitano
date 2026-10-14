@@ -24,10 +24,10 @@ export default function OverviewCards({ data }: OverviewCardsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       {/* Receita Total */}
-      <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+      <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-medium text-gray-400">Receita Total</h3>
-          <DollarSign className="text-[#C5A059]" size={20} />
+          <DollarSign className="text-[var(--gold)]" size={20} />
         </div>
         <p className="text-3xl font-bold text-white">
           €
@@ -40,7 +40,7 @@ export default function OverviewCards({ data }: OverviewCardsProps) {
       </div>
 
       {/* Receita Este Mês */}
-      <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+      <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-medium text-gray-400">Este Mês</h3>
           <TrendingUp className="text-green-500" size={20} />
@@ -63,10 +63,10 @@ export default function OverviewCards({ data }: OverviewCardsProps) {
       </div>
 
       {/* MRR */}
-      <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+      <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-medium text-gray-400">MRR</h3>
-          <Repeat className="text-[#C5A059]" size={20} />
+          <Repeat className="text-[var(--gold)]" size={20} />
         </div>
         <p className="text-3xl font-bold text-white">
           €
@@ -79,10 +79,10 @@ export default function OverviewCards({ data }: OverviewCardsProps) {
       </div>
 
       {/* Transações */}
-      <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+      <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-medium text-gray-400">Transações</h3>
-          <ShoppingCart className="text-[#C5A059]" size={20} />
+          <ShoppingCart className="text-[var(--gold)]" size={20} />
         </div>
         <p className="text-3xl font-bold text-white">{data.overview.totalTransactions}</p>
         <p className="text-xs text-gray-500 mt-1">

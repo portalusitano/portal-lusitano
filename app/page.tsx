@@ -1,46 +1,43 @@
+import { supabase } from "@/lib/supabase-admin";
+import { LISTING_STATUS, filtroNaoExpirado, normalizeListing } from "@/lib/marketplace-listings";
+import { logger } from "@/lib/logger";
 import HomeContent from "@/components/HomeContent";
-import { getProducts } from "@/lib/shopify";
-import { supabasePublic } from "@/lib/supabase-admin";
-import type { HomeProfissional } from "@/components/HomeContent";
 
-// ISR: Revalidate homepage every hour
-export const revalidate = 3600;
+// ISR: a homepage mostra anúncios reais, que mudam ao longo do dia.
+export const revalidate = 900;
 
 export default async function HomePage() {
-  const [allProducts, profResult] = await Promise.allSettled([
-    getProducts(),
-    supabasePublic
-      .from("profissionais")
-      .select("id, nome, slug, tipo, especialidade, cidade, distrito, foto_perfil_url, rating_average, rating_count, verificado, destaque")
-      .eq("status", "aprovado")
-      .is("deleted_at", null)
-      .order("destaque", { ascending: false })
-      .order("rating_average", { ascending: false })
-      .limit(4),
-  ]);
+  const agora = new Date();
 
-  const allProductsList = allProducts.status === "fulfilled" ? allProducts.value : [];
-  const HIDDEN = new Set(["the-crest-case-signature", "the-crest-case-•-signature"]);
-  const products = allProductsList.filter(
-    (p) => !HIDDEN.has(p.handle ?? "") && !p.title.toLowerCase().includes("crest case")
+  // Em destaque primeiro, depois os mais recentes. Uma única query serve as duas
+  // secções: o catálogo é pequeno e ordenar em memória evita um segundo round-trip.
+  const { data, error } = await supabase
+    .from("cavalos_venda")
+    .select("*")
+    .in("status", [LISTING_STATUS.ACTIVE, LISTING_STATUS.RESERVADO])
+    .order("destaque", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(24);
+
+  if (error) {
+    logger.error("[HomePage] Supabase error:", error);
+  }
+
+  const anuncios = (data || [])
+    .map((row) => normalizeListing(row, agora))
+    .filter((a) => !a.expirado);
+
+  const { count: totalAtivos } = await supabase
+    .from("cavalos_venda")
+    .select("id", { count: "exact", head: true })
+    .eq("status", LISTING_STATUS.ACTIVE)
+    .or(filtroNaoExpirado(agora));
+
+  return (
+    <HomeContent
+      destaques={anuncios.filter((a) => a.destaque).slice(0, 3)}
+      recentes={anuncios.slice(0, 8)}
+      totalAtivos={totalAtivos ?? anuncios.length}
+    />
   );
-  const featuredProduct = products[0] ?? null;
-
-  const rawProfs = profResult.status === "fulfilled" ? (profResult.value.data ?? []) : [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const profissionais: HomeProfissional[] = rawProfs.map((r: any) => ({
-    id: r.id,
-    nome: r.nome ?? "",
-    especialidade: r.especialidade ?? r.tipo ?? "",
-    categoria: r.tipo ?? "",
-    localizacao: [r.cidade, r.distrito].filter(Boolean).join(", ") || "Portugal",
-    avaliacao: r.rating_average ?? 0,
-    numAvaliacoes: r.rating_count ?? 0,
-    fotoUrl: r.foto_perfil_url ?? null,
-    nivelVerificacao: r.verificado ? "verificado" : "basico",
-    destaque: r.destaque ?? false,
-    slug: r.slug ?? r.id,
-  }));
-
-  return <HomeContent featuredProduct={featuredProduct} profissionais={profissionais} />;
 }

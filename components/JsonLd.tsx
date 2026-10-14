@@ -1,5 +1,7 @@
 // Componentes de JSON-LD para SEO estruturado
 
+import { serializarJsonLd } from "@/lib/json-ld";
+
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://portal-lusitano.pt";
 
 // Schema da Organizacao
@@ -24,7 +26,7 @@ export function OrganizationSchema() {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -49,7 +51,7 @@ export function WebsiteSchema() {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -81,26 +83,20 @@ export function ProductSchema({
     description,
     image,
     sku,
-    brand: {
-      "@type": "Brand",
-      name: "Portal Lusitano",
-    },
+    brand: { "@type": "Brand", name: "Portal Lusitano" },
     offers: {
       "@type": "Offer",
       price,
       priceCurrency: currency,
       availability: `https://schema.org/${availability}`,
-      seller: {
-        "@type": "Organization",
-        name: "Portal Lusitano",
-      },
+      seller: { "@type": "Organization", name: "Portal Lusitano" },
     },
   };
 
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -139,23 +135,12 @@ export function ArticleSchema({
     datePublished,
     dateModified: dateModified || datePublished,
     author: isNamedAuthor
-      ? {
-          "@type": "Person",
-          name: author,
-          ...(authorUrl ? { url: authorUrl } : {}),
-        }
-      : {
-          "@type": "Organization",
-          name: "Portal Lusitano",
-          url: siteUrl,
-        },
+      ? { "@type": "Person", name: author, ...(authorUrl ? { url: authorUrl } : {}) }
+      : { "@type": "Organization", name: "Portal Lusitano", url: siteUrl },
     publisher: {
       "@type": "Organization",
       name: "Portal Lusitano",
-      logo: {
-        "@type": "ImageObject",
-        url: `${siteUrl}/logo.png`,
-      },
+      logo: { "@type": "ImageObject", url: `${siteUrl}/logo.png` },
     },
     ...(estimatedReadTime ? { timeRequired: `PT${estimatedReadTime}M` } : {}),
     // SpeakableSpecification: permite ao Google Assistant ler partes do artigo em voz alta
@@ -172,7 +157,7 @@ export function ArticleSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -198,7 +183,7 @@ export function BreadcrumbSchema({ items }: { items: BreadcrumbItem[] }) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -216,17 +201,14 @@ export function FAQSchema({ items }: { items: FAQItem[] }) {
     mainEntity: items.map((item) => ({
       "@type": "Question",
       name: item.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.answer,
-      },
+      acceptedAnswer: { "@type": "Answer", text: item.answer },
     })),
   };
 
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -267,20 +249,9 @@ export function EventSchema({
       ? "https://schema.org/OfflineEventAttendanceMode"
       : "https://schema.org/OnlineEventAttendanceMode",
     location: location
-      ? {
-          "@type": "Place",
-          name: location,
-          address: address || location,
-        }
-      : {
-          "@type": "VirtualLocation",
-          url: siteUrl,
-        },
-    organizer: {
-      "@type": "Organization",
-      name: organizer,
-      url: siteUrl,
-    },
+      ? { "@type": "Place", name: location, address: address || location }
+      : { "@type": "VirtualLocation", url: siteUrl },
+    organizer: { "@type": "Organization", name: organizer, url: siteUrl },
     image,
     offers: price
       ? {
@@ -295,7 +266,7 @@ export function EventSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -330,11 +301,7 @@ export function LocalBusinessSchema({
     "@id": `${siteUrl}/directorio/${name.toLowerCase().replace(/\s+/g, "-")}`,
     name,
     description,
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: address,
-      addressCountry: "PT",
-    },
+    address: { "@type": "PostalAddress", addressLocality: address, addressCountry: "PT" },
     telephone,
     email,
     url: website || siteUrl,
@@ -349,18 +316,32 @@ export function LocalBusinessSchema({
             worstRating: 1,
           }
         : undefined,
-    priceRange: "€€€",
+    /* Não se publica um `priceRange`.
+       Estava aqui `"€€€"` fixo, em todas as coudelarias — uma afirmação
+       sobre preços que ninguém introduziu e que ninguém verificou, emitida
+       em `schema.org` para a Google a ler e mostrar. Ou vem de um dado real
+       ou não vai. */
   };
 
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
 
 // Schema de Cavalo à Venda
+/**
+ * O que se pode dizer ao Google sobre a disponibilidade de um anúncio.
+ *
+ * Estava fixo em `InStock`, e por isso um cavalo já vendido — cuja ficha
+ * continua a abrir de propósito, para o link que já circulou não morrer —
+ * aparecia nos resultados como disponível. Quem decide é a página, que é a
+ * única que sabe se o prazo acabou ou se o cavalo foi vendido.
+ */
+export type DisponibilidadeAnuncio = "InStock" | "SoldOut" | "Discontinued";
+
 interface HorseSchemaProps {
   name: string;
   description: string;
@@ -369,8 +350,14 @@ interface HorseSchemaProps {
   breed?: string;
   age?: number;
   color?: string;
+  /**
+   * Quem vende. Sem isto o esquema dizia que o vendedor era o Portal Lusitano,
+   * que não vende cavalo nenhum — é um classificados, e a página inicial
+   * promete «sem intermediários».
+   */
   seller?: string;
   location?: string;
+  availability?: DisponibilidadeAnuncio;
 }
 
 export function HorseSchema({
@@ -383,6 +370,7 @@ export function HorseSchema({
   color,
   seller,
   location,
+  availability = "InStock",
 }: HorseSchemaProps) {
   const schema = {
     "@context": "https://schema.org",
@@ -390,10 +378,7 @@ export function HorseSchema({
     name,
     description,
     image,
-    brand: {
-      "@type": "Brand",
-      name: breed,
-    },
+    brand: { "@type": "Brand", name: breed },
     category: "Horses",
     additionalProperty: [
       age ? { "@type": "PropertyValue", name: "Age", value: `${age} years` } : null,
@@ -404,19 +389,19 @@ export function HorseSchema({
       "@type": "Offer",
       price: price || undefined,
       priceCurrency: "EUR",
-      availability: "https://schema.org/InStock",
-      seller: {
-        "@type": "Organization",
-        name: seller || "Portal Lusitano",
-        address: location,
-      },
+      availability: `https://schema.org/${availability}`,
+      // Sem nome de vendedor não se inventa um: o `Place` diz onde o cavalo
+      // está, que é o que a página sabe mesmo. Pôr aqui o nome do site era
+      // declarar que o portal é o vendedor.
+      seller: seller ? { "@type": "Person", name: seller } : undefined,
+      availableAtOrFrom: location ? { "@type": "Place", name: location } : undefined,
     },
   };
 
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -457,7 +442,7 @@ export function ItemListSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -476,18 +461,14 @@ export function CollectionPageSchema({ name, description, url }: CollectionPageS
     name,
     description,
     url,
-    isPartOf: {
-      "@type": "WebSite",
-      name: "Portal Lusitano",
-      url: siteUrl,
-    },
+    isPartOf: { "@type": "WebSite", name: "Portal Lusitano", url: siteUrl },
     inLanguage: "pt-PT",
   };
 
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -508,23 +489,15 @@ export function WebApplicationSchema({ name, description, url }: WebApplicationS
     url,
     applicationCategory: "UtilityApplication",
     operatingSystem: "Any",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "EUR",
-    },
-    provider: {
-      "@type": "Organization",
-      name: "Portal Lusitano",
-      url: siteUrl,
-    },
+    offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
+    provider: { "@type": "Organization", name: "Portal Lusitano", url: siteUrl },
     inLanguage: "pt-PT",
   };
 
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -543,10 +516,7 @@ export function MedicalWebPageSchema() {
       "@type": "MedicalCondition",
       name: "Piroplasmose Equina",
       alternateName: ["Equine Piroplasmosis", "Babesiose Equina"],
-      associatedAnatomy: {
-        "@type": "AnatomicalStructure",
-        name: "Sangue (eritrócitos)",
-      },
+      associatedAnatomy: { "@type": "AnatomicalStructure", name: "Sangue (eritrócitos)" },
       cause: [
         { "@type": "InfectiveAgent", name: "Theileria equi" },
         { "@type": "InfectiveAgent", name: "Babesia caballi" },
@@ -557,17 +527,13 @@ export function MedicalWebPageSchema() {
       audienceType: "Veterinários, Proprietários de Cavalos",
     },
     inLanguage: "pt-PT",
-    publisher: {
-      "@type": "Organization",
-      name: "Portal Lusitano",
-      url: siteUrl,
-    },
+    publisher: { "@type": "Organization", name: "Portal Lusitano", url: siteUrl },
   };
 
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -597,11 +563,7 @@ export function DefinedTermSetSchema({
     description,
     url,
     inLanguage: "pt-PT",
-    publisher: {
-      "@type": "Organization",
-      name: "Portal Lusitano",
-      url: siteUrl,
-    },
+    publisher: { "@type": "Organization", name: "Portal Lusitano", url: siteUrl },
     hasDefinedTerm: terms.map((term) => ({
       "@type": "DefinedTerm",
       name: term.name,
@@ -614,7 +576,7 @@ export function DefinedTermSetSchema({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -627,14 +589,8 @@ export function BookSchema() {
     name: "Introdução ao Cavalo Lusitano",
     description:
       "O guia essencial para quem quer conhecer a raça mais nobre da Península Ibérica. História, linhagens, cuidados e dicas para compradores.",
-    author: {
-      "@type": "Organization",
-      name: "Portal Lusitano",
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "Portal Lusitano",
-    },
+    author: { "@type": "Organization", name: "Portal Lusitano" },
+    publisher: { "@type": "Organization", name: "Portal Lusitano" },
     inLanguage: "pt",
     bookFormat: "https://schema.org/EBook",
     isAccessibleForFree: true,
@@ -651,7 +607,7 @@ export function BookSchema() {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -668,15 +624,8 @@ export function EbookOfferSchema() {
     priceCurrency: "EUR",
     availability: "https://schema.org/InStock",
     url: `${siteUrl}/ebook-gratis`,
-    offeredBy: {
-      "@type": "Organization",
-      name: "Portal Lusitano",
-      url: siteUrl,
-    },
-    eligibleRegion: {
-      "@type": "Place",
-      name: "Worldwide",
-    },
+    offeredBy: { "@type": "Organization", name: "Portal Lusitano", url: siteUrl },
+    eligibleRegion: { "@type": "Place", name: "Worldwide" },
     category: "EBook",
     itemOffered: {
       "@type": "Book",
@@ -690,58 +639,7 @@ export function EbookOfferSchema() {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  );
-}
-
-// Schema de AboutPage (E-E-A-T — sinaliza credibilidade e autoridade ao Google)
-export function AboutPageSchema() {
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "AboutPage",
-    name: "Sobre o Portal Lusitano",
-    url: `${siteUrl}/sobre`,
-    description:
-      "O Portal Lusitano é a plataforma digital mais completa dedicada ao cavalo Lusitano. Marketplace, directório de coudelarias, ferramentas equestres e arquivo editorial.",
-    mainEntity: {
-      "@type": "Organization",
-      name: "Portal Lusitano",
-      url: siteUrl,
-      logo: `${siteUrl}/logo.png`,
-      foundingDate: "2023",
-      description:
-        "Marketplace premium de cavalos Lusitanos. Loja equestre, directório de coudelarias certificadas e arquivo editorial especializado.",
-      location: {
-        "@type": "Place",
-        name: "Portugal",
-        address: {
-          "@type": "PostalAddress",
-          addressCountry: "PT",
-        },
-      },
-      contactPoint: {
-        "@type": "ContactPoint",
-        contactType: "customer service",
-        availableLanguage: ["Portuguese", "English", "Spanish"],
-      },
-      sameAs: ["https://instagram.com/portal_lusitano", "https://tiktok.com/@portal_lusitano"],
-      knowsAbout: [
-        "Cavalo Lusitano",
-        "Dressage",
-        "Working Equitation",
-        "Atrelagem",
-        "Genealogia Equina",
-        "Raça PSL",
-        "Alta Escola",
-      ],
-    },
-  };
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -773,17 +671,13 @@ export function VideoObjectSchema({
     ...(thumbnailUrl ? { thumbnailUrl } : {}),
     ...(uploadDate ? { uploadDate } : {}),
     ...(duration ? { duration } : {}),
-    publisher: {
-      "@type": "Organization",
-      name: "Portal Lusitano",
-      url: siteUrl,
-    },
+    publisher: { "@type": "Organization", name: "Portal Lusitano", url: siteUrl },
   };
 
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }
@@ -814,28 +708,16 @@ export function EducationalArticleSchema({
     educationalUse: "Reference",
     keywords: keywords.join(", "),
     learningResourceType: "Article",
-    author: {
-      "@type": "Organization",
-      name: "Portal Lusitano",
-      url: siteUrl,
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "Portal Lusitano",
-      url: siteUrl,
-    },
+    author: { "@type": "Organization", name: "Portal Lusitano", url: siteUrl },
+    publisher: { "@type": "Organization", name: "Portal Lusitano", url: siteUrl },
     inLanguage: "pt-PT",
-    isPartOf: {
-      "@type": "WebSite",
-      name: "Portal Lusitano",
-      url: siteUrl,
-    },
+    isPartOf: { "@type": "WebSite", name: "Portal Lusitano", url: siteUrl },
   };
 
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializarJsonLd(schema) }}
     />
   );
 }

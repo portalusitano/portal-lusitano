@@ -23,7 +23,6 @@ import {
   Shield,
   Map,
   Activity,
-  Instagram,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -37,7 +36,6 @@ const MensagensContent = lazy(() => import("@/components/admin-app/MensagensCont
 const CupoesContent = lazy(() => import("@/components/admin-app/CupoesContent"));
 const FinanceiroContent = lazy(() => import("@/components/admin-app/FinanceiroContent"));
 const ReviewsContent = lazy(() => import("@/components/admin-app/ReviewsContent"));
-const InstagramContent = lazy(() => import("@/components/admin-app/InstagramContent"));
 const AnalyticsContent = lazy(() => import("@/components/admin-app/AnalyticsContent"));
 const CalendarioContent = lazy(() => import("@/components/admin-app/CalendarioContent"));
 const TasksContent = lazy(() => import("@/components/admin-app/TasksContent"));
@@ -130,13 +128,6 @@ const MENU_ITEMS: MenuItem[] = [
     icon: MessageSquare,
     emoji: "💬",
     component: DepoimentosContent,
-  },
-  {
-    id: "instagram",
-    title: "Instagram",
-    icon: Instagram,
-    emoji: "📸",
-    component: InstagramContent,
   },
   {
     id: "crm",
@@ -474,8 +465,12 @@ export default function AdminAppPage() {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Search Bar Global + Notifications */}
         <div className="bg-gradient-to-r from-[#0A0A0A] to-[#0F0F0F] border-b border-white/5 px-6 py-4 flex items-center gap-4">
-          <Suspense fallback={null}><GlobalSearch /></Suspense>
-          <Suspense fallback={null}><NotificationCenter /></Suspense>
+          <Suspense fallback={null}>
+            <GlobalSearch />
+          </Suspense>
+          <Suspense fallback={null}>
+            <NotificationCenter />
+          </Suspense>
         </div>
 
         {/* Top Bar com Tabs - Design melhorado */}

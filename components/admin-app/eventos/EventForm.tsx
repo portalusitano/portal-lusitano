@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import ImageUpload from "@/components/ImageUpload";
+import Seleccao from "@/components/ui/Seleccao";
 
 interface Evento {
   id: string;
@@ -111,7 +112,7 @@ export default function EventForm({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Tipo *</label>
-              <select
+              <Seleccao
                 value={formData.tipo}
                 onChange={(e) => onChange({ tipo: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-amber-500 focus:border-amber-500"
@@ -121,7 +122,7 @@ export default function EventForm({
                     {tipo.label}
                   </option>
                 ))}
-              </select>
+              </Seleccao>
             </div>
 
             <div>

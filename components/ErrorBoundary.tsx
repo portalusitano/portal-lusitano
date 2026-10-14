@@ -102,7 +102,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             </div>
 
             {/* Titulo */}
-            <h1 className="text-3xl font-serif text-[var(--foreground)] mb-4">{t.title}</h1>
+            <h1 className="text-3xl text-[var(--foreground)] mb-4">{t.title}</h1>
 
             {/* Descricao */}
             <p className="text-[var(--foreground-secondary)] mb-8">{t.description}</p>
@@ -118,7 +118,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={this.handleRetry}
-                className="inline-flex items-center justify-center gap-2 bg-[var(--gold)] text-black px-6 py-3 text-xs uppercase tracking-widest font-bold hover:bg-white transition-colors"
+                className="btn btn-primario gap-2 rounded-full tracking-wider font-bold hover:bg-white transition-colors"
               >
                 <RefreshCw size={16} />
                 {t.retry}
@@ -126,7 +126,7 @@ export default class ErrorBoundary extends Component<Props, State> {
 
               <LocalizedLink
                 href="/"
-                className="inline-flex items-center justify-center gap-2 border border-[var(--border-hover)] text-[var(--foreground)] px-6 py-3 text-xs uppercase tracking-widest hover:border-[var(--gold)] hover:text-[var(--gold)] transition-colors"
+                className="inline-flex items-center justify-center gap-2 border border-[var(--border-hover)] text-[var(--foreground)] px-6 py-3 text-xs uppercase tracking-wider hover:border-[var(--border-hover)] hover:text-[var(--foreground-strong)] transition-colors"
               >
                 <Home size={16} />
                 {t.home}

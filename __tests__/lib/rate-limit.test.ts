@@ -83,3 +83,47 @@ describe("rateLimit", () => {
     await expect(Promise.all(promises)).resolves.toBeDefined();
   });
 });
+
+/**
+ * ── A capacidade do cache é uma defesa, e por isso tem teste ────────────────
+ *
+ * O `uniqueTokenPerInterval` é o `max` de um `LRUCache`: passada a capacidade, o
+ * LRU deita fora a entrada menos usada, e a entrada que se deita fora é a
+ * contagem de alguém. Quem a perde volta ao orçamento inteiro **sem o tempo
+ * passar**.
+ *
+ * O `strictLimiter` — o que segura o `MAX_CONVERSAS_NOVAS_POR_MINUTO` do chat,
+ * os envios de fotografia de perfil e as denúncias — estava a 100. Cem chaves
+ * por minuto não é um ataque: é um site com cem pessoas a usá-lo.
+ *
+ * O primeiro teste mostra o mecanismo com um cache pequeno de propósito, que é
+ * a reprodução do defeito. O segundo mostra que à capacidade a que os
+ * limitadores estão agora isso não acontece.
+ */
+describe("a capacidade do cache não pode apagar uma contagem", () => {
+  it("com capacidade pequena, as chaves de outros devolvem o orçamento (o defeito)", async () => {
+    const pequeno = rateLimit({ interval: 60000, uniqueTokenPerInterval: 10 });
+
+    await pequeno.check(3, "eu");
+    await pequeno.check(3, "eu");
+    await expect(pequeno.check(3, "eu")).rejects.toThrow();
+
+    for (let i = 0; i < 10; i++) await pequeno.check(3, `outro-${i}`);
+
+    // A minha contagem foi deitada fora: o orçamento voltou do nada.
+    await expect(pequeno.check(3, "eu")).resolves.toBeUndefined();
+  });
+
+  it("à capacidade a que os limitadores estão, não devolve", async () => {
+    const { strictLimiter } = await import("@/lib/rate-limit");
+
+    await strictLimiter.check(3, "capacidade:eu");
+    await strictLimiter.check(3, "capacidade:eu");
+    await expect(strictLimiter.check(3, "capacidade:eu")).rejects.toThrow();
+
+    // Mil chaves diferentes — dez vezes a capacidade que o strictLimiter tinha.
+    for (let i = 0; i < 1000; i++) await strictLimiter.check(3, `capacidade:outro-${i}`);
+
+    await expect(strictLimiter.check(3, "capacidade:eu")).rejects.toThrow();
+  });
+});

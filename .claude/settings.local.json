@@ -203,7 +203,8 @@
       "Bash([ -f \"$comp.ts\" ])",
       "Bash(else)",
       "Bash(do if grep -q \"from.*createApiRoute\\\\|import.*createApiRoute\" \"$file\")",
-      "Bash(then echo \"$file\")"
+      "Bash(then echo \"$file\")",
+      "Bash(npx tsc *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\USUARIO\\portal-lusitano\\locales"

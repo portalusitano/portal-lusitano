@@ -4,10 +4,16 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
+// Ícones derivados dos que o componente importa: uma lista escrita à mão
+// parte sempre que o componente troca de ícone, o que não é regressão.
 vi.mock("lucide-react", () => ({
   Search: (props: Record<string, unknown>) => <svg data-testid="icon-search" {...props} />,
   X: (props: Record<string, unknown>) => <svg data-testid="icon-x" {...props} />,
-  Loader2: (props: Record<string, unknown>) => <svg data-testid="icon-loader" {...props} />,
+  Loader2: (props: Record<string, unknown>) => <svg data-testid="icon-loader2" {...props} />,
+  Clock: (props: Record<string, unknown>) => <svg data-testid="icon-clock" {...props} />,
+  ChevronRight: (props: Record<string, unknown>) => (
+    <svg data-testid="icon-chevronright" {...props} />
+  ),
 }));
 
 vi.mock("next/link", () => ({
@@ -54,10 +60,24 @@ vi.mock("@/context/LanguageContext", () => ({
         placeholder: "Pesquisar...",
         no_results: "Nenhum resultado encontrado",
         search_all: "Pesquisar em tudo",
-        min_chars: "Digite pelo menos 2 caracteres",
+        min_chars: "Escreva pelo menos duas letras",
         recent_searches: "Pesquisas recentes",
+        suggestions: "Ir directamente a",
+        clear: "Limpar",
         navigate: "navegar",
         open: "abrir",
+      },
+      // O painel oferece quatro atalhos enquanto não há o que procurar, e vai
+      // buscar os nomes deles ao dicionário da navegação. Sem estas chaves o
+      // modal rebentava inteiro — que é o que este ficheiro passou a provar,
+      // e é também a razão de o projecto não usar `||` com um literal à
+      // frente: uma chave em falta rebenta aqui, e não no ecrã de quem está a
+      // ler o site noutra língua.
+      nav: {
+        buy_horse: "Encontrar cavalo",
+        sell_horse: "Vender cavalo",
+        studs: "Coudelarias",
+        map_studs: "Mapa de coudelarias",
       },
     },
   }),
@@ -141,9 +161,17 @@ describe("SearchModal", () => {
     expect(screen.getByPlaceholderText("Pesquisar...")).toBeInTheDocument();
   });
 
-  it("shows 'type at least 2 characters' message when query is empty", () => {
+  it("sem nada escrito, oferece atalhos em vez de uma parede", () => {
+    // O ecrã de abertura era uma frase a dizer «escreva mais», que é verdade e
+    // não serve para nada: quem abriu a pesquisa já sabe que tem de escrever.
+    // Agora esse espaço leva a quatro destinos, e a instrução fica em rodapé.
     render(<SearchModal isOpen={true} onClose={vi.fn()} />);
-    expect(screen.getByText("Digite pelo menos 2 caracteres")).toBeInTheDocument();
+
+    expect(screen.getByText("Ir directamente a")).toBeInTheDocument();
+    for (const destino of ["/comprar", "/directorio", "/mapa", "/vender-cavalo"]) {
+      expect(document.querySelector(`a[href="${destino}"]`)).not.toBeNull();
+    }
+    expect(screen.getByText("Escreva pelo menos duas letras")).toBeInTheDocument();
   });
 
   it("calls onClose when Escape is pressed", () => {
@@ -173,7 +201,10 @@ describe("SearchModal", () => {
 
     // Wait for the 300ms debounce and the fetch call
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining("/api/search?q=xa"));
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining("/api/search?q=xa"),
+        expect.anything()
+      );
     });
   });
 

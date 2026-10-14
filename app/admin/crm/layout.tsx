@@ -6,10 +6,6 @@ export const metadata: Metadata = {
   robots: "noindex, nofollow",
 };
 
-export default function CRMLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function CRMLayout({ children }: { children: React.ReactNode }) {
   return children;
 }

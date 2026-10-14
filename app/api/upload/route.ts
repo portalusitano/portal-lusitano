@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+// O cliente partilhado, em vez de um segundo construído aqui com `!` nas
+// variáveis de ambiente: sem elas, aquele rebentava à cabeça do módulo e
+// levava o build atrás.
+import { supabaseAdmin } from "@/lib/supabase-admin";
 import { verifySession } from "@/lib/auth";
 import { strictLimiter } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
-
-// Cliente Supabase com service role para upload
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];

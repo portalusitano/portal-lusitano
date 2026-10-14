@@ -1,6 +1,7 @@
 "use client";
 
 import { Download, FileText } from "lucide-react";
+import Seleccao from "@/components/ui/Seleccao";
 
 interface PDFReportSectionProps {
   selectedMonth: number;
@@ -20,11 +21,11 @@ export default function PDFReportSection({
   onGeneratePDF,
 }: PDFReportSectionProps) {
   return (
-    <div className="bg-gradient-to-r from-[#C5A059]/10 to-[#C5A059]/5 border border-[#C5A059]/20 rounded-lg p-6 mb-8">
+    <div className="bg-gradient-to-r from-[var(--gold)]/10 to-[var(--gold)]/5 border border-[var(--gold)]/20 rounded-lg p-6 mb-8">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-            <FileText className="text-[#C5A059]" size={20} />
+            <FileText className="text-[var(--gold)]" size={20} />
             Relatórios Mensais em PDF
           </h3>
           <p className="text-sm text-gray-400 mt-1">
@@ -39,10 +40,10 @@ export default function PDFReportSection({
           <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
             Mês
           </label>
-          <select
+          <Seleccao
             value={selectedMonth}
             onChange={(e) => onMonthChange(parseInt(e.target.value))}
-            className="w-full px-4 py-2.5 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[#C5A059] transition-colors"
+            className="w-full px-4 py-2.5 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--gold)] transition-colors"
           >
             <option value="1">Janeiro</option>
             <option value="2">Fevereiro</option>
@@ -56,7 +57,7 @@ export default function PDFReportSection({
             <option value="10">Outubro</option>
             <option value="11">Novembro</option>
             <option value="12">Dezembro</option>
-          </select>
+          </Seleccao>
         </div>
 
         {/* Selector de Ano */}
@@ -64,10 +65,10 @@ export default function PDFReportSection({
           <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
             Ano
           </label>
-          <select
+          <Seleccao
             value={selectedYear}
             onChange={(e) => onYearChange(parseInt(e.target.value))}
-            className="w-full px-4 py-2.5 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[#C5A059] transition-colors"
+            className="w-full px-4 py-2.5 bg-black/30 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[var(--gold)] transition-colors"
           >
             {Array.from({ length: 5 }, (_, i) => {
               const year = new Date().getFullYear() - i;
@@ -77,14 +78,14 @@ export default function PDFReportSection({
                 </option>
               );
             })}
-          </select>
+          </Seleccao>
         </div>
 
         {/* Botão Gerar */}
         <button
           onClick={onGeneratePDF}
           disabled={isGeneratingPDF}
-          className="flex-1 flex items-center justify-center gap-2 px-6 py-2.5 bg-[#C5A059] hover:bg-[#d4b469] text-black font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#C5A059]"
+          className="flex-1 flex items-center justify-center gap-2 px-6 py-2.5 bg-[var(--gold)] hover:bg-[var(--gold-hover)] text-black font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[var(--gold)]"
         >
           {isGeneratingPDF ? (
             <>
@@ -101,7 +102,7 @@ export default function PDFReportSection({
       </div>
 
       {/* Info adicional */}
-      <div className="mt-4 pt-4 border-t border-[#C5A059]/20">
+      <div className="mt-4 pt-4 border-t border-[var(--gold)]/20">
         <p className="text-xs text-gray-500">
           O relatório inclui: Resumo Executivo, Receitas por Produto, Top 5 Cavalos Mais Vistos,
           Análise de Leads e ROI por Canal de Marketing

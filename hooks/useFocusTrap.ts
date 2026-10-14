@@ -19,18 +19,37 @@ export function useFocusTrap(
 
     const container = containerRef.current;
 
-    // Focus the first focusable element
-    const focusFirst = () => {
-      const focusable = getFocusableElements(container);
-      if (focusable.length > 0) {
-        focusable[0].focus();
-      } else {
-        container.focus();
+    /**
+     * O foco vai para o **painel**, não para o primeiro comando lá dentro.
+     *
+     * Focava o primeiro elemento focável, e no pedido de cookies esse é a
+     * ligação «Política de Privacidade», a meio de uma frase: quem abria o site
+     * via um anel de foco desenhado à volta de duas palavras de texto corrido,
+     * sem ter carregado em nada. A regra global de foco tem `outline: 2px` com
+     * `8px` de canto, e à volta de uma ligação em linha isso é uma pastilha.
+     *
+     * Focar o painel é também o que serve quem não vê o ecrã: o leitor anuncia
+     * o nome do diálogo e lê-o do princípio, em vez de aterrar a meio, numa
+     * ligação, sem saber o que a rodeia. A partir dali o Tab vai para o
+     * primeiro comando pela ordem natural.
+     *
+     * Quem precisa de focar um campo próprio — a caixa de pesquisa, para se
+     * poder escrever de imediato — fá-lo por sua conta, e continua a poder.
+     */
+    const focarPainel = () => {
+      if (container.tabIndex < 0 && !container.hasAttribute("tabindex")) {
+        container.tabIndex = -1;
       }
+      // Marca-se o que se focou. É o CSS que precisa de saber qual é: um painel
+      // focado por código não desenha anel, porque ninguém lá chega com o Tab e
+      // um rectângulo em volta de tudo o que se está a ler não assinala nada.
+      // Marcar aqui é dizê-lo no único sítio que sabe qual foi.
+      container.setAttribute("data-painel-focado", "");
+      container.focus();
     };
 
-    // Small delay to ensure DOM is ready
-    const timer = requestAnimationFrame(focusFirst);
+    // Um quadro de espera, para o painel já estar no DOM.
+    const timer = requestAnimationFrame(focarPainel);
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && onEscape) {
@@ -63,6 +82,7 @@ export function useFocusTrap(
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
+      container.removeAttribute("data-painel-focado");
       cancelAnimationFrame(timer);
       document.removeEventListener("keydown", handleKeyDown);
       // Restore focus when modal closes

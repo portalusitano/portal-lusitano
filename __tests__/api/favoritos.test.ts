@@ -1,359 +1,268 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
 // ---------------------------------------------------------------------------
-// Mocks
+// Duplos
 // ---------------------------------------------------------------------------
-const mockCookieGet = vi.fn();
 
-vi.mock("next/headers", () => ({
-  cookies: vi.fn().mockResolvedValue({
-    get: (...args: unknown[]) => mockCookieGet(...args),
-  }),
-}));
+/**
+ * Estado partilhado com os duplos.
+ *
+ * Declarado com vi.hoisted porque as fábricas de vi.mock são içadas para o topo
+ * do ficheiro e não conseguem ver constantes declaradas normalmente.
+ */
+const estado = vi.hoisted(() => {
+  /** Utilizador devolvido pelo cliente SSR; null = sessão anónima. */
+  const ref: {
+    utilizador: { id: string; email: string } | null;
+    resultados: Array<{ data?: unknown; error?: unknown }>;
+    chamadasFrom: string[];
+  } = { utilizador: null, resultados: [], chamadasFrom: [] };
+  return ref;
+});
 
-const mockFrom = vi.fn();
-vi.mock("@/lib/supabase-admin", () => ({
-  supabase: {
-    from: (...args: unknown[]) => mockFrom(...args),
-  },
-}));
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-function createGetRequest() {
-  return new NextRequest("http://localhost:3000/api/favoritos", {
-    method: "GET",
-  });
+/**
+ * Cadeia de query encadeável em qualquer ordem e resolúvel em qualquer ponto.
+ *
+ * Assim o teste não fica preso à sequência exacta de .select().eq().order() que
+ * a rota use hoje: o que interessa afirmar é a resposta, não a forma da query.
+ */
+function criarCadeia(resultado: { data?: unknown; error?: unknown }) {
+  const cadeia: Record<string, unknown> = {};
+  for (const metodo of [
+    "select",
+    "eq",
+    "neq",
+    "in",
+    "order",
+    "limit",
+    "single",
+    "maybeSingle",
+    "insert",
+    "update",
+    "delete",
+  ]) {
+    cadeia[metodo] = vi.fn(() => cadeia);
+  }
+  cadeia.then = (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) =>
+    Promise.resolve(resultado).then(resolve, reject);
+  return cadeia;
 }
 
-function createPostRequest(body: unknown) {
-  return new NextRequest("http://localhost:3000/api/favoritos", {
+vi.mock("@/lib/supabase-admin", () => {
+  const duplo = {
+    from: vi.fn((tabela: string) => {
+      estado.chamadasFrom.push(tabela);
+      return criarCadeia(estado.resultados.shift() ?? { data: [], error: null });
+    }),
+  };
+  return { supabase: duplo, supabaseAdmin: duplo, supabasePublic: duplo };
+});
+
+vi.mock("@/lib/supabase-server", () => ({
+  createSupabaseServerClient: vi.fn(async () => ({
+    auth: {
+      getUser: async () => ({ data: { user: estado.utilizador }, error: null }),
+    },
+  })),
+}));
+
+import { GET, POST, DELETE } from "@/app/api/favoritos/route";
+
+// ---------------------------------------------------------------------------
+// Ajudantes
+// ---------------------------------------------------------------------------
+const autenticar = () => {
+  estado.utilizador = { id: "user-1", email: "user@teste.pt" };
+};
+
+const pedidoGet = () => new NextRequest("http://localhost:3000/api/favoritos");
+
+const pedidoPost = (body: unknown) =>
+  new NextRequest("http://localhost:3000/api/favoritos", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-}
 
-function createDeleteRequest(params: Record<string, string> = {}) {
+const pedidoDelete = (params: Record<string, string> = {}) => {
   const url = new URL("http://localhost:3000/api/favoritos");
-  for (const [key, value] of Object.entries(params)) {
-    url.searchParams.set(key, value);
-  }
+  for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
   return new NextRequest(url.toString(), { method: "DELETE" });
-}
+};
 
-function createSelectChain(resolvedValue: { data: unknown; error: unknown }) {
-  return {
-    select: vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        order: vi.fn().mockReturnValue({
-          then: (resolve: (v: unknown) => void, reject?: (e: unknown) => void) =>
-            Promise.resolve(resolvedValue).then(resolve, reject),
-        }),
-        eq: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            single: vi.fn().mockReturnValue({
-              then: (resolve: (v: unknown) => void, reject?: (e: unknown) => void) =>
-                Promise.resolve(resolvedValue).then(resolve, reject),
-            }),
-          }),
-        }),
-      }),
-    }),
-  };
-}
-
-function createInsertChain(resolvedValue: { error: unknown }) {
-  return {
-    insert: vi.fn().mockReturnValue({
-      then: (resolve: (v: unknown) => void, reject?: (e: unknown) => void) =>
-        Promise.resolve(resolvedValue).then(resolve, reject),
-    }),
-  };
-}
-
-function createDeleteChain(resolvedValue: { error: unknown }) {
-  return {
-    delete: vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            then: (resolve: (v: unknown) => void, reject?: (e: unknown) => void) =>
-              Promise.resolve(resolvedValue).then(resolve, reject),
-          }),
-        }),
-      }),
-    }),
-  };
-}
+beforeEach(() => {
+  estado.utilizador = null;
+  estado.resultados = [];
+  estado.chamadasFrom.length = 0;
+  vi.clearAllMocks();
+});
 
 // ---------------------------------------------------------------------------
-// Tests - GET
+// GET
 // ---------------------------------------------------------------------------
 describe("GET /api/favoritos", () => {
-  let GET: typeof import("@/app/api/favoritos/route").GET;
+  it("devolve lista vazia a um visitante anónimo, em vez de 401", async () => {
+    // Ter favoritos guardados localmente sem conta é legítimo; a rota não deve
+    // tratar isso como erro.
+    const res = await GET(pedidoGet());
+    const body = await res.json();
 
-  beforeEach(async () => {
-    vi.resetModules();
+    expect(res.status).toBe(200);
+    expect(body.data.favoritos).toEqual([]);
+  });
 
-    vi.doMock("next/headers", () => ({
-      cookies: vi.fn().mockResolvedValue({
-        get: (...args: unknown[]) => mockCookieGet(...args),
-      }),
-    }));
-
-    vi.doMock("@/lib/supabase-admin", () => ({
-      supabase: {
-        from: (...args: unknown[]) => mockFrom(...args),
+  it("devolve os favoritos do utilizador autenticado", async () => {
+    autenticar();
+    estado.resultados = [
+      {
+        data: [{ id: "f1", item_id: "c1", item_type: "cavalo", created_at: "2026-01-01" }],
+        error: null,
       },
-    }));
-
-    const routeModule = await import("@/app/api/favoritos/route");
-    GET = routeModule.GET;
-  });
-
-  afterEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("deve retornar lista vazia quando utilizador nao autenticado", async () => {
-    mockCookieGet.mockReturnValue(undefined);
-
-    const request = createGetRequest();
-    const response = await GET(request);
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data.favoritos).toEqual([]);
-  });
-
-  it("deve retornar favoritos quando utilizador autenticado", async () => {
-    mockCookieGet.mockReturnValue({ value: "user@teste.pt" });
-
-    const mockFavoritos = [
-      { id: "1", item_id: "cav-1", item_type: "cavalo", created_at: "2025-01-01" },
+      { data: [{ id: "c1", nome: "Imperador" }], error: null },
     ];
 
-    mockFrom.mockReturnValue(createSelectChain({ data: mockFavoritos, error: null }));
+    const res = await GET(pedidoGet());
+    const body = await res.json();
 
-    const request = createGetRequest();
-    const response = await GET(request);
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data.favoritos).toEqual(mockFavoritos);
+    expect(res.status).toBe(200);
+    expect(body.data.favoritos).toHaveLength(1);
+    expect(estado.chamadasFrom[0]).toBe("favoritos");
   });
 
-  it("deve retornar lista vazia quando Supabase retorna erro", async () => {
-    mockCookieGet.mockReturnValue({ value: "user@teste.pt" });
+  it("enriquece cada favorito com o anúncio correspondente", async () => {
+    autenticar();
+    estado.resultados = [
+      { data: [{ id: "f1", item_id: "c1", item_type: "cavalo" }], error: null },
+      { data: [{ id: "c1", nome: "Imperador" }], error: null },
+    ];
 
-    mockFrom.mockReturnValue(createSelectChain({ data: null, error: { message: "DB error" } }));
+    const body = await (await GET(pedidoGet())).json();
 
-    const request = createGetRequest();
-    const response = await GET(request);
-    const data = await response.json();
+    expect(body.data.favoritos[0].cavalos_venda).toMatchObject({ nome: "Imperador" });
+    expect(body.data.favoritos[0].coudelarias).toBeNull();
+  });
 
-    expect(response.status).toBe(200);
-    expect(data.favoritos).toEqual([]);
+  it("responde 500 quando a base de dados falha", async () => {
+    autenticar();
+    estado.resultados = [{ data: null, error: { message: "boom" } }];
+
+    const res = await GET(pedidoGet());
+
+    expect(res.status).toBe(500);
+  });
+
+  it("devolve lista vazia quando o utilizador ainda não guardou nada", async () => {
+    autenticar();
+    estado.resultados = [{ data: [], error: null }];
+
+    const body = await (await GET(pedidoGet())).json();
+
+    expect(body.data.favoritos).toEqual([]);
   });
 });
 
 // ---------------------------------------------------------------------------
-// Tests - POST
+// POST
 // ---------------------------------------------------------------------------
 describe("POST /api/favoritos", () => {
-  let POST: typeof import("@/app/api/favoritos/route").POST;
-
-  beforeEach(async () => {
-    vi.resetModules();
-
-    vi.doMock("next/headers", () => ({
-      cookies: vi.fn().mockResolvedValue({
-        get: (...args: unknown[]) => mockCookieGet(...args),
-      }),
-    }));
-
-    vi.doMock("@/lib/supabase-admin", () => ({
-      supabase: {
-        from: (...args: unknown[]) => mockFrom(...args),
-      },
-    }));
-
-    const routeModule = await import("@/app/api/favoritos/route");
-    POST = routeModule.POST;
+  it("recusa um visitante anónimo", async () => {
+    const res = await POST(pedidoPost({ item_id: "c1", item_type: "cavalo" }));
+    expect(res.status).toBe(401);
   });
 
-  afterEach(() => {
-    vi.clearAllMocks();
+  it("exige item_id", async () => {
+    autenticar();
+    const res = await POST(pedidoPost({ item_type: "cavalo" }));
+    expect(res.status).toBe(400);
   });
 
-  it("deve retornar 401 quando utilizador nao autenticado", async () => {
-    mockCookieGet.mockReturnValue(undefined);
-
-    const request = createPostRequest({ item_id: "cav-1", item_type: "cavalo" });
-    const response = await POST(request);
-    const data = await response.json();
-
-    expect(response.status).toBe(401);
-    expect(data.error).toContain("autenticado");
+  it("exige item_type", async () => {
+    autenticar();
+    const res = await POST(pedidoPost({ item_id: "c1" }));
+    expect(res.status).toBe(400);
   });
 
-  it("deve retornar 400 quando item_id em falta", async () => {
-    mockCookieGet.mockReturnValue({ value: "user@teste.pt" });
+  it("é idempotente: guardar duas vezes não é erro", async () => {
+    autenticar();
+    estado.resultados = [{ data: { id: "existente" }, error: null }];
 
-    const request = createPostRequest({ item_type: "cavalo" });
-    const response = await POST(request);
-    const data = await response.json();
+    const res = await POST(pedidoPost({ item_id: "c1", item_type: "cavalo" }));
+    const body = await res.json();
 
-    expect(response.status).toBe(400);
-    expect(data.error).toContain("obrigatorios");
+    expect(res.status).toBe(200);
+    expect(body.data.success).toBe(true);
   });
 
-  it("deve retornar 400 quando item_type em falta", async () => {
-    mockCookieGet.mockReturnValue({ value: "user@teste.pt" });
+  it("guarda um favorito novo", async () => {
+    autenticar();
+    estado.resultados = [
+      { data: null, error: null }, // não existe ainda
+      { data: null, error: null }, // insert
+    ];
 
-    const request = createPostRequest({ item_id: "cav-1" });
-    const response = await POST(request);
-    const data = await response.json();
+    const res = await POST(pedidoPost({ item_id: "c1", item_type: "cavalo" }));
 
-    expect(response.status).toBe(400);
-    expect(data.error).toContain("obrigatorios");
+    expect(res.status).toBe(200);
+    expect((await res.json()).data.success).toBe(true);
   });
 
-  it("deve retornar sucesso quando favorito ja existe", async () => {
-    mockCookieGet.mockReturnValue({ value: "user@teste.pt" });
+  it("responde 500 quando a gravação falha", async () => {
+    autenticar();
+    estado.resultados = [
+      { data: null, error: null },
+      { data: null, error: { message: "insert falhou" } },
+    ];
 
-    // First call: check existence - returns existing record
-    mockFrom.mockReturnValue(createSelectChain({ data: { id: "existing-1" }, error: null }));
+    const res = await POST(pedidoPost({ item_id: "c1", item_type: "cavalo" }));
+    const body = await res.json();
 
-    const request = createPostRequest({ item_id: "cav-1", item_type: "cavalo" });
-    const response = await POST(request);
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data.success).toBe(true);
-    expect(data.message).toContain("favoritos");
-  });
-
-  it("deve adicionar novo favorito com sucesso", async () => {
-    mockCookieGet.mockReturnValue({ value: "user@teste.pt" });
-
-    // First call: check existence - returns null (not found)
-    // Second call: insert
-    let callCount = 0;
-    mockFrom.mockImplementation(() => {
-      callCount++;
-      if (callCount === 1) {
-        return createSelectChain({ data: null, error: null });
-      }
-      return createInsertChain({ error: null });
-    });
-
-    const request = createPostRequest({ item_id: "cav-1", item_type: "cavalo" });
-    const response = await POST(request);
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data.success).toBe(true);
-  });
-
-  it("deve retornar 500 quando insert falha", async () => {
-    mockCookieGet.mockReturnValue({ value: "user@teste.pt" });
-
-    let callCount = 0;
-    mockFrom.mockImplementation(() => {
-      callCount++;
-      if (callCount === 1) {
-        return createSelectChain({ data: null, error: null });
-      }
-      return createInsertChain({ error: { message: "Insert failed" } });
-    });
-
-    const request = createPostRequest({ item_id: "cav-1", item_type: "cavalo" });
-    const response = await POST(request);
-    const data = await response.json();
-
-    expect(response.status).toBe(500);
-    expect(data.error).toContain("favorito");
+    expect(res.status).toBe(500);
+    expect(body.error).toContain("favorito");
   });
 });
 
 // ---------------------------------------------------------------------------
-// Tests - DELETE
+// DELETE
 // ---------------------------------------------------------------------------
 describe("DELETE /api/favoritos", () => {
-  let DELETE: typeof import("@/app/api/favoritos/route").DELETE;
-
-  beforeEach(async () => {
-    vi.resetModules();
-
-    vi.doMock("next/headers", () => ({
-      cookies: vi.fn().mockResolvedValue({
-        get: (...args: unknown[]) => mockCookieGet(...args),
-      }),
-    }));
-
-    vi.doMock("@/lib/supabase-admin", () => ({
-      supabase: {
-        from: (...args: unknown[]) => mockFrom(...args),
-      },
-    }));
-
-    const routeModule = await import("@/app/api/favoritos/route");
-    DELETE = routeModule.DELETE;
+  it("recusa um visitante anónimo", async () => {
+    const res = await DELETE(pedidoDelete({ item_id: "c1", item_type: "cavalo" }));
+    expect(res.status).toBe(401);
   });
 
-  afterEach(() => {
-    vi.clearAllMocks();
+  it("exige os parâmetros do item", async () => {
+    autenticar();
+    const res = await DELETE(pedidoDelete());
+    expect(res.status).toBe(400);
   });
 
-  it("deve retornar 401 quando utilizador nao autenticado", async () => {
-    mockCookieGet.mockReturnValue(undefined);
+  it("remove um favorito", async () => {
+    autenticar();
+    estado.resultados = [{ data: null, error: null }];
 
-    const request = createDeleteRequest({ item_id: "cav-1", item_type: "cavalo" });
-    const response = await DELETE(request);
-    const data = await response.json();
+    const res = await DELETE(pedidoDelete({ item_id: "c1", item_type: "cavalo" }));
 
-    expect(response.status).toBe(401);
-    expect(data.error).toContain("autenticado");
+    expect(res.status).toBe(200);
   });
 
-  it("deve retornar 400 quando parametros em falta", async () => {
-    mockCookieGet.mockReturnValue({ value: "user@teste.pt" });
+  it("limpa todos os favoritos com ?all=true", async () => {
+    autenticar();
+    estado.resultados = [{ data: null, error: null }];
 
-    const request = createDeleteRequest({});
-    const response = await DELETE(request);
-    const data = await response.json();
+    const res = await DELETE(pedidoDelete({ all: "true" }));
 
-    expect(response.status).toBe(400);
-    expect(data.error).toContain("obrigatorios");
+    expect(res.status).toBe(200);
   });
 
-  it("deve remover favorito com sucesso", async () => {
-    mockCookieGet.mockReturnValue({ value: "user@teste.pt" });
+  it("responde 500 quando a remoção falha", async () => {
+    autenticar();
+    estado.resultados = [{ data: null, error: { message: "delete falhou" } }];
 
-    mockFrom.mockReturnValue(createDeleteChain({ error: null }));
+    const res = await DELETE(pedidoDelete({ item_id: "c1", item_type: "cavalo" }));
+    const body = await res.json();
 
-    const request = createDeleteRequest({ item_id: "cav-1", item_type: "cavalo" });
-    const response = await DELETE(request);
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data.success).toBe(true);
-  });
-
-  it("deve retornar 500 quando delete falha", async () => {
-    mockCookieGet.mockReturnValue({ value: "user@teste.pt" });
-
-    mockFrom.mockReturnValue(createDeleteChain({ error: { message: "Delete failed" } }));
-
-    const request = createDeleteRequest({ item_id: "cav-1", item_type: "cavalo" });
-    const response = await DELETE(request);
-    const data = await response.json();
-
-    expect(response.status).toBe(500);
-    expect(data.error).toContain("favorito");
+    expect(res.status).toBe(500);
+    expect(body.error).toContain("favorito");
   });
 });

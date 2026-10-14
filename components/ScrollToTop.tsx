@@ -44,7 +44,7 @@ export default function ScrollToTop() {
       aria-label="Voltar ao topo"
     >
       {/* O Circulo do Botao */}
-      <div className="w-12 h-12 bg-[var(--background-card)] border border-[var(--border)] rounded-full flex items-center justify-center text-[var(--foreground)] transition-all duration-500 group-hover:border-[var(--gold)] group-hover:bg-[var(--gold)] group-hover:text-black shadow-2xl">
+      <div className="w-12 h-12 bg-[var(--background-card)] border border-[var(--border)] rounded-full flex items-center justify-center text-[var(--foreground)] transition-all duration-500 group-hover:border-[var(--foreground-strong)] group-hover:bg-[var(--foreground-strong)] group-hover:text-black shadow-2xl">
         <ChevronUp
           size={20}
           className="group-hover:-translate-y-1 transition-transform duration-300"
@@ -52,7 +52,7 @@ export default function ScrollToTop() {
       </div>
 
       {/* Texto Lateral/Inferior Subtil */}
-      <span className="text-[8px] uppercase tracking-[0.3em] text-[var(--foreground-muted)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 font-bold">
+      <span className="text-[10px] uppercase tracking-wider text-[var(--foreground-muted)] opacity-0 group-hover:opacity-100 transition-opacity duration-500 font-bold">
         Topo
       </span>
     </button>

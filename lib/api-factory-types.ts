@@ -58,7 +58,7 @@ export interface ApiRouteOptions {
 /**
  * Authentication context passed to handler
  */
-export interface ApiAuthContext extends AuthContext {}
+export type ApiAuthContext = AuthContext;
 
 /**
  * Request context passed to handler

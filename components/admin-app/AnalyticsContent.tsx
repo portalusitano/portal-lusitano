@@ -120,9 +120,9 @@ export default function AnalyticsContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C5A059] mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--gold)] mx-auto"></div>
           <p className="text-gray-400 mt-4">A carregar analytics...</p>
         </div>
       </div>
@@ -130,7 +130,7 @@ export default function AnalyticsContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] p-6">
+    <div className="min-h-screen bg-[var(--background)] p-6">
       <div className="max-w-[1600px] mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -172,12 +172,12 @@ export default function AnalyticsContent() {
               <div className="bg-white/5 border border-white/10 rounded-lg p-6">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-medium text-gray-400">Clientes</h3>
-                  <DollarSign className="text-[#C5A059]" size={20} />
+                  <DollarSign className="text-[var(--gold)]" size={20} />
                 </div>
                 <p className="text-3xl font-bold text-white">
                   {formatNumber(conversions.overview.uniqueCustomers)}
                 </p>
-                <p className="text-xs text-[#C5A059] mt-1">
+                <p className="text-xs text-[var(--gold)] mt-1">
                   {conversions.overview.leadToCustomerRate.toFixed(2)}% conversão
                 </p>
               </div>
@@ -207,14 +207,14 @@ export default function AnalyticsContent() {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-white font-bold">{formatNumber(stage.count)}</span>
-                        <span className="text-[#C5A059] text-sm font-semibold">
+                        <span className="text-[var(--gold)] text-sm font-semibold">
                           {stage.percentage.toFixed(1)}%
                         </span>
                       </div>
                     </div>
                     <div className="h-12 bg-white/5 rounded-lg overflow-hidden relative">
                       <div
-                        className="h-full bg-gradient-to-r from-[#C5A059] to-[#d4b469] transition-all duration-1000 flex items-center justify-end pr-4"
+                        className="h-full bg-gradient-to-r from-[var(--gold)] to-[var(--gold-hover)] transition-all duration-1000 flex items-center justify-end pr-4"
                         style={{ width: `${stage.percentage}%` }}
                       >
                         <span className="text-black font-bold text-sm">
@@ -240,11 +240,11 @@ export default function AnalyticsContent() {
             <h2 className="text-2xl font-bold text-white mb-6">💰 ROI por Canal de Marketing</h2>
 
             {sources.bestChannel && (
-              <div className="bg-gradient-to-r from-[#C5A059]/20 to-[#C5A059]/5 border-2 border-[#C5A059]/30 rounded-lg p-6 mb-6">
+              <div className="bg-gradient-to-r from-[var(--gold)]/20 to-[var(--gold)]/5 border-2 border-[var(--gold)]/30 rounded-lg p-6 mb-6">
                 <div className="flex items-start gap-4">
                   <div className="text-4xl">🏆</div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-[#C5A059] mb-2">
+                    <h3 className="text-xl font-bold text-[var(--gold)] mb-2">
                       Melhor Canal: {sources.bestChannel.source}
                     </h3>
                     <div className="grid grid-cols-2 gap-4">
@@ -368,7 +368,7 @@ export default function AnalyticsContent() {
                       className="flex items-center justify-between p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-[#C5A059] font-bold w-6">#{index + 1}</span>
+                        <span className="text-[var(--gold)] font-bold w-6">#{index + 1}</span>
                         <span className="text-white">{cavalo.name}</span>
                       </div>
                       <span className="text-gray-400 text-sm">
@@ -426,7 +426,7 @@ export default function AnalyticsContent() {
                       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-black/90 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
                         <div className="font-bold mb-1">{month.month}</div>
                         <div className="text-green-400">Leads: {month.leads}</div>
-                        <div className="text-[#C5A059]">Clientes: {month.customers}</div>
+                        <div className="text-[var(--gold)]">Clientes: {month.customers}</div>
                         <div className="text-purple-400">Taxa: {month.conversionRate}%</div>
                       </div>
 
@@ -437,7 +437,7 @@ export default function AnalyticsContent() {
                       >
                         {/* Barra Clientes dentro */}
                         <div
-                          className="absolute bottom-0 w-full bg-[#C5A059] rounded-t"
+                          className="absolute bottom-0 w-full bg-[var(--gold)] rounded-t"
                           style={{ height: `${customersHeight}%` }}
                         />
                       </div>
@@ -454,7 +454,7 @@ export default function AnalyticsContent() {
                   <span className="text-sm text-gray-400">Leads</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-[#C5A059] rounded"></div>
+                  <div className="w-4 h-4 bg-[var(--gold)] rounded"></div>
                   <span className="text-sm text-gray-400">Clientes</span>
                 </div>
               </div>

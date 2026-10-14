@@ -208,8 +208,8 @@ export default function CalendarioPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C5A059]"></div>
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--foreground-strong)]"></div>
       </div>
     );
   }
@@ -219,13 +219,13 @@ export default function CalendarioPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505]">
-      <div className="border-b border-white/10 bg-[#0A0A0A]">
+    <div className="min-h-screen bg-[var(--background)]">
+      <div className="border-b border-white/10 bg-[var(--background-secondary)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-                <Calendar className="text-[#C5A059]" />
+                <Calendar className="text-[var(--foreground-muted)]" />
                 Calendário de Follow-ups
               </h1>
               <p className="text-gray-400 mt-1">Gerir tarefas e lembretes de clientes</p>

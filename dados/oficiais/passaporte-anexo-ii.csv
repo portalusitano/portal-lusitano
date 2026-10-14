@@ -1,0 +1,65 @@
+campo,rotulo_frances,rotulo_ingles,rotulo_portugues,seccao_anexo_II
+Espécie,Espèce:,Species:,Espécie:,"Secção I, Parte A, item (1)(a)"
+Sexo,Sexe:,Sex:,Sexo:,"Secção I, Parte A, item (1)(b)"
+Data de nascimento,Date de naissance:,Date of birth:,Data de nascimento:,"Secção I, Parte A, item (2)(a)"
+Local e país de nascimento,Lieu et pays de naissance:,Place and country of birth:,Local e país de nascimento:,"Secção I, Parte A, item (2)(b)"
+Nome do animal,Nom (optionnel):,Name (optional):,Nome (facultativo),"Secção I, Parte A, item (2)(c)"
+Descritivo (cabeçalho),Signalement:,Description:,Descritivo:,"Secção I, Parte A, item (3)"
+Pelagem,Robe:,Colour:,Pelagem:,"Secção I, Parte A, item (3)(a)"
+Cabeça,Tête:,Head:,Cabeça:,"Secção I, Parte A, item (3)(b)"
+Membro anterior esquerdo,Ant. G:,Foreleg L:,Ant. Esq.:,"Secção I, Parte A, item (3)(c)"
+Membro anterior direito,Ant. D:,Foreleg R:,Ant. Dir.:,"Secção I, Parte A, item (3)(d)"
+Membro posterior esquerdo,Post G:,Hind leg L:,Post. Esq.:,"Secção I, Parte A, item (3)(e)"
+Membro posterior direito,Post D:,Hind leg R:,Post. Dir.:,"Secção I, Parte A, item (3)(f)"
+Corpo,Corps:,Body:,Corpo:,"Secção I, Parte A, item (3)(g)"
+Marcas,Marques:,Markings:,Marcas:,"Secção I, Parte A, item (3)(h)"
+UELN / código único,Code Unique ou Numéro unique d'identification valable à vie (15 chiffres):,Unique Code or lifer number: (15 digits):,Código único ou Número único vitalício (15 dígitos):,"Secção I, Parte A, item (4)"
+Código de barras,Code-barres (optionnel),Bar-Code (optional),Código de barras (facultativo),"Secção I, Parte A, itens (4) e (5)"
+Transponder / microchip,Code du transpondeur (si disponible),Transponder code (where available),Código do transpondedor (se disponível),"Secção I, Parte A, item (5)"
+Sistema de leitura do transponder,Système de lecture (si différent de ISO 11784),Reading system (if not ISO 11784),Sistema de leitura (se não for ISO 11784),"Secção I, Parte A, item (5)"
+Método alternativo de identificação,Méthode alternative de vérification d'identité (si applicable),Alternative method for identity verification (if applicable),Método alternativo de verificação da identidade (se aplicável),"Secção I, Parte A, item (6)"
+Grupo sanguíneo / ADN,Information sur toute autre méthode appropriée donnant des garanties pour vérifier l'identité de l'animal (groupe sanguin/code ADN) (optionnel),Information on any other appropriate method providing guarantees to verify the identity of the animal (blood group/DNA code) (optional),Informações sobre qualquer outro método adequado que ofereça garantias na verificação da identidade do animal (grupo sanguíneo/código ADN) (facultativo),"Secção I, Parte A, item (7)"
+Data (da identificação),Date,Date,Data,"Secção I, Parte A, item (8)"
+Local (da identificação),Lieu,Place,Local,"Secção I, Parte A, item (9)"
+Assinatura da pessoa qualificada,Signature de la personne qualifiée (nom en lettres capitales),Signature of qualified person (name in capital letters),Assinatura da pessoa qualificada (nome em maiúsculas),"Secção I, Parte A, item (10)"
+Carimbo da autoridade,Cachet de l'autorité compétente ou de l'organisme délégué,stamp of competent authority or delegated body,Carimbo da autoridade competente ou do organismo delegado,"Secção I, Parte A"
+Resenho gráfico (título da parte),Partie B – Signalement graphique,Part B – Outline Diagram,Parte B – Resenho gráfico,"Secção I, Parte B"
+Castração / alterações (título da parte),"Partie C – Castration, vérification de la description, autres modifications","Part C – Castration, verification of the description, other modifications","Parte C – Castração, verificação do descritivo, outras alterações","Secção I, Parte C"
+Castração,Castration,Castration,Castração,"Secção I, Parte C"
+Identificação,Identification,Identification,Identificação,"Secção I, Parte C"
+Data e local da castração,Date et lieu de la castration,Date and place of castration,Data e local da castração,"Secção I, Parte C"
+Verificação do descritivo,Vérification de la description,Verification of the description,Verificação do descritivo,"Secção I, Parte C"
+Alterações,Rectifications,Amendments,Alterações,"Secção I, Parte C, item 1"
+Aditamentos,Adjonctions,Additions,Aditamentos,"Secção I, Parte C, item 2"
+Registo noutra base de dados,Enregistrement d'un document d'identification dans la base de données d'un autorité compétente ou d'un organisme délégué autre que celui qui a délivré le document original,Registration of an identification document in the database of a competent authority or delegated body other than that which issued the original document,Registo de um documento de identificação na base de dados de uma autoridade competente ou de um organismo delegado que não seja o que emitiu o documento original,"Secção I, Parte C, item 3"
+Código único (repetido no topo das secções),Code Unique,Unique Code,Código Único,"Secções I(C), II, III, IV"
+Administração de medicamentos (título),Administration de médicaments,Administration of medicinal products,Administração de medicamentos,Secção II
+Marca de validação / licença (título),Marque de validation ou licence,Validation Mark or Licence,Marca de validação ou licença,Secção III
+Marca de validação válida até,Marque de validation valable jusque à,Validation mark valid until,Marca de validação válida até,Secção III
+Licença válida até,Licence valable jusque à,Licence valid until,Licença válida até,Secção III
+Autoridade competente ou organismo delegado,Autorité compétente ou organisme délégué,Competent authority or delegated body,Autoridade competente ou organismo delegado,Secção III
+Dados do proprietário (título),Coordonnées du propriétaire,Details of ownership,Dados relativos ao proprietário,Secção IV
+Data de registo pela organização,"Date d'enregistrement par l'organisation, l'association ou le service officiel","Date of registration by the organisation, association, or official service","Data de registo pela organização, associação ou serviço oficial",Secção IV
+Nome do proprietário,Nom du propriétaire,Name of owner,Nome do proprietário,Secção IV
+Endereço do proprietário,Adresse du propriétaire,Address of owner,Endereço do proprietário,Secção IV
+Nacionalidade do proprietário,Nationalité du propriétaire,Nationality of owner,Nacionalidade do proprietário,Secção IV
+Assinatura do proprietário,Signature du propriétaire,Signature of owner,Assinatura do proprietário,Secção IV
+Carimbo da organização e assinatura,"Cachet de l'organisation, association ou service officiel et signature","Organisation, association or official service stamp and signature","Carimbo da organização, associação ou serviço oficial e assinatura",Secção IV
+Associação de criadores emissora,(não impresso em francês),Name of issuing breed society or competent authority,Nome da associação de criadores ou da autoridade competente emissora,"Secção V, Parte I, item 1"
+Nome no livro genealógico,(não impresso em francês),Name of breeding book,Nome no livro genealógico,"Secção V, Parte I, item 2"
+Nome da raça,(não impresso em francês),Name of breed,Nome da raça,"Secção V, Parte I, item 3"
+Nome do animal e país de nascimento,(não impresso em francês),Name and commercial name of animal and code of country of birth,Nome e nome comercial do animal e código do país de nascimento,"Secção V, Parte I, item 4"
+Número de identificação individual,(não impresso em francês),Individual identification number,Número de identificação individual,"Secção V, Parte I, item 5.1"
+Número único vitalício (UELN),(não impresso em francês),Unique Life Number,Número único vitalício,"Secção V, Parte I, item 5.2"
+Número no livro genealógico,(não impresso em francês),Breeding book number,Número no livro genealógico,"Secção V, Parte I, item 6"
+Identificação do animal,(não impresso em francês),Identification of animal,Identificação do animal,"Secção V, Parte I, item 7"
+Código do transpondedor,(não impresso em francês),Transponder code,Código do transpondedor,"Secção V, Parte I, item 7.1"
+Sistema de leitura,(não impresso em francês),Reading system (if not ISO 11784),Sistema de leitura (se não for ISO 11784),"Secção V, Parte I, item 7.1"
+Código de barras,(não impresso em francês),Bar-Code,Código de barras,"Secção V, Parte I, item 7.1"
+Método alternativo de verificação,(não impresso em francês),Alternative method for identity verification,Método alternativo para verificação da identidade,"Secção V, Parte I, item 7.2"
+Data de nascimento,(não impresso em francês),Date of birth of animal (use format dd/mm/yyyy),Data de nascimento do animal (utilizar o formato dd/mm/aaaa),"Secção V, Parte I, item 8"
+País de nascimento,(não impresso em francês),Country of birth of animal,País de nascimento do animal,"Secção V, Parte I, item 9"
+Criador,(não impresso em francês),"Name, address and email address of breeder","Nome, endereço e correio eletrónico do criador","Secção V, Parte I, item 10"
+Genealogia,(não impresso em francês),Pedigree,Genealogia,"Secção V, Parte I, item 11"
+Pai,(não impresso em francês),Sire — Breeding book number and section,Pai — Número e secção no livro genealógico,"Secção V, Parte I, item 11.1"
+Mãe,(não impresso em francês),Dam — Breeding book number and section,Mãe — Número e secção no livro genealógico,"Secção V, Parte I, item 11.2"

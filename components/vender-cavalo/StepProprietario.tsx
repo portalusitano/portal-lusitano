@@ -2,68 +2,81 @@
 
 import { useMemo } from "react";
 import type { StepProps } from "@/components/vender-cavalo/types";
-import { tiposProprietario, paisesOpcoes } from "@/components/vender-cavalo/data";
 import { useLanguage } from "@/context/LanguageContext";
 import { createTranslator } from "@/lib/tr";
+import Seccao from "@/components/vender-cavalo/Seccao";
+import { ErroDoCampo, classeCampo, useFaltas } from "@/components/vender-cavalo/campos-com-erro";
+import { ApontamentoDoCampo, ligarCampo } from "@/components/vender-cavalo/apontamentos";
 
-export default function StepProprietario({ formData, updateField }: StepProps) {
+/**
+ * Como o comprador chega ao vendedor. Quatro campos, e mais nenhum.
+ *
+ * **Eram nove, em duas secções**, e as cinco que saíram eram todas sobre a
+ * factura — tipo de vendedor, país de residência, NIF, morada e website. Ou
+ * seja: das nove primeiras perguntas do formulário, seis eram sobre quem paga
+ * e três sobre como se é contactado, e **o nome do cavalo era a décima**.
+ * Medido no browser: **946px de rolo até à caixa do nome do cavalo a
+ * 1400×950, e 1309px a 390×700**. Depois desta mudança são 709px e 880px, com
+ * quatro caixas antes em vez de oito — e as quatro são o nome, o email, o
+ * telefone e o WhatsApp de quem vende, que é o que o comprador precisa para
+ * lhe falar.
+ *
+ * As cinco não foram tiradas nem tornadas opcionais: estão no passo 4, ao lado
+ * do preço e do botão que cobra, e continuam a travar a publicação. Ver
+ * `SeccaoFacturacao.tsx`, e a nota de ordem no cabeçalho do `campos.ts`.
+ *
+ * O **WhatsApp** veio para cá, que é onde ele sempre pertenceu. A secção de
+ * onde saiu chamava-se «Facturação e contacto adicional» — um cabeçalho que
+ * precisa de um «e» para caber duas coisas está a dizer que ali estão duas
+ * secções. E o botão de «usar o mesmo número» só faz sentido com o telefone à
+ * vista, que agora está mesmo ao lado: a página já dava o telefone por
+ * resposta quando o WhatsApp vinha vazio (`page.tsx`, no pedido de checkout),
+ * e o que este botão faz é dizer isso em vez de o fazer às escondidas.
+ */
+export default function StepProprietario(props: StepProps) {
+  const { formData, updateField, erros: errosCrus, apontamentos, campo, conta } = props;
   const { t, language } = useLanguage();
   const tr = useMemo(() => createTranslator(language), [language]);
 
+  /**
+   * As faltas deste passo, separadas em duas: o que está por responder e o
+   * que está respondido e mal. A régua é o `estaPreenchido` do catálogo — a
+   * mesma que trava o botão e a mesma que conta «7 / 12» no cabeçalho da
+   * secção —, e é ela que decide qual dos campos leva vermelho.
+   */
+  const erros = useFaltas(errosCrus, formData);
+
+  /**
+   * O que `ligarCampo` precisa de saber, montado uma vez.
+   *
+   * Era o objecto `props` inteiro. Deixou de poder ser: o `erros` que chega
+   * nas props é a lista crua da validação, e o que os campos leem é a versão
+   * já separada em «por responder» e «erro». Passar `props` aqui seria pintar
+   * de vermelho, pela porta das traseiras, exactamente o que este trabalho
+   * deixou de pintar.
+   */
+  const ligacao = { erros, apontamentos, campo };
+
   return (
-    <div className="bg-[var(--background-secondary)]/50 border border-[var(--border)] rounded-xl p-6">
-      <h2 className="text-xl font-serif mb-6 flex items-center gap-3">
-        <span className="w-8 h-8 bg-[var(--gold)] rounded-full flex items-center justify-center text-black text-sm font-bold">
-          1
-        </span>
-        {t.vender_cavalo.step_owner_title}
-      </h2>
+    <div className="bg-[var(--background-secondary)]/50 cartao p-6">
+      {/* «Dados do Proprietário» era o título de um bloco que pedia o NIF e a
+          morada de facturação. Já não os pede — pede quem vende e por onde se
+          lhe fala —, e o título passou a dizer isso. Duas palavras, e não as
+          mesmas do cabeçalho da secção que vem dois centímetros abaixo: o
+          mesmo texto repetido a dois tamanhos não é hierarquia, é uma gralha
+          com autoridade. */}
+      <h2 className="text-xl mb-6">{tr("Quem vende", "Who is selling", "Quién vende")}</h2>
 
-      <div className="space-y-4">
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label
-              htmlFor="tipo_proprietario"
-              className="block text-sm text-[var(--foreground-secondary)] mb-1"
-            >
-              {tr("Tipo de Vendedor *", "Seller Type *", "Tipo de Vendedor *")}
-            </label>
-            <select
-              id="tipo_proprietario"
-              required
-              value={formData.tipo_proprietario}
-              onChange={(e) => updateField("tipo_proprietario", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
-            >
-              <option value="">{t.vender_cavalo.select}</option>
-              {(tiposProprietario[language] || tiposProprietario.pt).map((tp) => (
-                <option key={tp} value={tp}>{tp}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label
-              htmlFor="pais_proprietario"
-              className="block text-sm text-[var(--foreground-secondary)] mb-1"
-            >
-              {tr("País de Residência *", "Country of Residence *", "País de Residencia *")}
-            </label>
-            <select
-              id="pais_proprietario"
-              required
-              value={formData.pais_proprietario}
-              onChange={(e) => updateField("pais_proprietario", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
-            >
-              <option value="">{t.vender_cavalo.select}</option>
-              {paisesOpcoes.map((p) => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-4">
+      <div className="space-y-8">
+        <Seccao
+          titulo={tr("Como o contactam", "How buyers reach you", "Cómo le contactan")}
+          nota={tr(
+            "É por aqui que o comprador chega — sem isto o anúncio não serve.",
+            "This is how a buyer reaches you — without it the listing is useless.",
+            "Es por aquí que el comprador llega — sin esto el anuncio no sirve."
+          )}
+          {...conta("contacto")}
+        >
           <div>
             <label
               htmlFor="proprietario_nome"
@@ -74,127 +87,103 @@ export default function StepProprietario({ formData, updateField }: StepProps) {
             <input
               id="proprietario_nome"
               type="text"
-              required
-              minLength={3}
+              autoComplete="name"
               value={formData.proprietario_nome}
               onChange={(e) => updateField("proprietario_nome", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
+              className={classeCampo(erros, "proprietario_nome")}
               placeholder={t.vender_cavalo.placeholder_full_name}
+              {...ligarCampo("proprietario_nome", formData.proprietario_nome, ligacao)}
             />
+            <ErroDoCampo erros={erros} campo="proprietario_nome" />
           </div>
-          <div>
-            <label
-              htmlFor="proprietario_nif"
-              className="block text-sm text-[var(--foreground-secondary)] mb-1"
-            >
-              {t.vender_cavalo.nif}
-              <span className="text-[var(--foreground-muted)] text-xs ml-1">{tr("(opcional)", "(optional)", "(opcional)")}</span>
-            </label>
-            <input
-              id="proprietario_nif"
-              type="text"
-              minLength={9}
-              maxLength={9}
-              value={formData.proprietario_nif}
-              onChange={(e) => updateField("proprietario_nif", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
-              placeholder={t.vender_cavalo.placeholder_nif}
-            />
-          </div>
-        </div>
 
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label
-              htmlFor="proprietario_email"
-              className="block text-sm text-[var(--foreground-secondary)] mb-1"
-            >
-              {t.vender_cavalo.email} *
-            </label>
-            <input
-              id="proprietario_email"
-              type="email"
-              required
-              value={formData.proprietario_email}
-              onChange={(e) => updateField("proprietario_email", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
-              placeholder={t.vender_cavalo.placeholder_email}
-            />
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label
+                htmlFor="proprietario_email"
+                className="block text-sm text-[var(--foreground-secondary)] mb-1"
+              >
+                {t.vender_cavalo.email} *
+              </label>
+              <input
+                id="proprietario_email"
+                type="email"
+                autoComplete="email"
+                inputMode="email"
+                value={formData.proprietario_email}
+                onChange={(e) => updateField("proprietario_email", e.target.value)}
+                className={classeCampo(erros, "proprietario_email")}
+                placeholder={t.vender_cavalo.placeholder_email}
+                {...ligarCampo("proprietario_email", formData.proprietario_email, ligacao)}
+              />
+              <ErroDoCampo erros={erros} campo="proprietario_email" />
+              <ApontamentoDoCampo
+                apontamentos={apontamentos}
+                campo="proprietario_email"
+                aoAceitar={campo.aoAceitar}
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="proprietario_telefone"
+                className="block text-sm text-[var(--foreground-secondary)] mb-1"
+              >
+                {t.vender_cavalo.phone} *
+              </label>
+              <input
+                id="proprietario_telefone"
+                type="tel"
+                autoComplete="tel"
+                inputMode="tel"
+                value={formData.proprietario_telefone}
+                onChange={(e) => updateField("proprietario_telefone", e.target.value)}
+                className={classeCampo(erros, "proprietario_telefone")}
+                placeholder={t.vender_cavalo.placeholder_phone}
+                {...ligarCampo("proprietario_telefone", formData.proprietario_telefone, ligacao)}
+              />
+              <ErroDoCampo erros={erros} campo="proprietario_telefone" />
+              <ApontamentoDoCampo apontamentos={apontamentos} campo="proprietario_telefone" />
+            </div>
+            <div>
+              <label
+                htmlFor="proprietario_whatsapp"
+                className="block text-sm text-[var(--foreground-secondary)] mb-1"
+              >
+                WhatsApp *
+                {/* Um campo obrigatório cuja resposta o formulário já tem
+                    escrita ao lado não se pede outra vez: oferece-se. O botão
+                    só aparece quando há telefone para copiar e quando o
+                    WhatsApp ainda não é igual a ele. */}
+                {formData.proprietario_telefone.trim() &&
+                  formData.proprietario_whatsapp.trim() !==
+                    formData.proprietario_telefone.trim() && (
+                    <button
+                      type="button"
+                      className="btn btn-subtil btn-sm ml-2 align-baseline"
+                      onClick={() => {
+                        updateField("proprietario_whatsapp", formData.proprietario_telefone);
+                        campo.aoEscolher("proprietario_whatsapp");
+                      }}
+                    >
+                      {tr("usar o mesmo número", "use the same number", "usar el mismo número")}
+                    </button>
+                  )}
+              </label>
+              <input
+                id="proprietario_whatsapp"
+                type="tel"
+                inputMode="tel"
+                value={formData.proprietario_whatsapp}
+                onChange={(e) => updateField("proprietario_whatsapp", e.target.value)}
+                className={classeCampo(erros, "proprietario_whatsapp")}
+                placeholder="+351 9XX XXX XXX"
+                {...ligarCampo("proprietario_whatsapp", formData.proprietario_whatsapp, ligacao)}
+              />
+              <ErroDoCampo erros={erros} campo="proprietario_whatsapp" />
+              <ApontamentoDoCampo apontamentos={apontamentos} campo="proprietario_whatsapp" />
+            </div>
           </div>
-          <div>
-            <label
-              htmlFor="proprietario_telefone"
-              className="block text-sm text-[var(--foreground-secondary)] mb-1"
-            >
-              {t.vender_cavalo.phone} *
-            </label>
-            <input
-              id="proprietario_telefone"
-              type="tel"
-              required
-              value={formData.proprietario_telefone}
-              onChange={(e) => updateField("proprietario_telefone", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
-              placeholder={t.vender_cavalo.placeholder_phone}
-            />
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label
-              htmlFor="proprietario_morada"
-              className="block text-sm text-[var(--foreground-secondary)] mb-1"
-            >
-              {t.vender_cavalo.address}
-            </label>
-            <input
-              id="proprietario_morada"
-              type="text"
-              value={formData.proprietario_morada}
-              onChange={(e) => updateField("proprietario_morada", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
-              placeholder={t.vender_cavalo.placeholder_address}
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="proprietario_whatsapp"
-              className="block text-sm text-[var(--foreground-secondary)] mb-1"
-            >
-              WhatsApp
-              <span className="text-[var(--foreground-muted)] text-xs ml-1">{tr("(se diferente do telefone)", "(if different from phone)", "(si diferente del teléfono)")}</span>
-            </label>
-            <input
-              id="proprietario_whatsapp"
-              type="tel"
-              value={formData.proprietario_whatsapp}
-              onChange={(e) => updateField("proprietario_whatsapp", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
-              placeholder="+351 9XX XXX XXX"
-            />
-          </div>
-        </div>
-
-        {(formData.tipo_proprietario === "Coudelaria" || formData.tipo_proprietario === "Clube / Escola de Equitação") && (
-          <div>
-            <label
-              htmlFor="website_coudelaria"
-              className="block text-sm text-[var(--foreground-secondary)] mb-1"
-            >
-              {tr("Website da Coudelaria / Escola", "Stud Farm / School Website", "Sitio Web del Criadero / Escuela")}
-              <span className="text-[var(--foreground-muted)] text-xs ml-1">{tr("(opcional)", "(optional)", "(opcional)")}</span>
-            </label>
-            <input
-              id="website_coudelaria"
-              type="url"
-              value={formData.website_coudelaria}
-              onChange={(e) => updateField("website_coudelaria", e.target.value)}
-              className="w-full bg-[var(--background-card)] border border-[var(--border)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)]"
-              placeholder="https://www.coudelaria.pt"
-            />
-          </div>
-        )}
+        </Seccao>
       </div>
     </div>
   );

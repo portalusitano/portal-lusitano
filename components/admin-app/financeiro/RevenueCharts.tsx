@@ -22,7 +22,7 @@ export default function RevenueCharts({ data }: RevenueChartsProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
       {/* Receita Diária */}
-      <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+      <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-white mb-4">Receita Diária (Últimos 30 Dias)</h3>
         <div className="h-64 flex items-end justify-between gap-1">
           {data.dailyRevenue.slice(-30).map((day, index) => {
@@ -32,7 +32,7 @@ export default function RevenueCharts({ data }: RevenueChartsProps) {
             return (
               <div key={index} className="group relative flex-1" style={{ height: "100%" }}>
                 <div
-                  className="absolute bottom-0 w-full bg-[#C5A059] rounded-t transition-all hover:bg-[#d4b469] cursor-pointer"
+                  className="absolute bottom-0 w-full bg-[var(--gold)] rounded-t transition-all hover:bg-[var(--gold-hover)] cursor-pointer"
                   style={{ height: `${height}%` }}
                 >
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
@@ -47,7 +47,7 @@ export default function RevenueCharts({ data }: RevenueChartsProps) {
       </div>
 
       {/* Receita por Produto */}
-      <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+      <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-white mb-4">Receita por Produto</h3>
         <div className="space-y-4">
           {data.revenueByProduct.map((product, index) => {
@@ -81,7 +81,7 @@ export default function RevenueCharts({ data }: RevenueChartsProps) {
       </div>
 
       {/* Crescimento Mensal */}
-      <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+      <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-white mb-4">
           Crescimento Mensal (Últimos 12 Meses)
         </h3>
@@ -93,7 +93,7 @@ export default function RevenueCharts({ data }: RevenueChartsProps) {
             return (
               <div key={index} className="group relative flex-1" style={{ height: "100%" }}>
                 <div
-                  className="absolute bottom-8 w-full bg-gradient-to-t from-[#C5A059] to-[#d4b469] rounded-t transition-all hover:from-[#d4b469] hover:to-[#e4c479] cursor-pointer"
+                  className="absolute bottom-8 w-full bg-gradient-to-t from-[var(--gold)] to-[var(--gold-hover)] rounded-t transition-all hover:from-[var(--gold-hover)] hover:to-[var(--gold-hover)] cursor-pointer"
                   style={{ height: `calc(${height}% - 2rem)` }}
                 >
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
@@ -111,7 +111,7 @@ export default function RevenueCharts({ data }: RevenueChartsProps) {
       </div>
 
       {/* Evolução MRR */}
-      <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-6">
+      <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-white mb-4">Evolução MRR</h3>
         <div className="h-64 relative">
           <svg className="w-full h-full" viewBox="0 0 400 200" preserveAspectRatio="none">

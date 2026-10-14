@@ -4,6 +4,7 @@ import {
   escapeHtml,
   generateUnsubscribeToken,
   verifyUnsubscribeToken,
+  escapeLikePattern,
 } from "@/lib/sanitize";
 
 describe("sanitizeSearchInput", () => {
@@ -40,9 +41,7 @@ describe("sanitizeSearchInput", () => {
   });
 
   it("preserves accented characters (À-ÿ)", () => {
-    expect(sanitizeSearchInput("àáâãäåèéêëìíîïòóôõöùúûüýÿ")).toBe(
-      "àáâãäåèéêëìíîïòóôõöùúûüýÿ"
-    );
+    expect(sanitizeSearchInput("àáâãäåèéêëìíîïòóôõöùúûüýÿ")).toBe("àáâãäåèéêëìíîïòóôõöùúûüýÿ");
   });
 });
 
@@ -99,5 +98,29 @@ describe("Unsubscribe tokens", () => {
     vi.stubEnv("ADMIN_SECRET", "");
     vi.stubEnv("UNSUBSCRIBE_SECRET", "");
     expect(() => generateUnsubscribeToken("test@example.com")).toThrow();
+  });
+});
+
+describe("escapeLikePattern", () => {
+  it("leaves an ordinary email untouched", () => {
+    expect(escapeLikePattern("maria@example.com")).toBe("maria@example.com");
+  });
+
+  it("escapes the single-character wildcard so underscores match literally", () => {
+    // Without this, `a_b@example.com` would also match `axb@example.com`, letting
+    // one seller claim another seller's listing by email.
+    expect(escapeLikePattern("a_b@example.com")).toBe("a\\_b@example.com");
+  });
+
+  it("escapes the multi-character wildcard", () => {
+    expect(escapeLikePattern("a%b@example.com")).toBe("a\\%b@example.com");
+  });
+
+  it("escapes the escape character itself so it cannot be smuggled through", () => {
+    expect(escapeLikePattern("a\\_b@example.com")).toBe("a\\\\\\_b@example.com");
+  });
+
+  it("escapes every occurrence, not just the first", () => {
+    expect(escapeLikePattern("_a_b_@example.com")).toBe("\\_a\\_b\\_@example.com");
   });
 });

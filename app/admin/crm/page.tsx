@@ -231,8 +231,8 @@ export default function CRMPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C5A059]"></div>
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--foreground-strong)]"></div>
       </div>
     );
   }
@@ -242,13 +242,13 @@ export default function CRMPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505]">
-      <div className="border-b border-white/10 bg-[#0A0A0A]">
+    <div className="min-h-screen bg-[var(--background)]">
+      <div className="border-b border-white/10 bg-[var(--background-secondary)]">
         <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-                <TrendingUp className="text-[#C5A059]" />
+                <TrendingUp className="text-[var(--foreground-muted)]" />
                 CRM - Pipeline de Vendas
               </h1>
               <p className="text-gray-400 mt-1">Gestão visual de leads e oportunidades</p>
@@ -256,7 +256,7 @@ export default function CRMPage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => openModal()}
-                className="flex items-center gap-2 px-4 py-2 bg-[#C5A059] hover:bg-[#d4b469] text-black font-semibold rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-[var(--foreground-strong)] hover:bg-[var(--foreground)] text-black font-semibold rounded-lg transition-colors"
               >
                 <Plus size={16} />
                 Novo Lead
@@ -276,7 +276,7 @@ export default function CRMPage() {
         <LeadStats stats={stats} pipelineValue={pipelineValue} wonValue={wonValue} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-lg p-4">
+          <div className="bg-[var(--background-secondary)] border border-white/10 rounded-lg p-4">
             <h3 className="text-sm font-medium text-gray-400 mb-3">Temperatura dos Leads</h3>
             <div className="flex gap-6">
               <div className="flex items-center gap-2">
@@ -308,7 +308,7 @@ export default function CRMPage() {
             </div>
           </div>
 
-          <div className="bg-[#0A0A0A] border border-orange-500/20 rounded-lg p-4">
+          <div className="bg-[var(--background-secondary)] border border-orange-500/20 rounded-lg p-4">
             <h3 className="text-sm font-medium text-gray-400 mb-3">Follow-ups Pendentes</h3>
             {leads.filter((l) => l.next_follow_up && new Date(l.next_follow_up) <= new Date())
               .length > 0 ? (

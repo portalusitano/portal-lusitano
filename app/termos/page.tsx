@@ -5,12 +5,10 @@ export default async function TermosPage() {
 
   return (
     <>
-      <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-32 pb-20 px-4 sm:px-6 font-light selection:bg-[var(--gold)] selection:text-black">
+      <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pt-20 sm:pt-32 pb-20 px-4 sm:px-6 font-normal selection:bg-[var(--gold)] selection:text-black">
         <div className="max-w-4xl mx-auto">
-          <span className="text-[var(--gold)] text-[10px] sm:text-[9px] uppercase tracking-[0.4em] font-bold block mb-6 text-center">
-            {t.terms.legal}
-          </span>
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-serif italic mb-4 text-center">
+          <span className="rotulo mb-6 block text-center">{t.terms.legal}</span>
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-normal mb-4 text-center">
             {t.terms.title}
           </h1>
           <p className="text-center text-xs text-[var(--foreground-muted)] mb-16">
@@ -19,16 +17,14 @@ export default async function TermosPage() {
 
           <div className="space-y-12 text-[var(--foreground-secondary)] leading-relaxed text-sm">
             {/* 1. Âmbito */}
-            <section>
-              <h2 className="text-[var(--foreground)] font-serif italic text-xl mb-4">
-                {t.terms.scope}
-              </h2>
+            <section data-revelar="" suppressHydrationWarning>
+              <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">{t.terms.scope}</h2>
               <p>{t.terms.scope_text}</p>
             </section>
 
             {/* 2. Serviços */}
-            <section>
-              <h2 className="text-[var(--foreground)] font-serif italic text-xl mb-4">
+            <section data-revelar="" suppressHydrationWarning>
+              <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.terms.services}
               </h2>
               <p className="mb-3">{t.terms.services_text}</p>
@@ -43,79 +39,79 @@ export default async function TermosPage() {
             </section>
 
             {/* 3. Marketplace */}
-            <section>
-              <h2 className="text-[var(--foreground)] font-serif italic text-xl mb-4">
+            <section data-revelar="" suppressHydrationWarning>
+              <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.terms.marketplace}
               </h2>
               <p>{t.terms.marketplace_text}</p>
             </section>
 
             {/* 4. Obrigações do Vendedor */}
-            <section>
-              <h2 className="text-[var(--foreground)] font-serif italic text-xl mb-4">
+            <section data-revelar="" suppressHydrationWarning>
+              <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.terms.seller_obligations}
               </h2>
               <p>{t.terms.seller_obligations_text}</p>
             </section>
 
             {/* 5. Pagamentos */}
-            <section>
-              <h2 className="text-[var(--foreground)] font-serif italic text-xl mb-4">
+            <section data-revelar="" suppressHydrationWarning>
+              <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.terms.payments}
               </h2>
               <p>{t.terms.payments_text}</p>
             </section>
 
             {/* 6. Propriedade Intelectual */}
-            <section>
-              <h2 className="text-[var(--foreground)] font-serif italic text-xl mb-4">
+            <section data-revelar="" suppressHydrationWarning>
+              <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.terms.intellectual}
               </h2>
               <p>{t.terms.intellectual_text}</p>
             </section>
 
             {/* 7. Conteúdo do Utilizador */}
-            <section>
-              <h2 className="text-[var(--foreground)] font-serif italic text-xl mb-4">
+            <section data-revelar="" suppressHydrationWarning>
+              <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.terms.user_content}
               </h2>
               <p>{t.terms.user_content_text}</p>
             </section>
 
             {/* 8. Limitação de Responsabilidade */}
-            <section>
-              <h2 className="text-[var(--foreground)] font-serif italic text-xl mb-4">
+            <section data-revelar="" suppressHydrationWarning>
+              <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.terms.liability}
               </h2>
               <p>{t.terms.liability_text}</p>
             </section>
 
             {/* 9. Lei Aplicável */}
-            <section>
-              <h2 className="text-[var(--foreground)] font-serif italic text-xl mb-4">
+            <section data-revelar="" suppressHydrationWarning>
+              <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.terms.governing_law}
               </h2>
               <p>{t.terms.governing_law_text}</p>
             </section>
 
             {/* 10. Reclamações */}
-            <section>
-              <h2 className="text-[var(--foreground)] font-serif italic text-xl mb-4">
+            <section data-revelar="" suppressHydrationWarning>
+              <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.terms.complaints}
               </h2>
               <p>{t.terms.complaints_text}</p>
             </section>
 
             {/* 11. Alterações */}
-            <section>
-              <h2 className="text-[var(--foreground)] font-serif italic text-xl mb-4">
+            <section data-revelar="" suppressHydrationWarning>
+              <h2 className="text-[var(--foreground)] font-normal text-xl mb-4">
                 {t.terms.changes}
               </h2>
               <p>{t.terms.changes_text}</p>
             </section>
           </div>
         </div>
-      </main>
+      </div>
     </>
   );
 }

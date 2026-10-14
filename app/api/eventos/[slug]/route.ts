@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase-admin";
+import { supabase, supabaseAdmin } from "@/lib/supabase-admin";
 import { logger } from "@/lib/logger";
 
 // GET - Buscar evento por slug
@@ -19,8 +19,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Evento não encontrado" }, { status: 404 });
     }
 
-    // Incrementar views (fire-and-forget — não bloqueia a resposta)
-    supabase
+    // Incrementar views (fire-and-forget — não bloqueia a resposta).
+    //
+    // A leitura acima é com a chave anónima, que é o que se quer: é conteúdo
+    // público. A escrita **não** pode ser, senão a tabela tem de aceitar UPDATE
+    // de qualquer visitante — e um UPDATE não se pode restringir a uma coluna
+    // por RLS, portanto quem pudesse somar uma visita podia reescrever o
+    // evento inteiro. Contar visitas é trabalho do servidor.
+    supabaseAdmin
       .from("eventos")
       .update({ views_count: (evento.views_count || 0) + 1 })
       .eq("id", evento.id)

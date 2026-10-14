@@ -150,7 +150,7 @@ export default function GlobalSearch({ onNavigate }: GlobalSearchProps) {
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setShowResults(true)}
           placeholder="Pesquisar tudo... (Ctrl+K)"
-          className="w-full bg-white/5 border border-white/10 pl-12 pr-12 py-3 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#C5A059] focus:bg-white/10 transition-all"
+          className="w-full bg-white/5 border border-white/10 pl-12 pr-12 py-3 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[var(--gold)] focus:bg-white/10 transition-all"
         />
 
         {/* Loading ou Clear */}
@@ -178,7 +178,7 @@ export default function GlobalSearch({ onNavigate }: GlobalSearchProps) {
 
       {/* Resultados */}
       {showResults && (
-        <div className="absolute top-full mt-2 w-full bg-[#0A0A0A] border border-white/10 rounded-xl shadow-2xl max-h-[600px] overflow-y-auto z-50">
+        <div className="absolute top-full mt-2 w-full bg-[var(--background-secondary)] border border-white/10 rounded-xl shadow-2xl max-h-[600px] overflow-y-auto z-50">
           {/* Sem query - Mostrar pesquisas recentes */}
           {!query && recentSearches.length > 0 && (
             <div className="p-4">
@@ -244,7 +244,7 @@ export default function GlobalSearch({ onNavigate }: GlobalSearchProps) {
                                 </p>
                                 <p className="text-xs text-gray-400 truncate">{item.subtitle}</p>
                               </div>
-                              <ArrowRight className="w-4 h-4 text-gray-500 group-hover:text-[#C5A059] transition-colors flex-shrink-0 ml-2 mt-1" />
+                              <ArrowRight className="w-4 h-4 text-gray-500 group-hover:text-[var(--gold)] transition-colors flex-shrink-0 ml-2 mt-1" />
                             </div>
                           </button>
                         ))}
@@ -264,7 +264,7 @@ export default function GlobalSearch({ onNavigate }: GlobalSearchProps) {
                 </div>
               ) : loading ? (
                 <div className="p-8 text-center">
-                  <Loader2 className="w-12 h-12 text-[#C5A059] mx-auto mb-3 animate-spin" />
+                  <Loader2 className="w-12 h-12 text-[var(--gold)] mx-auto mb-3 animate-spin" />
                   <p className="text-gray-400">A pesquisar...</p>
                 </div>
               ) : null}

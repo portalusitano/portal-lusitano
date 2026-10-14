@@ -5,6 +5,9 @@ import { logger } from "@/lib/logger";
 import { escapeHtml } from "@/lib/sanitize";
 import Stripe from "stripe";
 import { registerPayment, linkPaymentToSubmission } from "./utils";
+import { computeExpiry, computeFeaturedUntil } from "@/lib/marketplace-listings";
+import { montarCamposDoFormulario, montarAscendentes } from "@/lib/anuncio-campos";
+import { registarConsultaDoAnuncio } from "@/lib/documentos/stud-book/registo";
 
 export async function handleCavaloAnuncio(
   session: Stripe.Checkout.Session,
@@ -51,6 +54,13 @@ export async function handleCavaloAnuncio(
   const imageUrls = Array.isArray(formData.imageUrls) ? (formData.imageUrls as string[]) : [];
   const fotoPrincipal = imageUrls[0] || null;
 
+  // Período pago do anúncio. Sem isto o anúncio ficava sem data de fim e a área
+  // do vendedor não conseguia mostrar quantos dias restam.
+  const tier = metadata.tier || "standard";
+  const publicadoEm = new Date();
+  const expiraEm = computeExpiry(tier, publicadoEm);
+  const destaqueAte = computeFeaturedUntil(tier, publicadoEm);
+
   // Insert cavalo em cavalos_venda
   const { data, error } = await supabase
     .from("cavalos_venda")
@@ -64,6 +74,12 @@ export async function handleCavaloAnuncio(
       preco: formData.preco,
       preco_negociavel: formData.precoNegociavel || false,
       destaque: metadata.tier === "destaque" || metadata.tier === "premium",
+      listing_tier: tier,
+      listing_expires_at: expiraEm ? expiraEm.toISOString() : null,
+      featured_until: destaqueAte ? destaqueAte.toISOString() : null,
+      // Presente quando o vendedor estava autenticado no checkout; caso contrário
+      // o anúncio é reclamado depois por email (ver lib/seller-auth).
+      user_id: metadata.user_id || null,
       vendedor_email: session.customer_details?.email,
       vendedor_nome: formData.proprietarioNome,
       vendedor_telefone: formData.proprietarioTelefone,
@@ -77,10 +93,22 @@ export async function handleCavaloAnuncio(
       nivel_treino: formData.nivelTreino,
       disciplinas: formData.disciplinas || [],
       registro_apsl: formData.registoAPSL,
-      documentos_em_dia: formData.documentosEmDia || true,
+      // `|| true` dava sempre `true`: quem respondesse que a vacinação ou a
+      // desparasitação não estão em dia via o anúncio publicado a dizer o
+      // contrário. Num classificados com dinheiro pelo meio, o que se guarda é
+      // a resposta do vendedor — e, na falta dela, o lado prudente.
+      documentos_em_dia: formData.documentosEmDia === true,
       foto_principal: fotoPrincipal,
       fotos: imageUrls,
       status: "pending", // Pending admin approval
+      // Os outros 80 campos que o vendedor respondeu. Até aqui viajavam do
+      // browser até `contact_submissions.form_data` e ficavam por lá: o
+      // formulário pedia 99 respostas e o anúncio guardava 19. A conversão —
+      // objectos e não strings nos `jsonb`, `false` distinto de «não
+      // respondeu», datas só em `YYYY-MM-DD` — está em `lib/anuncio-campos.ts`,
+      // fora daqui de propósito: este handler corre depois de o dinheiro
+      // entrar e não há como reproduzir uma falha sua sem cobrar a alguém.
+      ...montarCamposDoFormulario(formData),
     })
     .select()
     .single();
@@ -88,6 +116,66 @@ export async function handleCavaloAnuncio(
   if (error) {
     logger.error("Error inserting cavalo:", error);
     throw new Error(`Failed to insert cavalo: ${error.message}`);
+  }
+
+  // A ascendência, numa tabela à parte: são seis antepassados com nome e
+  // registo, e oito colunas resolviam duas gerações e mais nenhuma.
+  //
+  // Falhar aqui **não** deita o webhook abaixo, e a razão é a ordem das
+  // escritas: o anúncio já está inserido, mas o pagamento ainda não está
+  // registado, e é `payments.stripe_session_id` que a rota consulta para
+  // reconhecer uma entrega repetida. Um `throw` a partir deste ponto faria o
+  // Stripe repetir a entrega e o anúncio nascer duas vezes. Um pedigree por
+  // escrever é um defeito; um anúncio duplicado numa conta paga é pior.
+  const ascendentes = montarAscendentes(formData);
+  if (ascendentes.length > 0) {
+    const { error: erroAscendentes } = await supabase.from("cavalos_venda_ascendentes").insert(
+      ascendentes.map((a) => ({
+        cavalo_id: data.id,
+        caminho: a.caminho,
+        geracao: a.geracao,
+        nome: a.nome,
+        registo: a.registo,
+      }))
+    );
+    if (erroAscendentes) {
+      logger.error("Erro ao guardar a ascendência do cavalo:", {
+        cavaloId: data.id,
+        erro: erroAscendentes.message,
+      });
+    }
+  }
+
+  // Prender os documentos ao anúncio que acabou de nascer.
+  //
+  // Eles subiram antes do pagamento, quando ainda não havia `cavalo_id` a que
+  // os ligar, e ficaram com a `referencia` que o browser gerou. É aqui — o
+  // primeiro instante em que o anúncio existe — que a ligação se faz.
+  //
+  // Só se prendem os que ainda estão soltos (`cavalo_id is null`): se esta
+  // entrega for repetida pelo Stripe, a segunda passagem não rouba documentos
+  // a um anúncio que já os tem.
+  //
+  // Falhar aqui **não** deita o webhook abaixo, pela mesma razão escrita acima
+  // para a ascendência: a partir deste ponto um `throw` faz o Stripe repetir a
+  // entrega e o anúncio nascer duas vezes. Um documento por prender vê-se na
+  // fila de revisão pela referência; um anúncio duplicado numa conta paga é
+  // pior, e não se desfaz.
+  const referenciaDocumentos = formData.referenciaDocumentos;
+  if (typeof referenciaDocumentos === "string" && referenciaDocumentos) {
+    const { error: erroDocumentos } = await supabase
+      .from("documentos_cavalo")
+      .update({ cavalo_id: data.id })
+      .eq("referencia", referenciaDocumentos)
+      .is("cavalo_id", null);
+
+    if (erroDocumentos) {
+      logger.error("Erro ao ligar os documentos ao cavalo:", {
+        cavaloId: data.id,
+        referencia: referenciaDocumentos,
+        erro: erroDocumentos.message,
+      });
+    }
   }
 
   // Registar pagamento (com NOVOS campos)
@@ -142,4 +230,59 @@ export async function handleCavaloAnuncio(
       <p><a href="${process.env.NEXT_PUBLIC_APP_URL ?? "https://portal-lusitano.pt"}/admin">Ir para Admin Panel</a></p>
     `,
   });
+
+  // A consulta ao stud-book da APSL: **uma**, por este cavalo, e é a última
+  // coisa que este handler faz.
+  //
+  // ## Porquê aqui, e não no formulário
+  //
+  // Porque no formulário está um vendedor a pagar. Um servidor de terceiros no
+  // caminho do checkout é uma barra a rodar entre alguém e o botão de pagar, e
+  // no dia em que a APSL estiver lenta é o nosso negócio que pára por causa do
+  // servidor de outra pessoa. Aqui o dinheiro já entrou, o anúncio já existe e
+  // já tem `id` — que é justamente o que a linha da consulta precisa.
+  //
+  // ## Porquê no fim de tudo
+  //
+  // Pela mesma razão que está escrita acima para a ascendência e para os
+  // documentos, e que vale a pena repetir porque é a que custa dinheiro: a
+  // partir do `registerPayment` um `throw` faz o Stripe repetir a entrega, e o
+  // anúncio nasce duas vezes. Por isso isto vem **depois** de tudo o que tem de
+  // acontecer, e por isso o `registarConsultaDoAnuncio` **nunca lança** — nem
+  // por falha de rede, nem por falha da base. O `catch` aqui é a segunda rede,
+  // não a primeira.
+  //
+  // Com o interruptor em baixo — que é o estado de hoje — isto não toca no
+  // `fetch` e não escreve linha nenhuma. Ver `lib/documentos/stud-book/`.
+  try {
+    await registarConsultaDoAnuncio(
+      {
+        cavaloId: data.id,
+        pedido: {
+          numeroRegisto: textoDoFormulario(formData.registoAPSL),
+          ueln: textoDoFormulario(formData.passaporteEquino),
+          microchip: textoDoFormulario(formData.microchip),
+        },
+      },
+      { supabase }
+    );
+  } catch (erro) {
+    logger.error("Erro ao registar a consulta ao stud-book:", {
+      cavaloId: data.id,
+      erro: erro instanceof Error ? erro.message : String(erro),
+    });
+  }
+}
+
+/**
+ * Um campo do formulário como texto, ou `null`.
+ *
+ * O `form_data` é um mapa de valores de tipos vários — o vendedor respondeu a
+ * noventa e nove perguntas, e nem todas são texto. Um `String(true)` na caixa
+ * do microchip seria um número inventado a caminho de uma consulta.
+ */
+function textoDoFormulario(valor: unknown): string | null {
+  if (typeof valor !== "string") return null;
+  const limpo = valor.trim();
+  return limpo === "" ? null : limpo;
 }

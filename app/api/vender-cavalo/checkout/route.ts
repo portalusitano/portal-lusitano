@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 import { strictLimiter } from "@/lib/rate-limit";
 import { getListingTier } from "@/lib/listing-tiers";
+import { getAuthenticatedUser } from "@/lib/seller-auth";
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,8 +31,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Dados do formulário inválidos" }, { status: 400 });
     }
 
-    // Guardar contacto em BD antes de criar sessão Stripe
-    const isDestaque = tier === "destaque" || tier === "premium";
+    // Se o vendedor estiver autenticado, o anúncio fica desde já ligado à conta
+    // dele. O webhook não tem sessão, por isso o id viaja nos metadados Stripe.
+    // Publicar sem conta continua a funcionar: nesse caso o anúncio é reclamado
+    // mais tarde por correspondência de email (ver lib/seller-auth).
+    const user = await getAuthenticatedUser();
+
+    /* Guardar contacto em BD antes de criar sessão Stripe.
+     *
+     * A prioridade era «alta» para quem tivesse comprado o plano de destaque ou
+     * o premium. Com um preço só, não há quem compre prioridade — e é isso que
+     * se quer dizer: a fila de contactos passa a ser por ordem de chegada, e
+     * não por quanto se pagou. Quem publica um anúncio pagou o mesmo que todos
+     * os outros. */
     const { data: submission, error: submissionError } = await supabase
       .from("contact_submissions")
       .insert({
@@ -45,7 +57,7 @@ export async function POST(req: NextRequest) {
           tier,
         },
         status: "novo",
-        priority: isDestaque ? "alta" : "normal",
+        priority: "normal",
         ip_address: req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || null,
         user_agent: req.headers.get("user-agent") || null,
       })
@@ -68,8 +80,17 @@ export async function POST(req: NextRequest) {
           price_data: {
             currency: "eur",
             product_data: {
-              name: `Anúncio ${tierData.name} — ${tierData.durationDays} dias`,
-              description: tierData.features[0],
+              name: `Anúncio no Portal Lusitano — ${tierData.durationDays} dias`,
+              /* Escrita do que o plano **é**, e não de uma frase guardada ao
+                 lado dele. Havia um `features[0]` — uma lista de textos de
+                 marketing dentro da definição do plano, em português, que ia
+                 parar ao recibo do Stripe. A definição passou a ter só números;
+                 quem os escreve por extenso é quem os mostra, na língua de quem
+                 está a ler. */
+              description:
+                tierData.maxPhotos === -1
+                  ? "Fotografias sem limite"
+                  : `Até ${tierData.maxPhotos} fotografias`,
             },
             unit_amount: tierData.priceInCents,
           },
@@ -85,8 +106,10 @@ export async function POST(req: NextRequest) {
         contact_submission_id: submission.id,
         tier,
         duration_days: String(tierData.durationDays),
-        destaque: isDestaque ? "true" : "false",
+        // Sem planos com destaque à venda. Ver `lib/listing-tiers.ts`.
+        destaque: tierData.featuredDays > 0 ? "true" : "false",
         nome: formData.nomeCavalo.substring(0, 100),
+        ...(user ? { user_id: user.id } : {}),
       },
       billing_address_collection: "auto",
     });

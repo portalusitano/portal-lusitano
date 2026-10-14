@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Bell, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 
 const STORAGE_KEY = "push-notification-preference";
@@ -10,10 +10,10 @@ const MIN_PAGES_BEFORE_PROMPT = 3;
 
 const text = {
   pt: {
-    message: "Quer receber notificacoes de novos cavalos e eventos?",
+    message: "Quer receber notificações de novos cavalos e eventos?",
     accept: "Sim",
-    dismiss: "Agora nao",
-    denied: "Notificacoes bloqueadas no navegador. Pode alterar nas definicoes.",
+    dismiss: "Agora não",
+    denied: "Notificações bloqueadas no navegador. Pode alterar nas definições.",
   },
   en: {
     message: "Want to receive notifications about new horses and events?",
@@ -22,8 +22,8 @@ const text = {
     denied: "Notifications are blocked in your browser. You can change this in settings.",
   },
   es: {
-    message: "Desea recibir notificaciones de nuevos caballos y eventos?",
-    accept: "Si",
+    message: "¿Desea recibir notificaciones de nuevos caballos y eventos?",
+    accept: "Sí",
     dismiss: "Ahora no",
     denied: "Notificaciones bloqueadas en el navegador. Puede cambiar en ajustes.",
   },
@@ -95,7 +95,9 @@ export default function PushNotificationPrompt() {
     if (currentCount >= MIN_PAGES_BEFORE_PROMPT) {
       // Small delay so the banner does not appear instantly on page load
       const timer = setTimeout(() => {
-        setIsVisible(true);
+        // Espera que o aviso de cookies esteja respondido: os dois ocupam a
+        // mesma barra em baixo e sobrepunham-se.
+        if (localStorage.getItem("cookie-consent")) setIsVisible(true);
       }, 2000);
       return () => clearTimeout(timer);
     }
@@ -133,49 +135,44 @@ export default function PushNotificationPrompt() {
     <div
       role="status"
       aria-live="polite"
-      className="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:max-w-md z-[9990] animate-[fadeSlideIn_0.3s_ease-out_forwards]"
+      className="fixed inset-x-3 bottom-3 z-[9990] mx-auto max-w-6xl opacity-0 animate-[slideUp_0.4s_cubic-bezier(0.22,1,0.36,1)_forwards] lg:inset-x-6 lg:bottom-6"
+      style={{ willChange: "transform, opacity", marginBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div className="bg-[var(--background-secondary)] border border-[var(--border)] rounded-lg shadow-2xl p-4">
-        {/* Close button */}
+      <div className="relative rounded-[28px] border border-[var(--border-soft)] bg-[var(--background-elevated)] p-4 shadow-[0_12px_60px_rgba(0,0,0,0.8)] sm:p-5">
         <button
           onClick={handleDismiss}
-          className="absolute top-3 right-3 text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
+          className="absolute right-4 top-4 text-[var(--foreground-muted)] transition-colors hover:text-[var(--foreground)] lg:hidden"
           aria-label={language === "pt" ? "Fechar" : language === "es" ? "Cerrar" : "Close"}
         >
-          <X size={16} />
+          <X size={16} aria-hidden="true" />
         </button>
 
-        <div className="flex items-start gap-3 pr-6">
-          {/* Icon */}
-          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[var(--gold)]/10 flex items-center justify-center">
-            <Bell className="text-[var(--gold)]" size={18} />
-          </div>
+        {showDeniedMessage ? (
+          <p className="pr-8 text-sm leading-relaxed text-[var(--foreground-secondary)] lg:pr-0">
+            {t.denied}
+          </p>
+        ) : (
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-8">
+            <p className="flex-1 pr-8 text-sm leading-relaxed text-[var(--foreground-secondary)] lg:pr-0">
+              {t.message}
+            </p>
 
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            {showDeniedMessage ? (
-              <p className="text-sm text-[var(--foreground-secondary)]">{t.denied}</p>
-            ) : (
-              <>
-                <p className="text-sm text-[var(--foreground-secondary)] mb-3">{t.message}</p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleAccept}
-                    className="px-4 py-1.5 bg-[var(--gold)] text-black text-xs font-bold uppercase tracking-wider hover:bg-white transition-colors rounded"
-                  >
-                    {t.accept}
-                  </button>
-                  <button
-                    onClick={handleDismiss}
-                    className="px-4 py-1.5 bg-[var(--surface-hover)] text-[var(--foreground-secondary)] text-xs font-medium hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition-colors rounded"
-                  >
-                    {t.dismiss}
-                  </button>
-                </div>
-              </>
-            )}
+            <div className="flex shrink-0 gap-2.5">
+              <button
+                onClick={handleDismiss}
+                className="btn btn-secundario flex-1 rounded-full lg:flex-none"
+              >
+                {t.dismiss}
+              </button>
+              <button
+                onClick={handleAccept}
+                className="btn btn-primario flex-1 rounded-full text-sm lg:flex-none"
+              >
+                {t.accept}
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

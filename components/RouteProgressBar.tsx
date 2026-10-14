@@ -18,22 +18,36 @@ export default function RouteProgressBar() {
   const pathRef = useRef(pathname);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  // Keep pathRef in sync
-  pathRef.current = pathname;
-
-  // Navigation complete — finish the bar
+  // Mantém `pathRef` em dia para o listener de cliques, que é registado uma
+  // vez só e por isso não pode fechar sobre o `pathname`. A sincronização é
+  // feita num efeito e não durante o render: escrever num ref enquanto se
+  // renderiza é o tipo de coisa que passa despercebida até o React repetir um
+  // render e o valor deixar de corresponder ao que está no ecrã.
   useEffect(() => {
-    if (pathname !== prevPath.current) {
-      prevPath.current = pathname;
-      if (state === "loading") {
-        setProgress(100);
-        setState("completing");
-        timerRef.current = setTimeout(() => {
-          setState("idle");
-          setProgress(0);
-        }, 300);
-      }
-    }
+    pathRef.current = pathname;
+  }, [pathname]);
+
+  // Navegação terminada — fechar a barra.
+  //
+  // As actualizações de estado são agendadas em vez de aplicadas no corpo do
+  // efeito: encadeá-las a partir daqui provoca renders em cascata, e o React
+  // avisa disso com razão. Um temporizador a zero chega para as tirar do
+  // caminho do render que as originou.
+  useEffect(() => {
+    if (pathname === prevPath.current) return;
+    prevPath.current = pathname;
+    if (state !== "loading") return;
+
+    const aFechar = setTimeout(() => {
+      setProgress(100);
+      setState("completing");
+    }, 0);
+    timerRef.current = setTimeout(() => {
+      setState("idle");
+      setProgress(0);
+    }, 300);
+
+    return () => clearTimeout(aFechar);
   }, [pathname, state]);
 
   // Intercept link clicks to start progress — stable callback using ref
@@ -98,13 +112,13 @@ export default function RouteProgressBar() {
         style={{
           height: "100%",
           width: `${progress}%`,
-          background: "var(--gold, rgb(197, 160, 89))",
+          background: "var(--gold, #c6a15b)",
           transition:
             state === "completing"
               ? "width 0.2s ease-out, opacity 0.3s ease 0.1s"
               : "width 0.4s ease-out",
           opacity: state === "completing" ? 0 : 1,
-          boxShadow: "0 0 10px rgba(197, 160, 89, 0.5)",
+          boxShadow: "0 0 10px rgb(var(--gold-rgb) / 0.5)",
         }}
       />
     </div>

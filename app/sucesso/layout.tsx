@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Sucesso",
-  description:
-    "A sua opera\u00e7\u00e3o foi conclu\u00edda com sucesso no Portal Lusitano.",
+  description: "A sua opera\u00e7\u00e3o foi conclu\u00edda com sucesso no Portal Lusitano.",
   keywords: [],
   robots: {
     index: false,

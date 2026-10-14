@@ -25,3 +25,17 @@ yarn.lock
 
 # Public assets
 public/sw.js
+
+# Conteúdo, não código
+#
+# Os ebooks e os ficheiros de agentes são texto escrito à mão. Reformatá-los
+# enche o diff de ruído sem melhorar nada — e há markdown aqui, com tabelas
+# largas e emoji, em que o prettier não chega sequer a um estado estável:
+# escreve o ficheiro e na verificação seguinte volta a queixar-se do mesmo.
+public/ebooks/
+public/templates/
+public/downloads/
+.claude/
+
+# Ficheiro de verificação do Google: o conteúdo é literal e não se toca.
+public/google19f6731f9a1a4711.html

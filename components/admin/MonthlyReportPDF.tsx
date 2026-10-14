@@ -1,5 +1,6 @@
 import React from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { formatarEurosComCentimos } from "@/lib/format";
 
 // Definir cores do Portal Lusitano
 const COLORS = {
@@ -148,11 +149,6 @@ interface ReportData {
 export const MonthlyReportPDF = ({ data }: { data: ReportData }) => {
   const { period, financial, topHorses, leads, roi } = data;
 
-  // Formatar moeda
-  const formatCurrency = (cents: number) => {
-    return `€${(cents / 100).toFixed(2)}`;
-  };
-
   // Formatar número
   const formatNumber = (num: number) => {
     return num.toLocaleString("pt-PT");
@@ -175,21 +171,27 @@ export const MonthlyReportPDF = ({ data }: { data: ReportData }) => {
           <View style={styles.row}>
             <View style={styles.kpiCard}>
               <Text style={styles.kpiLabel}>Receita Total</Text>
-              <Text style={styles.kpiValue}>{formatCurrency(financial.totalRevenue)}</Text>
+              <Text style={styles.kpiValue}>
+                {formatarEurosComCentimos(financial.totalRevenue)}
+              </Text>
             </View>
             <View style={styles.kpiCard}>
               <Text style={styles.kpiLabel}>Receita Este Mês</Text>
-              <Text style={styles.kpiValue}>{formatCurrency(financial.revenueThisMonth)}</Text>
+              <Text style={styles.kpiValue}>
+                {formatarEurosComCentimos(financial.revenueThisMonth)}
+              </Text>
             </View>
           </View>
           <View style={styles.row}>
             <View style={styles.kpiCard}>
               <Text style={styles.kpiLabel}>MRR</Text>
-              <Text style={styles.kpiValue}>{formatCurrency(financial.mrr)}</Text>
+              <Text style={styles.kpiValue}>{formatarEurosComCentimos(financial.mrr)}</Text>
             </View>
             <View style={styles.kpiCard}>
               <Text style={styles.kpiLabel}>Ticket Médio</Text>
-              <Text style={styles.kpiValue}>{formatCurrency(financial.averageTicket)}</Text>
+              <Text style={styles.kpiValue}>
+                {formatarEurosComCentimos(financial.averageTicket)}
+              </Text>
             </View>
           </View>
         </View>
@@ -205,19 +207,19 @@ export const MonthlyReportPDF = ({ data }: { data: ReportData }) => {
             <View style={styles.tableRow}>
               <Text style={[styles.tableCell, { width: "60%" }]}>Anúncios de Cavalos</Text>
               <Text style={[styles.tableCell, { width: "40%" }]}>
-                {formatCurrency(financial.revenueByProduct.cavalo_anuncio)}
+                {formatarEurosComCentimos(financial.revenueByProduct.cavalo_anuncio)}
               </Text>
             </View>
             <View style={styles.tableRow}>
               <Text style={[styles.tableCell, { width: "60%" }]}>Instagram Marketing</Text>
               <Text style={[styles.tableCell, { width: "40%" }]}>
-                {formatCurrency(financial.revenueByProduct.instagram)}
+                {formatarEurosComCentimos(financial.revenueByProduct.instagram)}
               </Text>
             </View>
             <View style={styles.tableRow}>
               <Text style={[styles.tableCell, { width: "60%" }]}>Publicidade</Text>
               <Text style={[styles.tableCell, { width: "40%" }]}>
-                {formatCurrency(financial.revenueByProduct.publicidade)}
+                {formatarEurosComCentimos(financial.revenueByProduct.publicidade)}
               </Text>
             </View>
           </View>

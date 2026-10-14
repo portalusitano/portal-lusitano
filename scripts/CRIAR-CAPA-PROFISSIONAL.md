@@ -7,12 +7,14 @@ Este guia ensina-te a criar uma capa de qualidade editorial para o ebook **"Intr
 ## 📐 Especificações Técnicas
 
 ### Dimensões
+
 - **Tamanho**: A4 (210 x 297 mm)
 - **Resolução**: 300 DPI (mínimo)
 - **Orientação**: Vertical (Portrait)
 - **Sangria**: 3mm (se for imprimir)
 
 ### Cores Portal Lusitano
+
 ```
 Gold Principal:   #C5A059 (RGB: 197, 160, 89)
 Gold Escuro:      #8B6914 (RGB: 139, 105, 20)
@@ -26,12 +28,14 @@ Cinza Claro:      #F5F5F5
 ## 🎯 MÉTODO 1: Canva (Mais Fácil - 30 minutos)
 
 ### Passo 1: Setup Inicial
+
 1. Ir a https://www.canva.com
 2. Criar conta gratuita (ou fazer login)
 3. Clicar em "**Create a design**"
 4. Selecionar "**Custom size**": 2480 x 3508 pixels (A4 em 300 DPI)
 
 ### Passo 2: Escolher Template Base
+
 1. Na barra lateral esquerda, clicar em "**Templates**"
 2. Pesquisar: "**book cover elegant**" ou "**ebook cover minimalist**"
 3. Filtrar por:
@@ -40,6 +44,7 @@ Cinza Claro:      #F5F5F5
    - Grátis (se não tiveres Canva Pro)
 
 **Templates Recomendados** (pesquisar estes nomes):
+
 - "Elegant Gold Book Cover"
 - "Luxury Minimalist Ebook"
 - "Classic Literature Cover"
@@ -47,7 +52,9 @@ Cinza Claro:      #F5F5F5
 ### Passo 3: Customizar Design
 
 #### ELEMENTO 1: Background
+
 - **Opção A**: Gradiente Gold
+
   ```
   Tipo: Linear
   Cor 1: #C5A059 (topo)
@@ -63,6 +70,7 @@ Cinza Claro:      #F5F5F5
   - Aplicar overlay escuro (opacidade 40-60%)
 
 #### ELEMENTO 2: Título Principal
+
 ```
 Texto: "INTRODUÇÃO AO CAVALO LUSITANO"
 
@@ -81,6 +89,7 @@ Maiúsculas: SIM
 ```
 
 #### ELEMENTO 3: Subtítulo
+
 ```
 Texto: "O Guia Essencial Para Iniciantes"
 
@@ -95,6 +104,7 @@ Alinhamento: Centro
 ```
 
 #### ELEMENTO 4: Topo (Eyebrow)
+
 ```
 Texto: "PORTAL LUSITANO PRO"
 
@@ -108,6 +118,7 @@ Posição: Topo central, ~50mm do topo
 ```
 
 #### ELEMENTO 5: Ornamentos
+
 - **Linhas Decorativas**:
   - Acima e abaixo do título
   - Cor: #C5A059
@@ -120,6 +131,7 @@ Posição: Topo central, ~50mm do topo
   - Coroa (referência "Lusitano = realeza")
 
 #### ELEMENTO 6: Rodapé
+
 ```
 Texto: "30 PÁGINAS • DOWNLOAD GRATUITO"
 
@@ -157,6 +169,7 @@ Alinhamento: Centro
 ```
 
 ### Passo 5: Exportar
+
 1. Clicar em "**Share**" (topo direita)
 2. Selecionar "**Download**"
 3. Formato: **PDF - Print** (melhor qualidade)
@@ -168,6 +181,7 @@ Alinhamento: Centro
 ## 🎨 MÉTODO 2: Figma (Mais Controlo - 45 minutos)
 
 ### Passo 1: Setup
+
 1. Ir a https://www.figma.com
 2. Criar conta gratuita
 3. New File → New Design File
@@ -175,6 +189,7 @@ Alinhamento: Centro
 5. Criar frame: 2480 x 3508 px
 
 ### Passo 2: Grid e Guides
+
 ```
 Margins: 100px (todos os lados)
 Columns: 12
@@ -186,6 +201,7 @@ Gutter: 20px
 ### Passo 3: Elementos (criar layers)
 
 #### Background
+
 ```
 Rectangle: 2480 x 3508
 Fill: Linear Gradient
@@ -195,6 +211,7 @@ Fill: Linear Gradient
 ```
 
 #### Título
+
 ```
 Text: "INTRODUÇÃO AO\nCAVALO LUSITANO"
 Font: Playfair Display Bold
@@ -207,12 +224,14 @@ Position: Y = 800px (centrado verticalmente)
 ```
 
 #### Ornamentos
+
 - Use **Line Tool** (L)
 - Stroke: 3px, #FFFFFF
 - Comprimento: 400px
 - Posicionar acima/abaixo título
 
 ### Passo 4: Exportar
+
 1. Selecionar frame
 2. **Export** (painel direita)
 3. Formato: **PDF**
@@ -224,6 +243,7 @@ Position: Y = 800px (centrado verticalmente)
 ## 📷 MÉTODO 3: Photoshop (Máxima Qualidade - 60 minutos)
 
 ### Passo 1: Novo Documento
+
 ```
 Largura: 210 mm
 Altura: 297 mm
@@ -233,6 +253,7 @@ Background: Branco
 ```
 
 ### Passo 2: Criar Background
+
 1. **Layer → New Fill Layer → Gradient**
 2. Configurar:
    ```
@@ -243,6 +264,7 @@ Background: Branco
    ```
 
 ### Passo 3: Adicionar Imagem de Cavalo (Opcional)
+
 1. Descarregar imagem alta resolução (min 2000px):
    - Unsplash: https://unsplash.com/s/photos/lusitano-horse
    - Pexels: https://www.pexels.com/search/white%20horse/
@@ -257,6 +279,7 @@ Background: Branco
 ### Passo 4: Adicionar Texto
 
 #### Eyebrow
+
 ```
 Ferramenta Texto (T)
 Texto: "PORTAL LUSITANO PRO"
@@ -267,6 +290,7 @@ Cor: #FFFFFF
 ```
 
 #### Título Principal
+
 ```
 Texto: "INTRODUÇÃO AO CAVALO LUSITANO"
 Fonte: Playfair Display Bold
@@ -284,11 +308,13 @@ Efeitos:
 ```
 
 ### Passo 5: Ornamentos
+
 1. **Line Tool** (U)
 2. Desenhar linhas decorativas
 3. Adicionar **Layer Style → Stroke** (2-3px, #FFFFFF)
 
 ### Passo 6: Exportar
+
 ```
 File → Export → Export As...
 Formato: PDF
@@ -302,6 +328,7 @@ Guardar
 ## 🖼️ Recursos Gratuitos de Imagens
 
 ### Cavalos Lusitanos (Alta Qualidade)
+
 1. **Unsplash**: https://unsplash.com
    - Pesquisar: "white horse", "lusitano horse", "andalusian horse"
    - Licença: Gratuita para uso comercial
@@ -315,6 +342,7 @@ Guardar
    - Licença: Gratuita
 
 ### Ornamentos e Decorações
+
 - **The Noun Project**: https://thenounproject.com
   - Ícones: cavalo, ferradura, coroa
   - Versão gratuita: com atribuição
@@ -340,6 +368,7 @@ Antes de finalizar a capa:
 ## 🎯 Versões Alternativas para Criar
 
 ### Versão A: Minimalista Elegante
+
 - Background: Branco puro
 - Título: Gold (#C5A059)
 - Subtítulo: Cinza escuro
@@ -347,6 +376,7 @@ Antes de finalizar a capa:
 - **Vibe**: Sofisticado, clean, moderno
 
 ### Versão B: Editorial Clássica
+
 - Background: Preto (#050505)
 - Título: Branco + Gold outline
 - Imagem: Cavalo em overlay
@@ -354,6 +384,7 @@ Antes de finalizar a capa:
 - **Vibe**: Luxo, tradição, heritage
 
 ### Versão C: Moderno Vibrante
+
 - Background: Gradiente gold intenso
 - Título: Branco + sombra
 - Imagem: Cavalo grande, central
@@ -367,13 +398,9 @@ Antes de finalizar a capa:
 
 1. **Guardar em**: `public/images/ebook-capa.jpg` (para website)
 2. **Usar na landing page** (/ebook-gratis):
+
    ```jsx
-   <Image
-     src="/images/ebook-capa.jpg"
-     alt="Capa do Ebook"
-     width={400}
-     height={565}
-   />
+   <Image src="/images/ebook-capa.jpg" alt="Capa do Ebook" width={400} height={565} />
    ```
 
 3. **Adicionar ao PDF**:

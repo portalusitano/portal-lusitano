@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import { CavaloAdmin } from "@/types/cavalo";
+import Seleccao from "@/components/ui/Seleccao";
 
 const sexoOptions = [
   { value: "macho", label: "Garanhão" },
@@ -108,7 +109,7 @@ export default function HorseForm({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Sexo *</label>
-              <select
+              <Seleccao
                 value={formData.sexo}
                 onChange={(e) => onChange({ sexo: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-amber-500 focus:border-amber-500"
@@ -118,7 +119,7 @@ export default function HorseForm({
                     {opt.label}
                   </option>
                 ))}
-              </select>
+              </Seleccao>
             </div>
 
             <div>
@@ -171,7 +172,7 @@ export default function HorseForm({
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Nível de Treino
               </label>
-              <select
+              <Seleccao
                 value={formData.nivel_treino}
                 onChange={(e) => onChange({ nivel_treino: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-amber-500 focus:border-amber-500"
@@ -181,7 +182,7 @@ export default function HorseForm({
                     {opt.label}
                   </option>
                 ))}
-              </select>
+              </Seleccao>
             </div>
 
             <div>

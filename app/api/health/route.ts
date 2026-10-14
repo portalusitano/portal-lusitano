@@ -42,7 +42,9 @@ async function checkDatabase(): Promise<ServiceHealth> {
     }
     return { status: "down" };
   } catch (error) {
-    logger.debug(`Database health check failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    logger.debug(
+      `Database health check failed: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
     return { status: "down" };
   }
 }
@@ -58,14 +60,18 @@ async function checkRedis(): Promise<ServiceHealth> {
 
     await Promise.race([
       redis.ping(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), HEALTH_CHECK_TIMEOUT)),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Timeout")), HEALTH_CHECK_TIMEOUT)
+      ),
     ]);
 
     clearTimeout(timeoutId);
     const latency = performance.now() - startTime;
     return { status: "up", latency_ms: Math.round(latency) };
   } catch (error) {
-    logger.debug(`Redis health check failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    logger.debug(
+      `Redis health check failed: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
     return { status: "down" };
   }
 }
@@ -79,14 +85,18 @@ async function checkStripe(): Promise<ServiceHealth> {
 
     await Promise.race([
       stripe.balance.retrieve(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), HEALTH_CHECK_TIMEOUT)),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Timeout")), HEALTH_CHECK_TIMEOUT)
+      ),
     ]);
 
     clearTimeout(timeoutId);
     const latency = performance.now() - startTime;
     return { status: "up", latency_ms: Math.round(latency) };
   } catch (error) {
-    logger.debug(`Stripe health check failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    logger.debug(
+      `Stripe health check failed: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
     return { status: "down" };
   }
 }
@@ -101,14 +111,18 @@ async function checkResend(): Promise<ServiceHealth> {
     // Get list of contacts (minimal API call to verify connectivity)
     await Promise.race([
       resend.contacts.list(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), HEALTH_CHECK_TIMEOUT)),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Timeout")), HEALTH_CHECK_TIMEOUT)
+      ),
     ]);
 
     clearTimeout(timeoutId);
     const latency = performance.now() - startTime;
     return { status: "up", latency_ms: Math.round(latency) };
   } catch (error) {
-    logger.debug(`Resend health check failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    logger.debug(
+      `Resend health check failed: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
     return { status: "down" };
   }
 }

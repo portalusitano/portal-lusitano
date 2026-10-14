@@ -78,7 +78,9 @@ CREATE TABLE IF NOT EXISTS cavalos_venda (
     fotos TEXT[],
     video_url VARCHAR(500),
     registro_apsl VARCHAR(100), -- número de registro
-    documentos_em_dia BOOLEAN DEFAULT true,
+    -- Sem resposta do vendedor, o lado prudente — a nota está por extenso em
+    -- `supabase/cavalos-venda-bootstrap.sql`.
+    documentos_em_dia BOOLEAN DEFAULT false,
     aceita_troca BOOLEAN DEFAULT false,
     transporte_incluido BOOLEAN DEFAULT false,
     destaque BOOLEAN DEFAULT false,

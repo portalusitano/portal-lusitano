@@ -1,0 +1,2337 @@
+{
+  "nome": "2026-09-01T18-52-32",
+  "url": "http://127.0.0.1:3448/mapa",
+  "quando": "2026-09-01T18:52:45.334Z",
+  "navegador": "/opt/pw-browsers/chromium",
+  "passo": 3,
+  "parado": false,
+  "repeticoes": 2,
+  "ms": 13193,
+  "ecras": [
+    {
+      "nome": "desktop",
+      "largura": 1400,
+      "altura": 950,
+      "repouso": {
+        "repouso": {
+          "repousou": true,
+          "ms": 629
+        },
+        "caixa": {
+          "l": 891.328125,
+          "a": 678
+        },
+        "total": 29,
+        "pontos": 14,
+        "nomesLidos": 11,
+        "nomesAccionaveis": 5,
+        "naOrdemDeTabulacao": 11,
+        "inertesVisiveis": 0,
+        "visiveisInertes": 0,
+        "manchas": [5],
+        "contadas": 29,
+        "entreNomes": [],
+        "nomesContraManchas": [],
+        "foraDaLona": [],
+        "cortados": [],
+        "curtos": ["7 coudelarias", "Quinta da Hermida", "Ferraz da Costa"],
+        "fixosPorCima": [],
+        "conferencia": {
+          "n": 11,
+          "min": 0,
+          "p50": 0.3642767875222661,
+          "p95": 0.7071067811865476,
+          "max": 0.7071067811865476,
+          "media": 0.3766740931542197
+        },
+        "alfinetes": {
+          "passo": 3,
+          "lona": {
+            "largura": 891.328125,
+            "altura": 678
+          },
+          "msVarrimento": 1306,
+          "raioDeToque": 13.968833664224883,
+          "centros": [
+            {
+              "indice": 0,
+              "x": 432,
+              "y": 279,
+              "raio": 13.968833664224883,
+              "erroAjuste": 0.3333426357806315,
+              "celulas": 69,
+              "area": 621,
+              "fronteiraLivre": 36,
+              "preciso": true
+            },
+            {
+              "indice": 1,
+              "x": 353.178188948031,
+              "y": 308.4606304903963,
+              "raio": 13.968833664224883,
+              "erroAjuste": 0.6189525866608467,
+              "celulas": 68,
+              "area": 612,
+              "fronteiraLivre": 36,
+              "preciso": true
+            },
+            {
+              "indice": 2,
+              "x": 380.17558373563224,
+              "y": 345.3234615262232,
+              "raio": 13.968833664224883,
+              "erroAjuste": 0.5554822759335376,
+              "celulas": 67,
+              "area": 603,
+              "fronteiraLivre": 33,
+              "preciso": true
+            },
+            {
+              "indice": 3,
+              "x": 498.9193405431229,
+              "y": 349.6952954669241,
+              "raio": 13.968833664224883,
+              "erroAjuste": 0.6201526000475147,
+              "celulas": 70,
+              "area": 630,
+              "fronteiraLivre": 40,
+              "preciso": true
+            },
+            {
+              "indice": 4,
+              "x": 468.5393695096037,
+              "y": 350.178188948031,
+              "raio": 13.968833664224883,
+              "erroAjuste": 0.6189525866608467,
+              "celulas": 68,
+              "area": 612,
+              "fronteiraLivre": 36,
+              "preciso": true
+            },
+            {
+              "indice": 5,
+              "x": 360.82441626436776,
+              "y": 362.6765384737768,
+              "raio": 13.968833664224883,
+              "erroAjuste": 0.5554822759335375,
+              "celulas": 67,
+              "area": 603,
+              "fronteiraLivre": 33,
+              "preciso": true
+            },
+            {
+              "indice": 6,
+              "x": 305.7964321977152,
+              "y": 375.5011400675412,
+              "raio": 13.968833664224883,
+              "erroAjuste": 0.49721313272891926,
+              "celulas": 66,
+              "area": 594,
+              "fronteiraLivre": 36,
+              "preciso": true
+            },
+            {
+              "indice": 7,
+              "x": 516.3437209087776,
+              "y": 383.1206379492391,
+              "raio": 13.968833664224883,
+              "erroAjuste": 0.5917828013196073,
+              "celulas": 68,
+              "area": 612,
+              "fronteiraLivre": 38,
+              "preciso": true
+            },
+            {
+              "indice": 8,
+              "x": 433.1528723723989,
+              "y": 390.69619653524086,
+              "raio": 13.968833664224883,
+              "erroAjuste": 0.6237958231077382,
+              "celulas": 68,
+              "area": 612,
+              "fronteiraLivre": 38,
+              "preciso": true
+            },
+            {
+              "indice": 9,
+              "x": 387.2035678022848,
+              "y": 390.5011400675412,
+              "raio": 13.968833664224883,
+              "erroAjuste": 0.49721313272891926,
+              "celulas": 66,
+              "area": 594,
+              "fronteiraLivre": 36,
+              "preciso": true
+            },
+            {
+              "indice": 10,
+              "x": 342.69619653524086,
+              "y": 421.1528723723989,
+              "raio": 13.968833664224883,
+              "erroAjuste": 0.6237958231077382,
+              "celulas": 68,
+              "area": 612,
+              "fronteiraLivre": 38,
+              "preciso": true
+            },
+            {
+              "indice": 11,
+              "x": 432.3964031205125,
+              "y": 447,
+              "raio": 13.968833664224883,
+              "erroAjuste": 0.44642601897059936,
+              "celulas": 67,
+              "area": 603,
+              "fronteiraLivre": 36,
+              "preciso": true
+            },
+            {
+              "indice": 12,
+              "x": 542.314027307762,
+              "y": 458.6514017194441,
+              "raio": 13.968833664224883,
+              "erroAjuste": 0.574389043948525,
+              "celulas": 67,
+              "area": 603,
+              "fronteiraLivre": 36,
+              "preciso": true
+            },
+            {
+              "indice": 13,
+              "x": 460.5,
+              "y": 466.5,
+              "raio": 13.968833664224883,
+              "erroAjuste": 0.5439959608272332,
+              "celulas": 68,
+              "area": 612,
+              "fronteiraLivre": 40,
+              "preciso": true
+            }
+          ],
+          "concordancia": {
+            "iguais": 67625,
+            "total": 67646,
+            "fraccao": 0.999689560358336
+          },
+          "imprecisos": 0,
+          "afinados": 0,
+          "aglomeracao": {
+            "n": 14,
+            "contagem": {
+              "3": 0,
+              "6": 0,
+              "12": 0,
+              "24": 0
+            },
+            "vizinho": [
+              80.00912514257958, 45.69165829003717, 25.99224811455604, 30.38380861761017,
+              30.38380861761017, 25.99224811455604, 56.50264981820367, 37.69433049129623,
+              45.94971857914586, 38.341466973918806, 54.04104727326392, 34.20617133741716,
+              79.8708525694301, 34.20617133741716
+            ],
+            "piores": [
+              {
+                "a": 2,
+                "b": 5,
+                "d": 25.99224811455604
+              },
+              {
+                "a": 3,
+                "b": 4,
+                "d": 30.38380861761017
+              },
+              {
+                "a": 11,
+                "b": 13,
+                "d": 34.20617133741716
+              },
+              {
+                "a": 3,
+                "b": 7,
+                "d": 37.69433049129623
+              },
+              {
+                "a": 5,
+                "b": 9,
+                "d": 38.341466973918806
+              },
+              {
+                "a": 1,
+                "b": 2,
+                "d": 45.69165829003717
+              },
+              {
+                "a": 2,
+                "b": 9,
+                "d": 45.72105858818001
+              },
+              {
+                "a": 8,
+                "b": 9,
+                "d": 45.94971857914586
+              },
+              {
+                "a": 4,
+                "b": 8,
+                "d": 53.79510310872728
+              },
+              {
+                "a": 9,
+                "b": 10,
+                "d": 54.04104727326392
+              },
+              {
+                "a": 1,
+                "b": 5,
+                "d": 54.75243803371207
+              },
+              {
+                "a": 8,
+                "b": 11,
+                "d": 56.30888500341019
+              }
+            ],
+            "estatistica": {
+              "n": 14,
+              "min": 25.99224811455604,
+              "p50": 38.341466973918806,
+              "p95": 79.8708525694301,
+              "max": 80.00912514257958,
+              "media": 44.23323609121729
+            }
+          },
+          "pontaria": {
+            "porAlfinete": [
+              {
+                "indice": 0,
+                "certo": 69,
+                "errado": 0,
+                "vazio": 0,
+                "areaCerta": 621,
+                "areaErrada": 0,
+                "fraccaoCerta": 1,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 1,
+                "certo": 66,
+                "errado": 0,
+                "vazio": 1,
+                "areaCerta": 594,
+                "areaErrada": 0,
+                "fraccaoCerta": 0.9850746268656716,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 2,
+                "certo": 66,
+                "errado": 0,
+                "vazio": 0,
+                "areaCerta": 594,
+                "areaErrada": 0,
+                "fraccaoCerta": 1,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 3,
+                "certo": 69,
+                "errado": 0,
+                "vazio": 0,
+                "areaCerta": 621,
+                "areaErrada": 0,
+                "fraccaoCerta": 1,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 4,
+                "certo": 66,
+                "errado": 0,
+                "vazio": 1,
+                "areaCerta": 594,
+                "areaErrada": 0,
+                "fraccaoCerta": 0.9850746268656716,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 5,
+                "certo": 66,
+                "errado": 0,
+                "vazio": 0,
+                "areaCerta": 594,
+                "areaErrada": 0,
+                "fraccaoCerta": 1,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 6,
+                "certo": 66,
+                "errado": 0,
+                "vazio": 3,
+                "areaCerta": 594,
+                "areaErrada": 0,
+                "fraccaoCerta": 0.9565217391304348,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 7,
+                "certo": 66,
+                "errado": 0,
+                "vazio": 0,
+                "areaCerta": 594,
+                "areaErrada": 0,
+                "fraccaoCerta": 1,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 8,
+                "certo": 68,
+                "errado": 0,
+                "vazio": 0,
+                "areaCerta": 612,
+                "areaErrada": 0,
+                "fraccaoCerta": 1,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 9,
+                "certo": 66,
+                "errado": 0,
+                "vazio": 3,
+                "areaCerta": 594,
+                "areaErrada": 0,
+                "fraccaoCerta": 0.9565217391304348,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 10,
+                "certo": 68,
+                "errado": 0,
+                "vazio": 0,
+                "areaCerta": 612,
+                "areaErrada": 0,
+                "fraccaoCerta": 1,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 11,
+                "certo": 67,
+                "errado": 0,
+                "vazio": 2,
+                "areaCerta": 603,
+                "areaErrada": 0,
+                "fraccaoCerta": 0.9710144927536232,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 12,
+                "certo": 66,
+                "errado": 0,
+                "vazio": 1,
+                "areaCerta": 594,
+                "areaErrada": 0,
+                "fraccaoCerta": 0.9850746268656716,
+                "fraccaoErrada": 0
+              },
+              {
+                "indice": 13,
+                "certo": 68,
+                "errado": 0,
+                "vazio": 0,
+                "areaCerta": 612,
+                "areaErrada": 0,
+                "fraccaoCerta": 1,
+                "fraccaoErrada": 0
+              }
+            ],
+            "areaCerta": {
+              "n": 14,
+              "min": 594,
+              "p50": 594,
+              "p95": 621,
+              "max": 621,
+              "media": 602.3571428571429
+            },
+            "comErro": 0,
+            "semNada": 0,
+            "fraccaoErradaMax": 0
+          }
+        },
+        "erros": {
+          "consola": [],
+          "pagina": [],
+          "rede": []
+        }
+      },
+      "nucleos": [
+        {
+          "repouso": {
+            "repousou": true,
+            "ms": 628
+          },
+          "caixa": {
+            "l": 891.328125,
+            "a": 678
+          },
+          "total": 29,
+          "pontos": 14,
+          "nomesLidos": 10,
+          "nomesAccionaveis": 4,
+          "naOrdemDeTabulacao": 10,
+          "inertesVisiveis": 0,
+          "visiveisInertes": 0,
+          "manchas": [5, 7],
+          "contadas": 29,
+          "entreNomes": [],
+          "nomesContraManchas": [],
+          "foraDaLona": [],
+          "cortados": [],
+          "curtos": ["Quinta da Hermida", "Ferraz da Costa"],
+          "fixosPorCima": [],
+          "conferencia": {
+            "n": 10,
+            "min": 0,
+            "p50": 0.4259327641598746,
+            "p95": 0.7071067811865476,
+            "max": 0.7071067811865476,
+            "media": 0.4229651068821898
+          },
+          "alfinetes": {
+            "passo": 3,
+            "lona": {
+              "largura": 891.328125,
+              "altura": 678
+            },
+            "msVarrimento": 1362,
+            "raioDeToque": 13.968833664224883,
+            "centros": [
+              {
+                "indice": 0,
+                "x": 432,
+                "y": 279,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.3333426357806315,
+                "celulas": 69,
+                "area": 621,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 1,
+                "x": 353.178188948031,
+                "y": 308.4606304903963,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.6189525866608467,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 2,
+                "x": 380.17558373563224,
+                "y": 345.3234615262232,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.5554822759335376,
+                "celulas": 67,
+                "area": 603,
+                "fronteiraLivre": 33,
+                "preciso": true
+              },
+              {
+                "indice": 3,
+                "x": 498.9193405431229,
+                "y": 349.6952954669241,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.6201526000475147,
+                "celulas": 70,
+                "area": 630,
+                "fronteiraLivre": 40,
+                "preciso": true
+              },
+              {
+                "indice": 4,
+                "x": 468.5393695096037,
+                "y": 350.178188948031,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.6189525866608467,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 5,
+                "x": 360.82441626436776,
+                "y": 362.6765384737768,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.5554822759335375,
+                "celulas": 67,
+                "area": 603,
+                "fronteiraLivre": 33,
+                "preciso": true
+              },
+              {
+                "indice": 6,
+                "x": 305.7964321977152,
+                "y": 375.5011400675412,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.49721313272891926,
+                "celulas": 66,
+                "area": 594,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 7,
+                "x": 516.3437209087776,
+                "y": 383.1206379492391,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.5917828013196073,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 38,
+                "preciso": true
+              },
+              {
+                "indice": 8,
+                "x": 433.1528723723989,
+                "y": 390.69619653524086,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.6237958231077382,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 38,
+                "preciso": true
+              },
+              {
+                "indice": 9,
+                "x": 387.2035678022848,
+                "y": 390.5011400675412,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.49721313272891926,
+                "celulas": 66,
+                "area": 594,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 10,
+                "x": 342.69619653524086,
+                "y": 421.1528723723989,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.6237958231077382,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 38,
+                "preciso": true
+              },
+              {
+                "indice": 11,
+                "x": 432.3964031205125,
+                "y": 447,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.44642601897059936,
+                "celulas": 67,
+                "area": 603,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 12,
+                "x": 542.314027307762,
+                "y": 458.6514017194441,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.574389043948525,
+                "celulas": 67,
+                "area": 603,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 13,
+                "x": 460.5,
+                "y": 466.5,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.5439959608272332,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 40,
+                "preciso": true
+              }
+            ],
+            "concordancia": {
+              "iguais": 67625,
+              "total": 67646,
+              "fraccao": 0.999689560358336
+            },
+            "imprecisos": 0,
+            "afinados": 0,
+            "aglomeracao": {
+              "n": 14,
+              "contagem": {
+                "3": 0,
+                "6": 0,
+                "12": 0,
+                "24": 0
+              },
+              "vizinho": [
+                80.00912514257958, 45.69165829003717, 25.99224811455604, 30.38380861761017,
+                30.38380861761017, 25.99224811455604, 56.50264981820367, 37.69433049129623,
+                45.94971857914586, 38.341466973918806, 54.04104727326392, 34.20617133741716,
+                79.8708525694301, 34.20617133741716
+              ],
+              "piores": [
+                {
+                  "a": 2,
+                  "b": 5,
+                  "d": 25.99224811455604
+                },
+                {
+                  "a": 3,
+                  "b": 4,
+                  "d": 30.38380861761017
+                },
+                {
+                  "a": 11,
+                  "b": 13,
+                  "d": 34.20617133741716
+                },
+                {
+                  "a": 3,
+                  "b": 7,
+                  "d": 37.69433049129623
+                },
+                {
+                  "a": 5,
+                  "b": 9,
+                  "d": 38.341466973918806
+                },
+                {
+                  "a": 1,
+                  "b": 2,
+                  "d": 45.69165829003717
+                },
+                {
+                  "a": 2,
+                  "b": 9,
+                  "d": 45.72105858818001
+                },
+                {
+                  "a": 8,
+                  "b": 9,
+                  "d": 45.94971857914586
+                },
+                {
+                  "a": 4,
+                  "b": 8,
+                  "d": 53.79510310872728
+                },
+                {
+                  "a": 9,
+                  "b": 10,
+                  "d": 54.04104727326392
+                },
+                {
+                  "a": 1,
+                  "b": 5,
+                  "d": 54.75243803371207
+                },
+                {
+                  "a": 8,
+                  "b": 11,
+                  "d": 56.30888500341019
+                }
+              ],
+              "estatistica": {
+                "n": 14,
+                "min": 25.99224811455604,
+                "p50": 38.341466973918806,
+                "p95": 79.8708525694301,
+                "max": 80.00912514257958,
+                "media": 44.23323609121729
+              }
+            },
+            "pontaria": {
+              "porAlfinete": [
+                {
+                  "indice": 0,
+                  "certo": 69,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 621,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 1,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 1,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9850746268656716,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 2,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 3,
+                  "certo": 69,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 621,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 4,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 1,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9850746268656716,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 5,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 6,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 3,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9565217391304348,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 7,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 8,
+                  "certo": 68,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 612,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 9,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 3,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9565217391304348,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 10,
+                  "certo": 68,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 612,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 11,
+                  "certo": 67,
+                  "errado": 0,
+                  "vazio": 2,
+                  "areaCerta": 603,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9710144927536232,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 12,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 1,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9850746268656716,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 13,
+                  "certo": 68,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 612,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                }
+              ],
+              "areaCerta": {
+                "n": 14,
+                "min": 594,
+                "p50": 594,
+                "p95": 621,
+                "max": 621,
+                "media": 602.3571428571429
+              },
+              "comErro": 0,
+              "semNada": 0,
+              "fraccaoErradaMax": 0
+            }
+          },
+          "erros": {
+            "consola": [],
+            "pagina": [],
+            "rede": []
+          }
+        },
+        {
+          "repouso": {
+            "repousou": true,
+            "ms": 629
+          },
+          "caixa": {
+            "l": 891.328125,
+            "a": 678
+          },
+          "total": 29,
+          "pontos": 14,
+          "nomesLidos": 11,
+          "nomesAccionaveis": 5,
+          "naOrdemDeTabulacao": 11,
+          "inertesVisiveis": 0,
+          "visiveisInertes": 0,
+          "manchas": [5],
+          "contadas": 29,
+          "entreNomes": [],
+          "nomesContraManchas": [],
+          "foraDaLona": [],
+          "cortados": [],
+          "curtos": ["7 coudelarias", "Quinta da Hermida", "Ferraz da Costa"],
+          "fixosPorCima": [],
+          "conferencia": {
+            "n": 11,
+            "min": 0,
+            "p50": 0.3642767875222661,
+            "p95": 0.7071067811865476,
+            "max": 0.7071067811865476,
+            "media": 0.3766740931542197
+          },
+          "alfinetes": {
+            "passo": 3,
+            "lona": {
+              "largura": 891.328125,
+              "altura": 678
+            },
+            "msVarrimento": 1306,
+            "raioDeToque": 13.968833664224883,
+            "centros": [
+              {
+                "indice": 0,
+                "x": 432,
+                "y": 279,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.3333426357806315,
+                "celulas": 69,
+                "area": 621,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 1,
+                "x": 353.178188948031,
+                "y": 308.4606304903963,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.6189525866608467,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 2,
+                "x": 380.17558373563224,
+                "y": 345.3234615262232,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.5554822759335376,
+                "celulas": 67,
+                "area": 603,
+                "fronteiraLivre": 33,
+                "preciso": true
+              },
+              {
+                "indice": 3,
+                "x": 498.9193405431229,
+                "y": 349.6952954669241,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.6201526000475147,
+                "celulas": 70,
+                "area": 630,
+                "fronteiraLivre": 40,
+                "preciso": true
+              },
+              {
+                "indice": 4,
+                "x": 468.5393695096037,
+                "y": 350.178188948031,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.6189525866608467,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 5,
+                "x": 360.82441626436776,
+                "y": 362.6765384737768,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.5554822759335375,
+                "celulas": 67,
+                "area": 603,
+                "fronteiraLivre": 33,
+                "preciso": true
+              },
+              {
+                "indice": 6,
+                "x": 305.7964321977152,
+                "y": 375.5011400675412,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.49721313272891926,
+                "celulas": 66,
+                "area": 594,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 7,
+                "x": 516.3437209087776,
+                "y": 383.1206379492391,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.5917828013196073,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 38,
+                "preciso": true
+              },
+              {
+                "indice": 8,
+                "x": 433.1528723723989,
+                "y": 390.69619653524086,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.6237958231077382,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 38,
+                "preciso": true
+              },
+              {
+                "indice": 9,
+                "x": 387.2035678022848,
+                "y": 390.5011400675412,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.49721313272891926,
+                "celulas": 66,
+                "area": 594,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 10,
+                "x": 342.69619653524086,
+                "y": 421.1528723723989,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.6237958231077382,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 38,
+                "preciso": true
+              },
+              {
+                "indice": 11,
+                "x": 432.3964031205125,
+                "y": 447,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.44642601897059936,
+                "celulas": 67,
+                "area": 603,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 12,
+                "x": 542.314027307762,
+                "y": 458.6514017194441,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.574389043948525,
+                "celulas": 67,
+                "area": 603,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 13,
+                "x": 460.5,
+                "y": 466.5,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.5439959608272332,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 40,
+                "preciso": true
+              }
+            ],
+            "concordancia": {
+              "iguais": 67625,
+              "total": 67646,
+              "fraccao": 0.999689560358336
+            },
+            "imprecisos": 0,
+            "afinados": 0,
+            "aglomeracao": {
+              "n": 14,
+              "contagem": {
+                "3": 0,
+                "6": 0,
+                "12": 0,
+                "24": 0
+              },
+              "vizinho": [
+                80.00912514257958, 45.69165829003717, 25.99224811455604, 30.38380861761017,
+                30.38380861761017, 25.99224811455604, 56.50264981820367, 37.69433049129623,
+                45.94971857914586, 38.341466973918806, 54.04104727326392, 34.20617133741716,
+                79.8708525694301, 34.20617133741716
+              ],
+              "piores": [
+                {
+                  "a": 2,
+                  "b": 5,
+                  "d": 25.99224811455604
+                },
+                {
+                  "a": 3,
+                  "b": 4,
+                  "d": 30.38380861761017
+                },
+                {
+                  "a": 11,
+                  "b": 13,
+                  "d": 34.20617133741716
+                },
+                {
+                  "a": 3,
+                  "b": 7,
+                  "d": 37.69433049129623
+                },
+                {
+                  "a": 5,
+                  "b": 9,
+                  "d": 38.341466973918806
+                },
+                {
+                  "a": 1,
+                  "b": 2,
+                  "d": 45.69165829003717
+                },
+                {
+                  "a": 2,
+                  "b": 9,
+                  "d": 45.72105858818001
+                },
+                {
+                  "a": 8,
+                  "b": 9,
+                  "d": 45.94971857914586
+                },
+                {
+                  "a": 4,
+                  "b": 8,
+                  "d": 53.79510310872728
+                },
+                {
+                  "a": 9,
+                  "b": 10,
+                  "d": 54.04104727326392
+                },
+                {
+                  "a": 1,
+                  "b": 5,
+                  "d": 54.75243803371207
+                },
+                {
+                  "a": 8,
+                  "b": 11,
+                  "d": 56.30888500341019
+                }
+              ],
+              "estatistica": {
+                "n": 14,
+                "min": 25.99224811455604,
+                "p50": 38.341466973918806,
+                "p95": 79.8708525694301,
+                "max": 80.00912514257958,
+                "media": 44.23323609121729
+              }
+            },
+            "pontaria": {
+              "porAlfinete": [
+                {
+                  "indice": 0,
+                  "certo": 69,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 621,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 1,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 1,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9850746268656716,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 2,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 3,
+                  "certo": 69,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 621,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 4,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 1,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9850746268656716,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 5,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 6,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 3,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9565217391304348,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 7,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 8,
+                  "certo": 68,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 612,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 9,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 3,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9565217391304348,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 10,
+                  "certo": 68,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 612,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 11,
+                  "certo": 67,
+                  "errado": 0,
+                  "vazio": 2,
+                  "areaCerta": 603,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9710144927536232,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 12,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 1,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9850746268656716,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 13,
+                  "certo": 68,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 612,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                }
+              ],
+              "areaCerta": {
+                "n": 14,
+                "min": 594,
+                "p50": 594,
+                "p95": 621,
+                "max": 621,
+                "media": 602.3571428571429
+              },
+              "comErro": 0,
+              "semNada": 0,
+              "fraccaoErradaMax": 0
+            }
+          },
+          "erros": {
+            "consola": [],
+            "pagina": [],
+            "rede": []
+          }
+        }
+      ]
+    }
+  ],
+  "variacao": {
+    "desktop": {
+      "repeticoes": [
+        {
+          "repouso": {
+            "repousou": true,
+            "ms": 628
+          },
+          "caixa": {
+            "l": 891.328125,
+            "a": 678
+          },
+          "total": 29,
+          "pontos": 14,
+          "nomesLidos": 10,
+          "nomesAccionaveis": 4,
+          "naOrdemDeTabulacao": 10,
+          "inertesVisiveis": 0,
+          "visiveisInertes": 0,
+          "manchas": [5, 7],
+          "contadas": 29,
+          "entreNomes": [],
+          "nomesContraManchas": [],
+          "foraDaLona": [],
+          "cortados": [],
+          "curtos": ["Quinta da Hermida", "Ferraz da Costa"],
+          "fixosPorCima": [],
+          "conferencia": {
+            "n": 10,
+            "min": 0,
+            "p50": 0.4259327641598746,
+            "p95": 0.7071067811865476,
+            "max": 0.7071067811865476,
+            "media": 0.4229651068821898
+          },
+          "alfinetes": {
+            "passo": 3,
+            "lona": {
+              "largura": 891.328125,
+              "altura": 678
+            },
+            "msVarrimento": 1362,
+            "raioDeToque": 13.968833664224883,
+            "centros": [
+              {
+                "indice": 0,
+                "x": 432,
+                "y": 279,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.3333426357806315,
+                "celulas": 69,
+                "area": 621,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 1,
+                "x": 353.178188948031,
+                "y": 308.4606304903963,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.6189525866608467,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 2,
+                "x": 380.17558373563224,
+                "y": 345.3234615262232,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.5554822759335376,
+                "celulas": 67,
+                "area": 603,
+                "fronteiraLivre": 33,
+                "preciso": true
+              },
+              {
+                "indice": 3,
+                "x": 498.9193405431229,
+                "y": 349.6952954669241,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.6201526000475147,
+                "celulas": 70,
+                "area": 630,
+                "fronteiraLivre": 40,
+                "preciso": true
+              },
+              {
+                "indice": 4,
+                "x": 468.5393695096037,
+                "y": 350.178188948031,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.6189525866608467,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 5,
+                "x": 360.82441626436776,
+                "y": 362.6765384737768,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.5554822759335375,
+                "celulas": 67,
+                "area": 603,
+                "fronteiraLivre": 33,
+                "preciso": true
+              },
+              {
+                "indice": 6,
+                "x": 305.7964321977152,
+                "y": 375.5011400675412,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.49721313272891926,
+                "celulas": 66,
+                "area": 594,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 7,
+                "x": 516.3437209087776,
+                "y": 383.1206379492391,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.5917828013196073,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 38,
+                "preciso": true
+              },
+              {
+                "indice": 8,
+                "x": 433.1528723723989,
+                "y": 390.69619653524086,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.6237958231077382,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 38,
+                "preciso": true
+              },
+              {
+                "indice": 9,
+                "x": 387.2035678022848,
+                "y": 390.5011400675412,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.49721313272891926,
+                "celulas": 66,
+                "area": 594,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 10,
+                "x": 342.69619653524086,
+                "y": 421.1528723723989,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.6237958231077382,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 38,
+                "preciso": true
+              },
+              {
+                "indice": 11,
+                "x": 432.3964031205125,
+                "y": 447,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.44642601897059936,
+                "celulas": 67,
+                "area": 603,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 12,
+                "x": 542.314027307762,
+                "y": 458.6514017194441,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.574389043948525,
+                "celulas": 67,
+                "area": 603,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 13,
+                "x": 460.5,
+                "y": 466.5,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.5439959608272332,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 40,
+                "preciso": true
+              }
+            ],
+            "concordancia": {
+              "iguais": 67625,
+              "total": 67646,
+              "fraccao": 0.999689560358336
+            },
+            "imprecisos": 0,
+            "afinados": 0,
+            "aglomeracao": {
+              "n": 14,
+              "contagem": {
+                "3": 0,
+                "6": 0,
+                "12": 0,
+                "24": 0
+              },
+              "vizinho": [
+                80.00912514257958, 45.69165829003717, 25.99224811455604, 30.38380861761017,
+                30.38380861761017, 25.99224811455604, 56.50264981820367, 37.69433049129623,
+                45.94971857914586, 38.341466973918806, 54.04104727326392, 34.20617133741716,
+                79.8708525694301, 34.20617133741716
+              ],
+              "piores": [
+                {
+                  "a": 2,
+                  "b": 5,
+                  "d": 25.99224811455604
+                },
+                {
+                  "a": 3,
+                  "b": 4,
+                  "d": 30.38380861761017
+                },
+                {
+                  "a": 11,
+                  "b": 13,
+                  "d": 34.20617133741716
+                },
+                {
+                  "a": 3,
+                  "b": 7,
+                  "d": 37.69433049129623
+                },
+                {
+                  "a": 5,
+                  "b": 9,
+                  "d": 38.341466973918806
+                },
+                {
+                  "a": 1,
+                  "b": 2,
+                  "d": 45.69165829003717
+                },
+                {
+                  "a": 2,
+                  "b": 9,
+                  "d": 45.72105858818001
+                },
+                {
+                  "a": 8,
+                  "b": 9,
+                  "d": 45.94971857914586
+                },
+                {
+                  "a": 4,
+                  "b": 8,
+                  "d": 53.79510310872728
+                },
+                {
+                  "a": 9,
+                  "b": 10,
+                  "d": 54.04104727326392
+                },
+                {
+                  "a": 1,
+                  "b": 5,
+                  "d": 54.75243803371207
+                },
+                {
+                  "a": 8,
+                  "b": 11,
+                  "d": 56.30888500341019
+                }
+              ],
+              "estatistica": {
+                "n": 14,
+                "min": 25.99224811455604,
+                "p50": 38.341466973918806,
+                "p95": 79.8708525694301,
+                "max": 80.00912514257958,
+                "media": 44.23323609121729
+              }
+            },
+            "pontaria": {
+              "porAlfinete": [
+                {
+                  "indice": 0,
+                  "certo": 69,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 621,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 1,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 1,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9850746268656716,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 2,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 3,
+                  "certo": 69,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 621,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 4,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 1,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9850746268656716,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 5,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 6,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 3,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9565217391304348,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 7,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 8,
+                  "certo": 68,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 612,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 9,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 3,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9565217391304348,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 10,
+                  "certo": 68,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 612,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 11,
+                  "certo": 67,
+                  "errado": 0,
+                  "vazio": 2,
+                  "areaCerta": 603,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9710144927536232,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 12,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 1,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9850746268656716,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 13,
+                  "certo": 68,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 612,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                }
+              ],
+              "areaCerta": {
+                "n": 14,
+                "min": 594,
+                "p50": 594,
+                "p95": 621,
+                "max": 621,
+                "media": 602.3571428571429
+              },
+              "comErro": 0,
+              "semNada": 0,
+              "fraccaoErradaMax": 0
+            }
+          },
+          "erros": {
+            "consola": [],
+            "pagina": [],
+            "rede": []
+          }
+        },
+        {
+          "repouso": {
+            "repousou": true,
+            "ms": 629
+          },
+          "caixa": {
+            "l": 891.328125,
+            "a": 678
+          },
+          "total": 29,
+          "pontos": 14,
+          "nomesLidos": 11,
+          "nomesAccionaveis": 5,
+          "naOrdemDeTabulacao": 11,
+          "inertesVisiveis": 0,
+          "visiveisInertes": 0,
+          "manchas": [5],
+          "contadas": 29,
+          "entreNomes": [],
+          "nomesContraManchas": [],
+          "foraDaLona": [],
+          "cortados": [],
+          "curtos": ["7 coudelarias", "Quinta da Hermida", "Ferraz da Costa"],
+          "fixosPorCima": [],
+          "conferencia": {
+            "n": 11,
+            "min": 0,
+            "p50": 0.3642767875222661,
+            "p95": 0.7071067811865476,
+            "max": 0.7071067811865476,
+            "media": 0.3766740931542197
+          },
+          "alfinetes": {
+            "passo": 3,
+            "lona": {
+              "largura": 891.328125,
+              "altura": 678
+            },
+            "msVarrimento": 1306,
+            "raioDeToque": 13.968833664224883,
+            "centros": [
+              {
+                "indice": 0,
+                "x": 432,
+                "y": 279,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.3333426357806315,
+                "celulas": 69,
+                "area": 621,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 1,
+                "x": 353.178188948031,
+                "y": 308.4606304903963,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.6189525866608467,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 2,
+                "x": 380.17558373563224,
+                "y": 345.3234615262232,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.5554822759335376,
+                "celulas": 67,
+                "area": 603,
+                "fronteiraLivre": 33,
+                "preciso": true
+              },
+              {
+                "indice": 3,
+                "x": 498.9193405431229,
+                "y": 349.6952954669241,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.6201526000475147,
+                "celulas": 70,
+                "area": 630,
+                "fronteiraLivre": 40,
+                "preciso": true
+              },
+              {
+                "indice": 4,
+                "x": 468.5393695096037,
+                "y": 350.178188948031,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.6189525866608467,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 5,
+                "x": 360.82441626436776,
+                "y": 362.6765384737768,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.5554822759335375,
+                "celulas": 67,
+                "area": 603,
+                "fronteiraLivre": 33,
+                "preciso": true
+              },
+              {
+                "indice": 6,
+                "x": 305.7964321977152,
+                "y": 375.5011400675412,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.49721313272891926,
+                "celulas": 66,
+                "area": 594,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 7,
+                "x": 516.3437209087776,
+                "y": 383.1206379492391,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.5917828013196073,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 38,
+                "preciso": true
+              },
+              {
+                "indice": 8,
+                "x": 433.1528723723989,
+                "y": 390.69619653524086,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.6237958231077382,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 38,
+                "preciso": true
+              },
+              {
+                "indice": 9,
+                "x": 387.2035678022848,
+                "y": 390.5011400675412,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.49721313272891926,
+                "celulas": 66,
+                "area": 594,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 10,
+                "x": 342.69619653524086,
+                "y": 421.1528723723989,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.6237958231077382,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 38,
+                "preciso": true
+              },
+              {
+                "indice": 11,
+                "x": 432.3964031205125,
+                "y": 447,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.44642601897059936,
+                "celulas": 67,
+                "area": 603,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 12,
+                "x": 542.314027307762,
+                "y": 458.6514017194441,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.574389043948525,
+                "celulas": 67,
+                "area": 603,
+                "fronteiraLivre": 36,
+                "preciso": true
+              },
+              {
+                "indice": 13,
+                "x": 460.5,
+                "y": 466.5,
+                "raio": 13.968833664224883,
+                "erroAjuste": 0.5439959608272332,
+                "celulas": 68,
+                "area": 612,
+                "fronteiraLivre": 40,
+                "preciso": true
+              }
+            ],
+            "concordancia": {
+              "iguais": 67625,
+              "total": 67646,
+              "fraccao": 0.999689560358336
+            },
+            "imprecisos": 0,
+            "afinados": 0,
+            "aglomeracao": {
+              "n": 14,
+              "contagem": {
+                "3": 0,
+                "6": 0,
+                "12": 0,
+                "24": 0
+              },
+              "vizinho": [
+                80.00912514257958, 45.69165829003717, 25.99224811455604, 30.38380861761017,
+                30.38380861761017, 25.99224811455604, 56.50264981820367, 37.69433049129623,
+                45.94971857914586, 38.341466973918806, 54.04104727326392, 34.20617133741716,
+                79.8708525694301, 34.20617133741716
+              ],
+              "piores": [
+                {
+                  "a": 2,
+                  "b": 5,
+                  "d": 25.99224811455604
+                },
+                {
+                  "a": 3,
+                  "b": 4,
+                  "d": 30.38380861761017
+                },
+                {
+                  "a": 11,
+                  "b": 13,
+                  "d": 34.20617133741716
+                },
+                {
+                  "a": 3,
+                  "b": 7,
+                  "d": 37.69433049129623
+                },
+                {
+                  "a": 5,
+                  "b": 9,
+                  "d": 38.341466973918806
+                },
+                {
+                  "a": 1,
+                  "b": 2,
+                  "d": 45.69165829003717
+                },
+                {
+                  "a": 2,
+                  "b": 9,
+                  "d": 45.72105858818001
+                },
+                {
+                  "a": 8,
+                  "b": 9,
+                  "d": 45.94971857914586
+                },
+                {
+                  "a": 4,
+                  "b": 8,
+                  "d": 53.79510310872728
+                },
+                {
+                  "a": 9,
+                  "b": 10,
+                  "d": 54.04104727326392
+                },
+                {
+                  "a": 1,
+                  "b": 5,
+                  "d": 54.75243803371207
+                },
+                {
+                  "a": 8,
+                  "b": 11,
+                  "d": 56.30888500341019
+                }
+              ],
+              "estatistica": {
+                "n": 14,
+                "min": 25.99224811455604,
+                "p50": 38.341466973918806,
+                "p95": 79.8708525694301,
+                "max": 80.00912514257958,
+                "media": 44.23323609121729
+              }
+            },
+            "pontaria": {
+              "porAlfinete": [
+                {
+                  "indice": 0,
+                  "certo": 69,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 621,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 1,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 1,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9850746268656716,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 2,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 3,
+                  "certo": 69,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 621,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 4,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 1,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9850746268656716,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 5,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 6,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 3,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9565217391304348,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 7,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 8,
+                  "certo": 68,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 612,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 9,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 3,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9565217391304348,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 10,
+                  "certo": 68,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 612,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 11,
+                  "certo": 67,
+                  "errado": 0,
+                  "vazio": 2,
+                  "areaCerta": 603,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9710144927536232,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 12,
+                  "certo": 66,
+                  "errado": 0,
+                  "vazio": 1,
+                  "areaCerta": 594,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 0.9850746268656716,
+                  "fraccaoErrada": 0
+                },
+                {
+                  "indice": 13,
+                  "certo": 68,
+                  "errado": 0,
+                  "vazio": 0,
+                  "areaCerta": 612,
+                  "areaErrada": 0,
+                  "fraccaoCerta": 1,
+                  "fraccaoErrada": 0
+                }
+              ],
+              "areaCerta": {
+                "n": 14,
+                "min": 594,
+                "p50": 594,
+                "p95": 621,
+                "max": 621,
+                "media": 602.3571428571429
+              },
+              "comErro": 0,
+              "semNada": 0,
+              "fraccaoErradaMax": 0
+            }
+          },
+          "erros": {
+            "consola": [],
+            "pagina": [],
+            "rede": []
+          }
+        }
+      ],
+      "grandezas": [
+        {
+          "nome": "nomes legíveis",
+          "valores": [10, 11],
+          "amplitude": 1,
+          "estavel": false
+        },
+        {
+          "nome": "coudelarias contadas",
+          "valores": [29, 29],
+          "amplitude": 0,
+          "estavel": true
+        },
+        {
+          "nome": "nomes sobrepostos",
+          "valores": [0, 0],
+          "amplitude": 0,
+          "estavel": true
+        },
+        {
+          "nome": "nomes fora da lona",
+          "valores": [0, 0],
+          "amplitude": 0,
+          "estavel": true
+        },
+        {
+          "nome": "nomes cortados",
+          "valores": [0, 0],
+          "amplitude": 0,
+          "estavel": true
+        },
+        {
+          "nome": "alfinetes no ecrã",
+          "valores": [14, 14],
+          "amplitude": 0,
+          "estavel": true
+        },
+        {
+          "nome": "raio de toque",
+          "valores": [14, 14],
+          "amplitude": 0,
+          "estavel": true
+        },
+        {
+          "nome": "alfinetes sem área",
+          "valores": [0, 0],
+          "amplitude": 0,
+          "estavel": true
+        },
+        {
+          "nome": "alfinetes com área roubada",
+          "valores": [0, 0],
+          "amplitude": 0,
+          "estavel": true
+        },
+        {
+          "nome": "área de acerto mínima",
+          "valores": [594, 594],
+          "amplitude": 0,
+          "estavel": true
+        }
+      ]
+    }
+  }
+}

@@ -10,10 +10,5 @@ Sentry.init({
   tracesSampleRate: 0.1,
 
   // Ignorar erros comuns
-  ignoreErrors: [
-    "Network request failed",
-    "Failed to fetch",
-    "ECONNREFUSED",
-    "ENOTFOUND",
-  ],
+  ignoreErrors: ["Network request failed", "Failed to fetch", "ECONNREFUSED", "ENOTFOUND"],
 });

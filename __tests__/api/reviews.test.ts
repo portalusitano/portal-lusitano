@@ -6,11 +6,13 @@ import { NextRequest } from "next/server";
 // ---------------------------------------------------------------------------
 const mockFrom = vi.fn();
 
-vi.mock("@/lib/supabase-admin", () => ({
-  supabase: {
-    from: (...args: unknown[]) => mockFrom(...args),
-  },
-}));
+// O duplo é criado dentro da fábrica: vi.mock é içado para o topo do ficheiro,
+// por isso não pode referenciar uma constante declarada fora. A referência a
+// mockFrom é lazy (dentro do método), essa é segura.
+vi.mock("@/lib/supabase-admin", () => {
+  const duplo = { from: (...args: unknown[]) => mockFrom(...args) };
+  return { supabase: duplo, supabaseAdmin: duplo, supabasePublic: duplo };
+});
 
 vi.mock("@/lib/rate-limit", () => ({
   apiLimiter: {
@@ -81,11 +83,10 @@ describe("GET /api/reviews", () => {
   beforeEach(async () => {
     vi.resetModules();
 
-    vi.doMock("@/lib/supabase-admin", () => ({
-      supabase: {
-        from: (...args: unknown[]) => mockFrom(...args),
-      },
-    }));
+    vi.doMock("@/lib/supabase-admin", () => {
+      const duplo = { from: (...args: unknown[]) => mockFrom(...args) };
+      return { supabase: duplo, supabaseAdmin: duplo, supabasePublic: duplo };
+    });
 
     vi.doMock("@/lib/rate-limit", () => ({
       apiLimiter: {
@@ -194,11 +195,10 @@ describe("POST /api/reviews - coudelaria", () => {
   beforeEach(async () => {
     vi.resetModules();
 
-    vi.doMock("@/lib/supabase-admin", () => ({
-      supabase: {
-        from: (...args: unknown[]) => mockFrom(...args),
-      },
-    }));
+    vi.doMock("@/lib/supabase-admin", () => {
+      const duplo = { from: (...args: unknown[]) => mockFrom(...args) };
+      return { supabase: duplo, supabaseAdmin: duplo, supabasePublic: duplo };
+    });
 
     vi.doMock("@/lib/rate-limit", () => ({
       apiLimiter: {
@@ -283,11 +283,10 @@ describe("POST /api/reviews - coudelaria", () => {
       },
     }));
 
-    vi.doMock("@/lib/supabase-admin", () => ({
-      supabase: {
-        from: (...args: unknown[]) => mockFrom(...args),
-      },
-    }));
+    vi.doMock("@/lib/supabase-admin", () => {
+      const duplo = { from: (...args: unknown[]) => mockFrom(...args) };
+      return { supabase: duplo, supabaseAdmin: duplo, supabasePublic: duplo };
+    });
 
     const routeModule = await import("@/app/api/reviews/route");
     const request = createPostRequest({
@@ -329,11 +328,10 @@ describe("POST /api/reviews - ferramenta", () => {
   beforeEach(async () => {
     vi.resetModules();
 
-    vi.doMock("@/lib/supabase-admin", () => ({
-      supabase: {
-        from: (...args: unknown[]) => mockFrom(...args),
-      },
-    }));
+    vi.doMock("@/lib/supabase-admin", () => {
+      const duplo = { from: (...args: unknown[]) => mockFrom(...args) };
+      return { supabase: duplo, supabaseAdmin: duplo, supabasePublic: duplo };
+    });
 
     vi.doMock("@/lib/rate-limit", () => ({
       apiLimiter: {
@@ -420,11 +418,12 @@ describe("POST /api/reviews - ferramenta", () => {
     for (const slug of validSlugs) {
       vi.resetModules();
 
-      vi.doMock("@/lib/supabase-admin", () => ({
-        supabase: {
+      vi.doMock("@/lib/supabase-admin", () => {
+        const duplo = {
           from: vi.fn().mockReturnValue(createInsertChain({ data: { id: "r-ok" }, error: null })),
-        },
-      }));
+        };
+        return { supabase: duplo, supabaseAdmin: duplo, supabasePublic: duplo };
+      });
 
       vi.doMock("@/lib/rate-limit", () => ({
         apiLimiter: {

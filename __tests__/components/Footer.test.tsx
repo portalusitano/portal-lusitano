@@ -26,88 +26,99 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/",
 }));
 
-vi.mock("@/context/LanguageContext", () => ({
-  useLanguage: () => ({
-    language: "pt",
-    t: {
-      nav: {
-        home: "Inicio",
-        shop: "Loja",
-        journal: "Jornal",
-        about: "Sobre",
-      },
-      home: {
-        manifesto: "Nao criamos apenas vestuario. Criamos simbolos de pertenca.",
-      },
-      footer: {
-        rights: "Todos os direitos reservados",
-        privacy: "Privacidade",
-        terms: "Termos",
-        navigation: "Navegação",
-        lusitano: "Lusitano",
-        tools: "Ferramentas",
-        buy_horse: "Comprar Cavalo",
-        studs: "Coudelarias",
-        events: "Eventos",
-        lineages: "Linhagens",
-        notable: "Lusitanos Notáveis",
-        calculator: "Calculadora de Valor",
-        comparator: "Comparador",
-        compatibility: "Compatibilidade",
-        profile_analysis: "Análise de Perfil",
-        about: "Sobre Nós",
-        ebook: "Ebook Grátis",
-      },
-    },
-  }),
-}));
+// O dicionário a sério, e não um punhado de chaves escritas à mão: com o
+// subconjunto, uma chave nova no rodapé devolvia `undefined` aqui e o teste
+// só reprovava se por acaso a afirmasse. É a mesma classe de defeito que
+// punha metade do rodapé em inglês e metade em português.
+vi.mock("@/context/LanguageContext", async () => {
+  const pt = (await import("@/locales/pt.json")).default;
+  return { useLanguage: () => ({ language: "pt", t: pt }) };
+});
 
+// Ícones derivados dos que o componente importa: uma lista escrita à mão
+// parte sempre que o componente troca de ícone, o que não é regressão.
 vi.mock("lucide-react", () => ({
-  Instagram: (props: Record<string, unknown>) => <svg data-testid="icon-instagram" {...props} />,
-  Mail: (props: Record<string, unknown>) => <svg data-testid="icon-mail" {...props} />,
-  Music2: (props: Record<string, unknown>) => <svg data-testid="icon-tiktok" {...props} />,
-  MapPin: (props: Record<string, unknown>) => <svg data-testid="icon-mappin" {...props} />,
-  ArrowUpRight: (props: Record<string, unknown>) => <svg data-testid="icon-arrow" {...props} />,
-  Gift: (props: Record<string, unknown>) => <svg data-testid="icon-gift" {...props} />,
+  ArrowUpRight: (props: Record<string, unknown>) => (
+    <svg data-testid="icon-arrowupright" {...props} />
+  ),
+  Plus: (props: Record<string, unknown>) => <svg data-testid="icon-plus" {...props} />,
+  ArrowRight: (props: Record<string, unknown>) => <svg data-testid="icon-arrowright" {...props} />,
+  Globe: (props: Record<string, unknown>) => <svg data-testid="icon-globe" {...props} />,
 }));
 
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 describe("Footer", () => {
-  it("renders the logo text", () => {
+  // O letreiro grande que aqui esteve dizia o mesmo que a barra de navegação
+  // diz em todas as páginas, com ornamentos de um desenho que o site já não
+  // usa. O que voltou não é ele: é uma marca do tamanho de uma assinatura ao
+  // lado da frase que diz o que o site **é** — e isso a barra nunca diz.
+  it("não repete o letreiro da marca", () => {
     render(<Footer />);
-    expect(screen.getByText("PORTAL")).toBeInTheDocument();
-    expect(screen.getByText("LUSITANO")).toBeInTheDocument();
+    expect(screen.queryByText("PORTAL")).not.toBeInTheDocument();
+    expect(screen.queryByText("PORTAL LUSITANO")).not.toBeInTheDocument();
   });
 
-  it("renders navigation links", () => {
+  it("diz o que o site é, e não só como se chama", () => {
     render(<Footer />);
-    const links = screen.getAllByRole("link");
-    const hrefs = links.map((l) => l.getAttribute("href"));
-    expect(hrefs).toContain("/");
-    expect(hrefs).toContain("/loja");
-    expect(hrefs).toContain("/jornal");
+    expect(screen.getByText(/Classificados de cavalos Lusitanos/i)).toBeInTheDocument();
   });
 
-  it("renders Lusitano section links", () => {
+  // As onze ligações do índice escreviam-se com `.meta`, que é
+  // `--foreground-muted` — 3,66:1 sobre o preto puro do fundo, abaixo dos 4,5
+  // exigidos, num rodapé que aparece em todas as páginas. Uma ligação não é
+  // uma legenda. Este teste existe para a tinta não voltar por distracção.
+  it("não escreve as ligações com a tinta das legendas", () => {
     render(<Footer />);
-    expect(screen.getByText("Comprar Cavalo")).toBeInTheDocument();
-    expect(screen.getByText("Coudelarias")).toBeInTheDocument();
-    expect(screen.getByText("Eventos")).toBeInTheDocument();
-    expect(screen.getByText("Linhagens")).toBeInTheDocument();
-    expect(screen.getByText("Lusitanos Notáveis")).toBeInTheDocument();
+    const indice = screen
+      .getAllByRole("link")
+      .filter((l) => (l.getAttribute("href") ?? "").startsWith("/"));
+    expect(indice.length).toBeGreaterThan(5);
+    for (const l of indice) {
+      expect(l.className).not.toMatch(/\bmeta\b/);
+      expect(l.className).not.toMatch(/foreground-muted/);
+    }
   });
 
-  it("renders tool section links", () => {
+  it("mostra as redes onde o portal está", () => {
     render(<Footer />);
-    expect(screen.getByText("Calculadora de Valor")).toBeInTheDocument();
-    expect(screen.getByText("Comparador")).toBeInTheDocument();
-    expect(screen.getByText("Compatibilidade")).toBeInTheDocument();
-    expect(screen.getByText("Análise de Perfil")).toBeInTheDocument();
+    expect(screen.getByText("Instagram")).toBeInTheDocument();
+    expect(screen.getByText("TikTok")).toBeInTheDocument();
   });
 
-  it("renders social media links", () => {
+  it("liga às duas acções do marketplace", () => {
+    render(<Footer />);
+    const hrefs = screen.getAllByRole("link").map((l) => l.getAttribute("href"));
+    expect(hrefs).toContain("/comprar");
+    expect(hrefs).toContain("/vender-cavalo");
+  });
+
+  it("liga às páginas da conta que o vendedor usa", () => {
+    render(<Footer />);
+    const hrefs = screen.getAllByRole("link").map((l) => l.getAttribute("href"));
+    expect(hrefs).toContain("/minha-conta/anuncios");
+    expect(hrefs).toContain("/minha-conta/mensagens");
+    expect(hrefs).toContain("/minha-conta/alertas");
+  });
+
+  it("liga ao ecossistema equestre que o portal mantém", () => {
+    render(<Footer />);
+    const hrefs = screen.getAllByRole("link").map((l) => l.getAttribute("href"));
+    expect(hrefs).toContain("/directorio");
+    expect(hrefs).toContain("/mapa");
+  });
+
+  it("não liga a secções que já não existem no site", () => {
+    // Um link morto no rodapé aparece em todas as páginas.
+    render(<Footer />);
+    const hrefs = screen.getAllByRole("link").map((l) => l.getAttribute("href") ?? "");
+    for (const morta of ["/loja", "/jornal", "/ferramentas", "/linhagens", "/profissionais"]) {
+      expect(hrefs).not.toContain(morta);
+    }
+  });
+
+  it("mostra as ligações externas obrigatórias", () => {
     render(<Footer />);
     const allLinks = screen.getAllByRole("link");
     const hasExternalLink = allLinks.some((link) => {
@@ -117,7 +128,7 @@ describe("Footer", () => {
     expect(hasExternalLink).toBe(true);
   });
 
-  it("renders copyright text", () => {
+  it("mostra o aviso de direitos reservados", () => {
     render(<Footer />);
     expect(screen.getByText(/Todos os direitos reservados/i)).toBeInTheDocument();
   });

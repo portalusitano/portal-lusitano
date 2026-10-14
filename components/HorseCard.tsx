@@ -39,6 +39,14 @@ function getPrimaryDiscipline(disciplinas: string[] | string | null | undefined)
   return null;
 }
 
+/** Um anúncio é \"novo\" na primeira semana — o mesmo critério em toda a grelha. */
+function ehRecente(criadoEm: string | undefined): boolean {
+  if (!criadoEm) return false;
+  const quando = new Date(criadoEm).getTime();
+  if (Number.isNaN(quando)) return false;
+  return Date.now() - quando < 7 * 86_400_000;
+}
+
 // memo: HorseCard re-renders for every filter/sort change in MarketplaceGrid.
 // Wrapping in memo avoids re-rendering cards whose props haven't changed.
 export default memo(function HorseCard({
@@ -65,18 +73,24 @@ export default memo(function HorseCard({
 
   return (
     <article
-      className="group cursor-pointer relative touch-manipulation"
+      className="cartao-holofote group relative h-full touch-manipulation rounded-[var(--raio-lg)]"
       aria-label={horse.nome_cavalo}
     >
       <LocalizedLink
         href={href}
-        className="block active:scale-[0.98] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+        /* O anel de foco é branco e não dourado: o dourado é acento, e a folha
+           global já desenha um contorno branco a `!important` — o anel dourado
+           por cima dele dava duas linhas de duas cores à volta do mesmo cartão.
+           É o mesmo contorno que o cartão do directório usa. */
+        className="cartao cartao-interactivo block h-full overflow-hidden transition-transform active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground-strong)]"
       >
-        {/* Image Container */}
+        {/* Fotografia. 4:3 em vez de 4:5: numa grelha de classificados o que
+            conta é caberem mais anúncios no ecrã, e o retrato alto gastava
+            altura sem mostrar mais cavalo. */}
         <div
           className={`${
-            compact ? "aspect-square" : "aspect-[4/5] sm:aspect-[4/5]"
-          } bg-[var(--background-secondary)] border border-[var(--border)] overflow-hidden relative transition-colors duration-300 group-hover:border-[var(--gold)]/50`}
+            compact ? "aspect-square" : "aspect-[4/3]"
+          } bg-[var(--background-secondary)] overflow-hidden relative`}
         >
           {horse.image_url ? (
             <Image
@@ -90,86 +104,74 @@ export default memo(function HorseCard({
                 .filter(Boolean)
                 .join(" — ")}
               fill
-              sizes="(max-width: 640px) 50vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              quality={85}
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+              quality={80}
               priority={priority}
               placeholder={priority ? undefined : "blur"}
               blurDataURL={priority ? undefined : getBlurDataURL("horse")}
-              className="object-cover grayscale-[20%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
+              className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
             />
           ) : (
             <div
-              className="w-full h-full flex items-center justify-center text-[var(--foreground-muted)] text-[10px] tracking-widest uppercase"
+              className="w-full h-full flex items-center justify-center rotulo"
               role="img"
               aria-label={`${horse.nome_cavalo} — sem fotografia`}
             >
-              Sem Foto
+              Sem foto
             </div>
           )}
 
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          {/* Distintivos. Ficam sobre a foto porque em baixo roubariam a linha
+              que o preço e o nome precisam num cartão compacto.
 
-          {/* Top-left badges stack */}
-          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10 flex flex-col gap-1">
+              A fila tem de ter um limite à direita. Um bloco absoluto só com
+              `left` mede-se pelo conteúdo e nunca chega ao ponto de mudar de
+              linha, por muito `flex-wrap` que leve: num cartão de 170px em
+              telemóvel, «Destaque Novo Grand Prix» saía pela borda e o cartão,
+              que tem `overflow-hidden`, cortava-o a meio da palavra. O limite
+              pára às dez unidades da direita, que é onde o coração está. */}
+          <div className="absolute top-2 right-10 left-2 z-10 flex flex-wrap gap-1">
             {horse.destaque && (
-              <span className="flex items-center gap-1 bg-[var(--gold)] text-black text-[8px] sm:text-[9px] uppercase tracking-[0.15em] font-bold px-2 py-0.5 sm:px-2.5 sm:py-1 leading-none">
-                <Flame size={9} aria-hidden />
+              <span className="selo selo-destaque">
+                <Flame size={9} aria-hidden="true" />
                 Destaque
               </span>
             )}
-            {/* "Novo" badge — listings from the last 7 days */}
-            {horse.created_at && Date.now() - new Date(horse.created_at).getTime() < 7 * 86400000 && (
-              <span className="bg-emerald-500 text-white text-[7px] sm:text-[8px] uppercase tracking-[0.15em] font-bold px-2 py-0.5 leading-none">
-                Novo
-              </span>
-            )}
-          </div>
-
-          {/* Discipline/level badge — above price, bottom right */}
-          {badgeLabel && (
-            <div className="absolute bottom-9 sm:bottom-11 right-2 sm:right-3 z-10">
-              <span className="bg-black/60 backdrop-blur-sm border border-[var(--border)] text-[var(--foreground-secondary)] text-[8px] sm:text-[9px] uppercase tracking-[0.12em] px-2 py-0.5 leading-none">
-                {badgeLabel}
-              </span>
-            </div>
-          )}
-
-          {/* Price badge - visible on image */}
-          <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
-            <p className="text-[var(--gold)] font-serif text-lg sm:text-xl font-medium drop-shadow-lg">
-              {Number(horse.preco).toLocaleString(locale)} €
-            </p>
+            {ehRecente(horse.created_at) && <span className="selo selo-novo">Novo</span>}
+            {badgeLabel && <span className="selo selo-neutro">{badgeLabel}</span>}
           </div>
         </div>
 
-        {/* Info section */}
-        <div className="mt-3 sm:mt-4 px-1">
-          <h2 className="font-serif text-base sm:text-lg md:text-xl text-[var(--foreground)] mb-1 line-clamp-1 group-hover:text-[var(--gold)] transition-colors duration-300">
+        {/* Informação. Preço primeiro: num classificados é o que decide se o
+            anúncio merece um clique. */}
+        <div className="p-2.5 space-y-1">
+          <p className="preco text-base sm:text-lg">
+            {Number(horse.preco).toLocaleString(locale)} €
+          </p>
+
+          <h2 className="text-sm font-medium text-[var(--foreground)] line-clamp-1 group-hover:text-[var(--foreground-strong)] transition-colors">
             {horse.nome_cavalo}
           </h2>
 
-          {/* Meta info row */}
-          <div className="flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs text-[var(--foreground-muted)]">
-            {horse.idade && (
-              <span className="flex items-center gap-1">
-                <Calendar size={12} className="hidden sm:inline flex-shrink-0" aria-hidden="true" />
+          <div className="meta flex items-center gap-2 min-h-[1.05rem]">
+            {horse.idade ? (
+              <span className="flex items-center gap-1 flex-shrink-0">
+                <Calendar size={11} aria-hidden="true" />
                 {horse.idade} anos
               </span>
-            )}
-            {horse.localizacao && (
+            ) : null}
+            {horse.localizacao ? (
               <span className="flex items-center gap-1 truncate">
-                <MapPin size={12} className="hidden sm:inline flex-shrink-0" aria-hidden="true" />
+                <MapPin size={11} className="flex-shrink-0" aria-hidden="true" />
                 <span className="truncate">{horse.localizacao}</span>
               </span>
-            )}
+            ) : null}
           </div>
         </div>
       </LocalizedLink>
 
-      {/* Favorite Button — larger touch target on mobile */}
-      <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10">
-        <HorseFavoriteButton horse={favoriteHorse} size="md" className="shadow-lg" />
+      <div className="absolute top-2 right-2 z-10">
+        <HorseFavoriteButton horse={favoriteHorse} size="sm" className="shadow-lg" />
       </div>
     </article>
   );

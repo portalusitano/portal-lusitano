@@ -25,7 +25,7 @@ const seoMetadata: Record<
   pt: {
     siteName: "Portal Lusitano | Cavalos Lusitanos de Elite",
     siteDescription:
-      "Marketplace premium de cavalos Lusitanos. Loja equestre, coudelarias certificadas e o maior arquivo editorial sobre o cavalo Português.",
+      "Classificados de cavalos Puro Sangue Lusitano em Portugal, com directório de coudelarias, mapa e calendário de eventos.",
     ogLocale: "pt_PT",
     keywords: [
       "cavalo lusitano",
@@ -42,7 +42,7 @@ const seoMetadata: Record<
   en: {
     siteName: "Portal Lusitano | Elite Lusitano Horses",
     siteDescription:
-      "Premium Lusitano horse marketplace. Equestrian shop, certified stud farms and the largest editorial archive about the Portuguese horse.",
+      "Classified ads for Puro Sangue Lusitano horses in Portugal, with a directory of stud farms, a map and an events calendar.",
     ogLocale: "en_US",
     keywords: [
       "lusitano horse",
@@ -59,7 +59,7 @@ const seoMetadata: Record<
   es: {
     siteName: "Portal Lusitano | Caballos Lusitanos de Elite",
     siteDescription:
-      "Marketplace premium de caballos Lusitanos. Tienda ecuestre, yeguadas certificadas y el mayor archivo editorial sobre el caballo portugues.",
+      "Anuncios clasificados de caballos Puro Sangue Lusitano en Portugal, con directorio de yeguadas, mapa y calendario de eventos.",
     ogLocale: "es_ES",
     keywords: [
       "caballo lusitano",

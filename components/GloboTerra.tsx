@@ -1,0 +1,5344 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useLanguage } from "@/context/LanguageContext";
+import { preencher } from "@/lib/globo/frases";
+import { nomeCurto, sitioCurto } from "@/lib/nomes-globo";
+import { factosDaFicha, linhasDoGrupo, resumoDaFicha, segundaLinha } from "@/lib/globo/ficha";
+import { capaDoCartao } from "@/lib/directorio-capas";
+import * as THREE from "three";
+import { curvaDoToken, duracaoDoToken } from "@/lib/curvas-css";
+import { resolverCoordenadas, type CoudelariaNoMapa } from "@/lib/coordenadas-coudelarias";
+import { colocarManchas } from "@/lib/globo/manchas";
+import { agrupar, kmPorPixel, raioEmDegraus } from "@/lib/agrupar-globo";
+
+/*
+ * A Terra vista do espaço, com as coudelarias acesas em Portugal.
+ *
+ * Não é um mapa: é a entrada. Um mapa de tiles serve para procurar uma
+ * aldeia; isto serve para se perceber, num segundo, de onde é que este
+ * portal fala. Quem quiser detalhe carrega em «Mapa» e vai ter aos tiles.
+ *
+ * As texturas são da NASA (Blue Marble e Black Marble), pelas cópias que o
+ * three.js distribui nos seus exemplos. Estão em `public/globo/`, em WebP:
+ * 411KB os três mapas, e só se carregam nesta página.
+ *
+ * O que faz a imagem, por ordem de importância:
+ *  1. A atmosfera, medida pela coluna de ar que cada raio atravessa. É uma
+ *     casca só, e dela saem as três coisas que dão a fotografia: a faixa
+ *     acesa rasante ao horizonte, o preto por cima dela, e a bruma que
+ *     engrossa sobre o terreno até ao horizonte. Sem ela o planeta é um
+ *     autocolante recortado.
+ *  2. A mistura dia/noite ao longo do terminador, com as luzes das cidades
+ *     a acenderem-se do lado escuro. É isto que se reconhece.
+ *  3. A perspectiva aérea do lado da Terra: o terreno perde luz — e perde-a
+ *     mais no azul — na travessia até à câmara. É a outra metade da 1, e
+ *     sem ela só se soma azul por cima do castanho, o que dá roxo.
+ *  4. As estrelas, quietas. A piscar seriam mais um ciclo infinito.
+ *
+ * Nota de cor, que é a que explica metade do resto: os três shaders desta
+ * cena são escritos à mão, e um ShaderMaterial só recebe o tone mapping e a
+ * codificação de saída se os pedir com os `#include` no fim do main(). Sem
+ * eles a Terra sai em valores lineares directos para um ecrã sRGB — o
+ * planeta a 5/255 em pleno dia — enquanto tudo o que é material de fábrica
+ * sai certo. Quem escrever mais um shader aqui leva-os também.
+ *
+ * ── E o que faz com que isto não seja um ciclo infinito ────────────────────
+ *
+ * Depois de a câmara pousar, esta cena não muda: o Sol está fixo, as
+ * estrelas estão quietas, os alfinetes não pulsam. Um `requestAnimationFrame`
+ * a correr para sempre estava a mandar sessenta vezes por segundo o mesmo
+ * quadro ao ecrã — a arder bateria a desenhar uma fotografia. Por isso o
+ * quadro é **pedido**, não agendado: desenha-se durante a entrada, enquanto
+ * se arrasta ou se roda a roda, quando chega uma textura, quando a caixa
+ * muda de tamanho, quando um nome se acende debaixo do rato. Parado, o globo
+ * custa zero.
+ *
+ * Pelo mesmo motivo o relógio pára com o separador escondido e com o globo
+ * fora do ecrã — a mesma regra do `usePassoVivo`, e a entrada só arranca
+ * quando o globo entra no ecrã, que é quando há alguém para a ver.
+ */
+
+const RAIO = 1;
+/* Topo da atmosfera, em raios do planeta: 1,020 ≈ 130km, que é a altura a
+   que a faixa acesa se vê nas fotografias de órbita. Serve as duas metades
+   da perspectiva aérea — a luz que o ar dispersa (a casca) e a que o
+   terreno perde a caminho da câmara (o shader da Terra) —, por isso vive
+   aqui e não dentro de uma delas. */
+const TOPO_AR = 1.02;
+
+/** A janela do mapa de relevo, em graus. É a Península e o mar à volta.
+ *
+ *  Não é o planeta todo por duas razões. A primeira é o peso: a esta
+ *  resolução — 163 pontos por grau de longitude, contra os 5,7 da textura do
+ *  mundo — o planeta inteiro dava noventa e seis megabytes. A segunda é
+ *  que não faria falta: a câmara olha sempre para aqui, e o que está a mais
+ *  de mil quilómetros já não se lê como terreno, lê-se como bruma.
+ *
+ *  As bordas caem no mar ou bem longe da mira, e o peso esbate-se num grau
+ *  antes de lá chegar. */
+const JANELA_RELEVO = { lonMin: -13, lonMax: -2, latMin: 35, latMax: 45 };
+
+/** O intervalo em que o quociente de cor foi guardado num byte.
+ *
+ *  É a mesma janela do relevo, e o `cor.webp` traz o quociente entre a
+ *  luminância do terreno e a sua própria média local. Estes dois números são
+ *  o QMIN e o QMAX do `scripts/globo/montar-cor.mjs`, e saem de lá medidos:
+ *  sobre terra o quociente tem p1 = 0,908 e p99 = 1,127, e cortar em 0,78 e
+ *  1,22 deixa 0,85% de fora — neve, lagos e bordas de cidade. */
+const FAIXA_COR = [0.78, 1.22] as const;
+
+/** Quanto é que esse pormenor pesa no que se vê.
+ *
+ *  Três, que é o mesmo do `ganhoRelevo` e pela mesma razão. O que se exagera
+ *  é a amplitude de um sinal verdadeiro; não entra um único acidente que não
+ *  esteja nos dados, e por isso continua a ser geografia — só que mais alta.
+ *
+ *  Porque é preciso exagerar: à escala verdadeira o quociente é de ±10% de
+ *  luminância, e no ecrã isso chega diluído duas vezes — pela coluna de ar,
+ *  que soma luz por cima do terreno, e pela extinção, que lhe tira. Medido no
+ *  ecrã sobre Espanha, que é onde não há alfinetes a sujar a conta: a
+ *  modulação efectiva sobre o terreno é de 4,1% rms a ganho 2 e de 7,1% a
+ *  ganho 3,5, e o contraste local dentro de janelas de 64px sobe 5% e 10%.
+ *
+ *  E onde está o tecto: a 3,5 ainda não aparece grão nenhum. Isso contraria o
+ *  palpite com que isto começou — que acima de três se leria como ruído — e
+ *  por isso fica escrito, para ninguém voltar a baixar o número por causa de
+ *  um receio que já foi medido. O que limita não é o ruído, é o proveito. */
+const GANHO_COR = 3;
+/** Lat/lon → ponto na esfera, escrito num vector que já existe. */
+function naEsferaEm(saida: THREE.Vector3, lat: number, lon: number, raio: number) {
+  const phi = (90 - lat) * (Math.PI / 180);
+  const theta = (lon + 180) * (Math.PI / 180);
+  const senoPhi = Math.sin(phi);
+  return saida.set(
+    -raio * senoPhi * Math.cos(theta),
+    raio * Math.cos(phi),
+    raio * senoPhi * Math.sin(theta)
+  );
+}
+
+/** Lat/lon → ponto na esfera. Faz um vector: só para quem o vai guardar. */
+function naEsfera(lat: number, lon: number, raio: number) {
+  return naEsferaEm(new THREE.Vector3(), lat, lon, raio);
+}
+
+/* O Sol ao largo, a oeste da Península.
+   Numa vista de órbita baixa sobre Portugal, o país tem de se ler: com o
+   Sol do outro lado ficava tudo escuro e as etiquetas assentavam em cima
+   de nada. Assim apanha luz rasante de fim de tarde — o terreno lê-se, as
+   sombras dão relevo, e o terminador fica a leste com as luzes de Espanha
+   e de França já acesas. */
+const SOL = naEsfera(16, -26, 1).normalize();
+
+const VERT = /* glsl */ `
+  varying vec2 vUv;
+  varying vec3 vNormal;
+  varying vec3 vPosVista;
+  varying vec3 vPosMundo;
+  varying vec3 vEste;
+  varying vec3 vNorte;
+  void main() {
+    vUv = uv;
+    vNormal = normalize(normalMatrix * normal);
+    vec4 posMundo = modelMatrix * vec4(position, 1.0);
+    vPosMundo = posMundo.xyz;
+    vec4 posVista = modelViewMatrix * vec4(position, 1.0);
+    vPosVista = posVista.xyz;
+
+    /* ── O norte e o este deste ponto, para o mapa de relevo ───────────────
+       O relevo vem guardado como o declive do terreno em duas direcções —
+       para nascente e para norte —, que é como se mede um declive num mapa.
+       Para o iluminar com o Sol da cena é preciso saber para onde apontam
+       essas duas direcções aqui, e é preciso sabê-lo no mesmo referencial
+       em que está a normal, senão a serra fica com a luz do lado errado.
+
+       Sai daqui e não do fragmento porque a matriz que leva uma normal ao
+       referencial da câmara — a «normalMatrix» — o three.js só a declara no
+       vértice. Como isto acompanha a «normal» pela mesma matriz, o globo
+       pode rodar à vontade que a luz do relevo roda com ele. */
+    vec3 cima = normalize(position);
+    vec3 semNorte = vec3(0.0, 1.0, 0.0) - cima * cima.y;
+    // Nos pólos o norte deixa de existir; o piso evita um NaN a alastrar.
+    vec3 norte = semNorte / max(length(semNorte), 1e-4);
+    vNorte = normalize(normalMatrix * norte);
+    vEste = normalize(normalMatrix * cross(norte, cima));
+
+    gl_Position = projectionMatrix * posVista;
+  }
+`;
+
+const FRAG_TERRA = /* glsl */ `
+  uniform sampler2D mapaDia;
+  uniform sampler2D mapaLuzes;
+  uniform sampler2D mapaBrilho;
+  uniform sampler2D mapaRelevo;
+  uniform sampler2D mapaCor;
+  uniform vec2 faixaCor;
+  uniform float corPronta;
+  uniform float ganhoCor;
+  uniform vec4 janelaRelevo;
+  uniform float relevoPronto;
+  uniform float exageroRelevo;
+  uniform float ganhoRelevo;
+  uniform float extincao;
+  uniform float raioTopo;
+  uniform vec3 sol;
+  varying vec2 vUv;
+  varying vec3 vNormal;
+  varying vec3 vPosVista;
+  varying vec3 vPosMundo;
+  varying vec3 vEste;
+  varying vec3 vNorte;
+
+  void main() {
+    vec3 n = normalize(vNormal);
+    vec3 dirSol = normalize((viewMatrix * vec4(sol, 0.0)).xyz);
+    float luz = dot(n, dirSol);
+
+    // O terminador não é uma linha: é uma faixa de algumas centenas de km.
+    float dia = smoothstep(-0.18, 0.28, luz);
+
+    vec3 corDia = texture2D(mapaDia, vUv).rgb;
+    vec3 corLuzes = texture2D(mapaLuzes, vUv).rgb;
+    float mar = texture2D(mapaBrilho, vUv).r;
+
+    /* ── Quanto ar há entre isto e a câmara ──────────────────────────────
+       A mesma conta de cordas da casca de atmosfera, mas do lado de cá:
+       daqui saem tanto a extinção como a dose de tratamento de cor, que
+       têm de andar juntas. */
+    float distancia = length(vPosMundo - cameraPosition);
+    vec3 dCam = (vPosMundo - cameraPosition) / max(distancia, 1e-5);
+    float aCam = dot(cameraPosition, dCam);
+    float p2 = max(dot(cameraPosition, cameraPosition) - aCam * aCam, 0.0);
+    float rTopo = sqrt(max(raioTopo * raioTopo - p2, 0.0));
+    float colunaAr = max(distancia - max(-aCam - rTopo, 0.0), 0.0);
+    float longe = 1.0 - exp(-colunaAr * 4.0);
+
+    /* ── A cor ao longe ──────────────────────────────────────────────────
+       O que os mipmaps comem a um ângulo rasante não é só o detalhe — é a
+       saturação. Cada texel do nível grosseiro é a média de mar, terra e
+       sombra de serra, e a média de azul-escuro com ocre é malva, que não
+       é a cor de nada. A primeira tentativa foi puxar a saturação de todo
+       o planeta por igual: não resultou, e por uma razão que devia ter
+       sido óbvia — o malva também é uma cor, e saturá-lo dá mais malva.
+
+       O que resulta é dosear pela distância, que é onde está a diferença:
+       o chão aqui debaixo, onde ainda há texels por pixel, ganha corpo;
+       o chão junto ao horizonte, onde já não há, larga a saturação e
+       entrega-se à bruma. Assim a papa deixa de fingir que é detalhe e
+       passa a ler-se como o que é — longe. */
+    float cinza = dot(corDia, vec3(0.2126, 0.7152, 0.0722));
+    corDia = max(mix(vec3(cinza), corDia, mix(1.34, 0.72, longe)), 0.0);
+    corDia = pow(corDia, vec3(mix(1.16, 1.0, longe))) * mix(1.12, 1.0, longe);
+
+    /* ── O relevo, onde há relevo para mostrar ───────────────────────────
+       A textura do planeta tem 2048 pixéis para dar a volta ao mundo: desta
+       altura são seis por grau, e Portugal inteiro cabe em dezanove deles
+       ao largo, esticados por duzentos e tal pixéis de ecrã. Nenhum filtro
+       tira nitidez de onde ela não está, e uma textura de ruído por cima
+       não é terreno — é ruído. O que falta não é contraste, é geografia.
+
+       Por isso a geografia vem de facto: «relevo.webp» é o declive do
+       terreno da Península, tirado de altimetria verdadeira (os tiles
+       Terrarium da AWS, 234 m por amostra a esta latitude, reduzidos a
+       meio quilómetro por ponto no que se entrega), guardado como as duas
+       componentes da normal — para nascente e para norte — mais a
+       altitude no azul. Não é um ornamento procedural: a Serra da Estrela
+       está lá porque está lá, e o vale do Guadiana faz a curva que faz.
+
+       Guarda-se a normal e não um sombreado pronto porque o Sol desta cena
+       é um uniforme: assim é o mesmo Sol que ilumina a serra e o resto do
+       planeta, e ao rodar o globo a luz do relevo roda com ele. Um
+       sombreado cozido com outra luz brigava com o terminador.
+
+       Só a Península: é o que se vê de perto, e é aí que a falta de nitidez
+       se lê. Ao largo da janela o peso vai a zero num grau, que é dentro da
+       bruma — não há costura para ver. */
+    vec2 grauUv = vec2(vUv.x * 360.0 - 180.0, vUv.y * 180.0 - 90.0);
+    vec2 uvRelevo = (grauUv - janelaRelevo.xz) / (janelaRelevo.yw - janelaRelevo.xz);
+    vec2 daBorda = min(uvRelevo, 1.0 - uvRelevo);
+    float pesoRelevo = smoothstep(0.0, 0.05, min(daBorda.x, daBorda.y)) * relevoPronto;
+
+    /* A amostra vem de fora de qualquer «if», e de propósito.
+       O nível de mipmap sai da derivada das coordenadas entre pixéis
+       vizinhos, e dentro de um ramo que uns pixéis tomam e outros não essa
+       derivada não está definida — a norma diz mesmo que o resultado é
+       indeterminado. Na prática dava uma orla de um pixel com o nível
+       errado a toda a volta da janela. O ramo poupava meia dúzia de contas
+       fora da Península; não vale uma linha de lixo. */
+    vec3 amostra = texture2D(mapaRelevo, clamp(uvRelevo, 0.0, 1.0)).rgb;
+
+    /* O azul separa a terra da água: zero é mar, e a terra começa acima
+       do intervalo vazio que se deixou na compressão. Sem este teste o
+       relevo gravava a plataforma continental no mar, que é batimetria
+       verdadeira e mesmo assim erro — de órbita não se vê o fundo. */
+    float terra = smoothstep(0.03, 0.08, amostra.b);
+
+    /* Da normal guardada tira-se o declive, exagera-se, e volta a fazer-se
+       a normal. Exagerar a normal directamente encostava-a ao horizonte
+       sem nunca lá chegar; exagerar o declive é o que a cartografia faz
+       há um século, e é linear no que interessa. */
+    vec2 nEN = amostra.rg * 2.0 - 1.0;
+    float nCima = sqrt(max(1.0 - dot(nEN, nEN), 1e-4));
+    vec2 declive = -nEN / nCima * exageroRelevo;
+    vec3 nLocal = normalize(vec3(-declive, 1.0));
+    vec3 nTerreno = normalize(vEste * nLocal.x + vNorte * nLocal.y + n * nLocal.z);
+
+    /* Junto ao horizonte o relevo desaparece com o resto: lá a coluna de
+       ar já come tudo, e um declive amostrado de raspão só daria cintilação. */
+    float p = pesoRelevo * terra * (1.0 - 0.75 * longe);
+
+    /* ── A cor da Península, à resolução da Península ────────────────────
+       O relevo aqui em cima resolveu a FORMA do terreno. A COR continuava a
+       sair dos mesmos 19x30 texels do mapa do mundo, e por isso o Alentejo
+       lia-se como uma aguarela desfocada por baixo de um relevo nítido — que
+       é o mesmo defeito que o relevo veio corrigir, na outra metade.
+
+       O «cor.webp» não traz cor: traz o QUOCIENTE entre a luminância do
+       terreno e a sua própria média local, tirado da cobertura do solo do
+       Natural Earth II a 60 pontos por grau (contra os 5,69 daqui). Média 1,
+       logo o que o mapa do mundo já sabe — a cor, o brilho, o verde do Minho
+       contra o ocre do Alentejo — fica exactamente como estava, e só se
+       acrescenta a banda de frequências que ele não consegue carregar. É a
+       mesma ideia do desvio de luz do relevo, e dá as mesmas garantias: sem
+       costura na borda da janela, sem salto de paleta, e sem nada perdido se
+       o ficheiro não chegar.
+
+       Multiplica os três canais por igual: mexe no claro-escuro e não no
+       matiz. A cor de cada sítio continua a ser a que a fotografia diz que é
+       — o Natural Earth é tinta cartográfica, e a tinta dele não entra aqui,
+       só o desenho.
+
+       Vai pelo mesmo «p» do relevo, e não por um peso próprio: é a mesma
+       janela, a mesma máscara de terra e a mesma razão para desaparecer
+       junto ao horizonte. Dois pesos para a mesma coisa era uma segunda
+       borda para esbater. */
+    vec3 amostraCor = texture2D(mapaCor, clamp(uvRelevo, 0.0, 1.0)).rgb;
+    float quociente = mix(faixaCor.x, faixaCor.y, amostraCor.r);
+    corDia *= mix(1.0, 1.0 + (quociente - 1.0) * ganhoCor, p * corPronta);
+
+    /* Guarda-se o DESVIO da luz, não a luz do terreno.
+       Substituir uma pela outra escurecia o país: um terreno rugoso
+       apanha, em média, menos luz do que a esfera lisa, e a média é o
+       que menos interessa aqui — o que se quer ver é a diferença entre a
+       encosta virada ao Sol e a que lhe volta as costas. Como o desvio
+       tem média nula, o Alentejo fica com o brilho que tinha e ganha só
+       o que lhe faltava, que era ter dois lados.
+
+       O ganho existe porque o Sol desta cena está a 61° de altura sobre
+       Portugal — escolhido para o país se ler, e não se mexe. A essa
+       altura a luz cai quase a pique e o relevo verdadeiro rende cinco
+       por cento de contraste: certo de mais para se ver. É a mesma
+       licença que qualquer carta de relevo toma há um século. */
+    float desvio = dot(nTerreno, dirSol) - luz;
+    float relevoLuz = mix(1.0, clamp(1.0 + desvio * ganhoRelevo, 0.30, 1.95), p);
+
+    /* De caminho, a costa: o mapa do mar também tem 2048 pixéis para dar
+       a volta ao mundo, e por isso a sua orla escorre uns vinte
+       quilómetros por terra dentro. Onde escorria, o reflexo do Sol
+       acendia-se em cima do Sado e da foz do Tejo — uma mancha clara com
+       a forma de nada. A altimetria sabe onde acaba a terra a meio
+       quilómetro; é ela que fecha a torneira. */
+    mar = min(mar, mix(1.0, 1.0 - terra, pesoRelevo));
+
+    // Lado iluminado, com o azul do mar a ganhar profundidade nos bordos.
+    vec3 ladoDia = corDia * (0.35 + 0.75 * max(luz, 0.0)) * relevoLuz;
+
+    /* Lado escuro: quase preto, com as cidades acesas por cima. O tom
+       quente é o do sódio das luzes públicas, que é o que se vê de facto.
+
+       O mapa das luzes não vem com fundo preto: traz um azul-noite por
+       baixo de tudo — no meio do Sara, onde não há uma única lâmpada,
+       ainda mede sRGB(25,24,58). Multiplicado como estava, esse fundo
+       acendia o lado da noite inteiro a violeta e roubava contraste às
+       cidades, que é o único sítio onde este mapa tem informação. Por
+       isso fica só a intensidade acima do piso, e a cor vem daqui. */
+    float acesas = max(dot(corLuzes, vec3(0.2126, 0.7152, 0.0722)) - 0.013, 0.0);
+    vec3 ladoNoite = corDia * 0.035 + vec3(1.25, 0.92, 0.5) * acesas * 2.6;
+
+    vec3 cor = mix(ladoNoite, ladoDia, dia);
+
+    // Um reflexo especular só no mar, e só onde o Sol bate de raspão.
+    vec3 dirVista = normalize(-vPosVista);
+    vec3 meio = normalize(dirSol + dirVista);
+    float esp = pow(max(dot(n, meio), 0.0), 34.0) * mar * dia;
+    cor += vec3(0.55, 0.68, 0.85) * esp * 0.55;
+
+    /* ── A outra metade da perspectiva aérea ─────────────────────────────
+       A casca de ar acrescenta a luz que o ar dispersa; falta tirar a que
+       o terreno perdeu a caminho da câmara. Sem esta parte só se soma azul
+       por cima do castanho, e o resultado é roxo em vez de longe.
+
+       O coeficiente é maior no azul do que no vermelho, como manda
+       Rayleigh: o que sobrevive à travessia aquece, e é esse contraste com
+       o azul que se soma por cima que faz a distância.
+
+       A coluna não conta toda por igual. Um raio rasante faz o percurso
+       inteiro na camada de baixo, que é a densa; um raio a pique
+       atravessa-a num instante. A espessura óptica cresce por isso mais
+       depressa do que o comprimento, e é esse termo quadrático que trata
+       do último defeito visível deste globo: nos últimos graus antes do
+       horizonte já não há texels nenhuns, e uma costa da textura aparece
+       como uma fieira de quadrados do nível grosseiro do mipmap. Assim
+       dissolvem-se na bruma, que é onde deviam estar. */
+    float profundidadeOptica = colunaAr * (1.0 + colunaAr * 9.0);
+    cor *= exp(-profundidadeOptica * extincao * vec3(0.72, 1.0, 1.55));
+
+    gl_FragColor = vec4(cor, 1.0);
+
+    /* Um ShaderMaterial escrito à mão não recebe estas duas passagens de
+       borla: o three só as injecta onde o shader as pede. Sem elas, o tone
+       mapping e a exposição do renderizador não fazem nada aqui, e os
+       valores lineares vão para o ecrã sem serem codificados em sRGB — o
+       planeta saía a 5/255 no meio do dia, enquanto as linhas de costa e
+       os alfinetes, que são materiais de fábrica, saíam com a cor certa.
+       Era essa a razão de a Terra parecer apagada e de as linhas por cima
+       dela parecerem coladas. */
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
+  }
+`;
+
+const FRAG_ATMOSFERA = /* glsl */ `
+  uniform vec3 corDensa;
+  uniform vec3 corRala;
+  uniform float raioTopo;
+  uniform float espessura;
+  uniform float ganho;
+  uniform float ganhoSobreTerra;
+  uniform vec3 sol;
+  varying vec3 vPosMundo;
+
+  void main() {
+    /* ── Quanto ar é que este raio atravessa? ────────────────────────────
+       A versão anterior fazia um Fresnel contra o eixo da câmara
+       — dot(normal, vec3(0,0,1)) — numa casca 22% maior que o planeta. Isso
+       só funciona com a câmara ao largo, a olhar o planeta inteiro — que
+       era o enquadramento antigo. Com a câmara a 0,05 raios de altura, ela
+       fica *dentro* dessa casca: todos os raios saem por ela, o termo dá
+       valores acima de 1 em quase todo o ecrã e a atmosfera passa a ser um
+       nevoeiro branco de canto a canto. Era isso que se via.
+
+       Aqui mede-se a coisa certa: o comprimento do troço do raio que passa
+       dentro da atmosfera, entre a superfície (raio 1) e o topo. Sai de
+       graça o que se queria:
+        · a olhar para cima não há ar nenhum no caminho — preto, e as
+          estrelas voltam a ver-se;
+        · rasante ao horizonte a coluna é a mais longa de todas — é a faixa
+          acesa que se vê das fotografias da estação espacial;
+        · sobre o terreno o troço cresce com a distância — perspectiva
+          aérea, que é o que faz uma textura de 2048 pixéis parecer chão
+          longe em vez de chão desfocado.
+
+       Como a conta é feita a partir da câmara e não da superfície da casca,
+       continua certa se o utilizador afastar a roda do rato e sair da
+       atmosfera. */
+    vec3 d = normalize(vPosMundo - cameraPosition);
+    float a = dot(cameraPosition, d);
+    float p2 = max(dot(cameraPosition, cameraPosition) - a * a, 0.0);
+
+    float discTopo = raioTopo * raioTopo - p2;
+    if (discTopo <= 0.0) discard;
+    float rTopo = sqrt(discTopo);
+    float saidaTopo = -a + rTopo;
+    if (saidaTopo <= 0.0) discard;
+
+    float entrada = max(-a - rTopo, 0.0);
+    float chao = -a - sqrt(max(1.0 - p2, 0.0));
+
+    // A coluna que pára no solo, e a que atravessa o ar todo até ao espaço.
+    float caminhoNoChao = max(min(chao, saidaTopo) - entrada, 0.0);
+    float caminhoNoCeu = max(saidaTopo - entrada, 0.0);
+
+    /* ── O degrau do horizonte ───────────────────────────────────────────
+       O raio que ainda apanha o solo e o raio que já passa por cima dele
+       vêem quantidades de ar muito diferentes — o dobro, aqui. Isso é
+       verdade e é o que faz a linha acesa. O que não pode é ser um salto
+       seco: a fronteira p²=1 é uma curva calculada no shader, e um degrau
+       calculado no shader não apanha o anti-aliasing das arestas da
+       geometria — o multisample só sabe suavizar silhuetas de polígonos.
+       O resultado era um horizonte aos degraus, com escadas de dezenas de
+       pixéis, que sobreviveu a subir a esfera para 512 segmentos e a casca
+       para 384: nenhuma das duas era a causa.
+
+       Um pixel de esbatimento, medido com a derivada de ecrã, resolve-o —
+       e resolve-o a qualquer distância, que é mais do que uma constante
+       fazia. Onde o raio se afasta do planeta não há solo à frente e a
+       questão nem se põe. */
+    float pixel = max(fwidth(p2), 1e-7);
+    float noCeu = a < 0.0 ? smoothstep(-pixel, pixel, p2 - 1.0) : 1.0;
+
+    float caminho = mix(caminhoNoChao, caminhoNoCeu, noCeu);
+
+    // Beer: a coluna satura em vez de estourar, e o joelho do ACES a
+    // seguir trata do resto.
+    float densidade = 1.0 - exp(-espessura * caminho);
+
+    /* Sobre o terreno o ar pesa menos do que a conta diz, e há uma razão:
+       aqui só se soma a luz dispersa, não se tira a que o terreno perdeu
+       pelo caminho. Sem essa subtracção, o mesmo ganho do céu punha
+       Portugal debaixo de uma nuvem azul — foi o que aconteceu à primeira.
+       O ganho mais baixo é o que faz as vezes da extinção que falta. */
+    float forca = mix(ganhoSobreTerra, ganho, noCeu);
+
+    /* A cor não é uma só: rasante ao horizonte o ar já dispersou tanto que
+       lê branco-frio, e mais acima ainda é o azul de Rayleigh. Uma cor
+       fixa dava ou um anel de neon ou um véu cinzento. */
+    vec3 cor = mix(corRala, corDensa, smoothstep(0.18, 0.50, caminho));
+
+    /* Só do lado por onde entra a luz. Mede-se no ponto do raio mais perto
+       do planeta — é aí que está o ar que conta —, não na casca, que fica
+       longe de mais para dizer se aquilo é dia ou noite. */
+    vec3 pPerto = cameraPosition + d * max(-a, 0.0);
+    float ladoDoSol = smoothstep(-0.35, 0.4, dot(normalize(pPerto), sol));
+
+    gl_FragColor = vec4(cor * densidade * forca * (0.05 + 0.95 * ladoDoSol), 1.0);
+
+    /* Pelas mesmas razões da Terra: um ShaderMaterial escrito à mão não
+       recebe o tone mapping nem a codificação de saída sem os pedir. */
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
+  }
+`;
+
+/* Os contornos vectoriais só têm posições — nem `uv` nem `normal` —, por
+   isso não podem usar o VERT das esferas. */
+const VERT_LINHA = /* glsl */ `
+  varying vec3 vPosMundo;
+  void main() {
+    vec4 posMundo = modelMatrix * vec4(position, 1.0);
+    vPosMundo = posMundo.xyz;
+    gl_Position = projectionMatrix * viewMatrix * posMundo;
+  }
+`;
+
+const FRAG_CONTORNOS = /* glsl */ `
+  uniform vec3 cor;
+  uniform float opacidade;
+  uniform float extincao;
+  uniform float raioTopo;
+  varying vec3 vPosMundo;
+
+  void main() {
+    /* A linha também está debaixo do ar. Com uma opacidade fixa, a costa
+       da Cantábria a trezentos quilómetros ficava tão acesa como a do
+       Tejo aqui à frente — e passava a ser a coisa mais clara do quadro
+       depois do horizonte. Lida assim, deixa de ser uma costa e passa a
+       ser um traço por cima da fotografia. Some com a mesma coluna de ar
+       que apaga o terreno por baixo dela. */
+    float distancia = length(vPosMundo - cameraPosition);
+    vec3 d = (vPosMundo - cameraPosition) / max(distancia, 1e-5);
+    float aCam = dot(cameraPosition, d);
+    float p2 = max(dot(cameraPosition, cameraPosition) - aCam * aCam, 0.0);
+    float rTopo = sqrt(max(raioTopo * raioTopo - p2, 0.0));
+    float colunaAr = max(distancia - max(-aCam - rTopo, 0.0), 0.0);
+
+    gl_FragColor = vec4(cor, opacidade * exp(-colunaAr * extincao));
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
+  }
+`;
+
+const VERT_ESTRELAS = /* glsl */ `
+  attribute float tamanho;
+  attribute float brilho;
+  varying float vBrilho;
+  void main() {
+    vBrilho = brilho;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    gl_PointSize = tamanho;
+  }
+`;
+
+const FRAG_ESTRELAS = /* glsl */ `
+  varying float vBrilho;
+  void main() {
+    // Redonda, não quadrada: núcleo apertado e uma orla que se apaga.
+    float r = length(gl_PointCoord - 0.5) * 2.0;
+    float a = 1.0 - smoothstep(0.28, 1.0, r);
+    gl_FragColor = vec4(vec3(vBrilho * a), 1.0);
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
+  }
+`;
+
+/* ── Os alfinetes, medidos em pixéis de ecrã ───────────────────────────────
+ *
+ * Eram uma esfera de 0,0004 de raio mais um `Sprite` com um degradê por cima,
+ * um par por coudelaria. Duas coisas estavam mal.
+ *
+ * A primeira: as duas medem-se em unidades do mundo, logo crescem no ecrã à
+ * medida que a câmara desce. Com o curso de zoom que havia — 1,6× — mal se
+ * notava; com 3,5× cada ponto vira uma bola branca que tapa o terreno e os
+ * nomes. E não é só a altura: a câmara olha inclinada 14°, por isso o
+ * primeiro plano está três vezes mais perto do que a mira e os pontos de
+ * baixo saíam ao triplo do tamanho dos de cima — no mesmo quadro, para
+ * coudelarias iguais. Um alfinete não é um objecto do mundo, é uma marca
+ * sobre ele: tem o tamanho de um ícone, e um ícone tem o mesmo tamanho em
+ * todo o lado.
+ *
+ * A segunda: um `Sprite` é um objecto e um objecto é uma chamada de desenho.
+ * Vinte e nove alfinetes eram vinte e nove chamadas — mais do que a cena
+ * inteira gastava em tudo o resto junto.
+ *
+ * A resposta é a mesma que as estrelas aqui ao lado já usam: uma nuvem de
+ * pontos só, com o tamanho em pixéis no `gl_PointSize`. Uma chamada, tamanho
+ * constante, e o núcleo e a orla desenhados no mesmo pixel — o degradê em
+ * `canvas` que servia de textura ao halo deixa de ser preciso.
+ *
+ * ── O que o alfinete tem de dizer, e o que dizia a mais ───────────────────
+ *
+ * Sem uma palavra, um alfinete diz três coisas: **onde está**, **se está a
+ * ser apontado** e **se ali há mais do que uma**. Tudo o que não seja uma
+ * destas três é adorno, e o desenho anterior era quase todo adorno: um halo
+ * aditivo de dez pixéis com uma cauda a apagar-se aos sessenta por cento do
+ * raio. Um brilho é bonito e não é informação.
+ *
+ * Pior do que não ser informação, era informação errada em metade do quadro.
+ * Aditivo significa somar luz, e a esta altura metade do quadro é Alentejo
+ * ao sol — que é quase branco. Sobre ele o halo não fazia diferença nenhuma
+ * e o ponto perdia-se; sobre o mar de noite, o mesmo halo era uma bola. O
+ * mesmo alfinete lia-se com dois pesos conforme o chão por baixo.
+ *
+ * O que passa a haver:
+ *
+ *  · **Onde está** — um disco branco de cinco pixéis com uma sombra de
+ *    contacto em volta. A sombra não é uma segunda sombra decorativa: é o
+ *    que assenta o ponto no chão e o que faz com que ele se leia igual sobre
+ *    a serra e sobre o mar. Por isso a mistura deixou de ser aditiva: com
+ *    aditivo não há maneira de escurecer, e sem escurecer não há contraste
+ *    garantido.
+ *  · **Se está a ser apontado** — abre-se uma argola em volta. Não é o
+ *    ponto a engordar: engordar dava um alfinete com dois pesos e nenhuma
+ *    fronteira, e a marca que se aponta tem de continuar a marcar o mesmo
+ *    sítio com a mesma precisão.
+ *  · **Se ali há mais do que uma** — uma argola mais apertada, sempre
+ *    acesa. Antes isto era «o ponto é 1,6× maior», que não diz «são duas»:
+ *    diz «é maior», que é outra coisa e a olho é indistinguível de uma
+ *    coudelaria em destaque. Uma argola é um sinal; um tamanho é uma
+ *    grandeza.
+ *
+ * O destaque fica no tamanho do ponto — dois pixéis e meio contra três e um
+ * quarto de raio —, que é a hierarquia mais fraca das três de propósito: é a
+ * que menos importa a quem está a apontar.
+ *
+ * Branco em todos os casos, e o dourado em nenhum: era a regra da casa e
+ * continua a ser. Um acento em vinte e um dos vinte e nove pontos não
+ * assinala nada.
+ */
+const VERT_PONTOS = /* glsl */ `
+  uniform float lado;
+  attribute float raio;
+  attribute float argola;
+  attribute float brilhoArgola;
+  attribute float brilho;
+  varying float vRaio;
+  varying float vArgola;
+  varying float vBrilhoArgola;
+  varying float vBrilho;
+  void main() {
+    vRaio = raio;
+    vArgola = argola;
+    vBrilhoArgola = brilhoArgola;
+    vBrilho = brilho;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    /* O carimbo é sempre do mesmo tamanho. O que muda de estado é o desenho
+       lá dentro, e não a área que ele ocupa: assim o alfinete não muda de
+       peso no quadro por estar aceso, e o gl_PointSize deixa de ser mais um
+       número a viajar por quadro. */
+    gl_PointSize = lado;
+  }
+`;
+
+const FRAG_PONTOS = /* glsl */ `
+  uniform float lado;
+  uniform float orla;
+  uniform float sombra;
+  varying float vRaio;
+  varying float vArgola;
+  varying float vBrilhoArgola;
+  varying float vBrilho;
+
+  void main() {
+    if (vBrilho < 0.004) discard;
+    /* Em pixéis do ecrã, e não em fracções do carimbo: as três medidas do
+       alfinete — o ponto, a argola e a sombra de contacto — são medidas de
+       ícone, e um ícone tem o mesmo tamanho em todo o lado. */
+    float r = length(gl_PointCoord - 0.5) * lado;
+
+    // Onde está: um disco cheio, com uma orla de um pixel para não serrilhar.
+    float ponto = 1.0 - smoothstep(vRaio - orla, vRaio + orla, r);
+
+    /* Se há mais do que uma ali, e se está a ser apontado: uma argola fina à
+       volta do ponto. Um ponto maior não diz «são duas» — diz «é maior», que
+       é outra coisa e é mentira. Uma argola é um sinal, não um tamanho. */
+    float meia = orla;
+    float argola = vArgola > 0.0
+      ? (1.0 - smoothstep(vArgola + meia - orla, vArgola + meia + orla, r)) *
+        smoothstep(vArgola - meia - orla, vArgola - meia + orla, r) *
+        vBrilhoArgola
+      : 0.0;
+
+    float branco = clamp(ponto + argola, 0.0, 1.0);
+
+    /* A sombra de contacto, e a razão de ela não ser adorno: a esta altura
+       metade do quadro é o Alentejo ao sol, que é quase branco. Um ponto
+       branco sobre terreno branco não se vê, e era isso que o halo aditivo
+       que aqui estava fazia — somava luz onde já havia luz a mais. Um
+       escurecimento em volta assenta o ponto no chão e faz com que ele se
+       leia igual sobre a serra e sobre o mar. */
+    float escuro = (1.0 - smoothstep(vRaio * 0.5, vRaio + sombra, r)) * 0.62;
+
+    float a = branco + escuro * (1.0 - branco);
+    if (a < 0.004) discard;
+    // Branco por cima de preto, já composto: sai a cor certa a qualquer alfa.
+    gl_FragColor = vec4(vec3(branco / a), a * vBrilho);
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
+  }
+`;
+
+/* Entrada e saída suaves, mas sem o arranque preguiçoso do `easeInOutCubic`
+   que aqui estava: aos 25% do tempo aquele já só tinha feito 6% do
+   movimento, e a aproximação parecia começar tarde. Este faz 16%. */
+const suave = (t: number) => t * t * (3 - 2 * t);
+
+const grau = Math.PI / 180;
+const EIXO_POLAR = new THREE.Vector3(0, 1, 0);
+
+/* ── O enquadramento, em números ───────────────────────────────────────────
+ *
+ * A câmara está à altura h sobre um ponto do meridiano de Portugal e aponta
+ * para a MIRA, um ponto de solo que fica sempre no centro do quadro. Com o
+ * planeta de raio 1:
+ *
+ *   dip = arccos(1/(1+h))   o horizonte, abaixo da horizontal local
+ *   δ0  = dip + β           o eixo da câmara, abaixo da mesma horizontal
+ *   Δ   = δ0 − arccos((1+h)·cos δ0)     sub-ponto ↔ mira
+ *   D   = sin Δ / cos δ0                câmara ↔ mira
+ *
+ * É β — e não a altura — que fixa a altura do horizonte no quadro: com lente
+ * vertical de 42°, o horizonte cai a 50% − 50%·tan β / tan 21° do topo. Com
+ * β = 14° dá 18%, e dá 18% a QUALQUER altura. Era isto que faltava. Dantes a
+ * mira era um ponto fixo da esfera e a altura mudava sozinha ao rodar a
+ * roda: a inclinação da câmara passava a depender do zoom, e no fim do
+ * curso a câmara estava a olhar exactamente para o horizonte — meio quadro
+ * de céu e as coudelarias todas espalmadas numa linha.
+ *
+ * Os números escolhidos põem o horizonte a 18% do topo, o norte de Portugal
+ * a 34% e o cabo de Santa Maria a 92%: o país inteiro no quadro, com mar por
+ * baixo. Com o que aqui estava — h = 0,05 e mira a 43°N — o sul do país caía
+ * a 132%, isto é 32% de altura de quadro abaixo da borda: o Algarve estava
+ * fora do enquadramento em todos os ecrãs. */
+const MIRA = { lat: 39.8, lon: -8.0 };
+const FOV = 42;
+const BETA = 14 * grau;
+/** ≈ 375 km. É a altura a que o país inteiro cabe no quadro. */
+const ALTURA_REPOUSO = 0.0588;
+/** ≈ 80 km, e o quadro passa de 746 km de largura para 213: **3,5× de
+    ampliação**, contra os 1,6× que aqui estavam.
+
+    O número que aqui estava (0,03) tinha por razão escrita que «a textura tem
+    um texel por cada 20 km» — e essa razão caducou quando chegou o
+    `relevo.webp`, que traz elevação a sério a 234 m por amostra. O limite
+    novo foi medido, degrau a degrau, com o botão de aproximar e uma captura
+    por degrau (11 degraus de 1,35×, do repouso até 27×):
+
+      quadro 222 km (3,4×)  terreno lê-se: vales e serras, costa nítida
+      quadro 172 km (4,3×)  o primeiro plano vira um xadrez visível
+
+    O que quebra não é a fotografia do dia nem a resolução do relevo — a essa
+    ampliação ainda vai um texel de relevo por pixel de ecrã. O que se vê são
+    os **blocos de 8×8 da compressão com perdas** do `relevo.webp`, ampliados
+    pelo primeiro plano, que numa câmara inclinada 14° está três vezes mais
+    perto do que a mira. Por isso o tecto fica do lado de cá do degrau onde
+    eles aparecem. Quem quiser mais fundo tem de reencodar a textura com
+    menos perda — é lá que está o limite, não aqui. */
+const ALTURA_MINIMA = 0.0125;
+/** ≈ 12 700 km: o disco do planeta subtende 39°, cabe nos 42° da lente. É
+    também de onde parte a entrada, para que se possa sempre voltar à
+    primeira imagem. A que lá estava partia de 4,6 raios, fora do limite de
+    2,6 do zoom: a abertura era um sítio onde não se podia regressar. */
+const ALTURA_MAXIMA = 2.0;
+/** O país tem 218 km ao largo; abaixo desta largura de quadro deixa de caber
+    com margem, e a resposta é subir. */
+const LARGURA_MINIMA = 330 / 6371;
+const DURACAO_ENTRADA = 2600;
+
+/** Geometria do enquadramento para uma altura. */
+function enquadrar(h: number) {
+  const eixo = Math.acos(1 / (1 + h)) + BETA;
+  const sep = eixo - Math.acos(Math.min(1, (1 + h) * Math.cos(eixo)));
+  return { eixo, sep, distancia: Math.sin(sep) / Math.cos(eixo) };
+}
+
+/** A altura a que o país ainda cabe ao largo numa caixa desta proporção.
+    `distancia` cresce com a altura, por isso chega bissectar. */
+function alturaParaCaber(aspecto: number) {
+  const precisa = LARGURA_MINIMA / 2 / (Math.tan((FOV / 2) * grau) * aspecto);
+  if (enquadrar(ALTURA_MINIMA).distancia >= precisa) return ALTURA_MINIMA;
+  let baixo = ALTURA_MINIMA;
+  let cima = ALTURA_MAXIMA;
+  for (let i = 0; i < 40; i++) {
+    const meio = (baixo + cima) / 2;
+    if (enquadrar(meio).distancia < precisa) baixo = meio;
+    else cima = meio;
+  }
+  return cima;
+}
+
+type Ponto = { c: CoudelariaNoMapa; coords: [number, number] };
+
+/** Estado visível do componente.
+
+    `a-refazer` é a cena a nascer outra vez depois de o browser lhe ter tirado
+    o contexto — ver a secção «Quando a reposição não vem», lá em baixo. É um
+    estado à parte de `a-carregar` porque diz outra coisa a quem está a ver:
+    um vem antes de haver mapa, o outro vem depois de o ter havido. */
+type Estado = "a-carregar" | "a-refazer" | "pronto" | "sem-3d" | "perdido";
+
+/** Quanto se espera pelo `webglcontextrestored` antes de refazer a cena à
+    mão. Medido no banco de ensaio: quando o browser repõe o contexto por
+    iniciativa dele, o evento chega no mesmo quadro em que se perde — dos
+    dois eventos medidos, `lost@11588` e `restored@11588`. 1200ms é folga com
+    duas ordens de grandeza e não se nota, porque o que está no ecrã durante
+    essa espera já é a palavra que explica o que se passa. */
+const ESPERA_PELA_REPOSICAO = 1200;
+/** Quantas vezes se refaz a cena antes de desistir. Três: um despejo é um
+    acidente, três seguidos são uma máquina que não tem memória gráfica para
+    isto, e insistir numa dessas é gastar-lhe a bateria a abrir contextos que
+    o browser volta a fechar. */
+const MAX_RECUPERACOES = 3;
+/** Um contexto que viveu isto e só depois morreu não faz parte de um ciclo:
+    a conta das recuperações recomeça. Sem isto, três acidentes espalhados por
+    uma tarde no mesmo separador esgotavam a conta e a quarta perda ficava
+    preta para sempre. */
+const VIDA_SA = 60_000;
+
+/** O destino de uma coudelaria, por omissão: a ficha dela. */
+const fichaPorOmissao = (c: CoudelariaNoMapa) =>
+  c.slug ? `/directorio/${encodeURIComponent(c.slug)}` : null;
+
+export default function GloboTerra({
+  coudelarias,
+  aoEscolher,
+  hrefDe = fichaPorOmissao,
+}: {
+  coudelarias: CoudelariaNoMapa[];
+  /** Chamado ao carregar num nome que não tem destino — ver `hrefDe`. */
+  aoEscolher?: (c: CoudelariaNoMapa) => void;
+  /** Para onde leva um nome. Devolver `null` desliga a ligação e devolve o
+      clique ao `aoEscolher` — é assim que a página pede uma janela em vez de
+      uma navegação, sem que o globo saiba o que é uma janela. */
+  hrefDe?: (c: CoudelariaNoMapa) => string | null;
+}) {
+  const caixa = useRef<HTMLDivElement>(null);
+  const encaminhador = useRouter();
+  /* ── O cromado do globo fala a língua da página ─────────────────────────
+     Estava tudo escrito à mão em português — o `aria-label` da camada, os
+     quatro comandos, as etiquetas de ajuntamento, a ficha rápida e os avisos
+     —, e num `/en/mapa` com a pílula já traduzida quinze das vinte e nove
+     coudelarias só eram anunciadas por uma palavra portuguesa a quem usa
+     leitor de ecrã. O componente vive debaixo do mesmo `LanguageProvider` que
+     o resto da página, por isso não precisa de receber dicionário nenhum por
+     propriedade: pergunta. */
+  const { t } = useLanguage();
+  const [estado, setEstado] = useState<Estado>("a-carregar");
+
+  const pontos = useMemo(
+    () =>
+      coudelarias
+        .map((c) => ({ c, coords: resolverCoordenadas(c) }))
+        .filter((x): x is Ponto => x.coords !== null),
+    [coudelarias]
+  );
+
+  /** As cadeias que a cena escreve, num sítio só. Memorizado pelo dicionário
+      e não por cada chave: `t` só muda quando a língua muda. */
+  const textos = useMemo(
+    () => ({
+      camada: t.mapa.globo_layer_label,
+      conta: t.mapa.globo_studs_count,
+      contaUma: t.mapa.globo_stud_count_one,
+      sitioConta: t.mapa.globo_place_studs,
+      verCoudelaria: t.mapa.globo_open_stud,
+      verFichaDe: t.mapa.globo_open_stud_of,
+      comandos: t.mapa.globo_controls_label,
+      aproximar: t.mapa.globo_zoom_in,
+      afastar: t.mapa.globo_zoom_out,
+      repor: t.mapa.globo_reset_view,
+    }),
+    [t]
+  );
+
+  /** Só o que as etiquetas e as manchas escrevem. Os comandos ficam de fora
+      de propósito: esses reescrevem-se pelo `cromadoRef` e não precisam de
+      refazer nó nenhum. */
+  const textosDasEtiquetas = [
+    textos.conta,
+    textos.contaUma,
+    textos.sitioConta,
+    textos.verCoudelaria,
+    textos.verFichaDe,
+  ].join("|");
+
+  /* ── Filtrar não remonta a cena ──────────────────────────────────────────
+     Quem nos chama passa `searchQuery ? filtradas : todas`: um array novo a
+     cada tecla, quase sempre com o mesmo conteúdo. Como a cena inteira
+     dependia da identidade desta lista, cada tecla deitava fora um contexto
+     WebGL e abria outro — e o browser só deixa ter dezasseis abertos ao
+     mesmo tempo. Medido: vinte teclas davam treze contextos e o aviso
+     «Too many active WebGL contexts» na consola.
+
+     A assinatura resolveu **metade** disso: um array novo com o mesmo
+     conteúdo dá a mesma cadeia e não mexe em nada. O que ficou por resolver
+     foi o caso em que o conteúdo muda mesmo — e esse é justamente o que
+     acontece a cada tecla que filtra alguma coisa. Aí deitava-se fora o
+     contexto WebGL, as cinco texturas, a geometria, os onze mil pontos dos
+     contornos, as 4200 estrelas e os nós todos das etiquetas e das manchas,
+     para montar tudo igual com outro conjunto de alfinetes.
+
+     Medido, escrevendo «alter» tecla a tecla e apagando tudo — dez teclas,
+     contando o que o browser faz por baixo:
+
+                              antes      depois
+       contextos WebGL          6           0
+       texturas para a placa   72           0
+       shaders compilados      60           0
+       programas ligados       30           0
+       CPU em JavaScript     3041ms       233ms   (1400×950)
+       CPU em JavaScript     2869ms       171ms   (390×700)
+
+     São estes os números que valem, e não a duração das tarefas longas: no
+     banco de ensaio o WebGL é por software, e aí **desenhar um quadro custa
+     ~1100ms a 1400×950** — medido à parte, com uma seta, que desenha um
+     quadro e não mexe na lista. Esse chão entra em todas as medições de
+     tarefa longa e nenhuma alteração daqui lhe mexe; numa GPU a sério é duas
+     ordens de grandeza menor. Onde ele pesa menos, o ganho aparece: a
+     390×700 a tarefa longa das dez teclas caiu de 9 147 para 2 084ms.
+
+     O maior custo isolado eram 1 466ms de `texSubImage2D` — as cinco
+     texturas do planeta a subir para a placa seis vezes, para mostrar outro
+     conjunto de pontos.
+
+     Os pontos são dados. A Terra, as texturas, a atmosfera, as estrelas e os
+     contornos não mudam com um filtro — e a cena já sabia trocar o conjunto
+     de alfinetes sem se desmontar, porque é isso que o `reagrupar` faz
+     sempre que o zoom muda o raio dos ajuntamentos. O que faltava era dizer
+     lá dentro que a lista também pode mudar. Passa a ser a assinatura a
+     disparar uma **troca** (ver o `trocarPontos`, lá dentro) em vez de uma
+     montagem: a cena fica de pé e só os alfinetes, os nomes, a caixa dos
+     dados e o percurso das setas se refazem. */
+  const assinatura = useMemo(
+    () =>
+      /* ── O que as etiquetas escrevem entra na assinatura ────────────────
+         Porque o caminho que as reescreve sem desmontar a cena já existe e já
+         está medido — é o mesmo que o filtro usa —, e sem isto trocar de
+         língua com o mapa aberto deixava as vinte e nove na língua anterior.
+
+         E é **o texto** que entra, não o código da língua. Foi a primeira
+         tentativa e não chegou: o dicionário de cada língua carrega-se por
+         `import()`, portanto o `language` muda um render antes de o `t`
+         chegar. As etiquetas refaziam-se nesse primeiro render — com o
+         dicionário velho — e depois já nada mudava. Medido: a pílula e os
+         comandos passavam a inglês e o «4 coudelarias» ficava. As cadeias
+         mudam quando o dicionário chega, que é exactamente quando é preciso
+         reescrever. */
+      `${textosDasEtiquetas}\n` +
+      pontos
+        .map(
+          ({ c, coords }) => `${c.id}|${c.nome}|${c.localizacao}|${c.destaque ? 1 : 0}|${coords}`
+        )
+        .join(";"),
+    [pontos, textosDasEtiquetas]
+  );
+
+  /* Os dois valores que a cena lê no momento em que monta, guardados fora do
+     render. Os efeitos correm pela ordem em que estão escritos, por isso
+     estes chegam sempre antes do efeito que monta a cena. */
+  const pontosRef = useRef(pontos);
+  const textosRef = useRef(textos);
+  const assinaturaRef = useRef(assinatura);
+  const aoEscolherRef = useRef(aoEscolher);
+  const hrefDeRef = useRef(hrefDe);
+  const encaminhadorRef = useRef(encaminhador);
+  useEffect(() => {
+    pontosRef.current = pontos;
+    textosRef.current = textos;
+    assinaturaRef.current = assinatura;
+    aoEscolherRef.current = aoEscolher;
+    hrefDeRef.current = hrefDe;
+    encaminhadorRef.current = encaminhador;
+  });
+
+  /** A porta para dentro da cena viva: recebe a assinatura nova e troca os
+      pontos. Vale `null` enquanto não houver cena — antes de montar, depois
+      de desmontar, e no plano B de quem não tem WebGL. */
+  const trocarRef = useRef<((assinatura: string) => void) | null>(null);
+
+  /** A outra porta: as cadeias do cromado. As etiquetas refazem-se pela
+      assinatura, mas os três comandos e o rótulo da camada nascem à montagem
+      e nunca mais se escrevem — trocar de língua com o mapa aberto deixava-os
+      na língua anterior, e são justamente os que só existem para quem usa
+      leitor de ecrã. */
+  const cromadoRef = useRef<(() => void) | null>(null);
+
+  /* ── Recuperar de uma perda de contexto ──────────────────────────────────
+   *
+   * `geracao` é o número de vezes que a cena já teve de nascer outra vez.
+   * Muda-o quem perde o contexto e não o vê voltar; quem lhe responde é o
+   * efeito lá em baixo, que desmonta a cena morta e monta uma viva. A conta
+   * das tentativas vive numa `ref` de propósito: tem de atravessar as
+   * montagens, que é justamente o que ela existe para contar.
+   */
+  const [geracao, setGeracao] = useState(0);
+  const recuperacoes = useRef(0);
+
+  const montar = useCallback((refeita: boolean) => {
+    const el = caixa.current;
+    if (!el) return () => {};
+    /* `let`, e não `const`: a lista troca-se em cena, sem remontar. Quem a
+       troca é o `trocarPontos`, lá em baixo. */
+    let pontos = pontosRef.current;
+    /** Quantos alfinetes cabem nos buffers. É uma **marca de água**, não a
+        contagem do momento: filtrar só encolhe, e reservar o que já se
+        reservou poupa a realocação no caminho comum. Cresce — e só cresce —
+        no `crescerAte`, quando chega uma lista maior do que qualquer uma que
+        já se viu. */
+    let TECTO = Math.max(1, pontos.length);
+
+    /** O destino de uma coudelaria, ou `null` se quem nos usa não quiser um. */
+    const hrefDe = (c: CoudelariaNoMapa) => hrefDeRef.current?.(c) ?? null;
+
+    /* Ir para a coudelaria. O `href` já lá está para o browser fazer o que
+       sabe — abrir noutro separador, copiar o endereço, botão do meio —, por
+       isso só se intercepta o clique **simples e sem teclas**: esse vai pelo
+       encaminhador do Next, que troca a página sem recarregar o site inteiro.
+       Sem destino, quem decide é quem nos chamou. */
+    const escolher = (c: CoudelariaNoMapa, ev?: MouseEvent) => {
+      const destino = hrefDe(c);
+      if (!destino) {
+        aoEscolherRef.current?.(c);
+        return;
+      }
+      if (!ev) {
+        entrarNaEscolha(c);
+        encaminhadorRef.current.push(destino);
+        return;
+      }
+      if (ev.defaultPrevented) return;
+      if (ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
+      ev.preventDefault();
+      entrarNaEscolha(c);
+      encaminhadorRef.current.push(destino);
+    };
+
+    const largura = el.clientWidth || 1;
+    const altura = el.clientHeight || 1;
+
+    /* ── Plano B ──────────────────────────────────────────────────────────
+       Sem WebGL — browser antigo, GPU na lista negra, `--disable-gpu` — o
+       construtor do three atira. Sem isto o erro subia pelo React e levava a
+       página inteira à frente: o que o utilizador via era um rectângulo
+       preto sem uma palavra. */
+    let renderizador: THREE.WebGLRenderer;
+    try {
+      renderizador = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    } catch {
+      /* Fora da linha do efeito: mudar de estado no meio dele encadeia
+         renderizações e o linter, com razão, não deixa. */
+      queueMicrotask(() => setEstado("sem-3d"));
+      return () => {};
+    }
+
+    /* Em telemóvel o custo é o número de pixéis, e o número de pixéis é o
+       quadrado disto. Medido em software: passar de 1 para 2 custou 2,7× o
+       tempo por quadro, para 4× os pixéis. Num ecrã fino de telemóvel a
+       diferença entre 1,5 e 2 não se vê; no orçamento vê-se. */
+    const grosso = window.matchMedia("(pointer: coarse)").matches;
+    const pontoDoEcra = Math.min(window.devicePixelRatio, grosso ? 1.5 : 2);
+    renderizador.setPixelRatio(pontoDoEcra);
+    renderizador.setSize(largura, altura);
+    renderizador.toneMapping = THREE.ACESFilmicToneMapping;
+    renderizador.toneMappingExposure = 1.05;
+    const lona = renderizador.domElement;
+    el.appendChild(lona);
+
+    const cena = new THREE.Scene();
+    /* 42° de abertura, não 30. A composição que se procura tem duas coisas
+       ao mesmo tempo no quadro — o horizonte curvo em cima e a Península em
+       baixo — e com uma lente longa não cabem as duas. O valor vive na
+       constante `FOV` porque toda a geometria do enquadramento o lê. */
+    const camara = new THREE.PerspectiveCamera(FOV, largura / altura, 0.005, 100);
+
+    /* ── Estado do relógio e da interacção ────────────────────────────────
+       Declarado aqui em cima porque quem o lê — o `revelar` das texturas, o
+       `.then()` dos contornos, o observador, o próprio laço — pode chegar a
+       qualquer altura. Um `let` lido antes da linha onde está escrito é um
+       erro em tempo de execução, não um aviso. */
+    let quadroPedido = 0;
+    let desmontado = false;
+    let contextoVivo = true;
+    /** Quando é que este contexto nasceu. Serve a uma pergunta só, e está
+        respondida na secção da perda de contexto: um contexto que viveu uma
+        vida inteira e depois morreu não faz parte de um ciclo de despejos. */
+    const nasceuEm = performance.now();
+    let noEcra = false;
+    let escondido = document.hidden;
+    let inicio = 0;
+    let pausadoEm = 0;
+    /* Medidas da caixa em cache: o `etiquetar` corre a cada quadro e lia
+       `clientWidth`, que obriga o browser a recalcular a folha de estilos.
+       Quem sabe que a caixa mudou é o `ResizeObserver`. */
+    let larguraCaixa = largura;
+    let alturaCaixa = altura;
+    /* ── A parte da lona que está mesmo à vista ───────────────────────────
+       A lona ocupa a caixa toda, mas nem toda a caixa se vê: a barra de
+       cookies está fixa ao fundo do ecrã e, num telemóvel, tapa 162 dos 518
+       pixéis de altura do globo — quase um terço. Medido: dos cinco nomes
+       que se liam, dois ficavam por baixo dela. O cabeçalho faz o mesmo em
+       cima quando a página está rolada.
+
+       O motor de etiquetas passa a colocar dentro desta janela e não dentro
+       da lona. Os alfinetes ficam onde estão — um ponto tapado é um ponto
+       tapado —, mas o nome sobe para cima do estorvo e o fio, que continua a
+       apontar-lhe, atravessa-o: lê-se «há mais ali por baixo», que é
+       verdade, em vez de não se ler nada. */
+    let topoUtil = 0;
+    let baseUtil = altura;
+    /** O globo é o ecrã inteiro e a página tem para onde descer? Ver
+        `verSePrende`, lá em baixo, que é quem responde e quem explica. Vive
+        aqui em cima com os outros pela mesma razão que eles: o `aoRodar`
+        lê-a, e é registado como ouvinte antes de a linha do `verSePrende`
+        chegar a correr. */
+    let globoEhOEcra = false;
+    /* Alguém já pegou no globo com o rato neste passeio por ele? Enquanto
+       não, a roda é da página; a partir daí é do globo. Ver `aplicarRoda`. */
+    let pegouNoGlobo = false;
+    /* O que está registado agora, para não se registar duas vezes o mesmo. */
+    let rodaEhDaPagina = false;
+    /** A última medida a que essa pergunta foi feita, para não a repetir a
+        cada quadro de rolo — o `scrollHeight` lá dentro é uma leitura de
+        layout. */
+    let medidaDaPrisao = "";
+    /** Ponteiros em baixo, por id. Um arrasta; dois fazem pinça. */
+    const ponteiros = new Map<number, { x: number; y: number }>();
+    let pinca = 0;
+    let arrastou = false;
+    let precisaMedir = true;
+
+    const parado = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    /* Quanto tempo leva um nome a nascer. Sai do token, e não de um número
+       escrito à mão: é ele que decide quanto antes de a câmara pousar é que
+       a cascata tem de arrancar, para acabar com ela. */
+    const D_NASCER = duracaoDoToken("--d-nascer", 700);
+
+    /* Tudo o que se cria à mão fica listado, porque nada disto se apaga
+       sozinho. Um `ShaderMaterial.dispose()` não descarta as texturas que
+       tem nos uniformes — essas são nossas. */
+    const texturas: THREE.Texture[] = [];
+    const carregador = new THREE.TextureLoader();
+    const textura = (caminho: string, srgb: boolean) => {
+      /* Revelar também no erro. Se as três texturas falharem, a versão
+         anterior deixava o globo a zero de opacidade para sempre: uma caixa
+         preta muda. Mais vale o planeta sem mapa — atmosfera, estrelas,
+         contornos e etiquetas continuam lá. */
+      const t = carregador.load(caminho, revelar, undefined, revelar);
+      t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+      t.anisotropy = renderizador.capabilities.getMaxAnisotropy();
+      texturas.push(t);
+      return t;
+    };
+
+    /* O relevo carrega-se à parte das outras três porque tem de acender uma
+       chave ao chegar — e porque, se não chegar, o globo fica exactamente
+       como estava em vez de ficar com a Península afogada. */
+    const mapaRelevo = carregador.load(
+      "/globo/relevo.webp",
+      () => {
+        const m = terra.material as THREE.ShaderMaterial;
+        m.uniforms.relevoPronto.value = 1;
+        revelar();
+      },
+      undefined,
+      revelar
+    );
+    mapaRelevo.colorSpace = THREE.NoColorSpace;
+    mapaRelevo.anisotropy = renderizador.capabilities.getMaxAnisotropy();
+    texturas.push(mapaRelevo);
+
+    /* A janela de cor, pela mesma razão e com a mesma rede: é um quociente de
+       média 1, por isso se não chegar fica valendo 1 em todo o lado — que é
+       exactamente a imagem de antes de ela existir. */
+    const mapaCor = carregador.load(
+      "/globo/cor.webp",
+      () => {
+        const m = terra.material as THREE.ShaderMaterial;
+        m.uniforms.corPronta.value = 1;
+        revelar();
+      },
+      undefined,
+      revelar
+    );
+    mapaCor.colorSpace = THREE.NoColorSpace;
+    mapaCor.anisotropy = renderizador.capabilities.getMaxAnisotropy();
+    texturas.push(mapaCor);
+
+    // ── Terra ─────────────────────────────────────────────────────────────
+    const terra = new THREE.Mesh(
+      /* 220 paralelos e meridianos, não 128. De órbita baixa o que se vê da
+         esfera é sobretudo a linha do horizonte, e é lá que a facetagem se
+         nota: a 128 o horizonte é um polígono e vêem-se os cantos contra o
+         céu. É uma esfera só — o custo não conta. */
+      new THREE.SphereGeometry(RAIO, 220, 220),
+      new THREE.ShaderMaterial({
+        uniforms: {
+          mapaDia: { value: textura("/globo/dia.webp", true) },
+          mapaLuzes: { value: textura("/globo/luzes.webp", true) },
+          mapaBrilho: { value: textura("/globo/brilho.webp", false) },
+          /* O relevo são declives, não cor: entra em valores lineares, que
+             é como saiu. Passado por sRGB, a curva torcia-lhe as encostas. */
+          mapaRelevo: { value: mapaRelevo },
+          janelaRelevo: {
+            value: new THREE.Vector4(
+              JANELA_RELEVO.lonMin,
+              JANELA_RELEVO.lonMax,
+              JANELA_RELEVO.latMin,
+              JANELA_RELEVO.latMax
+            ),
+          },
+          /* Fica a zero até o ficheiro chegar. Uma textura por carregar é
+             preta, e preta quer dizer «mar» no canal da altitude: sem esta
+             chave a Península aparecia rasa até ao relevo aterrar. */
+          relevoPronto: { value: 0 },
+          /* Exagero vertical. Um relevo à escala verdadeira não se vê: a
+             Estrela tem dois quilómetros de altura para duzentos de largura,
+             e a olho isso é uma planície. Seis é o valor a que a serra se
+             lê como serra sem que o Alentejo ganhe rugas que não tem. */
+          exageroRelevo: { value: 6 },
+          /* Quanto é que o desvio de luz do relevo pesa no que se vê. Vale
+             o que vale porque foi medido no ecrã, não porque saia de uma
+             conta: abaixo de 2 o Alentejo continua a ser uma mancha, acima
+             de 4 as encostas ganham um contorno duro que se lê como filtro. */
+          ganhoRelevo: { value: 3 },
+          /* A janela de cor, montada pelo `scripts/globo/montar-cor.mjs`. */
+          mapaCor: { value: mapaCor },
+          /* Onde o quociente foi cortado ao ser guardado num byte. Tem de
+             casar com o QMIN/QMAX do script: é a mesma escala vista dos dois
+             lados, e um número trocado aqui não dá erro nenhum — dá um
+             continente com o contraste errado. */
+          faixaCor: { value: new THREE.Vector2(FAIXA_COR[0], FAIXA_COR[1]) },
+          /* Zero até o ficheiro chegar, como o `relevoPronto`. Aqui a rede é
+             mais macia: uma textura por carregar é preta, o que dá o
+             quociente mínimo, e sem esta chave a Península nascia escura
+             durante o carregamento. */
+          corPronta: { value: 0 },
+          ganhoCor: { value: GANHO_COR },
+          raioTopo: { value: TOPO_AR },
+          extincao: { value: 2.1 },
+          sol: { value: SOL },
+        },
+        vertexShader: VERT,
+        fragmentShader: FRAG_TERRA,
+      })
+    );
+    cena.add(terra);
+
+    // ── Atmosfera ─────────────────────────────────────────────────────────
+    /* Uma casca só, e não duas.
+       As duas de antes — uma larga e ténue, outra apertada e forte —
+       existiam porque cada uma fazia um Fresnel com uma potência diferente,
+       e um Fresnel só nunca dava ao mesmo tempo o véu e a linha do
+       horizonte. Com o modelo de coluna de ar isso deixa de ser preciso: a
+       mesma conta dá o véu (coluna curta, sobre o terreno) e a linha
+       (coluna longa, rasante ao horizonte), porque a diferença entre as
+       duas é geometria e não um expoente à escolha.
+
+       Os 1,22 de antes eram 1400km de ar: com a câmara em órbita baixa,
+       isso enche o ecrã todo de nevoeiro e o céu nunca chega a preto. */
+    const ar = new THREE.Mesh(
+      /* A esfera é maior do que a atmosfera que ela desenha — 1,08 contra
+         1,020 — e é de propósito. Quem decide onde a atmosfera acaba é a
+         conta do shader, que descarta o pixel quando o raio não apanha ar
+         nenhum; e uma fronteira calculada é lisa em qualquer ecrã. Quando
+         a esfera acabava exactamente no topo do ar, quem decidia era a
+         geometria, e via-se: o remate do brilho contra o preto era uma
+         linha quebrada, com os cantos dos polígonos todos à vista. Com a
+         casca folgada, o número de segmentos deixa de importar. */
+      new THREE.SphereGeometry(RAIO * 1.08, 96, 96),
+      new THREE.ShaderMaterial({
+        uniforms: {
+          // Rasante: o ar já dispersou tudo e lê branco-frio — o mesmo azul
+          // frio das hairlines do site, não um ciano de render.
+          corDensa: { value: new THREE.Color(0.72, 0.85, 1.0) },
+          // Coluna curta: o azul de Rayleigh, que é o que veste o terreno.
+          corRala: { value: new THREE.Color(0.24, 0.46, 0.95) },
+          raioTopo: { value: TOPO_AR },
+          espessura: { value: 3.0 },
+          ganho: { value: 0.34 },
+          ganhoSobreTerra: { value: 0.26 },
+          sol: { value: SOL },
+        },
+        vertexShader: VERT,
+        fragmentShader: FRAG_ATMOSFERA,
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        depthWrite: false,
+        /* Sem teste de profundidade de propósito: é assim que o ar também
+           cai sobre o terreno, que é metade do trabalho dele. Com o teste
+           ligado, a casca fica sempre atrás do planeta e a perspectiva
+           aérea nunca aparecia. Sendo aditivo, passar à frente não tapa
+           nada — só acrescenta luz, que é o que o ar faz. */
+        depthTest: false,
+      })
+    );
+    ar.renderOrder = 10;
+    cena.add(ar);
+
+    /* ── Costas e fronteiras, em vectorial ────────────────────────────────
+       A textura tem 2048 pontos para dar a volta ao planeta. Vista de uma
+       órbita baixa, cada grau ocupa uns seis texels e a imagem vira papa —
+       é o preço de olhar de perto para uma fotografia de longe.
+
+       Por isso as linhas vêm de outro lado: os contornos de Portugal e
+       vizinhos em vectorial, desenhados por cima da esfera. Ficam nítidos a
+       qualquer altura, e é sobre eles que as etiquetas assentam. A textura
+       fica a fazer o que sabe — a cor da terra, o mar, a atmosfera.
+
+       Os 66 anéis vão todos numa `LineSegments` só. Um objecto por anel
+       eram até 66 chamadas de desenho por quadro para 11 mil pontos que
+       nunca mudam; num só são 11 mil pontos numa chamada. */
+    const grupoContornos = new THREE.Group();
+    const cancelarContornos = new AbortController();
+    fetch("/globo/contornos.json", { signal: cancelarContornos.signal })
+      .then((r) => r.json())
+      .then((aneis: [number, number][][]) => {
+        /* O `fetch` pode chegar depois de o componente sair do ecrã. Sem
+           esta guarda ficavam aqui uma geometria e um material sem dono,
+           criados já depois da limpeza e portanto nunca descartados. */
+        if (desmontado) return;
+        /* ── Onze mil pontos, e cada um contado uma vez ────────────────────
+           Isto fazia duas coisas a mais, as duas na altura pior: a seguir ao
+           `fetch`, na linha principal, entre a página aparecer e o globo
+           ficar bom.
+
+           A primeira era contar cada ponto **duas** vezes — como fim de um
+           segmento e como princípio do seguinte —, e cada conta são dois
+           senos e dois cossenos. A segunda era um `THREE.Vector3` novo por
+           conta: vinte e duas mil vidas curtas para escrever sessenta e seis
+           mil números, mais um array de JavaScript a crescer aos empurrões
+           antes de ser copiado para o Float32Array final.
+
+           Agora o anel percorre-se uma vez, a trigonometria de cada ponto
+           faz-se uma vez, e escreve-se directamente no depósito com o
+           tamanho certo — que se sabe de antemão, porque um anel de n pontos
+           dá n−1 segmentos. Zero objectos. O desenho que sai é o mesmo, ao
+           bit. */
+        let nSegmentos = 0;
+        for (const anel of aneis) if (anel.length > 1) nSegmentos += anel.length - 1;
+        const vertices = new Float32Array(nSegmentos * 6);
+        const RAIO_LINHA = RAIO * 1.0012;
+        let v = 0;
+        for (const anel of aneis) {
+          if (anel.length < 2) continue;
+          // O ponto anterior, guardado em três números em vez de um objecto.
+          let px = 0;
+          let py = 0;
+          let pz = 0;
+          for (let i = 0; i < anel.length; i++) {
+            const phi = (90 - anel[i][1]) * grau;
+            const theta = (anel[i][0] + 180) * grau;
+            const senoPhi = Math.sin(phi);
+            const x = -RAIO_LINHA * senoPhi * Math.cos(theta);
+            const y = RAIO_LINHA * Math.cos(phi);
+            const z = RAIO_LINHA * senoPhi * Math.sin(theta);
+            if (i > 0) {
+              vertices[v++] = px;
+              vertices[v++] = py;
+              vertices[v++] = pz;
+              vertices[v++] = x;
+              vertices[v++] = y;
+              vertices[v++] = z;
+            }
+            px = x;
+            py = y;
+            pz = z;
+          }
+        }
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
+        grupoContornos.add(
+          new THREE.LineSegments(
+            geo,
+            new THREE.ShaderMaterial({
+              uniforms: {
+                // A hairline fria do site — luz azulada sobre preto.
+                cor: { value: new THREE.Color(0xd6ebfd) },
+                opacidade: { value: 0.62 },
+                raioTopo: { value: TOPO_AR },
+                extincao: { value: 5.0 },
+              },
+              vertexShader: VERT_LINHA,
+              fragmentShader: FRAG_CONTORNOS,
+              transparent: true,
+              depthWrite: false,
+            })
+          )
+        );
+        pedirQuadro();
+      })
+      .catch(() => {});
+
+    /* ── Estrelas, quietas ───────────────────────────────────────────────
+       Havia aqui um atributo `size` por estrela, calculado e guardado na
+       geometria — e ignorado, porque o `PointsMaterial` não o lê: só olha
+       para o `size` do material, que é um número só. Saíam mil e
+       quatrocentas estrelas exactamente iguais. E como um `PointsMaterial`
+       sem mapa desenha um quadrado cheio, cada uma era um quadradinho de
+       aresta dura. Juntas liam-se como ruído de sensor, não como um céu.
+
+       O material passa a ser próprio, para o atributo servir para alguma
+       coisa: cada estrela tem o seu tamanho e o seu brilho, e ambos saem
+       de `pow(aleatório, 3)` — muitas fracas, poucas fortes, que é a
+       distribuição a que o olho chama céu. O ponto é redondo, desenhado
+       com o `gl_PointCoord`: um núcleo apertado e uma orla curta.
+
+       Tamanho em pixéis do ecrã e não atenuado pela distância: uma estrela
+       está à mesma distância de tudo, e atenuar punha-as abaixo de um
+       pixel, onde só cintilam por artefacto — que seria movimento a mais
+       para uma coisa que aqui é fundo. */
+    const nEstrelas = 4200;
+    const posicoes = new Float32Array(nEstrelas * 3);
+    const tamanhos = new Float32Array(nEstrelas);
+    const brilhos = new Float32Array(nEstrelas);
+    let semente = 0x9e3779b9;
+    const proximo = () => {
+      semente = (semente * 1103515245 + 12345) & 0x7fffffff;
+      return semente / 0x7fffffff;
+    };
+    for (let i = 0; i < nEstrelas; i++) {
+      const v = naEsfera(
+        Math.acos(2 * proximo() - 1) * (180 / Math.PI) - 90,
+        proximo() * 360 - 180,
+        30 + proximo() * 25
+      );
+      posicoes.set([v.x, v.y, v.z], i * 3);
+      const magnitude = Math.pow(proximo(), 3);
+      tamanhos[i] = (1.7 + magnitude * 2.6) * pontoDoEcra;
+      brilhos[i] = 0.5 + magnitude * 2.1;
+    }
+    const geoEstrelas = new THREE.BufferGeometry();
+    geoEstrelas.setAttribute("position", new THREE.BufferAttribute(posicoes, 3));
+    geoEstrelas.setAttribute("tamanho", new THREE.BufferAttribute(tamanhos, 1));
+    geoEstrelas.setAttribute("brilho", new THREE.BufferAttribute(brilhos, 1));
+    const estrelas = new THREE.Points(
+      geoEstrelas,
+      new THREE.ShaderMaterial({
+        vertexShader: VERT_ESTRELAS,
+        fragmentShader: FRAG_ESTRELAS,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        depthWrite: false,
+      })
+    );
+    cena.add(estrelas);
+
+    // ── As coudelarias ────────────────────────────────────────────────────
+    /* Uma nuvem de pontos só, medida em pixéis de ecrã. A razão está escrita
+       por cima do `VERT_PONTOS`, lá em cima: um alfinete não é um objecto do
+       mundo, é uma marca sobre ele — tem de ter o mesmo tamanho a qualquer
+       altura e em qualquer sítio do quadro —, e vinte e nove `Sprite` eram
+       vinte e nove chamadas de desenho.
+
+       Um alfinete por ponto, não por coudelaria. Onde havia duas no mesmo
+       sítio desenhavam-se dois halos aditivos por cima um do outro: o ponto
+       saía ao dobro do brilho dos vizinhos, e o que parecia uma coudelaria
+       mais importante era só uma sobreposta.
+
+       Branco, e não dourado. Os alfinetes em destaque eram vinte e um dos
+       vinte e nove: um acento em setenta e dois por cento dos pontos não
+       assinala nada. Sobre a fotografia do planeta quem assinala é o
+       contraste, e o que distingue um destaque passa a ser o tamanho. */
+    const grupoAlfinetes = new THREE.Group();
+
+    /* As medidas do alfinete, em pixéis de ecrã e em raio — que é como o
+       shader as lê. A razão de cada uma está no comentário grande lá em
+       cima, por cima dos shaders. */
+
+    /** O quadrado que cada alfinete ocupa. Constante, e com folga para a
+        argola do apontado e para a argola da escolha caberem lá dentro. */
+    const LADO_ALFINETE = 34;
+    /** O ponto branco: onde a coudelaria está. */
+    const RAIO_PONTO = 2.5;
+    const RAIO_PONTO_DESTAQUE = 3.25;
+    const RAIO_PONTO_ACESO = 3.75;
+    /** A argola sempre acesa de um ponto que junta várias. */
+    const RAIO_PILHA = 6.5;
+    /** A argola de quem está a ser apontado. */
+    const RAIO_APONTADO = 9.5;
+    /** Até onde a argola da escolha se abre antes de a página mudar. */
+    const RAIO_ESCOLHA = 15.5;
+    /** Quanto é que a sombra de contacto sai para fora do ponto. */
+    const SOMBRA_PONTO = 3.5;
+
+    /** O maior ponto que esta GPU aceita desenhar, em pixéis do dispositivo. */
+    const ladoMaximo = (() => {
+      const gl = renderizador.getContext();
+      const faixa = gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE) as Float32Array | null;
+      return faixa && faixa.length > 1 && faixa[1] > 0 ? faixa[1] : 64;
+    })();
+
+    /* Os cinco canais do alfinete. São `let` pela mesma razão que o `TECTO`:
+       uma lista maior do que a marca de água obriga a buffers maiores. */
+    let posPontos = new Float32Array(TECTO * 3);
+    let raioPontos = new Float32Array(TECTO);
+    let argolaPontos = new Float32Array(TECTO);
+    let brilhoArgolaPontos = new Float32Array(TECTO);
+    let brilhoPontos = new Float32Array(TECTO);
+    let geoPontos = new THREE.BufferGeometry();
+
+    /** Pendura os cinco canais na geometria do momento. Num sítio só, para
+        que crescer não seja uma segunda lista de nomes de atributos a poder
+        divergir desta. */
+    const armarGeometria = () => {
+      geoPontos.setAttribute("position", new THREE.BufferAttribute(posPontos, 3));
+      geoPontos.setAttribute("raio", new THREE.BufferAttribute(raioPontos, 1));
+      geoPontos.setAttribute("argola", new THREE.BufferAttribute(argolaPontos, 1));
+      geoPontos.setAttribute("brilhoArgola", new THREE.BufferAttribute(brilhoArgolaPontos, 1));
+      geoPontos.setAttribute("brilho", new THREE.BufferAttribute(brilhoPontos, 1));
+      geoPontos.setDrawRange(0, 0);
+      /* Sem esfera de contenção calculada a partir de um buffer meio vazio:
+         os pontos por usar estão todos na origem, e uma esfera que os
+         apanhasse punha o `frustum culling` a decidir mal. O que se desenha é
+         sempre um punhado de pontos sobre a Península; não há nada a poupar
+         em cortá-los. */
+      geoPontos.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), RAIO * 1.1);
+    };
+    armarGeometria();
+
+    const alfinetes = new THREE.Points(
+      geoPontos,
+      new THREE.ShaderMaterial({
+        vertexShader: VERT_PONTOS,
+        fragmentShader: FRAG_PONTOS,
+        uniforms: {
+          /* O tecto do `gl_PointSize` não é o mesmo em todo o lado: há GPUs
+             de telemóvel que param nos 63 pixéis. Pedir mais do que o
+             desenho cabe não dá erro — dá um alfinete cortado a meio sem
+             ninguém saber porquê. Pergunta-se ao contexto e respeita-se: as
+             medidas de dentro continuam em pixéis e certas, e o que se perde
+             é só a folga à volta. */
+          lado: { value: Math.min(LADO_ALFINETE * pontoDoEcra, ladoMaximo) },
+          /* Meia orla de anti-serrilhado, e a espessura da argola: um pixel
+             do ecrã, seja ele qual for. Um risco de um pixel lógico num ecrã
+             de dois pontos por pixel sai a meio pixel e cintila. */
+          orla: { value: 0.5 * pontoDoEcra },
+          sombra: { value: SOMBRA_PONTO * pontoDoEcra },
+        },
+        /* Normal, e não aditiva. Com aditiva não há maneira de escurecer, e
+           sem escurecer o ponto branco desaparece sobre o Alentejo ao sol. */
+        blending: THREE.NormalBlending,
+        transparent: true,
+        depthWrite: false,
+      })
+    );
+    alfinetes.frustumCulled = false;
+    grupoAlfinetes.add(alfinetes);
+
+    type Alfinete = {
+      indice: number;
+      posicao: THREE.Vector3;
+      /** Raio do ponto em repouso, em pixéis. */
+      raio: number;
+      /** Raio da argola em repouso: só a pilha tem uma. Zero é nenhuma. */
+      argola: number;
+    };
+
+    const alfinetesFeitos: Alfinete[] = [];
+
+    /* Um estado por alfinete, e sempre o mesmo caminho para o escrever: o
+       ponto, a argola, e o quanto de cada um. Escrever os quatro números num
+       sítio só é o que impede um estado de ficar por metade — foi o que
+       aconteceu enquanto o realce mexia no tamanho e a escolha no brilho. */
+    /* ── Acender é um interruptor, e uma tentativa de o transformar em
+     *    transição foi medida e revertida ──────────────────────────────────
+     *
+     * O `aceso` é um booleano: o raio do ponto e o da argola saltam do valor
+     * de repouso para o de apontado num quadro. O nome que lhe pertence, esse,
+     * esbate-se em `--d-fast` por uma transição de CSS — ou seja a marca e o
+     * nome, que são a mesma afirmação («este»), são ditos a dois tempos.
+     * Medido, apontando um nome e contando os quadros que o motor desenha:
+     * **um quadro**, a 390×700 e a 1400×950. Um quadro é a definição de
+     * comutar.
+     *
+     * Escreveu-se a transição — uma fracção 0→1 por alfinete, no relógio do
+     * `--d-fast` e na curva do `--ease-out`, com os buffers escritos num sítio
+     * só. E **não entrou**, porque custou o que não podia custar: o percurso
+     * das setas a 1400×950 caiu de **32/32 para 28–32 conforme a corrida**,
+     * contra 32/32 em quatro corridas da versão sem ela. O que se ganhava não
+     * se chegava sequer a ver no banco — com o WebGL por software os quadros
+     * distam centenas de milissegundos e uma transição de 200ms cabe em dois
+     * quadros, portanto a prova do ganho era aritmética e a prova do custo era
+     * medida. Entre as duas, ganha a medida.
+     *
+     * Fica escrito para quem voltar: o caminho é provável mas tem de ser
+     * medido contra as nove invariantes, e o suspeito a investigar primeiro é
+     * o que a transição faz ao número de quadros desenhados por tecla — a
+     * colocação corre uma vez por quadro e tem histerese. */
+    const escreverPonto = (a: Alfinete, aceso: boolean, escolha: number, brilho: number) => {
+      const p = pontoDoEcra;
+      /* A argola do apontado abre para fora da da pilha; a da escolha abre
+         para fora dessa. É sempre a mesma argola a abrir-se, e é por isso
+         que as três se leem como um gesto só e não como três desenhos. */
+      const argolaBase = aceso ? Math.max(RAIO_APONTADO, a.argola) : a.argola;
+      const argola = escolha > 0 ? argolaBase + (RAIO_ESCOLHA - argolaBase) * escolha : argolaBase;
+      raioPontos[a.indice] = (aceso ? RAIO_PONTO_ACESO : a.raio) * p;
+      argolaPontos[a.indice] = argola * p;
+      /* A argola da escolha apaga-se à medida que se abre — é o que a faz
+         ler-se como uma onda a sair do ponto, e não como um anel a ficar. */
+      brilhoArgolaPontos[a.indice] = argola > 0 ? 1 - escolha * 0.85 : 0;
+      brilhoPontos[a.indice] = brilho;
+    };
+
+    const fazerAlfinete = (
+      indice: number,
+      coords: [number, number],
+      destaque: boolean,
+      grupo: boolean
+    ): Alfinete => {
+      const posicao = naEsfera(coords[0], coords[1], RAIO * 1.004);
+      const a: Alfinete = {
+        indice,
+        posicao,
+        raio: destaque ? RAIO_PONTO_DESTAQUE : RAIO_PONTO,
+        argola: grupo ? RAIO_PILHA : 0,
+      };
+      posPontos[indice * 3] = posicao.x;
+      posPontos[indice * 3 + 1] = posicao.y;
+      posPontos[indice * 3 + 2] = posicao.z;
+      escreverPonto(a, false, 0, 1);
+      alfinetesFeitos.push(a);
+      return a;
+    };
+
+    /** Marcar os buffers como sujos. Uma vez por mudança, não por ponto. */
+    const pontosMudaram = () => {
+      geoPontos.attributes.position.needsUpdate = true;
+      geoPontos.attributes.raio.needsUpdate = true;
+      geoPontos.attributes.argola.needsUpdate = true;
+      geoPontos.attributes.brilhoArgola.needsUpdate = true;
+      geoPontos.attributes.brilho.needsUpdate = true;
+    };
+
+
+    /** Acender ou apagar um alfinete: abre-se ou fecha-se a argola dele. */
+    const realcar = (a: Alfinete, ligado: boolean) => {
+      escreverPonto(a, ligado, 0, 1);
+      pontosMudaram();
+    };
+
+    // ── A câmara: parte do planeta inteiro e fecha sobre Portugal, uma vez ─
+    /* Não é o planeta ao centro: é a vista de quem está em órbita baixa a
+       sul da Península e olha para norte, com o horizonte curvo em cima e o
+       país em baixo. Toda a geometria está lá em cima, em `enquadrar`. */
+    const miraDir = naEsfera(MIRA.lat, MIRA.lon, 1);
+    /* Normal do plano do meridiano da mira. O eixo da câmara vive sempre
+       dentro desse plano, e por isso este vector serve duas coisas: é o
+       "direita" da câmara — o que mantém o horizonte direito a qualquer
+       inclinação — e é o eixo em torno do qual o arrasto vertical roda o
+       mundo. */
+    const LESTE = new THREE.Vector3().crossVectors(miraDir, EIXO_POLAR).normalize();
+
+    /* Uma variável de estado só: a altura. Posição, alvo e inclinação saem
+       dela. Dantes eram quatro vectores a mexer-se uns contra os outros, e
+       o zoom mudava a posição sem mudar o alvo — donde a inclinação ir
+       parar ao horizonte no fim do curso. */
+    let alturaRepouso = Math.max(ALTURA_REPOUSO, alturaParaCaber(largura / altura));
+    let alturaVoo = parado ? alturaRepouso : ALTURA_MAXIMA;
+    let zoomDoUtilizador = false;
+
+    /* A órbita do utilizador roda o planeta, não a câmara. Rodar a câmara
+       à volta de um ponto que já não é o centro dá enjoo. */
+    const orbita = { theta: 0, phi: 0 };
+
+    /* ── Voltar não é chegar ──────────────────────────────────────────────
+     *
+     * Ir a uma ficha e carregar em «voltar» refazia a aproximação inteira —
+     * dois segundos e meio de viagem — e devolvia a órbita inicial, ainda que
+     * a pessoa estivesse aproximada sobre o Ribatejo. O mesmo acontecia ao
+     * escrever na pesquisa: mudar o conjunto de coudelarias remonta a cena, e
+     * a cena arrancava sempre do espaço. Quem estava a trabalhar num sítio
+     * era mandado de volta ao princípio a cada gesto.
+     *
+     * Guarda-se o enquadramento no `sessionStorage`: dura o separador, não
+     * atravessa sessões nem se escreve em disco de ninguém. Quem volta dentro
+     * de meia hora encontra o mapa onde o deixou; quem chega de novo vê a
+     * entrada, que é a primeira imagem e continua a valer a pena.
+     *
+     * Só se guarda o que foi escolhido: se ninguém mexeu no zoom nem
+     * arrastou, não há nada para repor e a entrada corre na mesma.
+     */
+    /* `:2` e não `:1`: houve uma altura em que se gravou aqui o fotograma
+       de meio de uma viagem — ver o `guardarVista` já a seguir —, e essa
+       entrada não se apaga sozinha antes de meia hora. Mudar a chave é por
+       separador, não custa nada, e desfaz de uma vez o que ficou preso. */
+    const CHAVE_VISTA = "globo-terra:vista:2";
+    const VALIDADE_VISTA = 30 * 60 * 1000;
+
+    const guardarVista = () => {
+      if (!zoomDoUtilizador && !orbita.theta && !orbita.phi) return;
+      /* A meio da entrada o `alturaVoo` é um fotograma de uma viagem, e não
+         uma vista que alguém tenha escolhido. Guardá-lo prendia a pessoa a
+         ela durante meia hora e em todas as visitas ao mapa nesse separador —
+         era o defeito de cima a ficar gravado. Quem trava a viagem já pousa
+         no repouso, portanto isto nunca devia disparar; fica na mesma, porque
+         a promessa é sobre o que se guarda e não sobre quem chama. */
+      if (aEntrar) return;
+      try {
+        sessionStorage.setItem(
+          CHAVE_VISTA,
+          JSON.stringify({ h: alturaVoo, t: orbita.theta, p: orbita.phi, q: Date.now() })
+        );
+      } catch {
+        /* Sem armazenamento — janela privada, política do browser — o globo
+           faz exactamente o que fazia antes. Não é um erro, é um extra. */
+      }
+    };
+
+    const vistaGuardada = (() => {
+      try {
+        const cru = sessionStorage.getItem(CHAVE_VISTA);
+        if (!cru) return null;
+        const v = JSON.parse(cru) as { h: number; t: number; p: number; q: number };
+        if (!v || Date.now() - v.q > VALIDADE_VISTA) return null;
+        if (![v.h, v.t, v.p].every((n) => typeof n === "number" && Number.isFinite(n))) return null;
+        return v;
+      } catch {
+        return null;
+      }
+    })();
+
+    const posCam = new THREE.Vector3();
+    const frente = new THREE.Vector3();
+    const cima = new THREE.Vector3();
+
+    const colocarCamara = () => {
+      const { sep } = enquadrar(alturaVoo);
+      /* O sub-ponto é a mira empurrada para sul pelo seu próprio meridiano.
+         Muda com a altura; a mira não muda nunca — é o que faz o país ficar
+         no centro do quadro em todo o curso do zoom. */
+      // Sem objecto por quadro: escreve-se no `posCam`, que já existe.
+      naEsferaEm(posCam, MIRA.lat - sep / grau, MIRA.lon, 1).multiplyScalar(1 + alturaVoo);
+      camara.position.copy(posCam);
+      frente.copy(miraDir).sub(posCam).normalize();
+      /* `up` perpendicular ao eixo e dentro do plano do meridiano: está
+         definido em todas as inclinações, do rasante ao nadir. O `up` radial
+         que aqui estava ficava paralelo ao eixo sempre que se olhava a
+         direito para baixo — que era exactamente o primeiro quadro da
+         entrada, onde o `lookAt` do three.js desistia e inventava uma
+         inclinação de 48° que se desfazia no quadro seguinte. Medido. */
+      cima.crossVectors(LESTE, frente).normalize();
+      if (cima.y < 0) cima.negate();
+      camara.up.copy(cima);
+      camara.lookAt(miraDir);
+    };
+
+    /* ── As etiquetas ─────────────────────────────────────────────────────
+       O nome de cada coudelaria em HTML por cima da cena, colocado a cada
+       quadro a partir da posição projectada do alfinete. Em HTML e não em
+       textura por três razões: fica nítido em qualquer ecrã, herda a
+       tipografia do site, e pode receber o rato e o foco.
+
+       Quatro regras fazem a diferença entre um mapa anotado e uma confusão:
+       só se escreve o que está virado para nós; não se deixam duas
+       sobreporem-se; quem não couber inteira encolhe para uma linha antes de
+       desistir; e o que já se lia continua a ler-se — um nome que pisca ao
+       arrastar o globo é pior do que um nome que nunca apareceu.
+
+       Quem é o título e quem é o subtítulo: o **nome da coudelaria** em cima,
+       a localidade por baixo. Estava ao contrário, e com os dados reais isso
+       dava dois títulos «Ferreira do Alentejo» lado a lado, cada um com a sua
+       coudelaria sussurrada por baixo em cinzento-escuro. Quem distingue duas
+       coudelarias da mesma vila é o nome delas; o sítio já está dito pelo
+       ponto onde a etiqueta assenta. */
+    const camadaEtiquetas = document.createElement("div");
+    camadaEtiquetas.className = "globo-etiquetas";
+    camadaEtiquetas.setAttribute("role", "group");
+    /* Escrito aqui e reescrito pelo `cromadoRef` quando a língua muda: um
+       sítio só, para não haver dois a discordar. Os botões entram na lista
+       assim que existirem — ver o `aplicarCromado` completo lá em baixo. */
+    camadaEtiquetas.setAttribute("aria-label", textosRef.current.camada);
+    /* As setas percorrem as vinte e nove, não só as que estão escritas. Está
+       dito aqui e por extenso no parágrafo de leitura de ecrã. */
+    camadaEtiquetas.setAttribute("aria-keyshortcuts", "ArrowDown ArrowUp Home End");
+    el.appendChild(camadaEtiquetas);
+
+    type Caixa = { x: number; y: number; l: number; a: number };
+    type Medida = { l: number; a: number };
+    type Etiqueta = {
+      nó: HTMLElement;
+      /** A cabeça accionável, que é quem recebe o foco. */
+      cabeca: HTMLElement;
+      /** Que elemento representa cada coudelaria deste ponto. É por aqui que
+          as setas dão o foco à coudelaria certa dentro de um ajuntamento. */
+      alvos: Map<string, HTMLElement>;
+      /** Onde está no planeta. É por aqui que as setas ordenam e centram. */
+      coords: [number, number];
+      membros: CoudelariaNoMapa[];
+      alfinete: Alfinete;
+      destaque: boolean;
+      /* Duas medidas em cache: a etiqueta inteira e a de uma linha só. Medir
+         durante a colocação obrigava o browser a refazer o layout a meio do
+         quadro, uma vez por etiqueta. */
+      cheia: Medida;
+      curta: Medida;
+      abrir: (aberto: boolean) => void;
+      colocada: boolean;
+      /** Índice da hipótese de colocação usada da última vez, ou -1. */
+      ultimo: number;
+      activo: boolean;
+      deFrente: number;
+      z: number;
+      ecraX: number;
+      ecraY: number;
+      noEcra: boolean;
+      /* O que já lá está escrito, para não sujar o estilo a cada quadro.
+         Em números e não em texto: comparam-se sem se fazer uma cadeia por
+         etiqueta por quadro. A opacidade vai em centésimos inteiros. */
+      anterior: {
+        x: number;
+        y: number;
+        op: number;
+        lado: string;
+        vert: string;
+        curto: boolean;
+        oculto: boolean;
+        morto: boolean;
+      };
+    };
+
+    let sobAlfinete: Etiqueta | null = null;
+    let sobEtiqueta: Etiqueta | null = null;
+    let focada: Etiqueta | null = null;
+    let fixa: Etiqueta | null = null;
+    let activa: Etiqueta | null = null;
+
+    /** As etiquetas que existem neste momento. Muda a cada reagrupamento. */
+    let etiquetas: Etiqueta[] = [];
+
+    /* ── A ficha rápida ───────────────────────────────────────────────────
+     *
+     * Um ponto no globo dizia o nome e a terra, e mais nada. Para saber se
+     * valia a pena, era preciso sair da página — e sair da página é o passo
+     * caro: perde-se o enquadramento, perde-se o sítio na lista, e voltar
+     * custa um carregamento. A base tem o que falta para decidir antes:
+     * fotografia, quantos cavalos, a região, e a descrição.
+     *
+     * ── Porque é que abre no gesto deliberado e não ao passar por cima ────
+     * O componente já tinha a distinção escrita: **apontar acende, abrir
+     * desloca**. Acender não move nada — a caixa cresce a partir do canto
+     * virado para o alfinete, logo cresce para longe do ponteiro. Abrir é
+     * outra coisa: aparece conteúdo onde o dedo já está. Por isso a lista de
+     * um ajuntamento só abre ao carregar e ao receber o foco.
+     *
+     * A ficha entra nessa mesma casa e não inventa uma segunda: abre no
+     * `aberta`, que é o carregar no alfinete e o foco do teclado. Assim as
+     * setas que já percorrem as vinte e nove passam a contar alguma coisa em
+     * cada passo, sem uma linha de código de teclado nova, e o toque tem o
+     * gesto que precisa — no telemóvel não há apontar. O nome continua a ser
+     * uma ligação de um passo: **o nome é «ir», o alfinete é «diz-me mais»**.
+     *
+     * ── Porque é que isto não parte a colocação de etiquetas ──────────────
+     * A ficha é `position: absolute` **dentro** da caixa da etiqueta, como o
+     * painel da mancha é dentro do algarismo. Sendo absoluta, não entra no
+     * `offsetWidth`/`offsetHeight` do pai — e é dessas duas medidas que sai a
+     * caixa do teste de colisão. Logo: abrir a ficha não muda a caixa de
+     * ninguém, não desloca nome nenhum e não obriga a remedir.
+     *
+     * É também por isso que não precisa de ser vista pelo `medirEstorvos`:
+     * esse mede quem está **fixo no ecrã** por cima da lona, e a ficha não é
+     * — anda com a etiqueta, é filha dela, e vive dentro da camada que o
+     * motor já governa. Uma peça flutuante à parte, que o `medirEstorvos` não
+     * visse, punha os nomes a serem escritos por baixo dela; esta não pode
+     * estar nesse caso porque não flutua sobre coisa nenhuma.
+     *
+     * ── O que não faz ─────────────────────────────────────────────────────
+     * Não inventa dados. Sem `foto_capa` não há fotografia e não há caixa
+     * cinzenta a fingir uma; sem `num_cavalos` não há número e não há «—».
+     * Um campo vazio a dizer que está vazio ocupa o mesmo que um facto e não
+     * é um. A escolha do que mostrar está no `lib/globo/ficha`, com testes.
+     */
+    type Ficha = {
+      nó: HTMLElement;
+      aberta: boolean;
+      mostrar: (aberto: boolean) => void;
+    };
+
+    const montarFicha = (
+      c: CoudelariaNoMapa,
+      caixa: HTMLElement,
+      cabeca: HTMLElement
+    ): Ficha | null => {
+      const factos = factosDaFicha(c);
+      const resumo = resumoDaFicha(c.descricao);
+      /* A capa passa pela mesma regra do resto do site: uma fotografia de
+         banco de imagens apresentada como sendo daquela coudelaria é a mesma
+         afirmação falsa em qualquer página, e quem a filtra é o
+         `capaDoCartao` — um só sítio, e não uma segunda regra aqui. */
+      const capa = capaDoCartao(c.foto_capa, c.slug, {});
+      if (!capa && !factos.length && !resumo) return null;
+
+      const nó = document.createElement("div");
+      nó.className = "globo-ficha";
+      /* Nasce fora do DOM acessível e fora do rato: enquanto está fechada não
+         é uma paragem de tabulação nem um alvo. */
+      nó.hidden = true;
+
+      let img: HTMLImageElement | null = null;
+      if (capa) {
+        const moldura = document.createElement("span");
+        moldura.className = "globo-ficha__capa";
+        img = document.createElement("img");
+        img.alt = "";
+        img.decoding = "async";
+        img.loading = "lazy";
+        /* Uma capa que não carrega deixa a moldura vazia, e uma moldura vazia
+           é uma mancha cinzenta a fingir uma fotografia. Some. */
+        img.addEventListener("error", () => moldura.remove(), { once: true });
+        moldura.appendChild(img);
+        nó.appendChild(moldura);
+      }
+
+      if (factos.length) {
+        const linha = document.createElement("p");
+        linha.className = "globo-ficha__factos";
+        for (const f of factos) {
+          const item = document.createElement("span");
+          item.className = "globo-ficha__facto";
+          item.textContent = f;
+          linha.appendChild(item);
+        }
+        nó.appendChild(linha);
+      }
+
+      if (resumo) {
+        const texto = document.createElement("p");
+        texto.className = "globo-ficha__texto";
+        texto.textContent = resumo;
+        nó.appendChild(texto);
+      }
+
+      /* A saída, e é explícita de propósito: quem chega aqui pelo toque não
+         passou por cima de nada, e o nome lá em cima pode estar tapado pelo
+         dedo. Uma ficha que informa e não diz por onde se vai obriga a
+         adivinhar. */
+      const destino = hrefDe(c);
+      if (destino || aoEscolherRef.current) {
+        const ir = document.createElement(destino ? "a" : "button");
+        if (ir instanceof HTMLButtonElement) ir.type = "button";
+        if (ir instanceof HTMLAnchorElement && destino) ir.href = destino;
+        ir.className = "globo-ficha__ir";
+        ir.textContent = textosRef.current.verCoudelaria;
+        ir.setAttribute("aria-label", preencher(textosRef.current.verFichaDe, { name: c.nome }));
+        ir.addEventListener("click", (ev) => {
+          ev.stopPropagation();
+          if (arrastou) {
+            ev.preventDefault();
+            return;
+          }
+          escolher(c, ev as MouseEvent);
+        });
+        nó.appendChild(ir);
+      }
+
+      nó.id = `globo-ficha-${c.id}`;
+      caixa.appendChild(nó);
+
+      /* ── Encostar à borda em vez de sair por ela ──────────────────────
+         A camada dos nomes é `overflow: hidden` — tem de ser, senão um nome
+         junto à borda escorregava para fora da lona —, e por isso uma ficha
+         que não caiba não fica pendurada por fora: fica **cortada**. Medido a
+         390×700, com a ficha aberta sobre um ponto do lado direito: 216 px de
+         ficha a começar no pixel 213 de uma lona de 390, ou seja trinta e
+         nove por cento dela do lado de fora.
+
+         A correcção é a mesma que o painel da mancha já usa, e pela mesma
+         razão: mede-se **no momento em que abre**, uma vez, e escreve-se um
+         desvio. Não é por quadro — a ficha não anda sozinha, anda com a
+         etiqueta, e a etiqueta leva o desvio consigo. */
+      const encostar = () => {
+        nó.style.setProperty("--desvio-x", "0px");
+        nó.style.setProperty("--desvio-y", "0px");
+        /* Medir com a animação de abertura a correr é medir a ficha a 96% do
+           tamanho e fora do sítio — o `getBoundingClientRect` inclui a
+           transformação, e a transformação, neste instante, é o primeiro
+           quadro de um `scale(0.96)`. Medido: a correcção saía nove pixéis
+           curta e a ficha continuava três pixéis fora da lona.
+           Cala-se a animação, força-se um refluxo para o browser a esquecer,
+           mede-se, e devolve-se — a animação recomeça já a partir do sítio
+           corrigido, que é onde ela devia ter começado. */
+        nó.style.animation = "none";
+        void nó.offsetWidth;
+        const lona = camadaEtiquetas.getBoundingClientRect();
+        const r = nó.getBoundingClientRect();
+        const MARGEM = 6;
+        let dx = 0;
+        if (r.left < lona.left + MARGEM) dx = lona.left + MARGEM - r.left;
+        else if (r.right > lona.right - MARGEM) dx = lona.right - MARGEM - r.right;
+        let dy = 0;
+        /* Em cima manda a janela útil e não a lona: por baixo do cabeçalho
+           fixo a ficha não se lê, e é a mesma medida que os nomes usam. */
+        if (r.top < lona.top + topoUtil + MARGEM) dy = lona.top + topoUtil + MARGEM - r.top;
+        else if (r.bottom > lona.top + baseUtil - MARGEM) {
+          dy = lona.top + baseUtil - MARGEM - r.bottom;
+        }
+        if (dx) nó.style.setProperty("--desvio-x", `${Math.round(dx)}px`);
+        if (dy) nó.style.setProperty("--desvio-y", `${Math.round(dy)}px`);
+        nó.style.animation = "";
+      };
+
+      const peça: Ficha = {
+        nó,
+        aberta: false,
+        mostrar: (aberto: boolean) => {
+          peça.aberta = aberto;
+          nó.hidden = !aberto;
+          /* `aria-describedby` e não `aria-expanded`: a cabeça é uma ligação
+             para a ficha da coudelaria, e uma ligação com `aria-expanded`
+             anuncia que abre alguma coisa — o que ela faz é levar lá. O que a
+             peça faz é **descrever** o destino enquanto está à vista. */
+          if (aberto) cabeca.setAttribute("aria-describedby", nó.id);
+          else cabeca.removeAttribute("aria-describedby");
+          if (aberto) encostar();
+          /* O pedido da imagem só parte quando alguém pede a ficha. Criá-la
+             com `src` posto seriam vinte e nove pedidos de fotografia para
+             abrir um mapa em que nenhuma se vê. */
+          if (aberto && img && capa && !img.src) img.src = capa;
+        },
+      };
+      return peça;
+    };
+    const criarEtiqueta = (
+      coords: [number, number],
+      membros: CoudelariaNoMapa[],
+      i: number
+    ): Etiqueta => {
+      const principal = membros.find((m) => m.destaque) ?? membros[0];
+      const destaque = membros.some((m) => m.destaque);
+      const éGrupo = membros.length > 1;
+
+      const nó = document.createElement("div");
+      nó.className = "globo-etiqueta";
+      if (destaque) nó.dataset.destaque = "";
+      if (éGrupo) nó.dataset.grupo = "";
+      /* Os nomes nascem pouco antes de a câmara pousar, escalonados 55ms por
+         ponto até um tecto de 1100ms. O 1900 estava escrito à mão para uma
+         entrada de 3000ms; agora sai da duração, para não voltar a ficar para
+         trás quando ela mudar. O índice é o do ponto — não o da coudelaria —,
+         que é o que faz a cascata contar o que se vê.
+
+         Com `i < 0` não há cascata nenhuma: é uma etiqueta que nasce a meio
+         de um reagrupamento, e uma cascata de dois segundos a cada dente da
+         roda seria o mapa a apagar-se e a voltar de cada vez que alguém se
+         aproxima. */
+      if (i < 0) {
+        /* Sem animação de nascimento, e não só sem atraso.
+           A `etiqueta-nascer` parte de `visibility: hidden` — tem de partir,
+           senão o nome apanha o rato durante os dois segundos da entrada —, e
+           **um elemento invisível não recebe foco**. Numa etiqueta que nasce
+           de um reagrupamento isso custava o percurso pelas setas inteiro:
+           medido, a primeira tecla depois de um grupo se abrir mandava o foco
+           para o corpo da página e lá ficava. Aqui não há nascimento nenhum a
+           anunciar — é o mesmo mapa com os pontos separados de outra
+           maneira —, por isso a animação não corre e o nome está pronto a
+           receber o foco no mesmo instante em que existe. */
+        nó.style.animation = "none";
+      } else {
+        nó.style.setProperty(
+          "--entrada",
+          `${(parado ? 0 : DURACAO_ENTRADA - D_NASCER) + Math.min(i * 55, 1100)}ms`
+        );
+      }
+      /* Nasce inerte **e oculta**, que é o estado com que o `anterior` começa.
+         Sem estas duas linhas o par ficava a mentir um ao outro: a etiqueta
+         que nunca chegou a ser colocada nunca passava pelo ramo que escreve
+         os atributos, porque o cache já dizia que estavam escritos.
+
+         O `inert` já cá estava. O `data-oculta` faltava, e custava caro: uma
+         etiqueta que nunca foi colocada ficava sem o atributo e com o `inert`
+         posto, ou seja **anunciava-se como legível e não recebia foco**.
+         Medido de fora, com o globo aproximado até ao limite, onde a maioria
+         não cabe: o primeiro `.globo-etiqueta:not([data-oculta])` do
+         documento era uma dessas, dar-lhe o foco não fazia nada, e o percurso
+         pelas setas nunca chegava a arrancar — vinte e sete passos, zero
+         coudelarias. */
+      nó.toggleAttribute("inert", true);
+      nó.toggleAttribute("data-oculta", true);
+
+      const fio = document.createElement("span");
+      fio.className = "globo-etiqueta__linha";
+      nó.appendChild(fio);
+
+      const caixa = document.createElement("span");
+      caixa.className = "globo-etiqueta__caixa";
+      nó.appendChild(caixa);
+
+      /* ── O elemento da cabeça diz o que o clique faz ────────────────────
+         Um nome sozinho é uma **ligação** para a ficha da coudelaria, e não
+         um botão: quem carrega num nome quer a coudelaria, e o que estava
+         aqui levava-o a uma janela onde tinha de carregar outra vez em «ver
+         página» — dois passos para um destino. Sendo um `<a href>` a sério,
+         ganha-se de graça o que um botão nunca dá: o endereço na barra de
+         estado, o botão do meio, o Ctrl+clique, o «abrir noutro separador» e
+         o Enter. Quem navega dentro do site continua a ir pelo encaminhador
+         do Next — o `href` é para o browser, o `push` é para a aplicação.
+
+         Um ajuntamento é um **botão**: não há uma ficha para onde ir; o que
+         o clique faz é mostrar quem ali está.
+
+         E sem destino nem nada para abrir não é elemento accionável nenhum:
+         um botão que não faz nada anuncia-se ao leitor de ecrã como
+         accionável e é mais uma paragem de tabulação a não dar a lado
+         nenhum. */
+      const ficha = éGrupo ? null : hrefDe(principal);
+      const cabeca = document.createElement(
+        éGrupo || (!ficha && aoEscolherRef.current) ? "button" : ficha ? "a" : "span"
+      );
+      if (cabeca instanceof HTMLButtonElement) cabeca.type = "button";
+      if (cabeca instanceof HTMLAnchorElement && ficha) cabeca.href = ficha;
+      cabeca.className = "globo-etiqueta__cabeca";
+      caixa.appendChild(cabeca);
+
+      const titulo = document.createElement("span");
+      titulo.className = "globo-etiqueta__nome";
+      const subtitulo = document.createElement("span");
+      subtitulo.className = "globo-etiqueta__local";
+      cabeca.append(titulo, subtitulo);
+
+      let lista: HTMLUListElement | null = null;
+      /** A ficha rápida de um ponto com uma coudelaria só. Ver `montarFicha`. */
+      let fichaRapida: Ficha | null = null;
+      const alvos = new Map<string, HTMLElement>();
+
+      if (éGrupo) {
+        /* ── Como se chama a um ponto que junta várias ───────────────────
+           A regra vive no `lib/globo/ficha`, com testes, e é a mesma que o
+           CLAUDE.md escreveu para as etiquetas de uma coudelaria só: **os
+           nomes em cima, a terra por baixo**. Duas coudelarias ganham uma
+           linha cada, as duas com o peso de um nome — duas linhas contam-se
+           de relance, e por isso o algarismo colado ao título deixou de ser
+           preciso e saiu. Três ou mais não cabem em linhas legíveis, e aí a
+           conta é a resposta honesta.
+
+           O que isto corrige, medido a 1400×950 com as vinte e nove
+           verdadeiras: duas etiquetas por carregamento acabavam em «…», e as
+           duas eram destas — a linha cortada era justamente a única que
+           trazia informação. */
+        const linhas = linhasDoGrupo(membros, textosRef.current.conta);
+        /* Os nomes vão os dois dentro do `__nome`, separados por uma quebra,
+           e não um em cada elemento. A razão é o `data-curto`: quando a
+           etiqueta não cabe inteira, o que se deita fora é o `__local` — e
+           deitar fora um nome de coudelaria para poupar uma linha seria
+           apagar do mapa uma das duas que este ponto existe para anunciar.
+           Assim o que cede é a terra, que o próprio ponto já diz. */
+        if (linhas.nomes.length) {
+          titulo.textContent = linhas.nomes[0];
+          for (const nome of linhas.nomes.slice(1)) {
+            titulo.appendChild(document.createElement("br"));
+            titulo.appendChild(document.createTextNode(nome));
+          }
+        } else {
+          titulo.textContent = linhas.conta;
+        }
+        subtitulo.textContent = linhas.sitio;
+        cabeca.setAttribute("aria-expanded", "false");
+        cabeca.setAttribute(
+          "aria-label",
+          linhas.sitio
+            ? preencher(textosRef.current.sitioConta, {
+                place: linhas.sitio,
+                n: membros.length,
+              })
+            : preencher(textosRef.current.conta, { n: membros.length })
+        );
+
+        lista = document.createElement("ul");
+        lista.className = "globo-etiqueta__membros";
+        lista.hidden = true;
+        for (const m of membros) {
+          const item = document.createElement("li");
+          const destino = hrefDe(m);
+          const alvo = document.createElement(destino ? "a" : "button");
+          if (alvo instanceof HTMLButtonElement) alvo.type = "button";
+          if (alvo instanceof HTMLAnchorElement && destino) alvo.href = destino;
+          alvo.className = "globo-etiqueta__membro";
+          alvo.textContent = nomeCurto(m.nome);
+          alvo.title = m.nome;
+          alvo.setAttribute("aria-label", `${m.nome}, ${m.localizacao}`);
+          alvo.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            if (arrastou) {
+              ev.preventDefault();
+              return;
+            }
+            escolher(m, ev as MouseEvent);
+          });
+          alvo.dataset.coudelaria = m.id;
+          alvos.set(m.id, alvo);
+          item.appendChild(alvo);
+          lista.appendChild(item);
+        }
+        caixa.appendChild(lista);
+      } else {
+        titulo.textContent = nomeCurto(principal.nome);
+        /* A localidade sai quando o nome já a diz. «Coudelaria do Cartaxo»
+           com «Cartaxo» por baixo é a mesma palavra em dois tamanhos: não
+           acrescenta nada e come a segunda linha inteira, que é a linha que
+           decide se a etiqueta cabe num vale apertado. A regra está no
+           `lib/globo/ficha`, com testes. */
+        subtitulo.textContent = segundaLinha(principal.nome, principal.localizacao);
+        cabeca.title = principal.nome;
+        cabeca.setAttribute("aria-label", `${principal.nome}, ${principal.localizacao}`);
+        cabeca.dataset.coudelaria = principal.id;
+        alvos.set(principal.id, cabeca);
+        fichaRapida = montarFicha(principal, caixa, cabeca);
+      }
+
+      camadaEtiquetas.appendChild(nó);
+
+      const et: Etiqueta = {
+        nó,
+        cabeca,
+        alvos,
+        coords,
+        membros,
+        alfinete: fazerAlfinete(i, coords, destaque, éGrupo),
+        destaque,
+        cheia: { l: 0, a: 0 },
+        curta: { l: 0, a: 0 },
+        abrir: (aberto: boolean) => {
+          /* Um ponto que junta várias abre a lista de quem lá está; um ponto
+             com uma só abre a ficha rápida. São a mesma pergunta — «o que é
+             que aqui está?» — e por isso partilham o gesto e o atributo. */
+          if (fichaRapida) {
+            if (fichaRapida.aberta === aberto) return;
+            fichaRapida.mostrar(aberto);
+            nó.toggleAttribute("data-aberto", aberto);
+            /* Não se remede: a ficha é `position: absolute` e não entra na
+               caixa que o teste de colisão usa — ver a nota no `montarFicha`. */
+            return;
+          }
+          if (!lista || lista.hidden !== aberto) return;
+          lista.hidden = !aberto;
+          cabeca.setAttribute("aria-expanded", String(aberto));
+          nó.toggleAttribute("data-aberto", aberto);
+          precisaMedir = true;
+        },
+        colocada: false,
+        ultimo: -1,
+        activo: false,
+        deFrente: 0,
+        z: 0,
+        ecraX: 0,
+        ecraY: 0,
+        noEcra: false,
+        /* `NaN` e não zero: um nome que caia mesmo em (0,0) no primeiro
+           quadro tem de ser escrito na mesma, e `NaN !== NaN` garante-o. */
+        anterior: {
+          x: NaN,
+          y: NaN,
+          op: -1,
+          lado: "",
+          vert: "",
+          curto: false,
+          oculto: true,
+          morto: true,
+        },
+      };
+
+      cabeca.addEventListener("click", (ev) => {
+        if (arrastou) {
+          /* Um arrasto que acabou em cima de um nome não é um clique nesse
+             nome. Com a cabeça a ser um `<a>`, deixar passar significava
+             navegar por engano no fim de cada rotação do globo. */
+          ev.preventDefault();
+          ev.stopPropagation();
+          return;
+        }
+        ev.stopPropagation();
+        accionar(et, ev as MouseEvent);
+      });
+
+      return et;
+    };
+
+    /* ── Os pontos juntam-se e desfazem-se com o zoom ─────────────────────
+     *
+     * Vinte e nove coudelarias, e metade delas no mesmo vale. No
+     * enquadramento de repouso a lona vale 837 metros por pixel: há pares a
+     * um pixel e meio um do outro. Desenhar dois alfinetes ali é desenhar um
+     * borrão — não se vê que são dois, não se sabe quantos são, e apontar
+     * acerta sempre no mesmo. Era esta a confusão.
+     *
+     * O que não se pode mostrar separado mostra-se junto e contado. O raio
+     * do ajuntamento é **o dobro do raio de toque**, convertido de pixéis
+     * para metros de chão pela altura a que a câmara está: assim dois
+     * alfinetes distintos nunca partilham área de acerto, e quem aproxima vê
+     * os grupos abrirem-se sozinhos. A conta está no `lib/agrupar-globo`,
+     * com testes; aqui só se decide quando é que vale a pena refazê-la.
+     *
+     * Refaz-se por degraus de 35% — o mesmo degrau de um toque no botão de
+     * aproximar — e não a cada dente da roda. Duas razões: reconstruir deita
+     * fora a memória de onde cada nome estava, que é o que impede os nomes de
+     * saltarem; e um grupo que se desfaz é um acontecimento, não um
+     * escorregar contínuo. No curso inteiro do zoom dá meia dúzia de
+     * reconstruções.
+     */
+    let raioAgrupamento = -1;
+    let primeiraMontagem = true;
+
+    function reagrupar(forcar = false) {
+      /* Durante a entrada agrupa-se para o enquadramento onde a câmara vai
+         pousar, e não para a altura do momento: a entrada é um movimento só,
+         e refazer os grupos a meio dela seria vê-los mudar durante uma
+         viagem que ninguém pediu. */
+      const h = aEntrar ? alturaRepouso : alturaVoo;
+      const km = kmPorPixel(enquadrar(h).distancia, FOV, camara.aspect, larguraCaixa);
+      const raio = raioEmDegraus(km * SEPARACAO_MINIMA);
+      if (!forcar && raio === raioAgrupamento) return;
+      raioAgrupamento = raio;
+
+      /* Sai tudo o que estava: os nós saem do DOM com os ouvintes dentro, e
+         os halos saem da cena. A geometria e os materiais são partilhados —
+         não há nada para descartar aqui. */
+      for (const e of etiquetas) e.nó.remove();
+      alfinetesFeitos.length = 0;
+      /* Uma escolha a meio não sobrevive a uma reconstrução: o alfinete que
+         ela estava a acender deixa de existir na volta seguinte. */
+      escolhida = null;
+      escolhaT = 0;
+      delete camadaEtiquetas.dataset.escolha;
+      sobAlfinete = null;
+      sobEtiqueta = null;
+      focada = null;
+      fixa = null;
+      activa = null;
+      aberta = null;
+      for (const m of manchas) esconderMancha(m);
+
+      const ajuntamentos = agrupar(pontos, raio);
+      etiquetas = ajuntamentos.map((g, i) =>
+        criarEtiqueta(
+          g.coords,
+          g.membros.map((p) => p.c),
+          /* A cascata de entrada só faz sentido quando há entrada: sem ela os
+             nomes nasceriam com dois segundos de atraso escritos à mão e o
+             mapa aparecia vazio — foi o que aconteceu ao voltar da lista para
+             o globo, medido de fora: dezanove pontos e zero nomes. */
+          primeiraMontagem && aEntrar ? i : -1
+        )
+      );
+      primeiraMontagem = false;
+      geoPontos.setDrawRange(0, etiquetas.length);
+      pontosMudaram();
+
+      precisaMedir = true;
+    }
+
+    const projeccao = new THREE.Vector3();
+    const normalMundo = new THREE.Vector3();
+    const paraCamara = new THREE.Vector3();
+    const ecra = new THREE.Vector3();
+    /* ── Nada disto se faz de novo a cada quadro ──────────────────────────
+     *
+     * A colocação corre a cada quadro do arrasto e, para cada etiqueta,
+     * experimenta oito sítios em duas medidas: são até duzentas caixas de
+     * teste por quadro. Enquanto cada uma era um objecto acabado de fazer,
+     * um arrasto de dois segundos alocava megabytes de caixas que viviam um
+     * quadro — trabalho a mais para a linha principal e para o colector, a
+     * meio do único gesto em que a fluidez se nota.
+     *
+     * Os dois vectores de caixas passam a ser depósitos: os objectos ficam,
+     * o que se reinicia é a contagem. O `length` deixa de servir de conta,
+     * porque o vector já não encolhe.
+     */
+    const criarCaixa = (): Caixa => ({ x: 0, y: 0, l: 0, a: 0 });
+    const copiar = (destino: Caixa, origem: Caixa) => {
+      destino.x = origem.x;
+      destino.y = origem.y;
+      destino.l = origem.l;
+      destino.a = origem.a;
+      return destino;
+    };
+    const colocadas: Caixa[] = [];
+    let nColocadas = 0;
+    const guardarColocada = (c: Caixa) => {
+      const alvo = colocadas[nColocadas] ?? (colocadas[nColocadas] = criarCaixa());
+      nColocadas++;
+      return copiar(alvo, c);
+    };
+    const alfinetesEcra: Caixa[] = [];
+    let nAlfinetesEcra = 0;
+    /** A caixa de teste. É sempre a mesma: só uma está em jogo de cada vez. */
+    const tentativa = criarCaixa();
+    const ordem: Etiqueta[] = [];
+    const sitios: number[] = [];
+    /** As etiquetas que, neste quadro, não arranjaram lugar. */
+    const sobras: Etiqueta[] = [];
+
+    /** Afastamento entre o alfinete e a etiqueta, e folga entre etiquetas. */
+    const AFAST = 10;
+    const FOLGA_X = 12;
+    const FOLGA_Y = 6;
+    /** Meio lado da caixa de um alfinete, para nenhum nome pousar sobre outro
+        ponto — quem lê atribui o nome ao ponto que estiver por baixo dele. */
+    const MEIO_ALFINETE = 6;
+
+    /* ── As manchas ───────────────────────────────────────────────────────
+     *
+     * Um nome que não cabe deixava um ponto anónimo. Em telemóvel eram
+     * catorze dos dezanove pontos do quadro: uma nuvem de pintas sem uma
+     * palavra, sem sinal de que ali havia coisa para ver e sem forma de
+     * saber quantas. É o defeito que se corrige aqui.
+     *
+     * O que se faz: as sobras de cada quadro juntam-se por proximidade no
+     * ECRÃ — não no terreno —, e cada ajuntamento ganha um algarismo por
+     * cima. Diz quantas coudelarias ali estão. Apontá-lo abre a lista dos
+     * nomes, e cada nome é um botão que leva à coudelaria, como qualquer
+     * etiqueta.
+     *
+     * Três razões para ser assim e não de outra maneira:
+     *
+     * 1. **Só apanha sobras.** Corre depois da colocação e nunca lhe toca,
+     *    por isso nenhum nome que já se lia deixa de se ler — os quinze do
+     *    computador e os cinco do telemóvel ficam onde estavam. Um
+     *    agrupamento feito ANTES da colocação seria mais arrumado e teria
+     *    custado nomes; este só pode acrescentar.
+     * 2. **Agrupa no ecrã, e por isso desfaz-se ao aproximar.** Aproximar
+     *    afasta os pontos, mais nomes cabem, e o algarismo desce sozinho
+     *    até desaparecer. Passa a haver uma recompensa visível para quem
+     *    mexe na roda — que é o que faltava para o zoom se descobrir.
+     * 3. **Não entra na tabulação** (`aria-hidden`, botões a `tabindex=-1`).
+     *    Não é para poupar trabalho a ninguém: as mesmas coudelarias são
+     *    todas alcançáveis pelas setas, numa ordem estável de norte para
+     *    sul, e a lista completa está na vista de lista. Uma segunda rota,
+     *    por bolhas que mudam de sítio e de conteúdo a cada arrasto, seria
+     *    uma rota pior — não uma rota a mais.
+     */
+    type Mancha = {
+      nó: HTMLElement;
+      chip: HTMLButtonElement;
+      painel: HTMLElement;
+      titulo: HTMLElement;
+      lista: HTMLUListElement;
+      assinatura: string;
+      quantos: number;
+      usada: boolean;
+      ecraX: number;
+      ecraY: number;
+      anterior: { t: string; op: string; aberta: boolean };
+    };
+
+    /* O raio de ajuntamento e o de adopção vivem no `lib/globo/manchas`, com
+       a conta que os usa e os testes que os fixam. Uma constante escrita aqui
+       e outra lá seriam duas verdades sobre a mesma coisa. */
+    let manchaAberta: Mancha | null = null;
+    let manchaFixa: Mancha | null = null;
+    let manchaSob: Mancha | null = null;
+    /** Medida do algarismo fechado. É sempre a mesma; mede-se com as outras. */
+    const chipMedida: Medida = { l: 22, a: 22 };
+
+    const criarMancha = (): Mancha => {
+      const nó = document.createElement("div");
+      nó.className = "globo-mancha";
+      /* Nasce oculta, como nasce a etiqueta e pela mesma razão: sem o
+         atributo, uma mancha ainda por usar apresenta-se ao mundo como
+         legível — está a zero de opacidade e sem conta nenhuma escrita — e
+         quem for buscar a primeira `.globo-mancha:not([data-oculta])` do
+         documento apanha essa. */
+      nó.toggleAttribute("data-oculta", true);
+      /* Escondida dos leitores de ecrã de propósito — ver a razão 3 acima.
+         Os botões lá dentro levam `tabindex="-1"`, sem o que um
+         `aria-hidden` com coisas focáveis lá dentro seria um erro a sério. */
+      nó.setAttribute("aria-hidden", "true");
+
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.tabIndex = -1;
+      chip.className = "globo-mancha__chip";
+      nó.appendChild(chip);
+
+      const painel = document.createElement("div");
+      painel.className = "globo-mancha__painel";
+      const titulo = document.createElement("p");
+      titulo.className = "globo-mancha__titulo";
+      const lista = document.createElement("ul");
+      lista.className = "globo-mancha__membros";
+      painel.append(titulo, lista);
+      nó.appendChild(painel);
+
+      camadaEtiquetas.appendChild(nó);
+
+      const m: Mancha = {
+        nó,
+        chip,
+        painel,
+        titulo,
+        lista,
+        assinatura: "",
+        quantos: 0,
+        usada: false,
+        ecraX: 0,
+        ecraY: 0,
+        anterior: { t: "", op: "0", aberta: false },
+      };
+
+      chip.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        if (arrastou) return;
+        manchaFixa = manchaFixa === m ? null : m;
+        actualizarMancha();
+      });
+      return m;
+    };
+
+    /* No pior caso cada ponto do quadro é uma mancha por si — ver a nota
+       sobre as sobras solitárias mais abaixo. */
+    const manchas: Mancha[] = Array.from({ length: TECTO }, criarMancha);
+
+    /* ── Crescer, e só crescer ────────────────────────────────────────────
+       Filtrar encolhe a lista, e uma lista mais curta cabe sempre no que já
+       está reservado — é por isso que o caminho comum não passa por aqui. O
+       caso que passa é o inverso: chegar à página com uma pesquisa no
+       endereço (`/mapa?q=alter`), montar com três pontos, e limpar a caixa.
+       Aí a lista cresce para vinte e nove e os buffers não chegam.
+
+       A geometria é **substituída**, e a velha é descartada. Não se troca o
+       atributo dentro da mesma geometria: o three guarda o buffer de GPU num
+       WeakMap com o atributo por chave, e um atributo que sai da geometria
+       deixa de estar na lista que o `dispose` percorre — o buffer ficava na
+       placa até o contexto se perder. Descartar a geometria inteira liberta
+       os cinco de uma vez, com API pública e sem contas nossas.
+
+       Não é um caminho quente: corre no máximo uma vez por cada valor novo
+       de marca de água, o que na prática é zero ou uma vez em toda a vida da
+       cena. */
+    const crescerAte = (quantos: number) => {
+      if (quantos <= TECTO) return;
+      TECTO = quantos;
+      posPontos = new Float32Array(TECTO * 3);
+      raioPontos = new Float32Array(TECTO);
+      argolaPontos = new Float32Array(TECTO);
+      brilhoArgolaPontos = new Float32Array(TECTO);
+      brilhoPontos = new Float32Array(TECTO);
+      const velha = geoPontos;
+      geoPontos = new THREE.BufferGeometry();
+      armarGeometria();
+      alfinetes.geometry = geoPontos;
+      velha.dispose();
+      /* No pior caso cada ponto do quadro é uma mancha por si — a mesma
+         conta que dimensiona o depósito lá em cima. */
+      while (manchas.length < TECTO) manchas.push(criarMancha());
+    };
+
+    const escreverMancha = (m: Mancha, membros: CoudelariaNoMapa[]) => {
+      const assinatura = membros.map((c) => c.id).join(",");
+      if (assinatura === m.assinatura) return;
+      m.assinatura = assinatura;
+      m.quantos = membros.length;
+      if (manchaFixa === m) manchaFixa = null;
+
+      m.chip.textContent = String(membros.length);
+      m.nó.dataset.conta = String(membros.length);
+
+      /* O cabeçalho diz a região quando as coudelarias todas da mancha são
+         da mesma — que é o caso quase sempre, porque estão a poucos pixéis
+         umas das outras. Quando não são, não se inventa um nome comum: diz
+         só quantas são.
+
+         Sem `title` no algarismo: apontá-lo já abre a lista, e uma dica do
+         sistema por cima da lista que ela anuncia é a mesma coisa dita duas
+         vezes, a segunda a tapar a primeira. */
+      const regioes = new Set(membros.map((c) => c.regiao).filter(Boolean));
+      const uma = regioes.size === 1 ? [...regioes][0] : "";
+      const quantas =
+        membros.length === 1
+          ? textosRef.current.contaUma
+          : preencher(textosRef.current.conta, { n: membros.length });
+      m.titulo.textContent = uma ? `${quantas} · ${uma}` : quantas;
+
+      m.lista.replaceChildren();
+      for (const c of membros) {
+        const item = document.createElement("li");
+        const destino = hrefDe(c);
+        /* Ligação e não botão, pela mesma razão dos nomes: aqui carrega-se
+           para ir à coudelaria, e um endereço a sério dá o botão do meio, o
+           Ctrl+clique e a barra de estado sem uma linha de JavaScript. */
+        const alvo = document.createElement(destino ? "a" : "button");
+        if (alvo instanceof HTMLButtonElement) alvo.type = "button";
+        if (alvo instanceof HTMLAnchorElement && destino) alvo.href = destino;
+        alvo.tabIndex = -1;
+        alvo.className = "globo-mancha__membro";
+        alvo.title = c.nome;
+        const nome = document.createElement("span");
+        nome.className = "globo-mancha__nome";
+        nome.textContent = nomeCurto(c.nome);
+        const sitio = document.createElement("span");
+        sitio.className = "globo-mancha__sitio";
+        sitio.textContent = sitioCurto(c.localizacao);
+        alvo.append(nome, sitio);
+        alvo.addEventListener("click", (ev) => {
+          ev.stopPropagation();
+          if (arrastou) {
+            ev.preventDefault();
+            return;
+          }
+          escolher(c, ev as MouseEvent);
+        });
+        item.appendChild(alvo);
+        m.lista.appendChild(item);
+      }
+    };
+
+    /* O painel abre para o lado que tem sítio.
+       A camada dos nomes é `overflow: hidden` — tem de ser, senão um nome
+       junto à borda escorregava para fora da lona —, e por isso um painel que
+       não caiba não fica pendurado por fora: fica cortado a meio de uma
+       lista. Medido em telemóvel: aberto sobre o Ribatejo, viam-se cinco dos
+       onze nomes e o resto estava do lado de fora da caixa.
+
+       Duas correcções, ambas medidas no momento em que abre e não a cada
+       quadro: para cima quando o algarismo está na metade de baixo, e um
+       desvio horizontal que o encosta à borda em vez de o deixar sair. */
+    /** Folga entre o painel e a borda da janela útil. */
+    const MARGEM_PAINEL = 6;
+
+    /* ── Onde o painel aberto assenta ─────────────────────────────────────
+     * Guardado **em relação ao canto do algarismo**, e não em coordenadas da
+     * lona: o algarismo anda com o globo, e o painel anda com ele. Assim
+     * mede-se uma vez, no momento em que abre, e a caixa em coordenadas da
+     * lona sai de uma soma por quadro — sem um `getBoundingClientRect` a
+     * meio de um arrasto, que é o pedido que este ficheiro evita em toda a
+     * parte. */
+    let painelRel: { dx: number; dy: number; l: number; a: number } | null = null;
+
+    const ajustarPainel = (m: Mancha) => {
+      m.painel.style.setProperty("--desvio", "0px");
+      m.lista.style.maxHeight = "";
+      const caixa = el.getBoundingClientRect();
+      const chipR = m.chip.getBoundingClientRect();
+
+      /* Para cima ou para baixo: quem decide é o lado que tem mais espaço, e
+         não a metade da lona em que o algarismo caiu. Com onze nomes na
+         lista, «está em baixo, logo abre para cima» ainda deixava o cabeçalho
+         da lista fora da lona. */
+      const acima = chipR.top - (caixa.top + topoUtil) - MARGEM_PAINEL;
+      const abaixo = caixa.top + baseUtil - chipR.bottom - MARGEM_PAINEL;
+      const paraCima = abaixo < acima;
+      m.nó.toggleAttribute("data-cima", paraCima);
+
+      /* A lista rola dentro do que sobrar. O resto do painel — cabeçalho,
+         bordas, respiro — mede-se, não se adivinha. */
+      const resto = m.painel.offsetHeight - m.lista.offsetHeight;
+      const espaco = Math.max(acima, abaixo) - 26 - resto;
+      m.lista.style.maxHeight = `${Math.round(Math.max(44, Math.min(232, espaco)))}px`;
+
+      /* Medir com a animação de abertura a correr é medir o painel a 95% do
+         tamanho e fora do sítio — o `getBoundingClientRect` inclui a
+         transformação, e a transformação, neste instante, é o primeiro
+         quadro de um `scale(0.95)`. É a mesma armadilha que a ficha rápida
+         já documenta, e a mesma resposta: cala-se a animação, força-se um
+         refluxo para o browser a esquecer, mede-se, e devolve-se. Medido a
+         1400×950: a correcção de borda saía 4 pixéis curta, e a caixa que o
+         véu usa saía 8×13 mais pequena do que o painel que se vê. */
+      m.painel.style.animation = "none";
+      void m.painel.offsetWidth;
+      const r = m.painel.getBoundingClientRect();
+      let dx = 0;
+      if (r.left < caixa.left + MARGEM_PAINEL) dx = caixa.left + MARGEM_PAINEL - r.left;
+      else if (r.right > caixa.right - MARGEM_PAINEL) dx = caixa.right - MARGEM_PAINEL - r.right;
+      if (dx) m.painel.style.setProperty("--desvio", `${Math.round(dx)}px`);
+      m.painel.style.animation = "";
+
+      /* O `--desvio` é uma translação pura, por isso soma-se ao que já se
+         mediu em vez de se pedir a caixa uma segunda vez. */
+      painelRel = {
+        dx: r.left + dx - chipR.left,
+        dy: r.top - chipR.top,
+        l: r.width,
+        a: r.height,
+      };
+    };
+
+    const actualizarMancha = () => {
+      const alvo = manchaFixa ?? manchaSob;
+      if (alvo === manchaAberta) return;
+      manchaAberta = alvo;
+      if (!alvo) painelRel = null;
+      for (const m of manchas) {
+        const aberta = m === alvo;
+        if (aberta === m.anterior.aberta) continue;
+        m.anterior.aberta = aberta;
+        m.nó.toggleAttribute("data-aberta", aberta);
+        if (aberta) ajustarPainel(m);
+      }
+      pedirQuadro();
+    };
+
+    /* ── O que o painel aberto cobre recua ────────────────────────────────
+     *
+     * O painel é `position: absolute` dentro do algarismo, e isso resolve
+     * metade do problema: um filho absoluto não conta para o `offsetWidth`
+     * /`offsetHeight` do pai, que **são** a caixa do teste de colisão da
+     * mancha. Abrir não faz a mancha fechada crescer, e por isso nenhuma
+     * coudelaria fica sem conta. Essa metade estava certa.
+     *
+     * A outra metade não estava: **nada na colocação dos nomes sabe que o
+     * painel existe.** Ele ocupa uns 170×255 no computador e 160×210 no
+     * telemóvel, e os nomes continuam a ser escritos onde sempre foram —
+     * por cima dele, porque as manchas nascem à montagem e os nomes são
+     * refeitos a cada reagrupamento, logo em ordem de DOM cada nome vem
+     * depois de cada mancha. Medido a 1400×950 com as vinte e nove
+     * verdadeiras, com o painel de sete aberto: **três nomes por cima da
+     * lista**, e a lista ilegível por baixo deles.
+     *
+     * ── Porque é que não se recoloca ──────────────────────────────────────
+     * A saída óbvia — dizer à colocação que ali há uma caixa ocupada — é a
+     * errada, e por duas razões que este ficheiro já escreveu noutro sítio.
+     * Os nomes saltariam para outro lado no instante em que o painel abre, e
+     * quem carregou no algarismo veria o mapa inteiro a remexer-se debaixo
+     * do dedo; e os nomes que não achassem lugar novo cairiam nas sobras, ou
+     * seja **perder-se-iam** por causa de uma abertura. A ficha rápida
+     * escolheu por isto mesmo não empurrar ninguém, e esta é a mesma casa.
+     *
+     * ── O que se faz então ────────────────────────────────────────────────
+     * Duas coisas, e são a mesma afirmação: _o painel está à frente_.
+     *
+     * 1. Em CSS, a mancha aberta sobe (`z-index`). Sem isso o painel fica
+     *    **por baixo** dos nomes e perdem-se os dois — nem se lê a lista nem
+     *    se lê o nome, porque texto a 12px sobre texto a 12px não é nenhum
+     *    dos dois.
+     * 2. Aqui, quem cai na caixa do painel recua a zero enquanto ele estiver
+     *    aberto. Não é para esconder informação: o painel é opaco e já os
+     *    tapava. O que ele não sabe fazer é tapá-los **inteiros** — um nome
+     *    a meio da borda mostra metade das letras e lê-se como um erro de
+     *    desenho, e um algarismo cortado ao meio é um disco partido. Apagar
+     *    é a mesma cobertura dita com franqueza, e o esbatimento de 200ms
+     *    que a etiqueta já tem (`--d-fast`, o tempo dos hovers e dos botões,
+     *    que é o gesto que abre isto) trata da passagem.
+     *
+     * Nada disto toca na colocação: a etiqueta continua `colocada`, a caixa
+     * dela continua no depósito, e fechar o painel devolve-a ao mesmo pixel.
+     * Medido, de painel fechado contra aberto: zero nomes deslocados.
+     */
+    /** A caixa do painel em coordenadas da lona. Depósito: não se faz por
+        quadro — é sempre a mesma, e só uma mancha abre de cada vez. */
+    const caixaPainel = criarCaixa();
+    let painelVivo = false;
+
+    /* A posição sai do `ecraX`/`ecraY` que o quadro anterior escreveu, e não
+       do quadro em curso: as manchas colocam-se **depois** dos nomes, de
+       propósito, porque só apanham sobras e nunca podem tirar um nome a
+       ninguém. Inverter as duas para poupar um quadro custaria essa garantia;
+       dezasseis milissegundos de atraso num painel que só anda quando alguém
+       arrasta o globo não custam nada. */
+    const marcarPainel = () => {
+      const m = manchaAberta;
+      painelVivo = !!(m && m.usada && painelRel);
+      if (!m || !painelRel || !painelVivo) return;
+      caixaPainel.x = m.ecraX - chipMedida.l / 2 + painelRel.dx;
+      caixaPainel.y = m.ecraY - chipMedida.a / 2 + painelRel.dy;
+      caixaPainel.l = painelRel.l;
+      caixaPainel.a = painelRel.a;
+    };
+
+    /** Sem folga: o que se quer saber é se o pixel fica tapado, e não se duas
+        caixas ficam encostadas de mais uma à outra. */
+    const sobOPainel = (c: Caixa) =>
+      painelVivo &&
+      c.x < caixaPainel.x + caixaPainel.l &&
+      c.x + c.l > caixaPainel.x &&
+      c.y < caixaPainel.y + caixaPainel.a &&
+      c.y + c.a > caixaPainel.y;
+
+    const esconderMancha = (m: Mancha) => {
+      m.usada = false;
+      if (m.anterior.op !== "0") {
+        m.nó.style.opacity = "0";
+        m.anterior.op = "0";
+      }
+      if (!m.nó.hasAttribute("data-oculta")) m.nó.toggleAttribute("data-oculta", true);
+      if (manchaFixa === m) manchaFixa = null;
+      if (manchaSob === m) manchaSob = null;
+    };
+
+    /* ── Onde é que os algarismos ficam ───────────────────────────────────
+       A decisão saiu daqui para o `lib/globo/manchas`, e a razão é que ela
+       tinha um buraco que só se via em sete por cento dos carregamentos:
+       o algarismo experimentava vinte e cinco sítios à volta do ajuntamento
+       e, se os vinte e cinco estivessem ocupados, **desistia em silêncio**.
+       Desistir ali não deixa um algarismo por escrever — apaga do ecrã todas
+       as coudelarias que ele contava. Medido a 1400×950: 25 de 29.
+
+       No módulo há três degraus (perto, adopção, longe) e dois testes que
+       fixam a promessa que o CLAUDE.md faz por escrito: nenhuma coudelaria
+       fica sem conta, e nenhum algarismo toca noutra caixa. Aqui fica só o
+       DOM — que nó recebe que conta, onde se põe, e quem se esconde. */
+
+    /** As caixas já ocupadas, vistas como um vector simples para o módulo.
+        É reaproveitado de quadro para quadro: o que se reinicia é o
+        comprimento, e as caixas lá dentro são as mesmas do depósito. */
+    const ocupadasView: Caixa[] = [];
+
+    const agruparSobras = () => {
+      for (const m of manchas) m.usada = false;
+      const livres = sobras.filter((e) => e.noEcra);
+      if (!livres.length) {
+        for (const m of manchas) esconderMancha(m);
+        return;
+      }
+
+      /* A lista das caixas ocupadas monta-se a partir do depósito, e volta a
+         montar-se se entretanto se acrescentar um nome: o `colocarManchas`
+         **estende** o vector que recebe, e por isso não se pode reaproveitar
+         o de uma passagem anterior. */
+      const relerOcupadas = () => {
+        ocupadasView.length = 0;
+        for (let i = 0; i < nColocadas; i++) ocupadasView.push(colocadas[i]);
+      };
+      const janelaUtil = {
+        /* A janela útil, e não a lona: o motor não escreve por baixo do que
+           está fixo no ecrã. Os dois pixéis de folga são os mesmos que a
+           colocação dos nomes usa. */
+        x0: 2,
+        y0: topoUtil + 2,
+        x1: larguraCaixa - 2,
+        y1: baseUtil - 2,
+      };
+
+      relerOcupadas();
+      let postas = colocarManchas(livres, {
+        chip: chipMedida,
+        janela: janelaUtil,
+        ocupadas: ocupadasView,
+      });
+
+      /* ── Um algarismo «1» é um disco a tapar um nome ────────────────────
+         A mancha existe para contar o que não coube. Contar **um** não conta
+         nada: dá um disco do tamanho de um alfinete, igual ao que noutro
+         sítio do mapa cobre nove, e obriga a apontá-lo para saber uma coisa
+         que uma palavra dizia de graça. Medido a 1400×950 com as vinte e
+         nove verdadeiras: 0,8 discos destes por carregamento.
+
+         Um solitário ganha por isso uma segunda oportunidade, e só ele: a
+         regra que lhe barrou o caminho — nenhum nome pousa sobre outro
+         alfinete — cede aqui pela mesma razão por que já cedia à etiqueta
+         apontada. O que ela previne é a dúvida sobre a quem pertence o nome;
+         e essa dúvida é menor do que a de um ponto que não diz nada. O fio
+         continua a apontar-lhe o alfinete.
+
+         O que **não** cede é a colisão entre nomes: o `bate` fica de pé, e
+         por isso um nome resgatado nunca escreve por cima de outro. E como o
+         resgate acontece antes de os algarismos irem para o DOM, os que
+         sobrarem recolocam-se contra a lista já com o nome novo lá dentro —
+         nenhum algarismo aterra em cima do que se acabou de escrever. */
+      const resgatadas = new Set<Etiqueta>();
+      /* O módulo devolve coudelarias, não etiquetas — uma mancha é a conta de
+         quem lá está, e não a lista de quem a alimentou. Um algarismo «1» só
+         pode ter vindo de uma etiqueta de uma coudelaria só, e é por essa
+         que se procura. */
+      for (const posta of postas) {
+        if (posta.membros.length !== 1) continue;
+        const id = posta.membros[0].id;
+        const e = livres.find((x) => x.membros.length === 1 && x.membros[0].id === id);
+        if (e && resgatarNome(e)) resgatadas.add(e);
+      }
+      if (resgatadas.size) {
+        const restantes = livres.filter((e) => !resgatadas.has(e));
+        if (!restantes.length) {
+          for (const m of manchas) esconderMancha(m);
+          return;
+        }
+        relerOcupadas();
+        postas = colocarManchas(restantes, {
+          chip: chipMedida,
+          janela: janelaUtil,
+          ocupadas: ocupadasView,
+        });
+      }
+
+      let i = 0;
+      for (const posta of postas) {
+        if (i >= manchas.length) break;
+        const m = manchas[i];
+
+        escreverMancha(m, posta.membros);
+        m.usada = true;
+        m.ecraX = posta.x + chipMedida.l / 2;
+        m.ecraY = posta.y + chipMedida.a / 2;
+        /* Entra na lista das caixas ocupadas para que, no quadro a seguir,
+           nenhum nome pouse por cima dela. O módulo já a pôs no `ocupadasView`
+           — que é o que impede duas manchas de se cruzarem dentro do mesmo
+           quadro —, mas quem sobrevive ao quadro é o depósito. */
+        const caixaChip = guardarColocada({
+          x: posta.x,
+          y: posta.y,
+          l: chipMedida.l,
+          a: chipMedida.a,
+        });
+
+        const t = `translate3d(${Math.round(posta.x)}px, ${Math.round(posta.y)}px, 0)`;
+        if (t !== m.anterior.t) {
+          m.nó.style.transform = t;
+          m.anterior.t = t;
+        }
+        /* Os algarismos recuam com os nomes: fazem parte do «tudo o resto»
+           que a escolha manda para trás, e um algarismo aceso ao lado de um
+           ponto escolhido lia-se como uma segunda escolha.
+
+           E recuam também debaixo de um painel aberto, pela mesma razão que
+           os nomes — menos a própria mancha aberta, que é dona do painel e
+           não pode apagar-se por baixo dele. Um disco de 22px cortado pela
+           borda do painel é a mesma metade de desenho que meio nome, e uma
+           conta que ninguém consegue ler não é uma conta. */
+        const tapado = m !== manchaAberta && sobOPainel(caixaChip);
+        const op = (tapado ? 0 : escolhida ? 1 - escolhaT : 1).toFixed(2);
+        if (m.anterior.op !== op) {
+          m.nó.style.opacity = op;
+          m.anterior.op = op;
+        }
+        /* Sai do rato enquanto está apagado. Um algarismo invisível a meio
+           de fora do painel continuaria a ser um alvo, e um alvo que não se
+           vê é um clique que ninguém pediu — que é a razão já escrita para o
+           `data-oculta` das manchas sem lugar. */
+        if (m.nó.hasAttribute("data-oculta") !== tapado) {
+          m.nó.toggleAttribute("data-oculta", tapado);
+        }
+        i++;
+      }
+
+      for (const m of manchas) if (!m.usada) esconderMancha(m);
+    };
+
+    const medirTodas = () => {
+      if (manchas[0]) {
+        chipMedida.l = manchas[0].chip.offsetWidth || chipMedida.l;
+        chipMedida.a = manchas[0].chip.offsetHeight || chipMedida.a;
+      }
+      for (const e of etiquetas) e.nó.toggleAttribute("data-curto", false);
+      for (const e of etiquetas) {
+        e.cheia.l = e.nó.offsetWidth;
+        e.cheia.a = e.nó.offsetHeight;
+      }
+      for (const e of etiquetas) e.nó.toggleAttribute("data-curto", true);
+      for (const e of etiquetas) {
+        e.curta.l = e.nó.offsetWidth;
+        e.curta.a = e.nó.offsetHeight;
+      }
+      for (const e of etiquetas) e.nó.toggleAttribute("data-curto", e.anterior.curto);
+    };
+
+    /* Oito sítios por etiqueta, por ordem de preferência: acima à direita —
+       que é onde o olho a procura —, acima à esquerda, abaixo dos dois lados,
+       e por fim ao lado à altura do ponto. Havia dois, e com dois perdiam-se
+       dois terços dos nomes num país onde metade das coudelarias está no
+       mesmo vale.
+
+       As duas últimas — a caixa centrada por cima e por baixo do ponto — são
+       as que faltavam para o telemóvel. As outras seis empurram a caixa toda
+       para um lado do ponto, e por isso cada nome come a sua largura inteira
+       de um dos lados; numa lona de 356px, com nomes de 150, dois pontos a
+       trinta pixéis um do outro nunca cabiam ambos. Centrada, a caixa gasta
+       metade para cada lado e usa a altura, que numa lona mais alta do que
+       larga é o que sobra. Ficam no fim da lista de propósito: só se
+       experimentam depois de as seis falharem, por isso nenhuma colocação
+       que já existia muda de sítio — a contagem só pode subir. */
+    const hipoteses = [
+      { lado: "direita", vert: "cima" },
+      { lado: "esquerda", vert: "cima" },
+      { lado: "direita", vert: "baixo" },
+      { lado: "esquerda", vert: "baixo" },
+      { lado: "direita", vert: "meio" },
+      { lado: "esquerda", vert: "meio" },
+      { lado: "centro", vert: "cima" },
+      { lado: "centro", vert: "baixo" },
+    ] as const;
+
+    /** Escreve a caixa de teste no depósito, em vez de fazer uma nova. */
+    const caixaDe = (x: number, y: number, m: Medida, h: (typeof hipoteses)[number]): Caixa => {
+      tentativa.x =
+        h.lado === "direita" ? x + AFAST : h.lado === "esquerda" ? x - AFAST - m.l : x - m.l / 2;
+      tentativa.y =
+        h.vert === "cima" ? y - m.a - AFAST : h.vert === "baixo" ? y + AFAST : y - m.a / 2;
+      tentativa.l = m.l;
+      tentativa.a = m.a;
+      return tentativa;
+    };
+
+    /* Voltas à mão e não `some`: um `some` com uma seta lá dentro faz um
+       fecho novo em cada chamada, e estas duas são chamadas até duzentas
+       vezes por quadro. */
+    const bate = (c: Caixa) => {
+      for (let i = 0; i < nColocadas; i++) {
+        const o = colocadas[i];
+        if (
+          c.x < o.x + o.l + FOLGA_X &&
+          c.x + c.l + FOLGA_X > o.x &&
+          c.y < o.y + o.a + FOLGA_Y &&
+          c.y + c.a + FOLGA_Y > o.y
+        ) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    const bateAlfinete = (c: Caixa) => {
+      for (let i = 0; i < nAlfinetesEcra; i++) {
+        const p = alfinetesEcra[i];
+        if (c.x < p.x + p.l && c.x + c.l > p.x && c.y < p.y + p.a && c.y + c.a > p.y) return true;
+      }
+      return false;
+    };
+
+    /**
+     * A segunda oportunidade de uma sobra que ficaria sozinha numa mancha.
+     *
+     * Corre depois de todos os nomes colocados e depois de se saber quem
+     * ficaria a contar-se a si próprio — ver a nota no `agruparSobras`.
+     * Percorre as mesmas oito hipóteses, nas mesmas duas formas, com uma só
+     * diferença: pode pousar sobre um alfinete. Não pode, nunca, pousar
+     * sobre outro nome ou sobre um algarismo já escrito.
+     *
+     * Devolve `true` se escreveu. A partir daí a etiqueta é uma colocada
+     * como as outras, e o quadro seguinte trata-a como tal — com a
+     * histerese do `e.ultimo` a segurá-la no sítio.
+     */
+    const resgatarNome = (e: Etiqueta): boolean => {
+      if (!e.noEcra) return false;
+      for (const medida of [e.cheia, e.curta]) {
+        if (!medida.l) continue;
+        for (let k = 0; k < hipoteses.length; k++) {
+          const h = hipoteses[k];
+          const c = caixaDe(e.ecraX, e.ecraY, medida, h);
+          const cabe =
+            c.x >= 2 &&
+            c.y >= topoUtil + 2 &&
+            c.x + c.l <= larguraCaixa - 2 &&
+            c.y + c.a <= baseUtil - 2;
+          if (!cabe || bate(c)) continue;
+          guardarColocada(c);
+          e.colocada = true;
+          e.ultimo = k;
+          escrever(e, c, h.lado, h.vert, medida === e.curta, sobOPainel(c) ? 0 : veu(e));
+          return true;
+        }
+      }
+      return false;
+    };
+
+    /* Escrever no DOM só o que mudou. Pôr `style.opacity` com o mesmo valor a
+       cada quadro reinicia a transição de 220ms sessenta vezes por segundo, e
+       a etiqueta nunca chega ao fim do esbatimento. */
+    const escrever = (
+      e: Etiqueta,
+      c: Caixa,
+      lado: string,
+      vert: string,
+      curto: boolean,
+      perto: number
+    ) => {
+      const ant = e.anterior;
+      /* Compara-se o número e só depois se faz o texto. Montar a cadeia do
+         `translate3d` antes de saber se ela mudou era uma cadeia por
+         etiqueta por quadro — quinze por quadro que não iam a lado nenhum,
+         num quadro em que o globo está parado e só um nome se acendeu. */
+      const x = Math.round(c.x);
+      const y = Math.round(c.y);
+      if (x !== ant.x || y !== ant.y) {
+        ant.x = x;
+        ant.y = y;
+        e.nó.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      }
+      /* A opacidade arredonda-se a duas casas antes de se comparar: escrever
+         o mesmo valor a cada quadro reinicia a transição de 200ms sessenta
+         vezes por segundo, e a etiqueta nunca chega ao fim do esbatimento. */
+      const op = Math.round(perto * 100);
+      if (op !== ant.op) {
+        ant.op = op;
+        e.nó.style.opacity = (op / 100).toFixed(2);
+      }
+      if (lado !== ant.lado) {
+        e.nó.dataset.lado = lado;
+        ant.lado = lado;
+      }
+      if (vert !== ant.vert) {
+        e.nó.dataset.vert = vert;
+        ant.vert = vert;
+      }
+      if (curto !== ant.curto) {
+        e.nó.toggleAttribute("data-curto", curto);
+        ant.curto = curto;
+      }
+      const oculto = perto <= 0.55;
+      if (oculto !== ant.oculto) {
+        e.nó.toggleAttribute("data-oculta", oculto);
+        ant.oculto = oculto;
+      }
+      /* `inert` em vez de `pointer-events`: tira a etiqueta do rato **e** da
+         ordem de tabulação de uma vez. Sem isto, tabular pelo globo passava
+         pelas vinte e nove — dezoito delas invisíveis, do outro lado do
+         planeta ou vencidas na colisão, com o foco a parar em cima de nada.
+
+         Excepção: a que tem o foco nunca fica inerte. Quem percorre o globo
+         pelas setas larga uma etiqueta invisível durante o quadro em que a
+         câmara ainda não a trouxe à vista, e torná-la inerte nesse quadro
+         devolvia o foco ao corpo da página — o percurso acabava sozinho ao
+         segundo passo. O rato não entra por aqui: quem lhe fecha a porta é o
+         `data-oculta`, que é sobre estar invisível e não sobre ter o foco. */
+      const morto = oculto && e !== focada;
+      if (morto !== ant.morto) {
+        e.nó.toggleAttribute("inert", morto);
+        ant.morto = morto;
+      }
+    };
+
+    const esconder = (e: Etiqueta) => {
+      e.colocada = false;
+      const ant = e.anterior;
+      if (ant.op !== 0) {
+        e.nó.style.opacity = "0";
+        ant.op = 0;
+      }
+      if (!ant.oculto) {
+        e.nó.toggleAttribute("data-oculta", true);
+        ant.oculto = true;
+      }
+      const morto = e !== focada;
+      if (morto !== ant.morto) {
+        e.nó.toggleAttribute("inert", morto);
+        ant.morto = morto;
+      }
+    };
+
+    const etiquetar = () => {
+      // Da cache, não do DOM: ler `clientWidth` a cada quadro obriga o browser
+      // a refazer o layout sessenta vezes por segundo para saber uma medida
+      // que só o `ResizeObserver` pode ter mudado.
+      const l = larguraCaixa;
+      const a = alturaCaixa;
+      nColocadas = 0;
+      nAlfinetesEcra = 0;
+      sobras.length = 0;
+      marcarPainel();
+
+      for (const e of etiquetas) {
+        projeccao.copy(e.alfinete.posicao).applyMatrix4(mundo.matrixWorld);
+        normalMundo.copy(projeccao).normalize();
+        paraCamara.copy(camara.position).sub(projeccao).normalize();
+        e.deFrente = normalMundo.dot(paraCamara);
+        ecra.copy(projeccao).project(camara);
+        e.z = ecra.z;
+        e.ecraX = (ecra.x * 0.5 + 0.5) * l;
+        e.ecraY = (-ecra.y * 0.5 + 0.5) * a;
+        e.noEcra =
+          ecra.z < 1 &&
+          e.deFrente >= 0.12 &&
+          e.ecraX > -20 &&
+          e.ecraX < l + 20 &&
+          e.ecraY > -20 &&
+          e.ecraY < a + 20;
+        if (e.noEcra) {
+          const p = alfinetesEcra[nAlfinetesEcra] ?? (alfinetesEcra[nAlfinetesEcra] = criarCaixa());
+          p.x = e.ecraX - MEIO_ALFINETE;
+          p.y = e.ecraY - MEIO_ALFINETE;
+          p.l = MEIO_ALFINETE * 2;
+          p.a = MEIO_ALFINETE * 2;
+          nAlfinetesEcra++;
+        }
+      }
+
+      if (precisaMedir) {
+        precisaMedir = false;
+        medirTodas();
+      }
+
+      /* A ordem por que se escolhe lugar: primeiro a que está debaixo do rato
+         ou com o foco — quem aponta tem de conseguir ler o que apontou —,
+         depois as em destaque, depois, e é esta que conta, as que já estavam
+         colocadas no quadro anterior. Sem essa histerese, arrastar o globo põe
+         os nomes a trocarem de lugar uns com os outros e a leitura vira
+         cintilação. Desempata a distância à câmara. */
+      ordem.length = 0;
+      for (const e of etiquetas) ordem.push(e);
+      ordem.sort(
+        (x, y) =>
+          Number(y.activo) - Number(x.activo) ||
+          Number(y.destaque) - Number(x.destaque) ||
+          Number(y.colocada) - Number(x.colocada) ||
+          x.z - y.z
+      );
+
+      for (const e of ordem) {
+        if (!e.noEcra) {
+          esconder(e);
+          continue;
+        }
+
+        /* Duas formas por etiqueta: inteira, e de uma linha só. Antes de a
+           esconder tenta-se sem a segunda linha — vale mais um nome sem a
+           localidade do que um ponto sem nome nenhum. */
+        /* O sítio do quadro anterior experimenta-se primeiro. Um nome que
+           estava à direita e continua a caber à direita não se muda para a
+           esquerda só porque a ordem por omissão o manda: saltar de lado
+           lê-se tão mal como desaparecer, e a cadeira que ele larga põe a
+           vizinha a saltar também. */
+        sitios.length = 0;
+        if (e.ultimo >= 0) sitios.push(e.ultimo);
+        for (let k = 0; k < hipoteses.length; k++) if (k !== e.ultimo) sitios.push(k);
+
+        let posta: Caixa | null = null;
+        let lado = "direita";
+        let vert = "cima";
+        let curto = false;
+        /* Duas voltas, e a segunda só para a etiqueta activa.
+           Nenhum nome pousa em cima de outro ponto — quem lê atribui o nome
+           ao ponto que estiver por baixo dele —, e essa regra fica de pé para
+           as vinte e nove. Mas num vale com doze pontos a trinta pixéis uns
+           dos outros ela deixa de haver sítio nenhum: no percurso pelas
+           setas, catorze dos vinte e nove passos davam foco a um nome que
+           continuava invisível — medido, passo a passo.
+           Para a etiqueta que está debaixo do rato ou com o foco a regra
+           cede, porque o que ela previne já não se aplica: essa etiqueta está
+           acesa, tem o fio a apontar-lhe o ponto, e é a única no quadro nessa
+           condição. Cede só à segunda volta, para continuar a preferir o
+           lugar limpo sempre que exista um. */
+        /* ── O alvo não foge ao ponteiro ──────────────────────────────────
+           Uma etiqueta acesa muda de forma: o nome deixa de estar truncado e,
+           num ajuntamento, abre-se a lista. Se a colocação a puder mandar
+           para outro sítio por causa disso, o que se aponta sai de debaixo do
+           dedo antes de se chegar a carregar. Medido de fora: dois de dez
+           alvos escapavam-se, um deles 66 pixéis.
+
+           A cura é ficar onde estava. Como cada hipótese ancora a caixa no
+           alfinete pelo canto que lhe fica virado, crescer só a afasta do
+           ponto — a caixa nova contém sempre a antiga, e o ponteiro continua
+           lá dentro. Por isso basta manter a hipótese do quadro anterior e
+           não voltar a perguntar se ela colide: a etiqueta acesa já é a
+           primeira a escolher e já tinha licença para pousar sobre um
+           alfinete. Só a borda da lona continua a mandar. */
+        if (e.activo && e.colocada && e.ultimo >= 0) {
+          const h = hipoteses[e.ultimo];
+          /* Inteira se couber, de uma linha se não couber: o que não se faz é
+             mudar de sítio. Junto à borda da lona a caixa maior pode não
+             caber, e sem esta segunda tentativa a etiqueta ia à procura de
+             outro lugar — que é exactamente o que se quer evitar. */
+          for (const medida of [e.cheia, e.curta]) {
+            if (!medida.l) continue;
+            const c = caixaDe(e.ecraX, e.ecraY, medida, h);
+            if (
+              c.x >= 2 &&
+              c.y >= topoUtil + 2 &&
+              c.x + c.l <= l - 2 &&
+              c.y + c.a <= baseUtil - 2
+            ) {
+              posta = c;
+              lado = h.lado;
+              vert = h.vert;
+              curto = medida === e.curta;
+              break;
+            }
+          }
+        }
+
+        for (const semAlfinetes of posta ? [] : e.activo ? [false, true] : [false]) {
+          for (const medida of [e.cheia, e.curta]) {
+            if (!medida.l) continue;
+            for (const k of sitios) {
+              const h = hipoteses[k];
+              const c = caixaDe(e.ecraX, e.ecraY, medida, h);
+              const cabe =
+                c.x >= 2 && c.y >= topoUtil + 2 && c.x + c.l <= l - 2 && c.y + c.a <= baseUtil - 2;
+              if (!cabe || bate(c) || (!semAlfinetes && bateAlfinete(c))) continue;
+              posta = c;
+              lado = h.lado;
+              vert = h.vert;
+              curto = medida === e.curta;
+              e.ultimo = k;
+              break;
+            }
+            if (posta) break;
+          }
+          if (posta) break;
+        }
+
+        if (!posta) {
+          esconder(e);
+          /* Não coube: passa às manchas, que a contam ainda que não a
+             escrevam. Um ponto anónimo deixa de ser um ponto calado. */
+          sobras.push(e);
+          continue;
+        }
+        guardarColocada(posta);
+        e.colocada = true;
+
+        // Esbate-se junto ao horizonte, onde a superfície foge do olhar.
+        /* Colocar onde as contas disseram, e não em cima do alfinete: era
+           esta a razão de as etiquetas continuarem a sobrepor-se depois de
+           eu ter posto um teste de colisão. O teste estava certo; o que
+           estava errado era o sítio onde eu punha o elemento a seguir. */
+        escrever(
+          e,
+          posta,
+          lado,
+          vert,
+          curto,
+          sobOPainel(posta) ? 0 : Math.min(1, (e.deFrente - 0.12) / 0.28) * veu(e)
+        );
+      }
+
+      /* Por fim, o que ficou sem nome. Corre depois de tudo colocado, e é
+         por isso que não pode tirar um nome a ninguém. */
+      agruparSobras();
+    };
+
+    /* ── O alfinete e a etiqueta são a mesma coisa vista de dois sítios ────
+       Apontar o ponto acende o nome, e apontar o nome acende o ponto. O teste
+       faz-se em coordenadas de écran, com os números que a colocação já
+       calculou; um raycaster contra esferas de 0,0004 de raio nunca acertava,
+       porque geometricamente o alfinete é sub-pixel — o que se vê e o que se
+       aponta é o halo, não a esfera.
+
+       ── Quanto mede o alvo ──────────────────────────────────────────────
+       Quinze pixéis de raio davam um alvo de trinta de lado, igual para o
+       rato e para o dedo. Um dedo não acerta em trinta: a medida que as
+       normas de acessibilidade pedem é 44, e é a mesma que este projecto já
+       impõe a qualquer botão em telemóvel. Por isso o raio segue o ponteiro
+       — 22 num ecrã de toque, 14 com rato, que é mais do que os 24px de lado
+       que um alvo de rato precisa.
+
+       Alargar o alvo só é seguro porque **nenhum outro alfinete lhe pode
+       cair dentro**: o raio de agrupamento é o dobro deste, e portanto dois
+       pontos que estivessem mais perto do que um alvo já são um ponto só. As
+       duas medidas são a mesma decisão vista de dois lados. */
+    const RAIO_TOQUE = grosso ? 22 : 14;
+
+    /** Dois alvos nunca se sobrepõem, e é isso que fixa o raio dos grupos. */
+    const SEPARACAO_MINIMA = 2 * RAIO_TOQUE;
+
+    const alfineteEm = (px: number, py: number) => {
+      let melhor: Etiqueta | null = null;
+      let menor = RAIO_TOQUE * RAIO_TOQUE;
+      for (const e of etiquetas) {
+        if (!e.noEcra) continue;
+        const dx = e.ecraX - px;
+        const dy = e.ecraY - py;
+        const d = dx * dx + dy * dy;
+        if (d < menor) {
+          menor = d;
+          melhor = e;
+        }
+      }
+      return melhor;
+    };
+
+    /* ── Onde está a lona na janela, em cache ─────────────────────────────
+     *
+     * Isto era um `getBoundingClientRect` por `pointermove` — e um deles a
+     * meio de um gesto é a pior altura possível para o pedir: as etiquetas
+     * acabaram de ser reescritas, o layout está sujo, e o browser tem de o
+     * refazer inteiro antes de responder ao movimento do dedo. É a mesma
+     * armadilha que o observador de revelações tinha, e que está escrita no
+     * CLAUDE.md.
+     *
+     * A caixa da lona só muda por duas razões, e as duas já têm quem as
+     * anuncie: a página rolou, ou a caixa mudou de tamanho. São essas que a
+     * esquecem; entre elas, lê-se a mesma. */
+    let caixaLona: DOMRect | null = null;
+    const esquecerCaixa = () => {
+      caixaLona = null;
+    };
+    const rectDaLona = () => (caixaLona ??= el.getBoundingClientRect());
+
+    /** Onde está o ponteiro em coordenadas da caixa. */
+    const noElemento = (e: PointerEvent) => {
+      const r = rectDaLona();
+      return { x: e.clientX - r.left, y: e.clientY - r.top };
+    };
+
+    /* ── Acender é uma coisa; abrir é outra ───────────────────────────────
+     *
+     * Apontar acende: o alfinete engorda, o nome deixa de estar truncado, o
+     * fio acende. Isso não desloca nada — a caixa cresce a partir do canto
+     * que está virado para o alfinete, e portanto cresce **para longe** do
+     * ponteiro.
+     *
+     * Abrir a lista de um ajuntamento é outra coisa, e essa **desloca**: são
+     * mais cinco linhas de texto, e elas aparecem exactamente onde o dedo já
+     * está. Medido de fora: quatro dos seis nomes de grupo punham uma
+     * ligação por baixo do ponteiro só por serem apontados — um deles a 286
+     * pixéis do sítio onde estava. Quem carregasse a seguir abria uma
+     * coudelaria que não escolheu.
+     *
+     * Por isso a lista deixa de abrir ao passar por cima: abre ao carregar e
+     * ao receber o foco, que são os dois gestos em que a pessoa já disse que
+     * queria aquele ponto. O que se perde é uma pré-visualização; o que se
+     * ganha é que carregar num sítio abre o que lá estava.
+     */
+    let aberta: Etiqueta | null = null;
+
+    const actualizarActivo = () => {
+      const alvo = fixa ?? focada ?? sobEtiqueta ?? sobAlfinete;
+      el.style.cursor = sobAlfinete ? "pointer" : "";
+      // Só um gesto deliberado abre a lista; passar por cima não é um.
+      const paraAbrir = fixa ?? focada;
+      let mudou = false;
+
+      if (alvo !== activa) {
+        const antes = activa;
+        activa = alvo;
+        for (const e of [antes, alvo]) {
+          if (!e) continue;
+          const ligado = e === alvo;
+          e.activo = ligado;
+          e.nó.toggleAttribute("data-activo", ligado);
+          realcar(e.alfinete, ligado);
+          // O nome deixa de estar truncado e a caixa muda: remede-se.
+          precisaMedir = true;
+        }
+        mudou = true;
+      }
+
+      if (paraAbrir !== aberta) {
+        const antes = aberta;
+        aberta = paraAbrir;
+        /* Sem a guarda do `membros.length > 1` que aqui estava: nessa altura
+           só um ajuntamento tinha o que abrir. Agora um ponto com uma
+           coudelaria só também tem — a ficha rápida —, e quem sabe distinguir
+           os dois casos é o próprio `abrir`, que é onde a etiqueta guarda o
+           que tem. A guarda aqui deixava a ficha por abrir para sempre e a
+           condição estava escrita em dois sítios. */
+        antes?.abrir(false);
+        paraAbrir?.abrir(true);
+        precisaMedir = true;
+        mudou = true;
+      }
+
+      // O alfinete mudou de tamanho e a etiqueta de forma: é preciso um quadro.
+      if (mudou) pedirQuadro();
+    };
+
+    /* ── A escolha ────────────────────────────────────────────────────────
+     *
+     * Entre carregar num nome e a página mudar havia um vazio: nada
+     * acontecia no globo, e a ficha aparecia sem que nada tivesse dito qual
+     * dos vinte e nove pontos é que tinha sido escolhido. O globo tem de
+     * reconhecer a escolha antes de a página mudar.
+     *
+     * ── Um movimento, e não três ─────────────────────────────────────────
+     *
+     * A tentação é somar efeitos: a argola abre, os outros apagam-se, a
+     * câmara aproxima. São três ideias, cada uma com o seu tempo, e três
+     * ideias ao mesmo tempo leem-se como confusão — a mesma razão por que os
+     * painéis que se escrevem desligam a cascata de entrada lá dentro.
+     *
+     * Aqui há **um relógio só**, e dele saem duas coisas que são a mesma
+     * afirmação vista dos dois lados: **este, e mais nenhum**. A argola do
+     * ponto escolhido abre-se e apaga-se; tudo o resto — os outros pontos,
+     * os outros nomes, os algarismos das manchas — recua para o preto. Não
+     * são dois movimentos com dois tempos: é o mesmo `t`, com a mesma curva,
+     * a mandar nos dois. Sem o recuo, a argola era um adorno em cima de um
+     * quadro cheio; sem a argola, o recuo não dizia qual.
+     *
+     * A câmara não se mexe de propósito. Aproximar seria prometer um sítio
+     * onde nunca se chega a ficar — a página seguinte é a ficha, não o mapa
+     * — e é a promessa que faz uma transição parecer atada com arame.
+     *
+     * ── Corre uma vez, e larga ────────────────────────────────────────────
+     *
+     * A duração vem do `--d-drill`, que é o token de **entrar num sítio** —
+     * o mesmo dos submenus e o mesmo da pilha de regiões do `/mapa`. Não se
+     * inventa aqui um tempo próprio: escolher uma coudelaria é entrar nela.
+     *
+     * E larga-se sozinha, passado o dobro dessa duração. A razão é a mesma
+     * da cortina de entrada: se a página nunca chegar — a rede caiu, o
+     * pedido foi abortado, alguém carregou em «voltar» a meio — o que não
+     * pode acontecer é ficar um globo apagado para sempre, sem forma de
+     * saber que ele ainda lá está. O caso normal é a página chegar primeiro
+     * e este componente desaparecer com ela; o largar é a rede.
+     *
+     * Com `prefers-reduced-motion` não corre nada: vai-se direito à ficha.
+     */
+    const D_ESCOLHA = duracaoDoToken("--d-drill", 320);
+    const CURVA_ESCOLHA = curvaDoToken("--ease-out", suave);
+    /** Quanto tempo se segura o estado final antes de o largar. */
+    const ESPERA_ESCOLHA = 2;
+
+    let escolhida: Etiqueta | null = null;
+    let escolhaInicio = 0;
+    /** Quanto do movimento já correu, entre 0 e 1. */
+    let escolhaT = 0;
+
+    /** A etiqueta que representa esta coudelaria — a que tem o alfinete. */
+    const etiquetaDe = (c: CoudelariaNoMapa) => etiquetas.find((e) => e.alvos.has(c.id)) ?? null;
+
+    const entrarNaEscolha = (c: CoudelariaNoMapa) => {
+      if (parado || escolhida) return;
+      const e = etiquetaDe(c);
+      if (!e) return;
+      escolhida = e;
+      escolhaInicio = performance.now();
+      escolhaT = 0;
+      camadaEtiquetas.dataset.escolha = "1";
+      e.nó.toggleAttribute("data-escolhida", true);
+      pedirQuadro();
+    };
+
+    const largarEscolha = () => {
+      if (!escolhida) return;
+      escolhida.nó.toggleAttribute("data-escolhida", false);
+      escolhida = null;
+      escolhaT = 0;
+      delete camadaEtiquetas.dataset.escolha;
+      for (const a of alfinetesFeitos) escreverPonto(a, a === activa?.alfinete, 0, 1);
+      pontosMudaram();
+      pedirQuadro();
+    };
+
+    /** O véu, ponto a ponto e nome a nome: quem não foi escolhido recua. */
+    const veu = (e: Etiqueta) => (escolhida && e !== escolhida ? 1 - escolhaT : 1);
+
+    const correrEscolha = (agora: number) => {
+      if (!escolhida) return;
+      escolhaT = CURVA_ESCOLHA(Math.min(1, (agora - escolhaInicio) / D_ESCOLHA));
+      const alvo = escolhida.alfinete;
+      for (const a of alfinetesFeitos) {
+        const eleito = a === alvo;
+        escreverPonto(
+          a,
+          eleito || a === activa?.alfinete,
+          eleito ? escolhaT : 0,
+          eleito ? 1 : 1 - escolhaT
+        );
+      }
+      pontosMudaram();
+      if (agora - escolhaInicio >= D_ESCOLHA * ESPERA_ESCOLHA) largarEscolha();
+    };
+
+    /* ── Carregar num ponto ───────────────────────────────────────────────
+       Um ponto com uma coudelaria só leva à ficha dela — um passo, não dois.
+       Um ponto que junta várias abre-se e mostra quem lá está: nenhum zoom
+       as separa a esta altura, e por isso a escolha tem de ser dita por
+       palavras. Carregar fora fecha-a. */
+    /**
+     * `daLona` distingue os dois alvos que a mesma etiqueta oferece.
+     *
+     * **O nome é «ir»; o alfinete é «diz-me mais».** Carregar no nome leva à
+     * ficha da coudelaria num passo, como sempre levou — é uma ligação a
+     * sério e continua a dar o Ctrl+clique e o botão do meio. Carregar no
+     * alfinete abre a ficha rápida: fotografia, cavalos, região e as
+     * primeiras linhas da descrição, sem sair da página.
+     *
+     * Dois alvos e dois verbos, e nenhum deles perde um passo: quem já sabe
+     * que quer aquela coudelaria carrega no nome e vai; quem está a decidir
+     * carrega no ponto e fica. Antes, o alfinete e o nome faziam a mesma
+     * coisa — o ponto era um segundo botão para o mesmo destino, que é um
+     * alvo desperdiçado num mapa onde o alvo tem 44 pixéis e o nome tem
+     * cento e sessenta.
+     *
+     * Num ponto que junta várias não há ficha para mostrar — não há uma
+     * coudelaria, há cinco —, e os dois alvos continuam a fazer o mesmo:
+     * abrir a lista de quem lá está.
+     */
+    function accionar(e: Etiqueta, ev?: MouseEvent, daLona = false) {
+      if (e.membros.length > 1 || daLona) {
+        fixa = fixa === e ? null : e;
+        actualizarActivo();
+      } else {
+        escolher(e.membros[0], ev);
+      }
+    }
+
+    camadaEtiquetas.addEventListener("pointerover", (ev) => {
+      const alvo = (ev.target as HTMLElement).closest(".globo-etiqueta");
+      sobEtiqueta = etiquetas.find((e) => e.nó === alvo) ?? null;
+      actualizarActivo();
+      const mancha = (ev.target as HTMLElement).closest(".globo-mancha");
+      manchaSob = manchas.find((m) => m.nó === mancha) ?? null;
+      actualizarMancha();
+    });
+    camadaEtiquetas.addEventListener("pointerout", (ev) => {
+      const para = ev.relatedTarget as Node | null;
+      if (para && camadaEtiquetas.contains(para)) return;
+      sobEtiqueta = null;
+      actualizarActivo();
+      manchaSob = null;
+      actualizarMancha();
+    });
+    camadaEtiquetas.addEventListener("focusin", (ev) => {
+      const alvo = (ev.target as HTMLElement).closest(".globo-etiqueta");
+      focada = etiquetas.find((e) => e.nó === alvo) ?? null;
+      actualizarActivo();
+    });
+    camadaEtiquetas.addEventListener("focusout", (ev) => {
+      const para = ev.relatedTarget as Node | null;
+      if (para && camadaEtiquetas.contains(para)) return;
+      focada = null;
+      actualizarActivo();
+    });
+
+    /* As larguras medidas antes de a Geist chegar são as da letra de recurso,
+       e ficavam em cache para sempre: o teste de colisão passava o resto da
+       sessão a comparar caixas que já não existiam. */
+    document.fonts?.ready.then(() => {
+      if (desmontado) return;
+      precisaMedir = true;
+      pedirQuadro();
+    });
+
+    const mundo = new THREE.Group();
+    mundo.add(terra);
+    mundo.add(grupoContornos);
+    mundo.add(grupoAlfinetes);
+    cena.add(mundo);
+
+    /* ── O relógio ────────────────────────────────────────────────────────
+       Um quadro é pedido; nunca agendado em cadeia. Só se pede quando há
+       alguma coisa nova para ver, e só se serve quando há alguém a ver. */
+    const duracao = parado ? 0 : DURACAO_ENTRADA;
+    /* Quem volta ao mapa não faz a viagem outra vez: entra onde estava. */
+    /* `!refeita`: a entrada é a chegada ao mapa, e uma cena refeita não é uma
+       chegada — é a mesma vista a voltar depois de o browser ter tirado a
+       memória gráfica. Repetir os dois segundos e meio de viagem do espaço
+       seria mandar de volta ao princípio quem não saiu do sítio, que é
+       exactamente o defeito que o `vistaGuardada` aqui ao lado veio corrigir.
+       Quem tinha mexido no zoom volta pelo `sessionStorage`; quem não tinha
+       volta ao repouso, que é onde estava. */
+    let aEntrar = !parado && !vistaGuardada && !refeita;
+    if (vistaGuardada) {
+      alturaVoo = Math.min(ALTURA_MAXIMA, Math.max(ALTURA_MINIMA, vistaGuardada.h));
+      orbita.theta = vistaGuardada.t;
+      orbita.phi = vistaGuardada.p;
+      zoomDoUtilizador = true;
+    }
+
+    const qGuinada = new THREE.Quaternion();
+    const qInclinacao = new THREE.Quaternion();
+
+    function podeDesenhar() {
+      return noEcra && !escondido && contextoVivo && !desmontado;
+    }
+
+    function desenhar() {
+      quadroPedido = 0;
+      if (aEntrar) {
+        /* ── Uma viagem que ninguém vê, e a correcção que não entrou ──────
+         *
+         * O relógio arranca no primeiro quadro desenhado, e a caixa do globo
+         * está a `opacity: 0` até o `revelar` disparar — que espera pela
+         * primeira das cinco texturas ou pelos quatro segundos da rede de
+         * segurança. Medido no banco, com o WebGL por software, que é o que
+         * um telemóvel fraco parece: dos 9 quadros dentro dos 2600ms a
+         * 390×700 e dos 8 a 1400×950, **zero tinham a caixa opaca**. A caixa
+         * só ficava opaca a 3254ms e a 4930ms, isto é 654ms e 2330ms **depois
+         * de a viagem ter acabado**. A entrada corria inteira atrás de preto.
+         *
+         * A correcção óbvia — arrancar o relógio no `revelar` em vez de no
+         * primeiro quadro — foi escrita, medida, e **revertida**: passava o
+         * percurso das setas a 1400×950 de **32/32 para 27–29/32**, com o
+         * foco a cair em nomes a `opacity: 0`. A assinatura é exacta e está
+         * aqui para quem voltar: o nome tinha `style.opacity = "1"` e a
+         * computada a zero, com `animation: etiqueta-nascer` e um atraso de
+         * 2,56s. A cascata de nascimento conta o atraso a partir do instante
+         * em que o nó entra no DOM (`--entrada`, até 3000ms) e tem
+         * `animation-fill-mode: backwards`, ou seja **durante o atraso impõe
+         * `opacity: 0` por cima do que o motor escreve em linha**. Hoje as
+         * duas coisas partem do mesmo instante e cruzam-se sem se verem;
+         * afastar a viagem para a frente descola-as, e a cascata passa a
+         * apagar nomes que o motor já tinha colocado.
+         *
+         * Ou seja: a entrada não se pode mover sozinha. Quem a mover tem de
+         * mover com ela o relógio da cascata — passar o `--entrada` a ser
+         * escrito quando a viagem arranca, e não quando o nó nasce. Fica por
+         * fazer, com a medição feita, porque é uma alteração à colocação e a
+         * colocação tem nove invariantes a defender. */
+        // O relógio da entrada arranca no primeiro quadro que se vê, não no
+        // momento em que o componente monta: fora do ecrã não há entrada.
+        if (!inicio) inicio = performance.now();
+        const t = Math.min(1, (performance.now() - inicio) / duracao);
+        /* Interpola-se o LOGARITMO da altura. Em linha recta a aproximação
+           arrasta-se enquanto está longe e precipita-se no fim, porque o que
+           se vê muda com a escala e não com a distância; em logaritmo a
+           escala muda à mesma taxa do princípio ao fim e lê-se como um
+           movimento só. O alvo lê-se aqui, e não é fixado no arranque: se a
+           caixa mudar de tamanho a meio, a entrada aponta ao sítio novo. */
+        alturaVoo = Math.exp(
+          Math.log(ALTURA_MAXIMA) + (Math.log(alturaRepouso) - Math.log(ALTURA_MAXIMA)) * suave(t)
+        );
+        if (t >= 1) {
+          aEntrar = false;
+          // Pousou: daqui para a frente é a altura verdadeira que manda.
+          reagrupar();
+        }
+      }
+      /* Guinada primeiro, no eixo do mundo; inclinação depois, no eixo leste
+         da câmara. Assim o arrasto vertical move o chão a direito no ecrã —
+         com `rotation.x`, que é o eixo X do mundo e aqui aponta para o lado,
+         o arrasto vertical movia o chão na diagonal. */
+      // A escolha corre antes do desenho: o quadro que sai já a leva dentro.
+      if (escolhida) correrEscolha(performance.now());
+      aplicarOrbita();
+      colocarCamara();
+      renderizador.render(cena, camara);
+      etiquetar();
+      actualizarComandos();
+      // Só se encadeia enquanto alguma coisa se mexe.
+      if (aEntrar || escolhida || ponteiros.size > 0) pedirQuadro();
+    }
+
+    function pedirQuadro() {
+      if (quadroPedido || !podeDesenhar()) return;
+      quadroPedido = requestAnimationFrame(desenhar);
+    }
+
+    const parar = () => {
+      if (quadroPedido) cancelAnimationFrame(quadroPedido);
+      quadroPedido = 0;
+      if (!pausadoEm) pausadoEm = performance.now();
+    };
+    const retomar = () => {
+      // A entrada continua de onde ficou: o tempo parado não conta.
+      if (pausadoEm && inicio) inicio += performance.now() - pausadoEm;
+      pausadoEm = 0;
+      pedirQuadro();
+    };
+
+    function revelar() {
+      if (desmontado) return;
+      /* `a-refazer` também: é a mesma cena a nascer, só que pela segunda vez.
+         Sem esta metade, uma cena refeita ficava a zero de opacidade para
+         sempre com a frase da recuperação por cima — que é o defeito que se
+         estava a corrigir, com outro nome. */
+      setEstado((e) => (e === "a-carregar" || e === "a-refazer" ? "pronto" : e));
+      pedirQuadro();
+    }
+    /* Rede de segurança: se nem o `load` nem o `error` chegarem — um proxy
+       que engole o pedido, um browser que o deixa pendurado — o globo
+       aparece na mesma passados quatro segundos. */
+    const relogioRevelar = window.setTimeout(revelar, 4000);
+
+    // ── Interacção ────────────────────────────────────────────────────────
+    /* Quanto roda o mundo por pixel de arrasto. Sai da geometria, não de um
+       número à sorte: um pixel de dedo é um pixel de chão, a qualquer altura
+       e em qualquer caixa. Com o 0,004 rad/px fixo que aqui estava, 120px de
+       arrasto rodavam o mundo 27° — umas oito larguras de quadro — e num
+       telemóvel isso punha a câmara sobre o meio do Atlântico, de noite, sem
+       nada no ecrã por onde se soubesse voltar. */
+    const escala = () => {
+      const { eixo, sep, distancia } = enquadrar(alturaVoo);
+      const meiaAltura = Math.tan((FOV / 2) * grau);
+      const l = larguraCaixa;
+      const a = alturaCaixa;
+      return {
+        l,
+        a,
+        // A guinada corre paralelos: à latitude da mira um ponto anda cos(lat).
+        theta: (2 * distancia * meiaAltura * camara.aspect) / (l * Math.cos(MIRA.lat * grau)),
+        /* Na vertical o chão está deitado: da mira vê-se a câmara a (δ0 − Δ)
+           acima do horizonte, e por isso um pixel vale 1/sin(δ0 − Δ) vezes
+           mais chão do que valeria de frente. */
+        phi: (2 * distancia * meiaAltura) / (a * Math.max(0.08, Math.sin(eixo - sep))),
+      };
+    };
+
+    /* ── Até onde se pode passear ─────────────────────────────────────────
+     *
+     * O limite que aqui estava era uma fracção do quadro: o centro andava até
+     * 20% da largura e 12% da altura, o que numa vista de repouso chega para
+     * espreitar Espanha e não chega para perder o país. Só que essa fracção
+     * encolhe com o zoom — e com um curso de 3,5× isso queria dizer que, bem
+     * aproximado, a vista ficava presa a trinta quilómetros da mira. Ir de
+     * Sintra a Vila Viçosa sem afastar era impossível, e o zoom sobre o
+     * cursor não teria para onde levar ninguém.
+     *
+     * O limite passa a sair **dos dados**: o ponto para onde se olha tem de
+     * ficar dentro da caixa que contém as coudelarias, com uma folga. Não é
+     * um número inventado — é a promessa de que não se sai de onde há coisas
+     * para ver, e de que qualquer coudelaria se pode pôr ao centro. Fica a
+     * união com o limite antigo, para que em repouso nunca se ande menos do
+     * que se andava.
+     *
+     * As contas são directas porque a órbita é o que é: pôr a longitude L ao
+     * centro é `theta = (MIRA.lon − L)·grau`, e a latitude o mesmo com o phi.
+     */
+    const FOLGA_CAIXA = 0.35;
+    /* Sai dos pontos, logo refaz-se quando eles trocam: filtrar até uma
+       coudelaria só tem de deixar o limite à volta **dessa**, senão a órbita
+       podia parar num sítio de onde o único ponto que resta não se vê. */
+    const medirCaixaDados = (ps: Ponto[]) =>
+      ps.length
+        ? ps.reduce(
+            (c, p) => ({
+              latMin: Math.min(c.latMin, p.coords[0]),
+              latMax: Math.max(c.latMax, p.coords[0]),
+              lonMin: Math.min(c.lonMin, p.coords[1]),
+              lonMax: Math.max(c.lonMax, p.coords[1]),
+            }),
+            { latMin: 90, latMax: -90, lonMin: 180, lonMax: -180 }
+          )
+        : { latMin: MIRA.lat, latMax: MIRA.lat, lonMin: MIRA.lon, lonMax: MIRA.lon };
+    let caixaDados = medirCaixaDados(pontos);
+
+    const limites = () => {
+      const s = escala();
+      const lt = 0.2 * s.l * s.theta;
+      const lp = 0.12 * s.a * s.phi;
+      return {
+        thetaMin: Math.min(-lt, (MIRA.lon - caixaDados.lonMax - FOLGA_CAIXA) * grau),
+        thetaMax: Math.max(lt, (MIRA.lon - caixaDados.lonMin + FOLGA_CAIXA) * grau),
+        phiMin: Math.min(-lp, (MIRA.lat - caixaDados.latMax - FOLGA_CAIXA) * grau),
+        phiMax: Math.max(lp, (MIRA.lat - caixaDados.latMin + FOLGA_CAIXA) * grau),
+      };
+    };
+
+    const prender = () => {
+      const lim = limites();
+      orbita.theta = Math.max(lim.thetaMin, Math.min(lim.thetaMax, orbita.theta));
+      orbita.phi = Math.max(lim.phiMin, Math.min(lim.phiMax, orbita.phi));
+    };
+
+    /* Aplica a órbita ao mundo. Sai do `desenhar` para uma função sua porque
+       o zoom sobre o cursor precisa de saber onde é que um ponto do chão vai
+       parar no ecrã **antes** de haver um quadro. */
+    const aplicarOrbita = () => {
+      qGuinada.setFromAxisAngle(EIXO_POLAR, orbita.theta);
+      qInclinacao.setFromAxisAngle(LESTE, orbita.phi);
+      mundo.quaternion.copy(qInclinacao).multiply(qGuinada);
+      mundo.updateMatrixWorld(true);
+    };
+
+    const vAux = new THREE.Vector3();
+    const ndc = new THREE.Vector2();
+    const raio = new THREE.Raycaster();
+    /* A esfera do chão é a do alfinete e não a do planeta: assim o ponto que
+       o cursor agarra é o mesmo plano em que os alfinetes vivem. */
+    const esferaChao = new THREE.Sphere(new THREE.Vector3(0, 0, 0), RAIO * 1.004);
+
+    /** O ponto do globo — em coordenadas do mundo que roda — debaixo deste
+        pixel, ou `null` se ali só houver céu. */
+    const chaoEm = (px: number, py: number) => {
+      ndc.set((px / larguraCaixa) * 2 - 1, -(py / alturaCaixa) * 2 + 1);
+      raio.setFromCamera(ndc, camara);
+      if (!raio.ray.intersectSphere(esferaChao, vAux)) return null;
+      return mundo.worldToLocal(vAux.clone());
+    };
+
+    const ecraDe = (local: THREE.Vector3) => {
+      vAux.copy(local).applyMatrix4(mundo.matrixWorld).project(camara);
+      return {
+        x: (vAux.x * 0.5 + 0.5) * larguraCaixa,
+        y: (-vAux.y * 0.5 + 0.5) * alturaCaixa,
+      };
+    };
+
+    /** Um toque no botão vale cerca de dois dentes de roda. */
+    const PASSO_ZOOM = 1.6;
+
+    /**
+     * Muda a altura, e — se lhe derem um pixel — deixa o chão desse pixel
+     * onde estava.
+     *
+     * É o que qualquer mapa faz e o que este não fazia: a roda aproximava
+     * sempre o centro do quadro, de modo que aproximar-se de um ajuntamento
+     * do Ribatejo obrigava a aproximar e arrastar, aproximar e arrastar. Com
+     * a âncora, aponta-se e roda-se.
+     *
+     * A correcção é iterativa e não fechada de propósito: a projecção de uma
+     * esfera vista de perto e de esguelha não se inverte em duas linhas, mas
+     * a `escala()` já dá a derivada — quantos radianos vale um pixel aqui —,
+     * e com ela três passos de Newton chegam a menos de um pixel. Cada passo
+     * custa duas matrizes e uma projecção; não corre por quadro, corre por
+     * dente de roda.
+     */
+    const mudarAltura = (factor: number, px?: number, py?: number) => {
+      /* Chega aqui pela roda, pelos botões do canto e pelas teclas `+`/`-`.
+         Os dois últimos são um pedido explícito para usar o globo, e valem
+         como pegar nele; o primeiro só passa se já se tinha pegado. */
+      pegarNoGlobo();
+      aEntrar = false;
+      zoomDoUtilizador = true;
+      const antes = alturaVoo;
+      const nova = Math.min(ALTURA_MAXIMA, Math.max(ALTURA_MINIMA, alturaVoo * factor));
+      if (nova === antes) return;
+
+      const ancora = px === undefined || py === undefined ? null : chaoEm(px, py);
+      alturaVoo = nova;
+      if (ancora) {
+        for (let i = 0; i < 3; i++) {
+          colocarCamara();
+          aplicarOrbita();
+          const onde = ecraDe(ancora);
+          const s = escala();
+          orbita.theta += (px! - onde.x) * s.theta;
+          orbita.phi -= (py! - onde.y) * s.phi;
+          prender();
+        }
+        aplicarOrbita();
+      }
+      colocarCamara();
+      reagrupar();
+      pedirQuadro();
+    };
+
+    const entreDedos = () => {
+      const [a, b] = [...ponteiros.values()];
+      return a && b ? Math.hypot(a.x - b.x, a.y - b.y) || 1 : 0;
+    };
+
+    /** O ponto entre os dois dedos, em coordenadas da caixa. */
+    const centroDosDedos = () => {
+      const [a, b] = [...ponteiros.values()];
+      if (!a || !b) return null;
+      const r = el.getBoundingClientRect();
+      return { x: (a.x + b.x) / 2 - r.left, y: (a.y + b.y) / 2 - r.top };
+    };
+
+    /* ── O que está por cima da lona não é a lona ─────────────────────────
+     *
+     * Um nome e um algarismo de mancha vivem numa camada HTML por cima da
+     * cena, e os eventos deles borbulham até à caixa. Enquanto a caixa
+     * tratasse qualquer `pointermove` como «passeio sobre o globo», apontar
+     * um algarismo acendia o alfinete que estava por baixo dele — e uma
+     * etiqueta acesa é a primeira a escolher lugar na recolocação, o que
+     * empurrava o próprio algarismo para longe do dedo. Medido por um banco
+     * de provas de fora: em telemóvel, carregar no «13» não fazia nada, e as
+     * manchas guardavam vinte das vinte e nove coudelarias; em computador o
+     * algarismo fugia 25 a 27 pixéis e o clique caía num nome ao lado.
+     *
+     * A regra é uma linha: **o que está na camada de cima não é a lona**.
+     * Quem está lá já tem quem trate dele — o `pointerover` da camada dos
+     * nomes —, e os comandos da vista também não são chão.
+     *
+     * É por exclusão e não por «tem de ser a lona» de propósito: um véu de
+     * outro componente por cima do globo — o aviso de cookies, por exemplo —
+     * recebe os eventos do rato em vez da lona, e exigir a lona deixava o
+     * globo cego enquanto ele lá estivesse. O que interessa saber é uma coisa
+     * só: se o ponteiro está em cima de uma etiqueta nossa. */
+    const foraDaCamada = (e: PointerEvent) => {
+      const alvo = e.target as Node | null;
+      return !alvo || (!camadaEtiquetas.contains(alvo) && !comandos.contains(alvo));
+    };
+
+    /** Um gesto que só serviu para travar a entrada não é um clique. */
+    let travouEntrada = false;
+
+    const aoDescer = (e: PointerEvent) => {
+      /* ── Carregar durante a viagem trava-a, e mais nada ─────────────────
+         A entrada mexe a câmara durante dois segundos e meio. Fixar aqui o
+         alfinete debaixo do dedo é fixar um alvo que já não estará ali
+         quando ela pousar: numa de três corridas do banco de provas, um
+         clique a meio da entrada abria uma coudelaria à sorte. Travar a
+         viagem é o que a pessoa está a pedir; escolher por ela não é. */
+      travouEntrada = aEntrar;
+      aEntrar = false;
+      /* ── E travar a viagem é **chegar já**, não parar a meio ────────────
+         O parágrafo acima estava certo na intenção e errado na execução.
+         Punha-se `aEntrar = false` e mais nada — e o `alturaVoo` ficava no
+         valor intermédio em que a viagem ia, que a meio caminho é o espaço:
+         África inteira no quadro, Portugal do tamanho de uma unha e as vinte
+         e nove coudelarias colapsadas numa mancha só. Quem toca no globo
+         quer o globo, e o globo é o enquadramento de repouso; não há leitura
+         nenhuma em que a resposta certa seja o sítio arbitrário onde a
+         interpolação calhou de estar.
+         O `if (!aEntrar && !zoomDoUtilizador) alturaVoo = alturaRepouso` que
+         há lá em baixo não salvava isto: corre no redimensionamento, e
+         ninguém redimensiona a janela por ter carregado no globo.
+         Pousa-se aqui como o fim da viagem pousa — altura de repouso, câmara
+         colocada, ajuntamentos refeitos. */
+      if (travouEntrada) {
+        alturaVoo = alturaRepouso;
+        colocarCamara();
+        reagrupar();
+      }
+      /* Pegar no globo com o rato dá-lhe a roda — ver `aplicarRoda`. Com o
+         dedo não, e a razão está escrita lá. */
+      if (e.pointerType !== "touch") pegarNoGlobo();
+      arrastou = false;
+      ponteiros.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      pinca = entreDedos();
+      /* Num ecrã táctil não há passeio do rato que acenda o alfinete antes do
+         toque: quem escolhe o alvo é o próprio toque. */
+      if (foraDaCamada(e) && !travouEntrada) {
+        const p = noElemento(e);
+        sobAlfinete = alfineteEm(p.x, p.y);
+        actualizarActivo();
+      }
+      pedirQuadro();
+    };
+
+    const aoMover = (e: PointerEvent) => {
+      const antes = ponteiros.get(e.pointerId);
+      if (!antes) {
+        // Sem botão em baixo é só passear: acende-se o ponto que está debaixo.
+        if (!foraDaCamada(e)) return;
+        const p = noElemento(e);
+        sobAlfinete = alfineteEm(p.x, p.y);
+        actualizarActivo();
+        return;
+      }
+      const dx = e.clientX - antes.x;
+      const dy = e.clientY - antes.y;
+      antes.x = e.clientX;
+      antes.y = e.clientY;
+      // Três pixéis chegam para separar um clique de um arrasto; sem isto,
+      // largar o rato depois de rodar o globo abria a coudelaria por baixo.
+      if (Math.abs(dx) + Math.abs(dy) > 3) {
+        arrastou = true;
+        /* ── O ponteiro só se agarra depois de o gesto ser um arrasto ──────
+           Agarrá-lo logo no `pointerdown`, que era o que aqui estava, custava
+           **todos os cliques do globo no computador**. Com o ponteiro
+           capturado pela caixa, o browser passa a entregar-lhe o `pointerup`
+           e o `click` — e o alvo desses eventos deixa de ser o que está
+           debaixo do rato. Medido, com um espião nos três eventos:
+
+             pointerdown → globo-etiqueta__nome
+             pointerup   → (a caixa)
+             click       → (a caixa)
+
+           O `click` do nome nunca chegava ao nome, e o `largar`, que exige
+           `e.target === lona` para tratar um clique no alfinete, também nunca
+           passava desse teste. Resultado: `aoEscolher` estava morto com rato
+           — nem o nome nem o ponto abriam a ficha da coudelaria. Só o toque
+           funcionava, porque aí o alvo do clique se resolve de outra maneira.
+
+           A captura serve para o arrasto continuar quando o rato sai da
+           caixa, e para isso basta agarrá-lo quando o arrasto começa. Um
+           clique, que por definição não passa dos três pixéis, nunca a
+           chega a pedir — e chega ao elemento certo. */
+        if (!el.hasPointerCapture(e.pointerId)) el.setPointerCapture(e.pointerId);
+      }
+
+      if (ponteiros.size >= 2) {
+        /* Dois dedos mudam a altura, e a pinça abre a partir do ponto que
+           está entre eles — que é o sítio para onde a mão está a apontar.
+           Num telemóvel não há roda do rato, e sem isto não havia zoom
+           nenhum: o globo era só arrastável. */
+        const agora = entreDedos();
+        if (pinca > 0 && agora > 0) {
+          const meio = centroDosDedos();
+          mudarAltura(pinca / agora, meio?.x, meio?.y);
+        }
+        pinca = agora;
+        arrastou = true;
+        return;
+      }
+
+      const s = escala();
+      orbita.theta += dx * s.theta;
+      orbita.phi -= dy * s.phi;
+      prender();
+      pedirQuadro();
+    };
+
+    const largar = (e: PointerEvent, clique: boolean) => {
+      const tinha = ponteiros.delete(e.pointerId);
+      pinca = entreDedos();
+      if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+      if (!tinha) return;
+      const eraArrasto = arrastou;
+      if (ponteiros.size === 0) arrastou = false;
+      const soTravou = travouEntrada;
+      if (ponteiros.size === 0) travouEntrada = false;
+      if (!clique || eraArrasto || soTravou || e.target !== lona) return;
+      // O alfinete vale um clique tanto quanto o nome: é ele o alvo que se vê.
+      if (sobAlfinete) accionar(sobAlfinete, undefined, true);
+      // Carregar no vazio fecha a pilha ou a mancha que estiver aberta.
+      else {
+        if (fixa) {
+          fixa = null;
+          actualizarActivo();
+        }
+        if (manchaFixa) {
+          manchaFixa = null;
+          actualizarMancha();
+        }
+        /* ── Duas batidas no vazio aproximam ───────────────────────────────
+           É o gesto que qualquer mapa tem e este não tinha, e é o único zoom
+           que existe num telemóvel sem ser a pinça — que precisa de duas mãos
+           ou de dois dedos a acertar ao mesmo tempo. Duas batidas precisam de
+           uma. Vai buscar o mesmo passo do botão, e ancora no sítio onde se
+           bateu, não no centro.
+
+           Só no vazio: em cima de um alfinete a primeira batida já abriu ou
+           já navegou, e aproximar por cima disso seria responder duas coisas
+           à mesma pergunta. */
+        const agora = performance.now();
+        const p = noElemento(e);
+        const perto = Math.hypot(p.x - ultimoToque.x, p.y - ultimoToque.y) < 26;
+        if (agora - ultimoToque.t < 320 && perto) {
+          ultimoToque.t = 0;
+          mudarAltura(1 / PASSO_ZOOM, p.x, p.y);
+        } else {
+          ultimoToque.t = agora;
+          ultimoToque.x = p.x;
+          ultimoToque.y = p.y;
+        }
+      }
+    };
+    /** A última batida no vazio, para saber se a próxima é a segunda. */
+    const ultimoToque = { t: 0, x: 0, y: 0 };
+
+    const aoLargar = (e: PointerEvent) => largar(e, true);
+    const aoCancelar = (e: PointerEvent) => largar(e, false);
+    const aoSair = (e: PointerEvent) => {
+      // Sair da caixa nunca é um clique, e apaga o ponto que estava aceso.
+      aoCancelar(e);
+      sobAlfinete = null;
+      actualizarActivo();
+    };
+
+    const aoRodar = (e: WheelEvent) => {
+      /* Enquanto a roda for da página, sai-se antes do `preventDefault` — e
+         o ouvinte que a entrega já foi registado como passivo. Quem decide
+         é o `aplicarRoda`. */
+      if (rodaEhDaPagina) return;
+      e.preventDefault();
+      /* Multiplicativo e proporcional ao deslocamento: um dente de roda
+         (deltaY ≈ 120) muda a altura 22%, e um trackpad, que manda muitos
+         eventos pequenos, anda à mesma velocidade em vez de disparar.
+
+         Eram 13% quando o curso inteiro do zoom valia 1,6×: cinco dentes
+         chegavam ao fundo. Com 3,5× de curso os mesmos 13% pediam dez dentes
+         para o mesmo caminho, e um mapa em que é preciso rodar dez vezes para
+         ver alguma coisa lê-se como um mapa que não responde. Com 22% são
+         seis dentes, que é o que se faz com um gesto do dedo.
+
+         O `clientX/Y` é a âncora: aproxima-se para onde o cursor aponta, e
+         não para o meio do ecrã. */
+      const passo = Math.max(-120, Math.min(120, e.deltaY)) / 120;
+      const r = rectDaLona();
+      mudarAltura(Math.exp(passo * 0.22), e.clientX - r.left, e.clientY - r.top);
+    };
+
+    /** Volta ao enquadramento com que o globo pousou. */
+    const reporVista = () => {
+      aEntrar = false;
+      zoomDoUtilizador = false;
+      alturaVoo = alturaRepouso;
+      orbita.theta = 0;
+      orbita.phi = 0;
+      colocarCamara();
+      reagrupar();
+      pedirQuadro();
+    };
+
+    /* ── Percurso pelas coudelarias com as setas ──────────────────────────
+     *
+     * A tabulação passa só pelos nomes que se lêem — e está certo: um foco em
+     * cima de nada não é um caminho, é uma armadilha. Mas isso deixava as
+     * outras catorze sem caminho nenhum a partir do globo, que é o defeito
+     * a sério. Aqui está o caminho: as setas percorrem as vinte e nove por
+     * ordem de latitude, de norte para sul, e cada passo traz a coudelaria à
+     * vista antes de lhe dar o foco.
+     *
+     * Norte→sul e não a ordem da base de dados porque a ordem tem de se
+     * poder prever olhando para o mapa: quem vê o ponteiro a descer o país
+     * sabe onde vai dar a seta seguinte.
+     *
+     * Não é preciso mexer a câmara em quase nenhum passo. Uma etiqueta com o
+     * foco está `activa`, e uma etiqueta activa é a primeira a escolher
+     * lugar — por isso o nome aparece por si, mesmo que a colisão o tivesse
+     * calado. Só quando o ponto está mesmo fora do quadro é que a vista se
+     * repõe e se centra o que os limites da órbita deixarem.
+     *
+     * O salto é seco, sem animação, e de propósito: quem navega por teclado
+     * quer o passo seguinte, não uma viagem de trezentos milissegundos por
+     * cada uma de vinte e nove. */
+    /* O percurso é pelas **coudelarias**, não pelos pontos do ecrã. Era pelos
+       pontos, e com os ajuntamentos isso passou a querer dizer que uma seta
+       podia saltar cinco coudelarias de uma vez. Pior: mover a câmara pode
+       refazer os ajuntamentos, e a etiqueta que ia receber o foco deixava de
+       existir — medido de fora, o foco saía do globo em todos os passos. A
+       lista das vinte e nove nunca muda; as etiquetas mudam. Percorre-se a
+       que não muda, e procura-se a etiqueta **depois** de a câmara pousar. */
+    /* «A lista das vinte e nove nunca muda» valia enquanto a lista fosse a
+       da montagem. Com o filtro a trocá-la em cena, o percurso é das
+       coudelarias **que estão no mapa agora** — percorrer as que a pesquisa
+       tirou seria levar o foco a nomes que não existem. */
+    const ordenarPercurso = (ps: Ponto[]) =>
+      [...ps].sort((x, y) => y.coords[0] - x.coords[0] || x.coords[1] - y.coords[1]);
+    let percurso = ordenarPercurso(pontos);
+    let indiceTour = -1;
+
+    /* O ponto para onde a centragem aponta, em coordenadas do mundo que roda.
+       Reaproveitado: a centragem corre a cada seta, e um vector novo por
+       tecla é lixo que não precisa de existir. */
+    const alvoLocal = new THREE.Vector3();
+
+    const centrarEm = (coords: [number, number]) => {
+      alturaVoo = alturaRepouso;
+      zoomDoUtilizador = false;
+      /* A guinada corre paralelos e não mexe na latitude; a inclinação corre
+         o meridiano da mira, onde a guinada acabou de pôr o ponto. Por isso
+         as duas contas são independentes e directas. Agora que o limite da
+         órbita sai da caixa dos dados, o ponto fica mesmo ao centro em vez de
+         entrar de raspão pela borda — que é o que o percurso pelas setas
+         precisava e não tinha. */
+      orbita.theta = (MIRA.lon - coords[1]) * grau;
+      orbita.phi = (MIRA.lat - coords[0]) * grau;
+
+      /* ── E o centro é o da faixa útil, não o da lona ────────────────────
+       *
+       * «A janela útil não é a lona» já era regra desta casa, mas só valia
+       * para a colocação: o motor não escreve por baixo do que está fixo no
+       * ecrã. A câmara não sabia da regra e apontava o ponto ao centro da
+       * **lona** — e por isso, com a barra de cookies em pé, o percurso das
+       * setas dava o foco a nomes que ninguém via.
+       *
+       * Medido a 390×700 com a barra em pé: a faixa útil é
+       * [118, 448] — 330px de 700 — e o alfinete pousava a y≈327, que é
+       * dentro da faixa. Não era o `prender` a limitar (zero dos 32 passos)
+       * nem o ponto a cair na parte tapada. Era a **folga gasta do lado
+       * errado**: uma etiqueta de ajuntamento aberta mede 286px de altura e
+       * a faixa mede 326 úteis, ou seja há 20px de folga para cada lado, e
+       * centrar na lona punha o alfinete 44px abaixo do centro da faixa. As
+       * oito hipóteses de colocação falhavam todas — «cima» não cabe por
+       * cima, «baixo» sai por baixo, e «meio» transbordava 24px. No
+       * ajuntamento de cinco, que mede 241, falhava por 0,8px: é a
+       * assinatura de uma folga mal repartida e não de um limite.
+       *
+       * O centro da faixa é o sítio que deixa a maior folga **igual** dos
+       * dois lados, e é por isso o que dá mais hipóteses a uma etiqueta
+       * alta. Com ele, a de 286 fica em [140, 426] e a de 241 em
+       * [162, 404] — as duas dentro de [120, 446].
+       *
+       * A conta é iterativa e não fechada pela mesma razão que a do zoom
+       * sobre o cursor, logo aqui em cima: a projecção de uma esfera vista
+       * de perto e de esguelha não se inverte em duas linhas, mas a
+       * `escala()` já dá a derivada — quantos radianos vale um pixel aqui —
+       * e com ela três passos chegam a menos de um pixel. Não corre por
+       * quadro; corre por tecla. O `prender` fica dentro do ciclo, como no
+       * zoom: corrigir para um sítio onde a órbita não pode ir e só depois
+       * limitar deixaria o desvio por medir.
+       *
+       * Sem animação, de propósito: o salto das setas é seco, e o porquê
+       * está escrito na nota que abre este percurso, logo acima. */
+      const meioUtil = (topoUtil + baseUtil) / 2;
+      /* Menos de um pixel de desvio não paga três matrizes e três
+         projecções — e sem estorvo nenhum no caminho é exactamente esse o
+         caso, porque aí a faixa é a lona. */
+      if (Math.abs(meioUtil - alturaCaixa / 2) >= 1) {
+        naEsferaEm(alvoLocal, coords[0], coords[1], RAIO * 1.004);
+        for (let i = 0; i < 3; i++) {
+          colocarCamara();
+          aplicarOrbita();
+          orbita.phi -= (meioUtil - ecraDe(alvoLocal).y) * escala().phi;
+          prender();
+        }
+        aplicarOrbita();
+      }
+
+      /* Repetido de propósito: quando o desvio não paga a correcção, o ciclo
+         não corre e é esta a única vez que a órbita se limita. */
+      prender();
+      colocarCamara();
+      reagrupar();
+    };
+
+    const irPara = (i: number) => {
+      if (!percurso.length) return;
+      indiceTour = ((i % percurso.length) + percurso.length) % percurso.length;
+      const alvo = percurso[indiceTour];
+      aEntrar = false;
+      centrarEm(alvo.coords);
+
+      const e = etiquetas.find((x) => x.membros.some((m) => m.id === alvo.c.id));
+      if (!e) return;
+      /* Nunca se dá o foco a um elemento inerte — não iria lá parar. Tira-se
+         a inércia agora e o quadro a seguir escreve-a no sítio. */
+      if (e.anterior.morto) {
+        e.nó.toggleAttribute("inert", false);
+        e.anterior.morto = false;
+      }
+      /* Num ponto que junta várias, o foco vai ao nome desta e não à cabeça
+         do grupo: senão as setas passavam pelo grupo uma vez e as outras
+         quatro coudelarias ficavam sem caminho. Abrir a lista primeiro, que
+         um elemento escondido não recebe foco.
+
+         ── E o `fixa` tem de ser limpo, não só posto ─────────────────────
+         Era só posto. A partir do primeiro ajuntamento por que o percurso
+         passava, o `fixa` ficava a apontar-lhe para sempre — e como o
+         `actualizarActivo` lê `fixa ?? focada`, **o `fixa` velho tapava o
+         `focada` novo**: todas as etiquetas de uma coudelaria só que viessem
+         a seguir deixavam de ser a activa.
+
+         Isso não é um detalhe de estilo. A etiqueta activa é a primeira a
+         escolher lugar, é a única a quem a regra de não pousar sobre um
+         alfinete cede, e é a única que fica onde estava em vez de procurar
+         outro sítio. Sem isso, uma etiqueta com o foco podia simplesmente
+         não caber — e o foco ficava num nome que ninguém vê.
+
+         Medido a 1400×950, um percurso de 32 passos: **três passos com o foco
+         numa etiqueta a `opacity: 0`**, e os três eram etiquetas de uma
+         coudelaria só, e nenhum dos três tinha `data-activo`. Os membros de
+         ajuntamento tinham-no todos — porque para esses o `fixa` era posto de
+         propósito. O primeiro passo do percurso também o tinha, porque aí o
+         `fixa` ainda era nulo. É a assinatura exacta desta linha. */
+      fixa = e.membros.length > 1 ? e : null;
+      actualizarActivo();
+      (e.alvos.get(alvo.c.id) ?? e.cabeca).focus();
+      pedirQuadro();
+    };
+
+    /** Onde é que a coudelaria com este id está, no percurso. */
+    const passoDe = (id: string) => percurso.findIndex((p) => p.c.id === id);
+
+    /* O ouvinte fica na caixa e não na camada dos nomes: assim as setas
+       funcionam a partir de **qualquer** paragem dentro do globo — de um nome,
+       mas também dos botões de aproximar. Estava na camada, e por isso quem
+       chegasse ao globo pela tabulação e parasse num botão não tinha maneira
+       nenhuma de arrancar o percurso: medido em telemóvel, onde a tabulação
+       parava nos dois comandos e em nenhum nome. */
+    const aoNavegar = (ev: KeyboardEvent) => {
+      let passo = 0;
+      if (ev.key === "ArrowDown" || ev.key === "ArrowRight") passo = 1;
+      else if (ev.key === "ArrowUp" || ev.key === "ArrowLeft") passo = -1;
+      else if (ev.key === "Home") {
+        ev.preventDefault();
+        irPara(0);
+        return;
+      } else if (ev.key === "End") {
+        ev.preventDefault();
+        irPara(percurso.length - 1);
+        return;
+      }
+      if (!passo) return;
+      // Sem isto as setas rolavam a página por baixo do globo ao mesmo tempo.
+      ev.preventDefault();
+      /* De onde se parte: do que está debaixo do foco, se for uma coudelaria
+         conhecida; senão do último passo dado. */
+      const foco = (ev.target as HTMLElement | null)?.dataset?.coudelaria;
+      const actual = foco ? passoDe(foco) : indiceTour;
+      irPara(actual < 0 ? (passo > 0 ? 0 : percurso.length - 1) : actual + passo);
+    };
+    el.addEventListener("keydown", aoNavegar);
+
+    const aoTeclar = (e: KeyboardEvent) => {
+      /* As mesmas teclas de qualquer mapa. Chegam aqui por borbulhamento, a
+         partir de um nome ou de um botão com o foco — a caixa não entra na
+         tabulação, porque uma paragem que não diz o que faz não é um caminho. */
+      if (e.key === "+" || e.key === "=") {
+        e.preventDefault();
+        mudarAltura(1 / PASSO_ZOOM);
+        return;
+      }
+      if (e.key === "-" || e.key === "_") {
+        e.preventDefault();
+        mudarAltura(PASSO_ZOOM);
+        return;
+      }
+      if (e.key === "0") {
+        e.preventDefault();
+        reporVista();
+        return;
+      }
+      if (e.key !== "Escape") return;
+      if (manchaFixa) {
+        manchaFixa = null;
+        actualizarMancha();
+      }
+      if (!fixa) return;
+      fixa = null;
+      actualizarActivo();
+    };
+
+    /* ── Os comandos ──────────────────────────────────────────────────────
+     *
+     * Aproximar era possível — com a roda do rato ou com dois dedos —, mas
+     * não estava escrito em lado nenhum do quadro, e é aproximar que faz os
+     * nomes aparecerem: é a acção mais útil do ecrã e era a mais escondida.
+     * Uma legenda a dizer «aproxime-se» não é a mesma coisa que um botão:
+     * a legenda tem de se ler e de se acreditar, o botão carrega-se.
+     *
+     * São três e não uma barra de zoom com cursor: num globo de que se pode
+     * sair pelo lado, repor o enquadramento vale tanto como aproximar, e um
+     * cursor de zoom seria mais uma peça a desenhar por cima da fotografia.
+     * Apagam-se ao fim do curso — é a maneira honesta de dizer que a
+     * aproximação tem limite, sem escrever nenhum número.
+     *
+     * Ficam antes da camada de nomes na árvore de propósito: quem chega por
+     * tabulação encontra primeiro três acções com nome e depois os nomes, e
+     * não quinze nomes antes de saber que a vista se mexe. */
+    const comandos = document.createElement("div");
+    comandos.className = "globo-comandos";
+    comandos.setAttribute("role", "group");
+    comandos.setAttribute("aria-label", textosRef.current.comandos);
+
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    const desenho = (...ds: string[]) => {
+      const svg = document.createElementNS(SVG_NS, "svg");
+      svg.setAttribute("viewBox", "0 0 16 16");
+      svg.setAttribute("aria-hidden", "true");
+      svg.setAttribute("focusable", "false");
+      for (const d of ds) {
+        const p = document.createElementNS(SVG_NS, "path");
+        p.setAttribute("d", d);
+        svg.appendChild(p);
+      }
+      return svg;
+    };
+
+    const fazerComando = (rotulo: string, svg: SVGElement, accao: () => void) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "globo-comando";
+      b.setAttribute("aria-label", rotulo);
+      b.title = rotulo;
+      b.appendChild(svg);
+      /* O `pointerdown` não pode chegar à caixa: chegava, e carregar no
+         botão punha a caixa a capturar o ponteiro e a tratar o gesto como um
+         arrasto do globo. */
+      b.addEventListener("pointerdown", (ev) => ev.stopPropagation());
+      b.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        accao();
+      });
+      comandos.appendChild(b);
+      return b;
+    };
+
+    const btAproximar = fazerComando(textosRef.current.aproximar, desenho("M8 3.2v9.6", "M3.2 8h9.6"), () =>
+      mudarAltura(1 / PASSO_ZOOM)
+    );
+    const btAfastar = fazerComando(textosRef.current.afastar, desenho("M3.2 8h9.6"), () =>
+      mudarAltura(PASSO_ZOOM)
+    );
+    const btRepor = fazerComando(
+      textosRef.current.repor,
+      desenho(
+        "M8 2.2v3",
+        "M8 10.8v3",
+        "M2.2 8h3",
+        "M10.8 8h3",
+        "M8 5.6a2.4 2.4 0 1 0 0 4.8 2.4 2.4 0 0 0 0-4.8"
+      ),
+      reporVista
+    );
+
+    el.insertBefore(comandos, camadaEtiquetas);
+
+    /** Reescreve o que o cromado diz, na língua que o dicionário tem agora.
+        Corre à montagem por já ter corrido nas linhas acima, e outra vez
+        sempre que a língua muda — quem lhe bate é o efeito lá em baixo. As
+        etiquetas não entram aqui: essas refazem-se pela assinatura, que é o
+        caminho que já existe e já está medido. */
+    const aplicarCromado = () => {
+      const x = textosRef.current;
+      camadaEtiquetas.setAttribute("aria-label", x.camada);
+      comandos.setAttribute("aria-label", x.comandos);
+      for (const [b, rotulo] of [
+        [btAproximar, x.aproximar],
+        [btAfastar, x.afastar],
+        [btRepor, x.repor],
+      ] as const) {
+        b.setAttribute("aria-label", rotulo);
+        b.title = rotulo;
+      }
+    };
+    cromadoRef.current = aplicarCromado;
+
+    /* Escrito uma vez por mudança e não uma vez por quadro: pôr o mesmo
+       `disabled` sessenta vezes por segundo é trabalho de layout a troco de
+       nada. */
+    const estadoComandos = { perto: false, longe: false, posto: false };
+    const actualizarComandos = () => {
+      const perto = alturaVoo <= ALTURA_MINIMA * 1.001;
+      const longe = alturaVoo >= ALTURA_MAXIMA * 0.999;
+      const posto =
+        Math.abs(Math.log(alturaVoo / alturaRepouso)) < 0.01 &&
+        Math.abs(orbita.theta) < 1e-4 &&
+        Math.abs(orbita.phi) < 1e-4;
+      if (perto !== estadoComandos.perto) {
+        btAproximar.disabled = perto;
+        estadoComandos.perto = perto;
+      }
+      if (longe !== estadoComandos.longe) {
+        btAfastar.disabled = longe;
+        estadoComandos.longe = longe;
+      }
+      if (posto !== estadoComandos.posto) {
+        btRepor.disabled = posto;
+        estadoComandos.posto = posto;
+      }
+    };
+
+    el.addEventListener("pointerdown", aoDescer);
+    el.addEventListener("pointermove", aoMover);
+    el.addEventListener("pointerup", aoLargar);
+    el.addEventListener("pointercancel", aoCancelar);
+    el.addEventListener("pointerleave", aoSair);
+    el.addEventListener("wheel", aoRodar, { passive: false });
+    el.addEventListener("keydown", aoTeclar);
+
+    /* ── Perda de contexto ────────────────────────────────────────────────
+       Acontece em telemóveis com pouca memória, e acontecia sem ninguém
+       dar por isso: o three deixa de desenhar e o `requestAnimationFrame`
+       continuava a rodar a 60 por segundo em cima de uma tela morta —
+       medido. Agora o relógio pára e diz-se o que se passou. O three já
+       trata do `preventDefault` e de reconstruir o estado no `restored`;
+       o que falta aqui é o relógio e a palavra ao utilizador.
+
+       ── Quando a reposição não vem ───────────────────────────────────────
+
+       E não vem. O que aqui estava esperava pelo `webglcontextrestored` e
+       mais nada — a cena monta uma vez por vida do componente, num efeito sem
+       dependências —, de modo que um contexto que não voltasse não voltava
+       nunca. O que a pessoa via era um rectângulo preto com os nomes das
+       coudelarias a flutuar por cima dele e uma frase a dizer que a vista
+       «volta assim que ele a devolver»: uma promessa que ninguém estava a
+       cumprir. É o «às vezes fica preto» das capturas.
+
+       Reproduzido a 390×700 com `deviceScaleFactor: 3`, das duas maneiras por
+       que um telemóvel perde mesmo um contexto — e nas duas o
+       `webglcontextrestored` **não chegou**, nem passados seis segundos:
+
+         despejo pelo tecto dos 16 contextos    lost, lost — e mais nada
+         perda com o separador escondido        lost, lost — e mais nada
+
+       (Dois `lost` porque são dois ouvintes, o do three e o nosso.) Só o
+       caminho artificial — `WEBGL_lose_context.restoreContext()`, que nenhum
+       browser chama sozinho — dava a reposição; e aí o three faz o que
+       promete e a cena volta inteira. Por isso este bloco não substitui a
+       reposição do browser: espera por ela, e refaz a cena se ela não vier.
+
+       Três decisões, e as razões:
+
+       1. **Espera-se primeiro.** Refazer é abrir um contexto novo, e um
+          contexto novo é mais caro do que o que o browser já tem meio
+          reposto. `ESPERA_PELA_REPOSICAO` dá-lhe a vez.
+       2. **Não se refaz às escuras.** Num separador escondido ou com a lona
+          fora do ecrã, um contexto novo é apenas o próximo a ser despejado —
+          e é justamente essa a situação em que o telefone o tirou. Fica em
+          espera; quem volta a bater aqui é o `visibilitychange` e o
+          observador de vista, que já sabem quando é que a página se vê.
+       3. **Não se insiste para sempre.** `MAX_RECUPERACOES` tentativas, com
+          a conta a recomeçar sempre que um contexto viveu `VIDA_SA` antes de
+          morrer. Esgotadas, fica-se em `perdido` — e a frase muda para o que
+          é verdade, em vez de prometer uma volta que já não se vai tentar. */
+    let relogioRecuperar = 0;
+    const talvezRefazer = () => {
+      window.clearTimeout(relogioRecuperar);
+      relogioRecuperar = 0;
+      if (contextoVivo || desmontado) return;
+      /* Escondido ou fora do ecrã: não se abre nada. Volta-se a ser chamado
+         quando a página se vir outra vez. */
+      if (document.hidden || !noEcra) return;
+      if (recuperacoes.current >= MAX_RECUPERACOES) {
+        setEstado("perdido");
+        return;
+      }
+      recuperacoes.current += 1;
+      setEstado("a-refazer");
+      /* Sair do efeito antes de mexer no estado que o volta a correr: mudar a
+         geração desmonta esta cena de dentro do ouvinte dela própria. */
+      queueMicrotask(() => setGeracao((g) => g + 1));
+    };
+    const aoPerderContexto = () => {
+      contextoVivo = false;
+      parar();
+      /* Uma perda ao fim de uma vida inteira é um acidente, não um ciclo. */
+      if (performance.now() - nasceuEm > VIDA_SA) recuperacoes.current = 0;
+      /* Diz-se já que a vista vai voltar — é verdade nos dois desfechos, quer
+         o browser a repona quer a refaçamos nós — e assim não há um piscar de
+         «suspensa» antes de «a repor». Só quando a conta se esgotar é que a
+         palavra passa a ser outra. */
+      setEstado(recuperacoes.current >= MAX_RECUPERACOES ? "perdido" : "a-refazer");
+      relogioRecuperar = window.setTimeout(talvezRefazer, ESPERA_PELA_REPOSICAO);
+    };
+    const aoReporContexto = () => {
+      contextoVivo = true;
+      window.clearTimeout(relogioRecuperar);
+      relogioRecuperar = 0;
+      setEstado((e) => (e === "perdido" || e === "a-refazer" ? "pronto" : e));
+      retomar();
+    };
+    lona.addEventListener("webglcontextlost", aoPerderContexto);
+    lona.addEventListener("webglcontextrestored", aoReporContexto);
+
+    // ── Quando é que vale a pena desenhar ─────────────────────────────────
+    const observadorVista = new IntersectionObserver(
+      ([entrada]) => {
+        noEcra = entrada.isIntersecting;
+        if (noEcra) {
+          retomar();
+          /* A lona voltou ao ecrã: se estava à espera para refazer, é agora. */
+          if (!contextoVivo) talvezRefazer();
+        } else {
+          parar();
+          largarOGlobo();
+        }
+      },
+      { threshold: 0 }
+    );
+    observadorVista.observe(el);
+
+    const aoMudarSeparador = () => {
+      escondido = document.hidden;
+      if (escondido) parar();
+      else {
+        retomar();
+        /* O caso comum do telemóvel: o contexto foi-se enquanto a pessoa
+           estava noutra aplicação, e é ao voltar que se refaz. */
+        if (!contextoVivo) talvezRefazer();
+      }
+    };
+    document.addEventListener("visibilitychange", aoMudarSeparador);
+
+    /* ── Quem está por cima da lona ───────────────────────────────────────
+       Não se pergunta ao código de fora quanto espaço ocupa — pergunta-se ao
+       browser quem está no caminho. Três sondagens na borda de baixo e três
+       na de cima com `elementFromPoint`: o que vier de volta e não for nosso
+       é um estorvo, e sobe-se até ao primeiro antepassado `fixed` ou
+       `sticky` para lhe saber a altura toda.
+
+       Assim a barra de cookies, a navegação de fundo do telemóvel e o
+       cabeçalho ao rolar entram na conta sem que o globo tenha de saber que
+       existem — nem de conhecer os nomes das classes de outros componentes,
+       que mudam sem aviso. `elementFromPoint` já ignora o que tem
+       `pointer-events: none`, por isso uma legenda decorativa não conta como
+       estorvo.
+
+       É caro (obriga o browser a refazer o layout), por isso não corre por
+       quadro: corre quando a caixa muda de tamanho, quando a página rola —
+       uma vez por quadro, no máximo — e três vezes depois de montar, que é
+       para apanhar a barra de cookies, que entra com atraso e com animação. */
+    const COLUNAS_SONDA = [0.16, 0.5, 0.84];
+    /* Fundos, em pixéis a contar da borda. Não chega sondar a borda: a barra
+       de cookies é `bottom: 12px`, isto é flutua doze pixéis acima do fundo
+       do ecrã, e uma sondagem só na última linha da lona passava-lhe por
+       baixo e dava «não há estorvo nenhum» — que foi exactamente o que
+       aconteceu à primeira tentativa. Sonda-se uma faixa, e o que conta é o
+       ponto mais fundo a que um estorvo chega. */
+    const FUNDOS_SONDA = [2, 18, 42, 78, 130, 200];
+    let estorvoPedido = 0;
+
+    /* ── As duas faixas que a última sondagem encontrou ───────────────────
+     * Em coordenadas da **janela**, e não da lona: é essa a forma que
+     * sobrevive a um deslocamento. `bandaTopo` é o ponto mais fundo a que um
+     * estorvo de cima chega; `bandaBase` é o ponto mais alto a que um de
+     * baixo sobe. Sem estorvo nenhum ficam nos infinitos, e as contas que as
+     * usam dão zero sozinhas.
+     *
+     * `houvePegajoso` diz se alguma delas veio de um `sticky`. */
+    let bandaTopo = -Infinity;
+    let bandaBase = Infinity;
+    let houvePegajoso = false;
+
+    /** O rectângulo do estorvo fixo que está neste ponto, se algum houver.
+     *
+     * Devolve também se ele era **pegajoso** e não fixo, e essa distinção não
+     * é curiosidade: um `fixed` não muda de sítio na janela quando a página
+     * rola — é a definição —, mas um `sticky` muda, porque passa de correr
+     * com o texto a ficar preso na borda. É essa diferença que decide se a
+     * faixa se pode recalcular de cabeça ou se tem de se voltar a perguntar
+     * ao browser. Ver `recalcularFaixa`. */
+    const fixoEm = (x: number, y: number) => {
+      const alvo = document.elementFromPoint(x, y);
+      if (!alvo || el.contains(alvo)) return null;
+      let n: HTMLElement | null = alvo as HTMLElement;
+      while (n && n !== document.body) {
+        const pos = getComputedStyle(n).position;
+        if (pos === "fixed" || pos === "sticky") {
+          if (pos === "sticky") houvePegajoso = true;
+          return n.getBoundingClientRect();
+        }
+        n = n.parentElement;
+      }
+      return null;
+    };
+
+    /* ── A roda e o dedo não podem prender a página ───────────────────────
+     *
+     * O globo escuta a roda com `passive: false` e chama sempre
+     * `preventDefault`, e a caixa leva `touch-none`. Enquanto o globo foi um
+     * bloco no meio de uma página isso era o que devia ser: a roda em cima
+     * dele aproxima, o dedo em cima dele roda, e há página à volta por onde
+     * se desce.
+     *
+     * Deixou de ser verdade quando o globo passou a ocupar o ecrã todo. Aí
+     * não há «à volta»: a lona é o primeiro ecrã inteiro, e um ouvinte não
+     * passivo em cima dele é exactamente a armadilha que o CLAUDE.md descreve
+     * a propósito do Lenis — o browser fica proibido de deslocar a página no
+     * compositor porque tem de esperar que o JavaScript decida.
+     *
+     * Medido nesta construção, com a lona a cobrir 100% do quadro: doze
+     * dentes de roda em cima do globo deslocavam a página **0 px** dos 380
+     * que ela tinha para descer no computador, e um arrasto de dedo deslocava
+     * **0 px** dos 832 do telemóvel. O que estava por baixo do globo — que
+     * é o resto da página — só se alcançava pela nesga de cabeçalho que a
+     * lona não tapa.
+     *
+     * A regra passa a sair da medida e não de um pressuposto, que é a mesma
+     * honestidade do `medirEstorvos` aqui ao lado: pergunta-se **quanto do
+     * ecrã é que a lona ocupa** e **se a página tem para onde descer**. Se o
+     * globo é o ecrã e há página por baixo, o gesto de deslocar é da página:
+     * a roda passa a um ouvinte passivo e o dedo ganha `pan-y`. Aproximar
+     * continua a haver — os três botões do canto, as teclas `+`, `-` e `0`, e
+     * o arrasto horizontal continua a rodar o globo. Se o globo voltar a ser
+     * um bloco, tudo volta ao que era, sem que ninguém tenha de se lembrar
+     * de o desfazer.
+     *
+     * O que se perde no caso preso é a inclinação por dedo vertical, que
+     * passa a ser deslocamento da página. É menos do que uma página que não
+     * se pode largar.
+     *
+     * ── E porque é que isto **não** corre dentro do `medirEstorvos` ────────
+     * Corria, e custou caro. A resposta muda uma vez por carregamento e a
+     * mudança escreve um estilo em linha na caixa que é antepassada da camada
+     * dos nomes; feita dentro do quadro que a seguir mede as etiquetas e as
+     * coloca, apanhava a medição a meio. Medido, em pares interleaved contra
+     * a mesma construção sem esta alteração: o original ficou 5 vezes em 5
+     * com as 29 coudelarias contadas no ecrã, e com isto lá dentro ficaram 2
+     * em 5 com **25 de 29** — quatro pontos sem nome e sem algarismo, que é
+     * precisamente a promessa que o CLAUDE.md faz sobre este globo.
+     *
+     * Por isso corre onde a resposta pode mudar e onde não há colocação a
+     * meio: no `ResizeObserver`, que é quem sabe que a caixa mudou, e em três
+     * tarefas depois de montar, que é para apanhar a página a acabar de
+     * crescer por baixo. Nunca dentro de um quadro. */
+    /* ── A quem pertence a roda ───────────────────────────────────────────
+     *
+     * O `verSePrende`, aqui em baixo, responde a uma pergunta de geometria: a
+     * lona é o ecrã e há página por baixo? No `/mapa` a resposta é sempre sim
+     * — medido, 380px por rolar a 1400×950 e 750px a 390×700 —, e por isso a
+     * roda era **sempre** da página e o globo nunca aproximava com ela.
+     * Medido de fora, seis dentes para cima sobre o centro da lona: zero
+     * alteração no número de nomes e de manchas. Um mapa que não aproxima com
+     * a roda é um mapa que não responde, e o que estava por baixo a justificar
+     * a cedência era o rodapé.
+     *
+     * A cedência não se desfaz — a razão dela continua verdadeira e está
+     * escrita no `verSePrende`: quem chega ao mapa e roda para ler o que está
+     * por baixo não pode ficar preso a um globo que nunca pediu. O que muda é
+     * **quando** ela acaba: à página até alguém pegar no globo, ao globo a
+     * partir daí. Quem chega e rola nunca é preso; quem pega passa a poder
+     * explorar. E ao sair do ecrã o globo devolve a roda, porque o passeio
+     * seguinte por ele começa outra vez em quem chega.
+     *
+     * ── Só o rato pega ────────────────────────────────────────────────────
+     * O sinal é um `pointerdown` de rato ou caneta, e os botões de aproximar.
+     * **Não** o dedo, e não por esquecimento: num ecrã táctil o gesto que
+     * pegaria no globo é o mesmo com que se rola a página, e ao `pointerdown`
+     * não há como distingui-los. Prender o dedo por causa do primeiro toque
+     * deixava a página sem maneira de descer a partir do segundo. Por isso o
+     * `touch-action` fica onde estava, governado só pela geometria, e isto
+     * mexe numa coisa só: a roda, que é um órgão de rato. O defeito
+     * comunicado é de rato, e a cedência do dedo foi medida e continua boa.
+     *
+     * ── E o ouvinte não passivo só existe depois de alguém pegar ─────────
+     * Um ouvinte de `wheel` não passivo proíbe o browser de deslocar a página
+     * no compositor — é o que o `CLAUDE.md` conta sobre o Lenis. Por isso não
+     * se regista um permanente: quem nunca pegou no globo continua com zero. */
+    const aplicarRoda = () => {
+      const daPagina = globoEhOEcra && !pegouNoGlobo;
+      if (daPagina === rodaEhDaPagina) return;
+      rodaEhDaPagina = daPagina;
+      /* Um ouvinte não passivo prende o deslocamento mesmo que nunca chegue a
+         chamar `preventDefault`: quem decide é o registo, não a chamada. Por
+         isso não basta sair mais cedo do `aoRodar` — o ouvinte tem de voltar
+         a ser registado. */
+      el.removeEventListener("wheel", aoRodar);
+      el.addEventListener("wheel", aoRodar, { passive: daPagina });
+    };
+
+    /** Alguém usou o globo: daqui para a frente a roda é dele. */
+    const pegarNoGlobo = () => {
+      if (pegouNoGlobo) return;
+      pegouNoGlobo = true;
+      aplicarRoda();
+    };
+
+    /** O globo saiu do ecrã: o passeio acabou e a roda volta à página. */
+    const largarOGlobo = () => {
+      if (!pegouNoGlobo) return;
+      pegouNoGlobo = false;
+      aplicarRoda();
+    };
+
+    const verSePrende = () => {
+      if (desmontado) return;
+      const c = el.getBoundingClientRect();
+      if (c.width < 1 || c.height < 1) return;
+      const assinatura = `${Math.round(c.width)}x${Math.round(c.height)}@${window.innerWidth}x${window.innerHeight}`;
+      if (assinatura === medidaDaPrisao) return;
+      medidaDaPrisao = assinatura;
+      /* Mede-se a **caixa**, não a parte dela que se vê agora. Medir a parte
+         visível fazia a regra depender do rolo, e portanto desfazer-se a si
+         própria: bastava a página descer um dente para o globo deixar de
+         cobrir o ecrã, a roda voltar a ser dele e o deslocamento parar ali.
+         Medido antes de o perceber: dos 380px que a página tinha para descer
+         no computador, descia 120 — um dente — e prendia outra vez. */
+      const cobreOEcra =
+        c.width >= window.innerWidth * 0.98 && c.height >= window.innerHeight * 0.92;
+      /* O `scrollHeight` só se pergunta se a primeira metade passar: é a
+         leitura cara das duas, e na esmagadora maioria dos casos — um globo
+         que é um bloco no meio de uma página — não é preciso perguntar. */
+      const prende = cobreOEcra && document.documentElement.scrollHeight - window.innerHeight > 24;
+      if (prende === globoEhOEcra) return;
+      globoEhOEcra = prende;
+      /* O dedo continua a ser governado só por esta medida, e não pelo
+         `pegouNoGlobo` — ver a razão no `aplicarRoda`.
+         Em linha, e não por classe: a classe `touch-none` é o estado por
+         omissão e vale antes de isto correr. */
+      el.style.touchAction = prende ? "pan-y" : "";
+      aplicarRoda();
+    };
+
+    const medirEstorvos = () => {
+      estorvoPedido = 0;
+      if (desmontado || !noEcra || escondido) return;
+      const c = el.getBoundingClientRect();
+      if (c.width < 1 || c.height < 1) return;
+      /* ── Uma cortina não é uma barra ─────────────────────────────────
+         Um estorvo que come mais de 40% da lona já não é uma barra fixa a
+         que os nomes possam fugir: é uma modal ou uma cortina por cima de
+         tudo. Isto já cá estava escrito, mas a conclusão era a errada — o
+         código **encostava a faixa ao tecto de 40%** em vez de a ignorar, e
+         com um estorvo em cima e outro em baixo sobravam 20% de lona útil.
+
+         Medido de fora, depois de o aviso de cookies ter passado a um
+         diálogo com véu `fixed inset-0`: na primeira visita, sete nomes em
+         vez de catorze no computador e três em vez de nove no telemóvel. É
+         exactamente o primeiro quadro que alguém vê do site.
+
+         Quem cobre tudo não deixa sítio nenhum para onde fugir, e nesse caso
+         escrever os nomes onde eles devem estar é melhor do que os apagar:
+         quando a cortina sair — e vai sair — estão no sítio, e enquanto lá
+         está não se vê nada de qualquer maneira. Passa a ser descartado. */
+      const tecto = c.height * 0.4;
+      let alturaDoTopo = -Infinity;
+      let fundoDaBase = Infinity;
+      houvePegajoso = false;
+      const maisFundo = FUNDOS_SONDA[FUNDOS_SONDA.length - 1];
+      for (const f of COLUNAS_SONDA) {
+        const x = c.left + c.width * f;
+        let chegaCima = false;
+        let chegaBaixo = false;
+        for (const d of FUNDOS_SONDA) {
+          if (d > tecto) break;
+          /* Uma sondagem custa uma consulta de layout ao browser. Assim que
+             um estorvo desta coluna já se estende para além da sondagem mais
+             funda, nenhuma sondagem seguinte lhe pode acrescentar nada — e
+             deixa-se de perguntar. Medido: no telemóvel, com a barra de
+             cookies, passa de trinta e seis consultas para seis. */
+          if (!chegaCima) {
+            const emCima = fixoEm(x, c.top + d);
+            if (emCima) {
+              alturaDoTopo = Math.max(alturaDoTopo, emCima.bottom);
+              chegaCima = emCima.bottom - c.top >= maisFundo;
+            }
+          }
+          if (!chegaBaixo) {
+            const emBaixo = fixoEm(x, c.bottom - d);
+            if (emBaixo) {
+              fundoDaBase = Math.min(fundoDaBase, emBaixo.top);
+              chegaBaixo = c.bottom - emBaixo.top >= maisFundo;
+            }
+          }
+          if (chegaCima && chegaBaixo) break;
+        }
+      }
+      bandaTopo = alturaDoTopo;
+      bandaBase = fundoDaBase;
+      aplicarFaixa(c);
+    };
+
+    /* ── A conta, separada da sondagem ────────────────────────────────────
+     * Isto era o fim do `medirEstorvos` e passou a viver sozinho, porque há
+     * dois caminhos que precisam dele e só um deles precisa de perguntar ao
+     * browser onde estão os estorvos. */
+    const aplicarFaixa = (c: DOMRect) => {
+      const tecto = c.height * 0.4;
+      const entraEmCima = Math.max(0, bandaTopo - c.top);
+      const entraEmBaixo = Math.max(0, c.bottom - bandaBase);
+      const topo = entraEmCima > tecto ? 0 : entraEmCima;
+      const base = alturaCaixa - (entraEmBaixo > tecto ? 0 : entraEmBaixo);
+      if (Math.abs(topo - topoUtil) < 2 && Math.abs(base - baseUtil) < 2) return;
+      topoUtil = topo;
+      baseUtil = base;
+      /* Os comandos descem o mesmo que os nomes. Estavam no canto de cima e
+         iam parar por baixo do cabeçalho com a página a meio do rolo. */
+      comandos.style.setProperty("--recuo", `${Math.round(topo)}px`);
+      pedirQuadro();
+    };
+
+    /* ── Rolar não obriga a voltar a perguntar ao browser ─────────────────
+     *
+     * O `CLAUDE.md` promete, por escrito, que **nada varre a página a cada
+     * deslocamento** — e conta a história do `ObservadorRevelar`, que foi
+     * corrigido por fazer exactamente isto. Este ficheiro estava a fazê-lo na
+     * mesma página: o `aoRolar` pedia uma sondagem completa por evento de
+     * `scroll`, e uma sondagem completa são até 36 `elementFromPoint`, cada um
+     * com o `getComputedStyle` da subida aos antepassados e um
+     * `getBoundingClientRect` no fim. Medido a 390×700, em dois segundos de
+     * rolo: **900 `elementFromPoint`, 403 `getComputedStyle` e 145
+     * `getBoundingClientRect`** — cerca de 39 testes de acerto forçados por
+     * evento, e a maior despesa de linha principal da página inteira.
+     *
+     * E era trabalho a dobrar, porque a resposta não podia ter mudado: um
+     * elemento `fixed` **não se mexe na janela quando a página rola**. É a
+     * definição de `fixed`. O que muda é onde a lona está — e isso é uma
+     * leitura, não trinta e seis.
+     *
+     * Por isso, a rolar, recalcula-se de cabeça a partir das faixas que a
+     * última sondagem encontrou. Duas excepções, e as duas escritas:
+     *
+     * 1. **Um `sticky` mexe-se**, porque passa de correr com o texto a ficar
+     *    preso na borda. Se a última sondagem apanhou um, volta-se a
+     *    perguntar como antes — é o caso raro a pagar o preço, e não o comum.
+     * 2. **Uma sondagem completa continua a haver, mas quando o rolo pára** e
+     *    não enquanto ele corre. Isto não é para corrigir o `fixed`, que não
+     *    precisa: é para o motor não passar a *saber* que os outros
+     *    componentes não mudam. A regra desta cena é perguntar ao browser
+     *    quem está no caminho e não conhecer as classes de ninguém; um
+     *    elemento que passasse a `fixed` a meio de um rolo, sem animação
+     *    nenhuma, seria invisível a todos os outros sinais.
+     *
+     *    É travão de fim e não travão de ritmo, e a diferença é o que se
+     *    sente: a meio do gesto não se pergunta nada ao browser, e a pergunta
+     *    cai 160ms depois de o dedo parar, quando já ninguém está à espera de
+     *    um quadro. Uma sondagem por gesto, em vez de uma a cada quarenta
+     *    milissegundos. */
+    const REPOUSO_DO_ROLO_MS = 160;
+    let relogioDoRolo = 0;
+    let faixaPedida = 0;
+    /** Uma sondagem completa quando as coisas assentarem, e não uma por sinal. */
+    const pedirEstorvosEmRepouso = () => {
+      window.clearTimeout(relogioDoRolo);
+      relogioDoRolo = window.setTimeout(pedirEstorvos, REPOUSO_DO_ROLO_MS);
+    };
+    const medirFaixaAoRolar = () => {
+      faixaPedida = 0;
+      if (desmontado || !noEcra || escondido) return;
+      /* Um `sticky` muda de sítio na janela ao rolar, logo a faixa em cache
+         não lhe serve: para esse volta-se a perguntar, como antes. É o caso
+         raro a pagar o preço, e não o comum. */
+      if (houvePegajoso) {
+        medirEstorvos();
+        return;
+      }
+      const c = el.getBoundingClientRect();
+      if (c.width < 1 || c.height < 1) return;
+      aplicarFaixa(c);
+    };
+    const pedirFaixaAoRolar = () => {
+      pedirEstorvosEmRepouso();
+      if (faixaPedida || desmontado) return;
+      faixaPedida = requestAnimationFrame(medirFaixaAoRolar);
+    };
+
+    const pedirEstorvos = () => {
+      if (estorvoPedido || desmontado) return;
+      estorvoPedido = requestAnimationFrame(medirEstorvos);
+    };
+
+    /* ── Quando é que se volta a medir ────────────────────────────────────
+       Um estorvo aparece de duas maneiras, e cada uma tem o seu sinal.
+
+       Aparece **por si**, com atraso: a barra de cookies só entra dois
+       segundos depois de a página carregar, e entra a deslizar. Medir a meio
+       do deslize dá a barra onde ela ainda não está — e foi isso que
+       aconteceu à primeira: a faixa saía curta e dois nomes ficavam por
+       baixo dela na mesma. Quem avisa que acabou de entrar é o
+       `animationend`, e é a ele que se ouve.
+
+       Ou aparece e desaparece **por acção de alguém**: quem aceita os
+       cookies faz a barra sair, e nesse instante há mais lona outra vez. Um
+       `click` em qualquer sítio da página chega para o saber, e mede-se duas
+       vezes — agora e um terço de segundo depois, que é o tempo de o React
+       desmontar o que quer que tenha saído.
+
+       Nenhum destes é um relógio a bater para sempre. Em repouso, sem
+       ninguém a mexer em nada, não corre nada disto — que é a regra da casa
+       para esta cena. */
+    const talvezEstorvo = (ev: Event) => {
+      const alvo = ev.target as HTMLElement | null;
+      if (!alvo || typeof alvo.getBoundingClientRect !== "function") return;
+      if (el.contains(alvo)) return;
+      const pos = getComputedStyle(alvo).position;
+      if (pos !== "fixed" && pos !== "sticky") return;
+      /* ── Uma sondagem por assentamento, e não uma por propriedade ────────
+         Uma transição não acaba uma vez: acaba uma vez **por propriedade que
+         transita**, e o cromado deste mapa transita várias ao mesmo tempo —
+         a barra e o rodapé escondem-se ao rolar, cada um com o seu
+         `transform` e a sua `opacity`. Cada um desses fins pedia uma
+         sondagem completa, e ao rolar isso repete-se durante todo o gesto.
+
+         Medido a 1400×950, em dois segundos de rolo **depois** de o próprio
+         `aoRolar` já ter deixado de sondar: 357 `elementFromPoint`, todos
+         daqui. O rolo tinha sido corrigido e o custo continuava lá, vindo da
+         porta do lado.
+
+         O sinal continua a ser o mesmo — não se mede a meio de um deslize,
+         que era o defeito que este ouvinte existe para evitar —, mas
+         espera-se que **todas** as transições assentem antes de perguntar
+         uma vez. */
+      pedirEstorvosEmRepouso();
+    };
+
+    let relogioClique = 0;
+    const aoClicarAlgures = () => {
+      pedirEstorvos();
+      window.clearTimeout(relogioClique);
+      relogioClique = window.setTimeout(pedirEstorvos, 320);
+    };
+
+    /* Rolar a página muda onde a lona está na janela e pode trazer ou levar
+       um estorvo fixo. As duas coisas caducam ao mesmo sinal. */
+    const aoRolar = () => {
+      esquecerCaixa();
+      pedirFaixaAoRolar();
+    };
+    window.addEventListener("scroll", aoRolar, { passive: true });
+    document.addEventListener("animationend", talvezEstorvo, true);
+    document.addEventListener("transitionend", talvezEstorvo, true);
+    document.addEventListener("click", aoClicarAlgures, true);
+    const relogiosEstorvo = [0, 700, 2600].map((t) => window.setTimeout(pedirEstorvos, t));
+    /* A mesma cadência dos estorvos e pelo mesmo motivo — a página ainda está
+       a crescer por baixo do globo —, mas em tarefas próprias: o que esta
+       pergunta escreve não pode cair dentro de um quadro de colocação. */
+    const relogiosPrisao = [0, 700, 2600].map((t) => window.setTimeout(verSePrende, t));
+
+    /** A caixa da última vez que isto correu a sério. Ver a guarda de
+        assinatura, já a seguir. */
+    let medidaDaCaixa = "";
+    const observador = new ResizeObserver(() => {
+      /* ── Uma caixa que não mudou não refaz nada ────────────────────────
+       *
+       * O palco do globo deixou de ser desmontado ao trocar para a vista de
+       * lista: fica no documento com `hidden`. Isso poupou dois terços das
+       * tarefas longas por troca, e deixou aqui o que restava.
+       *
+       * Com o palco escondido o observador dispara com `clientWidth` a zero,
+       * o `|| 1` transformava-o numa lona de **1×1**, e a partir daí corria a
+       * cadeia inteira — `setSize`, `alturaParaCaber`, `prender`,
+       * `colocarCamara`, `reagrupar` (que recria as vinte e nove etiquetas) e
+       * `pedirEstorvos`. Ao reaparecer, corria tudo outra vez para voltar
+       * exactamente ao tamanho que já tinha. Duas passagens completas por
+       * troca de vista, para pôr a caixa onde ela estava.
+       *
+       * Duas guardas, e as duas dizem a mesma coisa por lados diferentes:
+       *
+       *  1. **Uma medida degenerada não descreve caixa nenhuma.** Zero de
+       *     largura é «isto não está no ecrã», não é «isto agora mede um
+       *     pixel»; enquadrar uma cena para 1×1 é deitar fora trabalho feito
+       *     para responder a uma pergunta que ninguém fez.
+       *  2. **A mesma medida não é uma mudança.** É a guarda que o
+       *     `verSePrende` já usa aqui ao lado, com o `medidaDaPrisao`, e pela
+       *     mesma razão. */
+      const l = el.clientWidth;
+      const a = el.clientHeight;
+      if (l < 1 || a < 1) return;
+      const assinaturaDaCaixa = `${l}x${a}`;
+      if (assinaturaDaCaixa === medidaDaCaixa) {
+        /* ── A mesma caixa ainda pode ter perdido o desenho ──────────────
+         *
+         * A guarda de cima é sobre **enquadrar**, e sair à cabeça estava
+         * certo para isso. Mas saía à cabeça também do `pedirQuadro`, e essas
+         * são duas perguntas diferentes: «mudou o tamanho?» e «ainda está lá
+         * o que se desenhou?».
+         *
+         * Não estão sempre. O `setSize` limpa o buffer de desenho, e um
+         * telemóvel — o iOS mais do que o resto — deita fora o conteúdo de
+         * uma lona que sai do ecrã sem disparar `webglcontextlost`: apaga e
+         * cala-se. Nos dois casos o que fica é uma lona limpa, ou seja preta,
+         * com os nomes por cima **porque esses são DOM e não se apagam** —
+         * que é exactamente a captura que o dono do produto mandou: preto sem
+         * planeta, com os nomes e os fios no sítio e sem aviso nenhum.
+         *
+         * Um quadro custa o que custa um quadro. Não pedir um custa a página. */
+        pedirQuadro();
+        return;
+      }
+      medidaDaCaixa = assinaturaDaCaixa;
+      esquecerCaixa();
+      larguraCaixa = l;
+      alturaCaixa = a;
+      renderizador.setSize(l, a);
+      camara.aspect = l / a;
+      camara.updateProjectionMatrix();
+      /* Numa caixa muito estreita o país deixa de caber ao largo, e a
+         resposta é subir — não abrir a lente. Abrir a vertical para
+         recuperar campo na horizontal mudava o horizonte de sítio ao rodar o
+         telemóvel: a composição deixava de ser a mesma composição. Subir
+         mantém a lente honesta e o horizonte a 18%. */
+      alturaRepouso = Math.max(ALTURA_REPOUSO, alturaParaCaber(camara.aspect));
+      if (!aEntrar && !zoomDoUtilizador) alturaVoo = alturaRepouso;
+      /* A caixa mudou de tamanho, logo mudou quantos metros vale um pixel — e
+         é dos metros por pixel que sai o raio dos ajuntamentos. Rodar o
+         telemóvel tem de refazer as contas, não só o tamanho da lona. */
+      prender();
+      colocarCamara();
+      reagrupar();
+      // Numa coluna mais estreita as etiquetas encolhem: as medidas em cache
+      // deixam de valer, e é delas que sai o teste de colisão.
+      precisaMedir = true;
+      /* A janela útil sai da posição da lona no ecrã, que acabou de mudar.
+         Enquanto não se remede, vale a lona inteira — nunca menos, para que
+         uma medida por fazer não apague nomes. */
+      baseUtil = Math.min(baseUtil, a);
+      /* Aqui sim, e não dentro de um quadro: o observador já é o sítio onde
+         tudo o que depende do tamanho se refaz de uma vez. */
+      verSePrende();
+      pedirEstorvos();
+      pedirQuadro();
+    });
+    observador.observe(el);
+
+    /* A vista reposta pode vir de uma caixa de outro tamanho: os limites
+       saem da caixa dos dados e da proporção da lona, e é aqui que se
+       verificam pela primeira vez. */
+    prender();
+    colocarCamara();
+    reagrupar(true);
+
+    /* ── Trocar os pontos com a cena de pé ────────────────────────────────
+     *
+     * Tudo o que depende da lista, e mais nada: os ajuntamentos (que o
+     * `reagrupar` refaz do zero, como já faz a cada degrau de zoom), a caixa
+     * dos dados de que saem os limites da órbita, e o percurso das setas.
+     * A Terra, as cinco texturas, os onze mil pontos dos contornos, as 4200
+     * estrelas, a atmosfera, a câmara e o contexto WebGL ficam onde estão —
+     * um filtro não muda nenhum deles.
+     *
+     * O `reagrupar(true)` força, porque o raio dos ajuntamentos não mudou
+     * (a câmara não se mexeu) e sem o `true` a chamada saía pela porta do
+     * atalho. E é ele que limpa a escolha a meio, o apontado, o foco e as
+     * manchas — o mesmo asseio que já fazia quando o zoom desfazia grupos.
+     *
+     * O `indiceTour` recua para −1: as setas recomeçam do princípio da lista
+     * nova. Continuar num índice de uma lista que mudou de tamanho era
+     * apontar a uma coudelaria ao acaso.
+     */
+    const trocarPontos = () => {
+      pontos = pontosRef.current;
+      crescerAte(Math.max(1, pontos.length));
+      caixaDados = medirCaixaDados(pontos);
+      percurso = ordenarPercurso(pontos);
+      indiceTour = -1;
+      /* Os limites da órbita acabaram de mudar de tamanho: se a vista estava
+         encostada a um limite antigo mais largo, prende-se agora ao novo. */
+      prender();
+      colocarCamara();
+      reagrupar(true);
+      /* As etiquetas são nós novos e ainda não estão medidas. */
+      precisaMedir = true;
+      /* Um quadro, e um só. O `pedirQuadro` não encadeia — desenha uma vez e
+         pára, que é o que mantém a promessa de zero rAF em repouso. */
+      pedirQuadro();
+    };
+
+    /* A porta fica aberta enquanto a cena viver. Quem lhe bate é o efeito da
+       assinatura, lá em baixo; a comparação com a assinatura que a cena tem
+       dentro evita a troca redundante no quadro em que ela acaba de montar. */
+    let assinaturaViva = assinaturaRef.current;
+    trocarRef.current = (nova) => {
+      if (nova === assinaturaViva) return;
+      assinaturaViva = nova;
+      trocarPontos();
+    };
+
+    /* O `pagehide` apanha o que o desmonte não apanha: fechar o separador,
+       seguir uma ligação para fora do site, o browser a arrumar a página. */
+    window.addEventListener("pagehide", guardarVista);
+
+    return () => {
+      desmontado = true;
+      /* Fecha-se a porta antes de tudo o resto: uma troca que chegasse
+         depois daqui iria mexer numa cena já descartada. */
+      trocarRef.current = null;
+      cromadoRef.current = null;
+      guardarVista();
+      window.removeEventListener("pagehide", guardarVista);
+      cancelarContornos.abort();
+      window.clearTimeout(relogioRevelar);
+      window.clearTimeout(relogioRecuperar);
+      for (const r of relogiosEstorvo) window.clearTimeout(r);
+      for (const r of relogiosPrisao) window.clearTimeout(r);
+      window.clearTimeout(relogioClique);
+      window.removeEventListener("scroll", aoRolar);
+      document.removeEventListener("animationend", talvezEstorvo, true);
+      document.removeEventListener("transitionend", talvezEstorvo, true);
+      document.removeEventListener("click", aoClicarAlgures, true);
+      if (estorvoPedido) cancelAnimationFrame(estorvoPedido);
+      if (faixaPedida) cancelAnimationFrame(faixaPedida);
+      window.clearTimeout(relogioDoRolo);
+      if (quadroPedido) cancelAnimationFrame(quadroPedido);
+      observador.disconnect();
+      observadorVista.disconnect();
+      document.removeEventListener("visibilitychange", aoMudarSeparador);
+      lona.removeEventListener("webglcontextlost", aoPerderContexto);
+      lona.removeEventListener("webglcontextrestored", aoReporContexto);
+      el.removeEventListener("pointerdown", aoDescer);
+      el.removeEventListener("pointermove", aoMover);
+      el.removeEventListener("pointerup", aoLargar);
+      el.removeEventListener("pointercancel", aoCancelar);
+      el.removeEventListener("pointerleave", aoSair);
+      el.removeEventListener("wheel", aoRodar);
+      el.removeEventListener("keydown", aoTeclar);
+      el.removeEventListener("keydown", aoNavegar);
+      /* Os ouvintes das etiquetas ficam nos nós que saem daqui com a camada:
+         a árvore inteira fica sem referências e vai com o resto do fecho. */
+      camadaEtiquetas.remove();
+      comandos.remove();
+
+      cena.traverse((o) => {
+        const obj = o as THREE.Mesh;
+        if (obj.geometry) obj.geometry.dispose();
+        const m = obj.material;
+        if (Array.isArray(m)) m.forEach((x) => x.dispose());
+        else if (m) m.dispose();
+      });
+      /* Um `ShaderMaterial.dispose()` não toca nas texturas dos uniformes —
+         a limpeza antiga não lhes chegava. Medido: vinte teclas escritas na
+         pesquisa levavam as texturas vivas de 8 a 101 e a memória de 8,9
+         para 18,5 MB. */
+      for (const t of texturas) t.dispose();
+
+      renderizador.dispose();
+      /* `dispose()` larga o que o renderizador alocou, mas o contexto WebGL
+         em si só se liberta com isto. Sem ele, vinte montagens enchiam a
+         consola de «Too many active WebGL contexts. Oldest context will be
+         lost» — que é o globo de outro separador a apagar-se sozinho. */
+      renderizador.forceContextLoss();
+      lona.remove();
+    };
+    /* Sem dependências, e sem uma linha a calar o linter: a cena monta uma
+       vez por vida do componente e tudo o que vem de fora — os pontos, a
+       assinatura, o `hrefDe`, o encaminhador — entra por `ref`, que é
+       estável. A lista muda pela porta do `trocarRef`. A assinatura chegou a
+       estar aqui, e era ela que mandava deitar fora o contexto WebGL a cada
+       tecla da pesquisa. */
+  }, []);
+
+  /* A `geracao` é a única coisa que pode remontar esta cena, e só sobe quando
+     o browser lhe tirou o contexto e não o devolveu. Filtrar, mudar de região
+     ou trocar de destino continua a não desmontar nada — entra pelo
+     `trocarRef`, logo a seguir. */
+  useEffect(() => montar(geracao > 0), [montar, geracao]);
+
+  /* A lista mudou de conteúdo: troca-se dentro da cena, sem a remontar. Corre
+     depois do efeito que monta — os efeitos correm pela ordem em que estão
+     escritos —, e no primeiro quadro não faz nada, porque a cena acabou de
+     nascer com esta mesma assinatura. */
+  useEffect(() => {
+    trocarRef.current?.(assinatura);
+  }, [assinatura]);
+
+  /* A língua mudou com o mapa aberto: as etiquetas já se refizeram pela
+     assinatura, e o cromado reescreve-se aqui. */
+  useEffect(() => {
+    cromadoRef.current?.();
+  }, [textos]);
+
+  const semImagem = estado === "sem-3d";
+  /* ── A cena vai-se toda, e não só a lona ────────────────────────────────
+     A camada dos nomes e os comandos são filhos desta caixa, e é de propósito
+     que a opacidade os apanha a todos. Sem contexto WebGL não há planeta —
+     e um nome sem o ponto a que aponta não é um nome num mapa, é uma palavra
+     em cima de preto. Medido a 390×700 com o contexto perdido: a frase
+     «VISTA 3D SUSPENSA» caía por cima de «3 coudelarias», que é a sobreposição
+     que este ficheiro promete não ter em lado nenhum, e sete nomes ficavam a
+     apontar alfinetes que já não existiam. A caixa apaga-se com a mesma
+     transição de 900ms com que apareceu; o que fica é a palavra, sozinha.
+     Quando a cena refeita revelar, tudo volta pelo mesmo caminho. */
+  const semCena = estado === "a-carregar" || estado === "a-refazer" || semImagem || estado === "perdido";
+  /* Invisível **e** fora do caminho. Um nome a zero de opacidade continua a
+     receber o dedo e a tabulação: durante a recuperação ficavam sete ligações
+     por cima de preto, apontáveis e focáveis, a levar a fichas escolhidas por
+     um mapa que já não está no ecrã. O `a-carregar` fica de fora de propósito
+     — aí ainda não há nada colocado, e mexer-lhe seria mudar o que já estava
+     medido sem uma razão medida. */
+  const cenaMorta = estado === "a-refazer" || semImagem || estado === "perdido";
+  const aviso =
+    estado === "a-refazer"
+      ? {
+          titulo: t.mapa.globo_restoring_title,
+          texto: t.mapa.globo_restoring_hint,
+        }
+      : semImagem
+        ? {
+            titulo: t.mapa.globo_unavailable_title,
+            texto: preencher(t.mapa.globo_unavailable_hint, { n: pontos.length }),
+          }
+        : estado === "perdido"
+          ? {
+              /* Aqui já se tentou refazer o que havia a tentar. Dizer «volta
+                 assim que ele a devolver» era prometer uma coisa que já não se
+                 vai tentar; o que sobra de verdadeiro é o caminho que
+                 funciona, e esse é a lista. */
+              titulo: t.mapa.globo_unavailable_title,
+              texto: preencher(t.mapa.globo_lost_hint, { n: pontos.length }),
+            }
+          : null;
+
+  return (
+    /* ── A roda é do globo ────────────────────────────────────────────────
+       Medido enquanto o site rolava com um motor de deslocamento por
+       JavaScript (o Lenis, com `smoothWheel`): seis dentes de roda sobre a
+       lona aproximavam **e** rolavam a página 445 pixéis — quem se tentava
+       aproximar via o globo fugir-lhe para cima do ecrã. O `preventDefault()`
+       daqui não chegava, porque quem tratava o evento era o ouvinte do outro
+       lado, e a ordem de registo não é nossa.
+
+       Esse motor entretanto saiu do site, e o `preventDefault()` passou a
+       bastar. O atributo fica na mesma: é uma palavra, é o contrato público
+       de uma família inteira de bibliotecas de deslocamento, e diz o que
+       aqui é verdade — **a roda em cima do globo aproxima, não rola a
+       página**. Se algum dia voltar a entrar uma, o globo já está defendido,
+       e sem precisar de saber que ela existe. Fica na caixa de fora e não na
+       lona, para valer também para a camada dos nomes e para os comandos.
+
+       Uma ressalva, e está medida em `verSePrende`: quando a lona ocupa o
+       ecrã inteiro e a página tem para onde descer, é a página que fica com
+       a roda e com o dedo vertical — senão não há maneira de chegar ao que
+       está por baixo do globo. Nesse caso o globo não disputa nada e este
+       atributo também não tem nada a impedir. */
+    <div className="relative h-full w-full">
+      <div
+        ref={caixa}
+        className="h-full w-full cursor-grab touch-none active:cursor-grabbing"
+        inert={cenaMorta}
+        style={{
+          opacity: semCena ? 0 : 1,
+          transition: "opacity 900ms var(--ease-out)",
+        }}
+      />
+      {/* A região viva existe sempre, mesmo vazia. Um `aria-live` que só
+          aparece no DOM ao mesmo tempo que o texto não anuncia nada em vários
+          leitores de ecrã — quem escuta tem de já cá estar quando a frase
+          chega. É `polite` porque não interrompe: um leitor a cortar a frase
+          a meio de cada perda de contexto seria pior do que o silêncio. */}
+      <div
+        aria-live="polite"
+        className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 px-8 text-center"
+      >
+        {aviso && (
+          <>
+            <p className="rotulo-forte">{aviso.titulo}</p>
+            <p className="meta max-w-[36ch]">{aviso.texto}</p>
+          </>
+        )}
+      </div>
+      {/* A tabulação passa só pelos nomes que estão à vista — um foco em cima
+          de nada não é um caminho. O caminho para as outras são as setas, que
+          percorrem as {pontos.length} por ordem de latitude e trazem cada uma
+          à vista antes de lhe dar o foco. Tem de estar escrito: um atalho que
+          ninguém sabe que existe é um atalho que não existe. */}
+      <p className="sr-only">{preencher(t.mapa.globo_sr_help, { n: pontos.length })}</p>
+    </div>
+  );
+}

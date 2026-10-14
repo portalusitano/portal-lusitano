@@ -3,6 +3,16 @@ import { randomUUID } from "crypto";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import { logger } from "@/lib/logger";
 import { strictLimiter } from "@/lib/rate-limit";
+import { anfitrioesPermitidos, origemPermitida } from "@/lib/origem-permitida";
+
+/* Calculado uma vez ao carregar o módulo, e não a cada pedido: a lista não
+   muda enquanto o processo viver. */
+const ANFITRIOES_PERMITIDOS = anfitrioesPermitidos([
+  process.env.NEXT_PUBLIC_APP_URL,
+  process.env.NEXT_PUBLIC_BASE_URL,
+  "https://portal-lusitano.pt",
+  "http://localhost:3000",
+]);
 
 const MAX_FILES = 10;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -18,16 +28,13 @@ const MIME_TO_EXT: Record<string, string> = {
 };
 
 export async function POST(req: NextRequest) {
-  // Verificar origin — bloquear pedidos de domínios externos
+  // Verificar origin — bloquear pedidos de domínios externos.
+  //
+  // A comparação é por anfitrião. Era `origin.startsWith(o)`, e um prefixo de
+  // texto não é um domínio: `https://portal-lusitano.pt.exemplo.com` começa por
+  // `https://portal-lusitano.pt` e passava. Ver `lib/origem-permitida.ts`.
   const origin = req.headers.get("origin");
-  const allowedOrigins = [
-    process.env.NEXT_PUBLIC_APP_URL,
-    process.env.NEXT_PUBLIC_BASE_URL,
-    "https://portal-lusitano.pt",
-    "http://localhost:3000",
-  ].filter(Boolean);
-
-  if (!origin || !allowedOrigins.some((o) => origin.startsWith(o!))) {
+  if (!origemPermitida(origin, ANFITRIOES_PERMITIDOS)) {
     return NextResponse.json({ error: "Origem não autorizada." }, { status: 403 });
   }
 
