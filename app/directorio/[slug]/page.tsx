@@ -164,7 +164,23 @@ export async function generateStaticParams() {
     );
   }
 
-  return (data ?? []).map((c: { slug: string }) => ({ slug: c.slug }));
+  /* Uma lista vazia e um erro sao igualmente maus aqui, e so um deles estava
+     coberto. Com `dynamicParams = false`, zero slugs publica **todas** as
+     fichas a 404 — e sem erro nenhum, portanto em silencio, que e a pior
+     maneira de falhar. Se a base responde e nao tem uma unica coudelaria
+     activa, ou o seed nao correu ou aponta-se ao sitio errado; nos dois casos
+     e melhor a construcao parar do que publicar um directorio morto. */
+  const slugs = (data ?? []).map((c: { slug: string }) => ({ slug: c.slug }));
+
+  if (slugs.length === 0) {
+    throw new Error(
+      "A base respondeu sem erro mas nao trouxe uma unica coudelaria activa. " +
+        "Com `dynamicParams = false` isso publicaria todas as fichas a 404 sem um aviso — " +
+        "por isso a construcao para aqui, de proposito."
+    );
+  }
+
+  return slugs;
 }
 
 /**
